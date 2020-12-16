@@ -7,3 +7,7 @@ This package contains shared service components between untangle's restd, packet
   * ### These are common struct types that may need to be used across repositories
 * ## protobuffersrc/*
   * ### These are the .proto source files that are compiled into *.pb.go files
+  * ### To rebuild these, use the included docker files:
+    ```
+    docker-compose -f build/docker-compose.build.yml up --build glibc-local
+    ```
