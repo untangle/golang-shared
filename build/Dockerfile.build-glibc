@@ -1,0 +1,28 @@
+FROM golang:1.12.1
+LABEL maintainer="Sebastien Delafond <sdelafond@gmail.com>"
+
+USER root
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/no-recommends && \
+    echo 'APT::Install-Suggests "false";' >> /etc/apt/apt.conf.d/no-recommends
+
+RUN echo "deb http://foo:foo@updates.untangle.com/public/stretch 14.1.1 main non-free" > /etc/apt/sources.list.d/14.1.1.list
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 735A9E18E8F62EDF413592460B9D6AE3627BF103
+RUN apt-get update -q
+RUN apt-get install unzip -q
+
+# Used for compiling protocolbuffers
+# NOTE: for stretch we need to use the github release, because apt only includes v3.0
+# if this dockerfile is upgraded to a buster verison, then apt should have a compatible version
+RUN apt-get install libprotobuf-dev libprotoc-dev -q -y
+RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/protoc-3.14.0-linux-x86_64.zip
+RUN unzip protoc-3.14.0-linux-x86_64.zip && \
+    mv bin/protoc /usr/bin/
+
+RUN go get google.golang.org/protobuf/cmd/protoc-gen-go
+
+RUN mkdir -p /go/untangle-shared
+VOLUME /go/untangle-shared
+WORKDIR /go/untangle-shared
+CMD make

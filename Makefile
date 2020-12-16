@@ -1,0 +1,9 @@
+# currently the only thing we do in this Makefile is run lint, and build the protocol buffer structures
+all: lint compile-protobuffs
+
+compile-protobuffs:
+	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/jsommerville-untangle/golang-shared protobuffersrc/*
+
+lint:
+	GO111MODULE=off go get -u golang.org/x/lint/golint
+	$(shell go env GOPATH)/bin/golint -set_exit_status $(shell go list $(GOFLAGS) ./...)

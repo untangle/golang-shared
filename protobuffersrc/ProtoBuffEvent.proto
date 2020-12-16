@@ -1,0 +1,14 @@
+syntax = "proto3";
+package reports;
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/jsommerville-untangle/golang-shared/structs/ProtoBuffEvent";
+
+message ProtoBuffEvent {
+  string Name = 1;
+  string Table = 2;
+  int32 SQLOp = 3;
+
+  google.protobuf.Struct Columns = 4;
+  google.protobuf.Struct ModifiedColumns = 5;
+}

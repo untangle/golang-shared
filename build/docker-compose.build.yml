@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+    musl-local:
+      user: ${UID_GID}
+      build:
+        context: .
+        dockerfile: Dockerfile.build-musl
+      volumes:
+        - ..:/go/untangle-shared
+
+    glibc-local:
+      build:
+        context: .
+        dockerfile: Dockerfile.build-glibc
+      volumes:
+        - ..:/go/untangle-shared
