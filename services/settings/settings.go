@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	"../logger"
+	"github.com/jsommerville-untangle/golang-shared/services/logger"
 )
 
 const settingsFile = "/etc/config/settings.json"
