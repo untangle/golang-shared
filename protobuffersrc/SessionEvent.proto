@@ -2,9 +2,9 @@ syntax = "proto3";
 package reports;
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/untangle/golang-shared/structs/ProtoBuffEvent";
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/SessionEvent";
 
-message ProtoBuffEvent {
+message SessionEvent {
   string Name = 1;
   string Table = 2;
   int32 SQLOp = 3;
