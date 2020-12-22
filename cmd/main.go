@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/jsommerville-untangle/golang-shared/services/logger"
-	"github.com/jsommerville-untangle/golang-shared/services/overseer"
-	"github.com/jsommerville-untangle/golang-shared/services/settings"
+	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/overseer"
+	"github.com/untangle/golang-shared/services/settings"
 )
 
 func main() {
