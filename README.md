@@ -11,3 +11,4 @@ This package contains shared service components between untangle's restd, packet
     ```
     docker-compose -f build/docker-compose.build.yml up --build glibc-local
     ```
+##  [Working with modules](./MODULES.md)    
