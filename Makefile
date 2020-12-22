@@ -2,6 +2,7 @@
 all: lint compile-protobuffs
 
 compile-protobuffs:
+	rm -rf structs/protocolbuffers/*
 	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
 
 lint:
