@@ -2,7 +2,7 @@
 all: lint compile-protobuffs
 
 compile-protobuffs:
-	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/jsommerville-untangle/golang-shared protobuffersrc/*
+	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
 
 lint:
 	GO111MODULE=off go get -u golang.org/x/lint/golint
