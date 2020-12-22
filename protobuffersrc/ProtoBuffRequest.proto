@@ -1,0 +1,9 @@
+syntax = "proto3";
+package reports;
+
+option go_package = "github.com/untangle/golang-shared/structs/ProtoBuffRequest";
+
+message ProtoBuffRequest {
+    string Service = 1;
+    string Function = 2;
+}
