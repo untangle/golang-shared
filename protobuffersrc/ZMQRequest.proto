@@ -1,0 +1,9 @@
+syntax = "proto3";
+package reports;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ZMQRequest";
+
+message ZMQRequest {
+    string Service = 1;
+    string Function = 2;
+}
