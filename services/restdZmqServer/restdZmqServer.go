@@ -9,8 +9,8 @@ import (
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/TiffanyKalin-untangle/fake-packetd/services/dispatch"
-	zreq "github.com/untangle/golang-shared/structs/protocolbuffers/ZMQRequest"
 	prep "github.com/untangle/golang-shared/structs/protocolbuffers/PacketdReply"
+	zreq "github.com/untangle/golang-shared/structs/protocolbuffers/ZMQRequest"
 	"google.golang.org/protobuf/proto"
 	spb "google.golang.org/protobuf/types/known/structpb"
 )
@@ -18,7 +18,11 @@ import (
 var isShutdown = make(chan struct{})
 var wg sync.WaitGroup
 
-func Startup() {
+type Processer interface {
+	process(request *zreq.ZMQRequest) (processedReply []byte, processErr error) 
+}
+
+func Startup(proc Processer) {
 	logger.Info("Starting zmq service...\n")
 	socketServer()
 
