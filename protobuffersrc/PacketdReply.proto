@@ -5,5 +5,5 @@ import "google/protobuf/struct.proto";
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/PacketdReply";
 
 message PacketdReply {
-    google.protobuf.Struct Conntracks = 1;
+    repeated google.protobuf.Struct Conntracks = 1;
 }
