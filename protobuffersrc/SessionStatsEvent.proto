@@ -4,18 +4,18 @@ package reports;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/SessionStatsEvent";
 
 message SessionStatsEvent {
-  int32 sessionID = 1;
+  int64 sessionID = 1;
   int64 timeStamp = 2;
-  int32 bytes = 3;
-  int32 clientBytes = 4;
-  int32 serverBytes = 5;
-  int32 byteRate = 6;
-  int32 clientByteRate = 7;
-  int32 serverByteRate = 8;
-  int32 packets = 9;
-  int32 clientPackets = 10;
-  int32 serverPackets = 11;
-  int32 packetRate = 12;
-  int32 clientPacketRate = 13;
-  int32 serverPacketRate = 14;
+  uint64 bytes = 3;
+  uint64 clientBytes = 4;
+  uint64 serverBytes = 5;
+  float byteRate = 6;
+  float clientByteRate = 7;
+  float serverByteRate = 8;
+  uint64 packets = 9;
+  uint64 clientPackets = 10;
+  uint64 serverPackets = 11;
+  float packetRate = 12;
+  float clientPacketRate = 13;
+  float serverPacketRate = 14;
 }
