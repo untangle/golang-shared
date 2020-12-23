@@ -19,13 +19,12 @@ var isShutdown = make(chan struct{})
 var wg sync.WaitGroup
 
 type Processer interface {
-	process(request *zreq.ZMQRequest) (processedReply []byte, processErr error) 
+	Process(request *zreq.ZMQRequest) (processedReply []byte, processErr error) 
 }
 
-func Startup(proc Processer) {
+func Startup(processer Processer) {
 	logger.Info("Starting zmq service...\n")
-	socketServer()
-
+	socketServer(processer)
 }
 
 func Shutdown() {
@@ -33,7 +32,7 @@ func Shutdown() {
 	wg.Wait()
 }
 
-func socketServer() {
+func socketServer(processer Processer) {
 	zmqSocket, err := zmq.NewSocket(zmq.REP)
 	if err != nil {
 		logger.Warn("Failed to create zmq socket...", err)
@@ -41,7 +40,7 @@ func socketServer() {
 
 	zmqSocket.Bind("tcp://*:5555")
 	wg.Add(1)
-	go func(waitgroup *sync.WaitGroup, socket *zmq.Socket) {
+	go func(waitgroup *sync.WaitGroup, socket *zmq.Socket, proc Processer) {
 		defer socket.Close()
 		defer waitgroup.Done()
 		tick := time.Tick(500 * time.Millisecond)
@@ -68,7 +67,7 @@ func socketServer() {
 				}
 				logger.Info("Received ", request, "\n")
 
-				reply, err := processMessage(request)
+				reply, err := processMessage(proc, request)
 				if err != nil {
 					logger.Warn("Error on processing reply: ", err, "\n")
 					continue
@@ -78,32 +77,9 @@ func socketServer() {
 				logger.Info("Sent ", reply, "\n")
 			}
 		} 
-	}(&wg, zmqSocket)
+	}(&wg, zmqSocket, processer)
 }
 
-func processMessage(request *zreq.ZMQRequest) (processedReply []byte, processErr error) {
-	function := request.Function
-	reply := &prep.PacketdReply{}
-
-	if function == "GetConntrackTable" {
-		conntrackTable := dispatch.GetConntrackTable()
-		for _, v := range conntrackTable {
-			conntrackStruct, err := spb.NewStruct(v)
-
-			if err != nil {
-				return nil, errors.New("Error getting conntrack table: " + err.Error())
-			}
-
-			reply.Conntracks = append(reply.Conntracks, conntrackStruct)
-		}
-		
-		
-	}
-
-	encodedReply, err := proto.Marshal(reply)
-	if err != nil {
-		return nil, errors.New("Error encoding reply: " + err.Error())
-	}
-
-	return encodedReply, nil
+func processMessage(proc Processer, request *zreq.ZMQRequest) (processedReply []byte, processErr error) {
+	return proc.Process(request)
 }
