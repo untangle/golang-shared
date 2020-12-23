@@ -1,7 +1,5 @@
 package restdZmqServer
 
-package zmqd
-
 import (
 	"errors"
 	"sync"
