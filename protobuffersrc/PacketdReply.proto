@@ -13,5 +13,5 @@ message PacketdReply {
     message ConntrackTableEntry {
         map<int32, Conntrack> values = 1;
     }
-    repeated ConntrackTableEntry conntracks = 1;
+    repeated ConntrackTableEntry Conntracks = 1;
 }
