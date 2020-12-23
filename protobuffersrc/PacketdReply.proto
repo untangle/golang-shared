@@ -1,0 +1,17 @@
+syntax = "proto3";
+package reports;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/PacketdReply";
+
+message Conntrack {
+    int32 ConntrackID = 1;
+    int64 TimestampStart = 2;
+    int64 TimestampStop = 3;
+}
+
+message PacketdReply {
+    message ConntrackTableEntry {
+        map<int32, Conntrack> values = 1;
+    }
+    repeated ConntrackTableEntry conntracks = 1;
+}
