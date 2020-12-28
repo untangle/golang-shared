@@ -4,6 +4,14 @@ package reports;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ZMQRequest";
 
 message ZMQRequest {
-    string Service = 1;
-    string Function = 2;
+    enum Service {
+        PACKETD = 0;
+        REPORTD = 1;
+    }
+    Service service = 1;
+    enum Function {
+        TEST_INFO = 0;
+        GET_SESSIONS = 1;
+    }
+    Function function = 2;
 }
