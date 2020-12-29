@@ -58,9 +58,10 @@ func socketServer(processer Processer) {
 				var replyErr error
 				requestRaw, err := socket.RecvMessageBytes(zmq.DONTWAIT)
 				if err != nil {
-					if zmq.AsErrno(err) != zmq.AsErrno(syscall.EAGAIN) {
-						serverErr = "Error on receive " + err.Error()
+					if zmq.AsErrno(err) == zmq.AsErrno(syscall.EAGAIN) {
+						continue
 					}
+					serverErr = "Error on receive " + err.Error()
 				} else {
 					request := &zreq.ZMQRequest{}
 					err := proto.Unmarshal(requestRaw[0], request)
