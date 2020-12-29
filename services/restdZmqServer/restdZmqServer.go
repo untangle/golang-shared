@@ -44,6 +44,8 @@ func socketServer(processer Processer) {
 		defer socket.Close()
 		defer waitgroup.Done()
 		tick := time.Tick(500 * time.Millisecond)
+		errorCount := 0
+		var mutex sync.RWMutex
 		for {
 			select {
 			case <-isShutdown:
@@ -51,10 +53,25 @@ func socketServer(processer Processer) {
 				return
 			case <-tick:
 				logger.Debug("Listening for requests\n")
+				mutex.Lock()
 				requestRaw, err := socket.RecvMessageBytes(zmq.DONTWAIT)
+				mutex.Unlock()
 				if err != nil {
 					if zmq.AsErrno(err) != zmq.AsErrno(syscall.EAGAIN) {
-						logger.Warn("Error on receive ", zmq.AsErrno(err), "\n")
+						logger.Warn("Error on receive ", err, "\n")
+						errorCount = errorCount + 1
+						if errorCount > 3 {
+							mutex.Lock()
+							socket.Close()
+							var socketErr error
+							socket, socketError := zmq.NewSocket(zmq.REP)
+							if socketError != nil {
+								logger.Warn("Failed to create zmq socket...", err)
+							}
+							socket.Bind("tcp://*:5555")
+							mutex.Unlock()
+							errorCount = 0
+						}
 					}
 					continue
 				}
@@ -73,7 +90,9 @@ func socketServer(processer Processer) {
 					continue
 				}
 
+				mutex.Lock()
 				socket.SendMessage(reply)
+				mutex.Unlock()
 				logger.Info("Sent ", reply, "\n")
 			}
 		} 
