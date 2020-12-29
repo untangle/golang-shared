@@ -79,7 +79,7 @@ func socketServer(processer Processer) {
 				if len(serverErr) == 0 {
 					reply, replyErr = processErrorMessage(proc, serverErr)
 					if replyErr != nil {
-						reply = [][]byte
+						reply = make([][]byte, 0)
 					}
 				}
 
