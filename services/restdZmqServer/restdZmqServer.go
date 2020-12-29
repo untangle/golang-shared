@@ -44,9 +44,6 @@ func socketServer(processer Processer) {
 		defer socket.Close()
 		defer waitgroup.Done()
 		tick := time.Tick(500 * time.Millisecond)
-		errorCount := 0
-		var mutex sync.RWMutex
-		persistentError := false
 		for {
 			select {
 			case <-isShutdown:
@@ -54,52 +51,40 @@ func socketServer(processer Processer) {
 				return
 			case <-tick:
 				logger.Debug("Listening for requests\n")
-				mutex.Lock()
+				var serverErr error
+				serverErr = nil
+				var reply []byte
+				var replyErr error
 				requestRaw, err := socket.RecvMessageBytes(zmq.DONTWAIT)
-				mutex.Unlock()
 				if err != nil {
 					if zmq.AsErrno(err) != zmq.AsErrno(syscall.EAGAIN) {
-						logger.Warn("Error on receive ", err, "\n")
-						if persistentError {
-							errorCount = errorCount + 1
-						}
-						if errorCount > 3 {
-							logger.Info("Creating new server socket\n")
-							mutex.Lock()
-							socket.Close()
-							var socketErr error
-							socket, socketErr := zmq.NewSocket(zmq.REP)
-							if socketErr != nil {
-								logger.Warn("Failed to create zmq socket...", err)
-							}
-							socket.Bind("tcp://*:5555")
-							mutex.Unlock()
-							errorCount = 0
-						}
-						persistentError = true
+						serverErr = "Error on receive " + err.Error()
 					}
-					continue
 				} else {
-					persistentError = false
+					request := &zreq.ZMQRequest{}
+					err := proto.Unmarshal(requestRaw[0], request)
+					if err != nil {
+						serverErr = "Error on unmasharlling " + err.Error()
+					} else {
+						logger.Debug("Received ", request, "\n")
+
+						reply, replyErr = processMessage(proc, request)
+						if replyErr != nil {
+							serverErr = "Error on processing reply: " + err.Error()
+						}
+					}
 				}
 
-				// Process message
-				request := &zreq.ZMQRequest{}
-				if err := proto.Unmarshal(requestRaw[0], request); err != nil {
-					logger.Warn("Error on unmasharlling ", err, "\n")
-					continue
-				}
-				logger.Info("Received ", request, "\n")
-
-				reply, err := processMessage(proc, request)
-				if err != nil {
-					logger.Warn("Error on processing reply: ", err, "\n")
-					continue
+				if serverErr != nil {
+					errReply := &prep.PacketdReply{ServerError: serverErr}
+					reply, replyErr = proto.Marshal(errReply)
+					if replyErr != nil {
+						socket.SendMessage("Bad Error")
+						continue
+					}
 				}
 
-				mutex.Lock()
 				socket.SendMessage(reply)
-				mutex.Unlock()
 				logger.Info("Sent ", reply, "\n")
 			}
 		} 
