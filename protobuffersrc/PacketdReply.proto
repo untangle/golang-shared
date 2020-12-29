@@ -6,4 +6,5 @@ option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/P
 
 message PacketdReply {
     repeated google.protobuf.Struct Conntracks = 1;
+    repeated google.protobuf.Struct TestInfo = 2;
 }
