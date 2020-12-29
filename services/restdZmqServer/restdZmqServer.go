@@ -62,7 +62,7 @@ func socketServer(processer Processer) {
 					}
 					serverErr = "Error on receive " + err.Error()
 				} else {
-					logger.Info("received")
+					logger.Info("received\n")
 					request := &zreq.ZMQRequest{}
 					err := proto.Unmarshal(requestRaw[0], request)
 					if err != nil {
@@ -75,10 +75,10 @@ func socketServer(processer Processer) {
 						if replyErr != nil {
 							serverErr = "Error on processing reply: " + replyErr.Error()
 						}
-						logger.Info("processed")
 					}
 				}
-
+				logger.Info(serverErr, "\n")
+				logger.Info("%v\n", len(serverErr))
 				if len(serverErr) <= 0 {
 					logger.Info(serverErr, "\n")
 					reply, replyErr = processErrorMessage(proc, serverErr)
