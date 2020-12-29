@@ -46,6 +46,7 @@ func socketServer(processer Processer) {
 		tick := time.Tick(500 * time.Millisecond)
 		errorCount := 0
 		var mutex sync.RWMutex
+		persistentError := false
 		for {
 			select {
 			case <-isShutdown:
@@ -59,8 +60,11 @@ func socketServer(processer Processer) {
 				if err != nil {
 					if zmq.AsErrno(err) != zmq.AsErrno(syscall.EAGAIN) {
 						logger.Warn("Error on receive ", err, "\n")
-						errorCount = errorCount + 1
+						if persistentError {
+							errorCount = errorCount + 1
+						}
 						if errorCount > 3 {
+							logger.Info("Creating new server socket\n")
 							mutex.Lock()
 							socket.Close()
 							var socketErr error
@@ -72,8 +76,11 @@ func socketServer(processer Processer) {
 							mutex.Unlock()
 							errorCount = 0
 						}
+						persistentError = true
 					}
 					continue
+				} else {
+					persistentError = false
 				}
 
 				// Process message
