@@ -79,8 +79,7 @@ func socketServer(processer Processer) {
 				if len(serverErr) == 0 {
 					reply, replyErr = processErrorMessage(proc, serverErr)
 					if replyErr != nil {
-						socket.SendMessage("Bad Error")
-						continue
+						reply = [][]byte
 					}
 				}
 
