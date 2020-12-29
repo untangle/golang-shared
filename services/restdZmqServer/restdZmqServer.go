@@ -52,8 +52,7 @@ func socketServer(processer Processer) {
 				return
 			case <-tick:
 				logger.Debug("Listening for requests\n")
-				var serverErr string
-				serverErr = ""
+				serverErr := ""
 				var reply []byte
 				var replyErr error
 				requestRaw, err := socket.RecvMessageBytes(zmq.DONTWAIT)
@@ -77,7 +76,8 @@ func socketServer(processer Processer) {
 					}
 				}
 
-				if len(serverErr) == 0 {
+				if len(serverErr) <= 0 {
+					logger.Info(serverErr, "\n")
 					reply, replyErr = processErrorMessage(proc, serverErr)
 					if replyErr != nil {
 						reply = make([]byte, 0)
