@@ -17,7 +17,7 @@ var wg sync.WaitGroup
 // Processer is function for processing server functions
 type Processer interface {
 	Process(request *zreq.ZMQRequest) ([]byte, error) 
-	ProcessError(processError String) ([]byte, error)
+	ProcessError(processError string) ([]byte, error)
 }
 
 // Startup the server function 
@@ -96,6 +96,6 @@ func processMessage(proc Processer, request *zreq.ZMQRequest) (processedReply []
 	return proc.Process(request)
 }
 
-func processErrorMessage(proc Processer, serverErr string) {
+func processErrorMessage(proc Processer, serverErr string) (processedReply []byte, processErr error) {
 	return proc.ProcessError(serverErr)
 }
