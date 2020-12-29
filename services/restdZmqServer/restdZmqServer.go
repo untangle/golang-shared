@@ -16,7 +16,8 @@ var wg sync.WaitGroup
 
 // Processer is function for processing server functions
 type Processer interface {
-	Process(request *zreq.ZMQRequest) (processedReply []byte, processErr error) 
+	Process(request *zreq.ZMQRequest) ([]byte, error) 
+	ProcessError(processError String) ([]byte, error)
 }
 
 // Startup the server function 
@@ -52,7 +53,7 @@ func socketServer(processer Processer) {
 			case <-tick:
 				logger.Debug("Listening for requests\n")
 				var serverErr string
-				serverErr = nil
+				serverErr = ""
 				var reply []byte
 				var replyErr error
 				requestRaw, err := socket.RecvMessageBytes(zmq.DONTWAIT)
@@ -75,9 +76,8 @@ func socketServer(processer Processer) {
 					}
 				}
 
-				if serverErr != nil {
-					errReply := &prep.PacketdReply{ServerError: serverErr}
-					reply, replyErr = proto.Marshal(errReply)
+				if len(serverErr) == 0 {
+					reply, replyErr = processErrorMessage(proc, serverErr)
 					if replyErr != nil {
 						socket.SendMessage("Bad Error")
 						continue
@@ -94,4 +94,8 @@ func socketServer(processer Processer) {
 /* helper function that calls the interface's process function */
 func processMessage(proc Processer, request *zreq.ZMQRequest) (processedReply []byte, processErr error) {
 	return proc.Process(request)
+}
+
+func processErrorMessage(proc Processer, serverErr string) {
+	return proc.ProcessError(serverErr)
 }
