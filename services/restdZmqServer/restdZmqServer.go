@@ -51,7 +51,7 @@ func socketServer(processer Processer) {
 				return
 			case <-tick:
 				logger.Debug("Listening for requests\n")
-				var serverErr error
+				var serverErr string
 				serverErr = nil
 				var reply []byte
 				var replyErr error
@@ -70,7 +70,7 @@ func socketServer(processer Processer) {
 
 						reply, replyErr = processMessage(proc, request)
 						if replyErr != nil {
-							serverErr = "Error on processing reply: " + err.Error()
+							serverErr = "Error on processing reply: " + replyErr.Error()
 						}
 					}
 				}
