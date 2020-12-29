@@ -54,7 +54,7 @@ func socketServer(processer Processer) {
 				requestRaw, err := socket.RecvMessageBytes(zmq.DONTWAIT)
 				if err != nil {
 					if zmq.AsErrno(err) != zmq.AsErrno(syscall.EAGAIN) {
-						logger.Warn("Error on receive ", err, "\n")
+						logger.Warn("Error on receive ", zmq.AsErrno(err), "\n")
 					}
 					continue
 				}
