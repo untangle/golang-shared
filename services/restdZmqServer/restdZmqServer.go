@@ -68,8 +68,8 @@ func socketServer(processer Processer) {
 							mutex.Lock()
 							socket.Close()
 							var socketErr error
-							socket, socketError := zmq.NewSocket(zmq.REP)
-							if socketError != nil {
+							socket, socketErr := zmq.NewSocket(zmq.REP)
+							if socketErr != nil {
 								logger.Warn("Failed to create zmq socket...", err)
 							}
 							socket.Bind("tcp://*:5555")
