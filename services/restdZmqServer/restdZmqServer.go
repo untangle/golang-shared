@@ -13,7 +13,7 @@ import (
 
 const (
 	// ServerTick is tick for when server receives bytes
-	ServerTick = time.Tick(500 * time.Millisecond) 
+	ServerTick = 500 * time.Millisecond
 )
 
 // Variables for initiating a graceful shutdown
@@ -55,7 +55,7 @@ func socketServer(processer Processer) {
 		// Close socket and signal waitgroup is done
 		defer socket.Close()
 		defer waitgroup.Done()
-		tick := ServerTick
+		tick := time.Tick(ServerTick)
 
 		// Infinite for loop that quits when shutdown channel is closed
 		// Receives message bytes on the tick
