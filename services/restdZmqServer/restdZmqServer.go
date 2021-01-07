@@ -47,6 +47,7 @@ func socketServer(processer Processer) {
 	}
 
 	// Put socket into the waitgroup
+	// TODO find a way to dynamically choose port. passed into the socket server here? 
 	zmqSocket.Bind("tcp://*:5555")
 	wg.Add(1)
 
