@@ -136,7 +136,7 @@ func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func(rtInfo 
 		case rtEvt := <-routineInfoWatcher:
 			if rtEvt.Action == err {
 				logger.Info("Acting on this event: %v\n", rtEvt)
-				callbackErrorHandler()
+				callbackErrorHandler(rtEvt)
 			}
 		case <-time.Tick(60 * time.Second):
 			activeRoutinesMutex.Lock()
