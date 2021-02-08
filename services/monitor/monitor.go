@@ -8,13 +8,13 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
-var routineInfoWatcher = make(chan *routineInfo)
+var routineInfoWatcher = make(chan *RoutineInfo)
 var activeRoutines = make(map[string]bool)
 var activeRoutinesMutex = &sync.RWMutex{}
 var monitorRelation = RoutineContextGroup{}
 
-// routineInfo is a struct used to signal routine events
-type routineInfo struct {
+// RoutineInfo is a struct used to signal routine events
+type RoutineInfo struct {
 	Name   string
 	Action routineAction
 }
@@ -41,7 +41,7 @@ type RoutineContextGroup struct {
 // Startup is called to startup the monitor service
 func Startup(callbackErrorHandler func()) {
 	logger.Info("Starting routine monitor service...\n")
-	routineInfoWatcher = make(chan *routineInfo)
+	routineInfoWatcher = make(chan *RoutineInfo)
 	activeRoutines = make(map[string]bool)
 	monitorRelation = CreateRoutineContextRelation(context.Background(), "monitor", []string{"routineInfoWatcher"})
 
@@ -54,7 +54,7 @@ func RoutineStarted(routineName string) {
 	defer activeRoutinesMutex.Unlock()
 	activeRoutinesMutex.Lock()
 	logger.Info("Start Routine called: %s \n", routineName)
-	routineInfoWatcher <- &routineInfo{Name: routineName, Action: start}
+	routineInfoWatcher <- &RoutineInfo{Name: routineName, Action: start}
 	activeRoutines[routineName] = true
 }
 
@@ -64,7 +64,7 @@ func RoutineEnd(routineName string) {
 	defer activeRoutinesMutex.Unlock()
 	activeRoutinesMutex.Lock()
 	logger.Info("Finish Routine called: %s \n", routineName)
-	routineInfoWatcher <- &routineInfo{Name: routineName, Action: end}
+	routineInfoWatcher <- &RoutineInfo{Name: routineName, Action: end}
 	_, ok := activeRoutines[routineName]
 	if ok {
 		delete(activeRoutines, routineName)
@@ -77,7 +77,7 @@ func RoutineError(routineName string) {
 	defer activeRoutinesMutex.Unlock()
 	activeRoutinesMutex.Lock()
 	logger.Info("Error Routine called: %s \n", routineName)
-	routineInfoWatcher <- &routineInfo{Name: routineName, Action: err}
+	routineInfoWatcher <- &RoutineInfo{Name: routineName, Action: err}
 	_, ok := activeRoutines[routineName]
 	if ok {
 		delete(activeRoutines, routineName)
@@ -128,7 +128,7 @@ func Shutdown() {
 
 // montitorRoutineEvents is a routine that monitors the routineInfoWatcher queue for any routine events to act on
 // THIS IS A ROUTINE FUNCTION
-func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func()) {
+func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func(rtInfo RoutineInfo)) {
 
 	// Read the routineInfoWatcher channel for any Error types
 	for {
