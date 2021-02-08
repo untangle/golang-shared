@@ -39,13 +39,13 @@ type RoutineContextGroup struct {
 }
 
 // Startup is called to startup the monitor service
-func Startup() {
+func Startup(callbackErrorHandler func()) {
 	logger.Info("Starting routine monitor service...\n")
 	routineInfoWatcher = make(chan *routineInfo)
 	activeRoutines = make(map[string]bool)
 	monitorRelation = CreateRoutineContextRelation(context.Background(), "monitor", []string{"routineInfoWatcher"})
 
-	go monitorRoutineEvents(monitorRelation.Contexts["routineInfoWatcher"])
+	go monitorRoutineEvents(monitorRelation.Contexts["routineInfoWatcher"], callbackErrorHandler)
 
 }
 
@@ -128,7 +128,7 @@ func Shutdown() {
 
 // montitorRoutineEvents is a routine that monitors the routineInfoWatcher queue for any routine events to act on
 // THIS IS A ROUTINE FUNCTION
-func monitorRoutineEvents(ctx context.Context) {
+func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func()) {
 
 	// Read the routineInfoWatcher channel for any Error types
 	for {
@@ -136,7 +136,7 @@ func monitorRoutineEvents(ctx context.Context) {
 		case rtEvt := <-routineInfoWatcher:
 			if rtEvt.Action == err {
 				logger.Info("Acting on this event: %v\n", rtEvt)
-				handleRoutineWatcherEvents()
+				callbackErrorHandler()
 			}
 		case <-time.Tick(60 * time.Second):
 			activeRoutinesMutex.Lock()
@@ -147,10 +147,4 @@ func monitorRoutineEvents(ctx context.Context) {
 			return
 		}
 	}
-}
-
-// handleRoutineWatcherEvents is used to signal specific patterns to other routines
-// IE: if we see a specific go routine ending with error, rebuild that routine pattern
-func handleRoutineWatcherEvents() {
-	logger.Info("Taking action on this event")
 }
