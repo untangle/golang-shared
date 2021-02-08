@@ -39,7 +39,7 @@ type RoutineContextGroup struct {
 }
 
 // Startup is called to startup the monitor service
-func Startup(callbackErrorHandler func()) {
+func Startup(callbackErrorHandler func(rtInfo *RoutineInfo)) {
 	logger.Info("Starting routine monitor service...\n")
 	routineInfoWatcher = make(chan *RoutineInfo)
 	activeRoutines = make(map[string]bool)
@@ -128,7 +128,7 @@ func Shutdown() {
 
 // montitorRoutineEvents is a routine that monitors the routineInfoWatcher queue for any routine events to act on
 // THIS IS A ROUTINE FUNCTION
-func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func(rtInfo RoutineInfo)) {
+func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func(rtInfo *RoutineInfo)) {
 
 	// Read the routineInfoWatcher channel for any Error types
 	for {
