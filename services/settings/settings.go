@@ -22,6 +22,8 @@ const settingsFile = "/etc/config/settings.json"
 const defaultsFile = "/etc/config/defaults.json"
 const currentFile = "/etc/config/current.json"
 
+var OSForSyncSettings string = "openwrt"
+
 // Startup settings service
 func Startup() {
 }
@@ -29,6 +31,11 @@ func Startup() {
 // Shutdown settings service
 func Shutdown() {
 
+}
+
+// SetOS sets the os for settings to use 
+func SetOS(newOS string) {
+	OSForSyncSettings = newOS
 }
 
 // GetCurrentSettings returns the current settings from the specified path
@@ -333,7 +340,7 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 
 // runSyncSettings runs sync-settings on the specified filename
 func runSyncSettings(filename string, force bool) (string, error) {
-	cmd := exec.Command("/usr/bin/sync-settings", "-o", "openwrt", "-f", filename, "-v", "force="+strconv.FormatBool(force))
+	cmd := exec.Command("/usr/bin/sync-settings", "-o", OSForSyncSettings, "-f", filename, "-v", "force="+strconv.FormatBool(force))
 	outbytes, err := cmd.CombinedOutput()
 	output := string(outbytes)
 	if err != nil {
