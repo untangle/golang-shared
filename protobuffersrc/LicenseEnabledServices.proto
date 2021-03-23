@@ -4,5 +4,5 @@ package reports;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/LicenseEnabledServices";
 
 message LicenseEnabledServices {
-    map<string, bool> Service = 1;
+    map<string, bool> Services = 1;
 }
