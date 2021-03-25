@@ -434,8 +434,14 @@ func tempFile(dir, pattern string) (f *os.File, err error) {
 }
 
 // GetUID returns the UID of the system
-func GetUID() (string, error) {
-	file, err := os.Open("/etc/config/uid")
+func GetUIDOpenwrt() (string, error) {
+	return GetUID("/etc/config/uid")
+}
+
+// GetUID returns the UID of the system
+// Replace this in the settings service in golang-shared
+func GetUID(uidFile string) (string, error) {
+	file, err := os.Open(uidFile)
 	if err != nil {
 		return "", err
 	}
