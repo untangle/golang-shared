@@ -433,7 +433,7 @@ func tempFile(dir, pattern string) (f *os.File, err error) {
 	return
 }
 
-// GetUID returns the UID of the system
+// GetUIDOpenwrt returns the UID of the system
 func GetUIDOpenwrt() (string, error) {
 	return GetUID("/etc/config/uid")
 }
