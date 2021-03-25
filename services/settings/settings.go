@@ -22,6 +22,7 @@ const settingsFile = "/etc/config/settings.json"
 const defaultsFile = "/etc/config/defaults.json"
 const currentFile = "/etc/config/current.json"
 
+// OSForSyncSettings is the os sync-settings should use
 var OSForSyncSettings string = "openwrt"
 
 // Startup settings service
@@ -33,7 +34,7 @@ func Shutdown() {
 
 }
 
-// SetOS sets the os for settings to use 
+// SetOS sets the os for settings to use
 func SetOS(newOS string) {
 	OSForSyncSettings = newOS
 }
