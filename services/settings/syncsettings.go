@@ -24,7 +24,7 @@ type SyncSettings struct {
 }
 
 // NewSyncSettings creates a new settings object
-func NewSyncSettings(settingsfile string, defaultsfile string, currentfile string, osforsyncsettings string, tmpsettingsfile string, syncsettingsexecutable string, uidfile string) *Settings {
+func NewSyncSettings(settingsfile string, defaultsfile string, currentfile string, osforsyncsettings string, tmpsettingsfile string, syncsettingsexecutable string, uidfile string) *SyncSettings {
 	s := new(SyncSettings)
 
 	s.settingsFile = settingsfile
@@ -40,7 +40,7 @@ func NewSyncSettings(settingsfile string, defaultsfile string, currentfile strin
 }
 
 // CreateDefaults creates the settings defauls.json file
-func (s *Settings) CreateDefaults() error {
+func (s *SyncSettings) CreateDefaults() error {
 	// sync the defaults
 	cmdArgs := []string{"-o", s.osForSyncSettings, "-c", "-s", "-f", s.tmpSettingsFile}
 	err := s.runSyncSettings(cmdArgs)
@@ -71,7 +71,7 @@ func (s *Settings) CreateDefaults() error {
 }
 
 // NormalSync runs sync settings with OS and filename specified
-func (s *Settings) NormalSync() error {
+func (s *SyncSettings) NormalSync() error {
 	cmdArgs := []string{"-o", s.osForSyncSettings, "-f", s.settingsFile}
 	err := s.runSyncSettings(cmdArgs)
 	if err != nil {
@@ -82,7 +82,7 @@ func (s *Settings) NormalSync() error {
 }
 
 // FirstSyncSettingsRun will create the settings file if it doesn't exist, or rerun sync-settings for good measure
-func (s *Settings) FirstSyncSettingsRun() error {
+func (s *SyncSettings) FirstSyncSettingsRun() error {
 	cmdArgs := []string{"-o", s.osForSyncSettings, "-n"}
 
 	// check if settings.json exists, if not create it
@@ -105,7 +105,7 @@ func (s *Settings) FirstSyncSettingsRun() error {
 	return nil
 }
 
-func (s *Settings) runSyncSettings(cmdArgs []string) error {
+func (s *SyncSettings) runSyncSettings(cmdArgs []string) error {
 	cmd := exec.Command(s.syncSettingsExecutable, cmdArgs...)
 	outbytes, err := cmd.CombinedOutput()
 	output := string(outbytes)
@@ -132,7 +132,7 @@ func (s *Settings) runSyncSettings(cmdArgs []string) error {
 	return runErr
 }
 
-func (s *Settings) logSyncSettingsOutput(output string, err error) error {
+func (s *SyncSettings) logSyncSettingsOutput(output string, err error) error {
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		if logger.IsDebugEnabled() {
