@@ -69,7 +69,8 @@ func CheckHash(filename string, currentHash string) (bool, error) {
 		return true, hexErr
 	}
 	if hex != currentHash {
-		return true, errors.New("Hex does not match current hash")
+		logger.Warn("Hex does not match current hash\n")
+		return true, nil
 	}
 	return false, nil
 }
