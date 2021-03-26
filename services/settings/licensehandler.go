@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -57,6 +59,39 @@ func GetLicenseDefaults(product string) map[string]bool {
 	}
 
 	return defaults
+}
+
+// CheckHash checks if the license file has changed, returns true if it has
+func CheckHash(filename string, currentHash string) (bool, error) {
+	// read license file
+	retries := licenseReadRetries
+	var fileBytes []byte
+	for retries > 0 {
+		var readErr error
+		fileBytes, readErr = ioutil.ReadFile(filename)
+		if readErr != nil {
+			retries = retries - 1
+			// sleep one second, perhaps file is being written
+			time.Sleep(time.Second)
+		} else {
+			retries = 1
+			break
+		}
+	}
+
+	if retries <= 0 {
+		return true, errors.New("Failed to read hashable file")
+	}
+
+	// create new hash
+	hasher := md5.New()
+	hasher.Write(fileBytes)
+	hex := hex.EncodeToString(hasher.Sum(nil))
+
+	if hex != currentHash {
+		return true, nil
+	}
+	return false, nil
 }
 
 // NewLicenseSub creates new license
