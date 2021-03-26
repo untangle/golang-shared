@@ -17,6 +17,12 @@ type LicenseSub struct {
 	product         string
 }
 
+// LicenseInfo represents the json returned from license server
+type LicenseInfo struct {
+	JavaClass string    `json:"javaClass"`
+	List      []License `json:"list"`
+}
+
 // License is the struct representing each individual license
 type License struct {
 	UID         string `json:"UID"`
@@ -29,6 +35,7 @@ type License struct {
 	KeyVersion  int    `json:"keyVersion"`
 	Name        string `json:"name"`
 	JavaClass   string `json:"javaClass"`
+	Valid       bool   `json:"omitempty" default:"false"`
 }
 
 const (
@@ -72,6 +79,7 @@ func (l *LicenseSub) CleanUp() {
 
 // GetLicenses gets the enabled services
 func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
+	l.enabledServices = GetLicenseDefaults(l.product)
 	// read license file
 	retries := licenseReadRetries
 	var fileBytes []byte
@@ -89,18 +97,28 @@ func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	}
 
 	if retries <= 0 {
-		l.enabledServices = GetLicenseDefaults(l.product)
 		return l.enabledServices, errors.New("Failed to read license file")
 	}
 
 	// unmarshal license inforamtion
-	var licenses map[string]bool
-	jsonErr := json.Unmarshal(fileBytes, &licenses)
+	var licenseInfo LicenseInfo
+	jsonErr := json.Unmarshal(fileBytes, &licenseInfo)
 	if jsonErr != nil {
-		l.enabledServices = GetLicenseDefaults(l.product)
 		return l.enabledServices, jsonErr
 	}
 
-	l.enabledServices = licenses
+	l.determineEnabledServices(licenseInfo.List)
+
 	return l.enabledServices, nil
+}
+
+func (l *LicenseSub) determineEnabledServices(licenses []License) {
+	for _, license := range licenses {
+		_, ok := l.enabledServices[license.Name]
+		if ok {
+			l.enabledServices[license.Name] = license.Valid
+		} else {
+			logger.Warn("Saw a license name that's unknown: %s\n", license.Name)
+		}
+	}
 }
