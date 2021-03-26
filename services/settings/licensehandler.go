@@ -35,23 +35,10 @@ const (
 	licenseReadRetries = 5 //Number of retries to try on reading the license file
 )
 
-// NewLicenseSub creates new license
-func NewLicenseSub(licenseFilename string, uidFile string, product string) *LicenseSub {
-	logger.Info("Starting license sub...\n")
-
-	l := new(LicenseSub)
-	l.enabledServices = l.GetDefaults()
-	l.licenseFilename = licenseFilename
-	l.uidFile = uidFile
-	l.product = product
-
-	return l
-}
-
-// GetDefaults gets the default enabled services file, where everything is disabled
-func (l *LicenseSub) GetDefaults() map[string]bool {
+// GetLicenseDefaults gets the default enabled services file, where everything is disabled
+func GetLicenseDefaults(product string) map[string]bool {
 	var defaults map[string]bool
-	switch l.product {
+	switch product {
 	case "WAF":
 		defaults = map[string]bool{
 			"loadBalancing":    false,
@@ -63,6 +50,19 @@ func (l *LicenseSub) GetDefaults() map[string]bool {
 	}
 
 	return defaults
+}
+
+// NewLicenseSub creates new license
+func NewLicenseSub(licenseFilename string, uidFile string, product string) *LicenseSub {
+	logger.Info("Starting license sub...\n")
+
+	l := new(LicenseSub)
+	l.enabledServices = GetLicenseDefaults(product)
+	l.licenseFilename = licenseFilename
+	l.uidFile = uidFile
+	l.product = product
+
+	return l
 }
 
 // CleanUp cleans up the contexts of the licenseSub
@@ -89,7 +89,7 @@ func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	}
 
 	if retries <= 0 {
-		l.enabledServices = l.GetDefaults()
+		l.enabledServices = GetLicenseDefaults(l.product)
 		return l.enabledServices, errors.New("Failed to read license file")
 	}
 
@@ -97,7 +97,7 @@ func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	var licenses map[string]bool
 	jsonErr := json.Unmarshal(fileBytes, &licenses)
 	if jsonErr != nil {
-		l.enabledServices = l.GetDefaults()
+		l.enabledServices = GetLicenseDefaults(l.product)
 		return l.enabledServices, jsonErr
 	}
 
