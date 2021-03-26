@@ -63,6 +63,19 @@ func GetLicenseDefaults(product string) map[string]bool {
 
 // CheckHash checks if the license file has changed, returns true if it has
 func CheckHash(filename string, currentHash string) (bool, error) {
+	hex, hexErr := CalculateHash(filename)
+	if hexErr != nil {
+		logger.Warn("Failed to calculate hash: %s\n", hexErr.Error())
+		return true, hexErr
+	}
+	if hex != currentHash {
+		return true, errors.New("Hex does not match current hash")
+	}
+	return false, nil
+}
+
+// CalculateHash calculates a hash given a file bytes
+func CalculateHash(filename string) (string, error) {
 	// read license file
 	retries := licenseReadRetries
 	var fileBytes []byte
@@ -80,18 +93,14 @@ func CheckHash(filename string, currentHash string) (bool, error) {
 	}
 
 	if retries <= 0 {
-		return true, errors.New("Failed to read hashable file")
+		return "", errors.New("Failed to read hashable file")
 	}
-
 	// create new hash
 	hasher := md5.New()
 	hasher.Write(fileBytes)
 	hex := hex.EncodeToString(hasher.Sum(nil))
 
-	if hex != currentHash {
-		return true, nil
-	}
-	return false, nil
+	return hex, nil
 }
 
 // NewLicenseSub creates new license
