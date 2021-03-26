@@ -35,7 +35,7 @@ type License struct {
 	KeyVersion  int    `json:"keyVersion"`
 	Name        string `json:"name"`
 	JavaClass   string `json:"javaClass"`
-	Valid       bool   `json:"valid,omitempty" default:"false"`
+	Valid       bool   `json:"valid" default:"false"`
 }
 
 const (
