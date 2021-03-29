@@ -17,6 +17,7 @@ type LicenseSub struct {
 	licenseFilename string
 	uidFile         string
 	product         string
+	Hash            string
 }
 
 // LicenseInfo represents the json returned from license server
@@ -125,6 +126,13 @@ func (l *LicenseSub) CleanUp() {
 // GetLicenses gets the enabled services
 func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	l.enabledServices = GetLicenseDefaults(l.product)
+	// get hash of new license file
+	hash, hashErr := CalculateHash(l.licenseFilename)
+	if hashErr != nil {
+		logger.Warn("Failure generating hash: %s\n", hashErr.Error())
+		return nil, hashErr
+	}
+
 	// read license file
 	retries := licenseReadRetries
 	var fileBytes []byte
@@ -153,6 +161,9 @@ func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	}
 
 	l.determineEnabledServices(licenseInfo.List)
+
+	//set hash
+	l.Hash = hash
 
 	return l.enabledServices, nil
 }
