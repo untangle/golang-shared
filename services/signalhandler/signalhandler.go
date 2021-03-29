@@ -1,4 +1,4 @@
-package handleshutdown
+package signalhandler
 
 import (
 	"io/ioutil"

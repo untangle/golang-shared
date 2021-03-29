@@ -168,6 +168,7 @@ func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	return l.enabledServices, nil
 }
 
+// determineEnabledServices determines which service are enabled for the license handler
 func (l *LicenseSub) determineEnabledServices(licenses []License) {
 	for _, license := range licenses {
 		_, ok := l.enabledServices[license.Name]

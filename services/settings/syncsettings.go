@@ -105,6 +105,7 @@ func (s *SyncSettings) FirstSyncSettingsRun() error {
 	return nil
 }
 
+// runSyncSettings runs sync settings with given cmd args
 func (s *SyncSettings) runSyncSettings(cmdArgs []string) error {
 	cmd := exec.Command(s.syncSettingsExecutable, cmdArgs...)
 	outbytes, err := cmd.CombinedOutput()
@@ -132,6 +133,7 @@ func (s *SyncSettings) runSyncSettings(cmdArgs []string) error {
 	return runErr
 }
 
+// logSyncSettingsOutput logs the output from a sync-settings run
 func (s *SyncSettings) logSyncSettingsOutput(output string, err error) error {
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
