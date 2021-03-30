@@ -130,7 +130,7 @@ func (l *LicenseSub) CleanUp() {
 func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	l.enabledServices = GetLicenseDefaults(l.product)
 	// get hash of new license file
-	hash, hashErr := CalculateHash(l.licenseFilename, l.hashSalt)
+	hash, hashErr := CalculateHash(l.licenseFilename, l.HashSalt)
 	if hashErr != nil {
 		logger.Warn("Failure generating hash: %s\n", hashErr.Error())
 		return nil, hashErr
