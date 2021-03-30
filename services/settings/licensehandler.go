@@ -116,7 +116,7 @@ func NewLicenseSub(licenseFilename string, uidFile string, product string, hashS
 	l.licenseFilename = licenseFilename
 	l.uidFile = uidFile
 	l.product = product
-	l.hashSalt = hashSalt
+	l.HashSalt = hashSalt
 
 	return l
 }
