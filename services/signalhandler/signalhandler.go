@@ -11,15 +11,15 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
-// HandleShutdown is the type that holds the channel and flag for a shutdown
-type HandleShutdown struct {
+// SignalHandler is the type that holds the channel and flag for a shutdown
+type SignalHandler struct {
 	shutdownFlag    uint32
 	ShutdownChannel chan bool // ShutdownChannel is used to signal to other routines that the system is shutting down
 }
 
-// NewHandleShutdown creates a new HandleShutdown with channel and flag set
-func NewHandleShutdown() *HandleShutdown {
-	hs := new(HandleShutdown)
+// NewSignalHandler creates a new SignalHandler with channel and flag set
+func NewSignalHandler() *SignalHandler {
+	hs := new(SignalHandler)
 	hs.shutdownFlag = 0
 	hs.ShutdownChannel = make(chan bool)
 
@@ -27,7 +27,7 @@ func NewHandleShutdown() *HandleShutdown {
 }
 
 // HandleSignals adds functionality to handle system signals
-func (hs *HandleShutdown) HandleSignals() {
+func (hs *SignalHandler) HandleSignals() {
 	// Add SIGINT & SIGTERM handler (exit)
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)
@@ -52,7 +52,7 @@ func (hs *HandleShutdown) HandleSignals() {
 }
 
 // dumpStack dumps the stack trace to /tmp/reportd.stack and log
-func (hs *HandleShutdown) dumpStack() {
+func (hs *SignalHandler) dumpStack() {
 	buf := make([]byte, 1<<20)
 	stacklen := runtime.Stack(buf, true)
 	ioutil.WriteFile("/tmp/reportd.stack", buf[:stacklen], 0644)
@@ -62,7 +62,7 @@ func (hs *HandleShutdown) dumpStack() {
 }
 
 // PrintStats prints some basic stats about the running package
-func (hs *HandleShutdown) PrintStats() {
+func (hs *SignalHandler) PrintStats() {
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
 	logger.Info("Memory Stats:\n")
@@ -73,7 +73,7 @@ func (hs *HandleShutdown) PrintStats() {
 }
 
 // GetShutdownFlag returns the shutdown flag for kernel
-func (hs *HandleShutdown) GetShutdownFlag() bool {
+func (hs *SignalHandler) GetShutdownFlag() bool {
 	if atomic.LoadUint32(&hs.shutdownFlag) != 0 {
 		return true
 	}
@@ -81,7 +81,7 @@ func (hs *HandleShutdown) GetShutdownFlag() bool {
 }
 
 // SetShutdownFlag sets the shutdown flag for kernel
-func (hs *HandleShutdown) SetShutdownFlag() {
+func (hs *SignalHandler) SetShutdownFlag() {
 	hs.ShutdownChannel <- true
 	atomic.StoreUint32(&hs.shutdownFlag, 1)
 }
