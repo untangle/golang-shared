@@ -18,6 +18,7 @@ type LicenseSub struct {
 	uidFile         string
 	product         string
 	Hash            string
+	hashSalt        string
 }
 
 // LicenseInfo represents the json returned from license server
@@ -63,8 +64,8 @@ func GetLicenseDefaults(product string) map[string]bool {
 }
 
 // CheckHash checks if the license file has changed, returns true if it has
-func CheckHash(filename string, currentHash string) (bool, error) {
-	hex, hexErr := CalculateHash(filename)
+func CheckHash(filename string, currentHash string, hashSalt string) (bool, error) {
+	hex, hexErr := CalculateHash(filename, hashSalt)
 	if hexErr != nil {
 		logger.Warn("Failed to calculate hash: %s\n", hexErr.Error())
 		return true, hexErr
@@ -77,7 +78,7 @@ func CheckHash(filename string, currentHash string) (bool, error) {
 }
 
 // CalculateHash calculates a hash given a file bytes
-func CalculateHash(filename string) (string, error) {
+func CalculateHash(filename string, salt string) (string, error) {
 	// read license file
 	retries := licenseReadRetries
 	var fileBytes []byte
@@ -100,13 +101,14 @@ func CalculateHash(filename string) (string, error) {
 	// create new hash
 	hasher := md5.New()
 	hasher.Write(fileBytes)
+	hasher.Write([]byte(salt))
 	hex := hex.EncodeToString(hasher.Sum(nil))
 
 	return hex, nil
 }
 
 // NewLicenseSub creates new license
-func NewLicenseSub(licenseFilename string, uidFile string, product string) *LicenseSub {
+func NewLicenseSub(licenseFilename string, uidFile string, product string, hashSalt string) *LicenseSub {
 	logger.Info("Starting license sub...\n")
 
 	l := new(LicenseSub)
@@ -114,6 +116,7 @@ func NewLicenseSub(licenseFilename string, uidFile string, product string) *Lice
 	l.licenseFilename = licenseFilename
 	l.uidFile = uidFile
 	l.product = product
+	l.hashSalt = hashSalt
 
 	return l
 }
@@ -127,7 +130,7 @@ func (l *LicenseSub) CleanUp() {
 func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	l.enabledServices = GetLicenseDefaults(l.product)
 	// get hash of new license file
-	hash, hashErr := CalculateHash(l.licenseFilename)
+	hash, hashErr := CalculateHash(l.licenseFilename, l.hashSalt)
 	if hashErr != nil {
 		logger.Warn("Failure generating hash: %s\n", hashErr.Error())
 		return nil, hashErr
