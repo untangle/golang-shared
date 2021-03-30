@@ -99,9 +99,7 @@ func CalculateHash(filename string) (string, error) {
 	}
 	// create new hash
 	hasher := md5.New()
-	salt := "the meaning of life is 42"
 	hasher.Write(fileBytes)
-	hasher.Write([]byte(salt))
 	hex := hex.EncodeToString(hasher.Sum(nil))
 
 	return hex, nil
