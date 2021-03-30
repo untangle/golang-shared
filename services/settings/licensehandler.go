@@ -18,7 +18,7 @@ type LicenseSub struct {
 	uidFile         string
 	product         string
 	Hash            string
-	hashSalt        string
+	HashSalt        string
 }
 
 // LicenseInfo represents the json returned from license server
