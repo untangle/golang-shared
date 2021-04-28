@@ -26,7 +26,6 @@ type LicenseSub struct {
 type LicenseInfo struct {
 	JavaClass string    `json:"javaClass"`
 	List      []License `json:"list"`
-	Sku       SKU       `json:"sku"`
 }
 
 // License is the struct representing each individual license
@@ -42,12 +41,6 @@ type License struct {
 	Name        string `json:"name"`
 	JavaClass   string `json:"javaClass"`
 	Valid       bool   `json:"valid" default:"false"`
-}
-
-// SKU is the struct representing sku information
-type SKU struct {
-	UID   string `json:"UID"`
-	Value string `json:"value"`
 }
 
 const (
