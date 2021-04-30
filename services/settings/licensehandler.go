@@ -19,6 +19,7 @@ type LicenseSub struct {
 	product         string
 	Hash            string
 	HashSalt        string
+	LicenseInfo     LicenseInfo `json:"licenseInfo"`
 }
 
 // LicenseInfo represents the json returned from license server
@@ -126,8 +127,8 @@ func (l *LicenseSub) CleanUp() {
 	logger.Info("Shutting down license sub...\n")
 }
 
-// GetLicenses gets the enabled services
-func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
+// GetEnabledServices gets the enabled services
+func (l *LicenseSub) GetEnabledServices() (map[string]bool, error) {
 	l.enabledServices = GetLicenseDefaults(l.product)
 	// get hash of new license file
 	hash, hashErr := CalculateHash(l.licenseFilename, l.HashSalt)
@@ -162,8 +163,8 @@ func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 	if jsonErr != nil {
 		return l.enabledServices, jsonErr
 	}
-
-	l.determineEnabledServices(licenseInfo.List)
+	l.LicenseInfo = licenseInfo
+	l.determineEnabledServices()
 
 	//set hash
 	l.Hash = hash
@@ -172,8 +173,8 @@ func (l *LicenseSub) GetLicenses() (map[string]bool, error) {
 }
 
 // determineEnabledServices determines which service are enabled for the license handler
-func (l *LicenseSub) determineEnabledServices(licenses []License) {
-	for _, license := range licenses {
+func (l *LicenseSub) determineEnabledServices() {
+	for _, license := range l.LicenseInfo.List {
 		_, ok := l.enabledServices[license.Name]
 		if ok {
 			l.enabledServices[license.Name] = license.Valid
