@@ -1,4 +1,4 @@
-package licensehandler
+package licensemanager
 
 // License is the struct representing each individual license
 type License struct {
