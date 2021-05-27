@@ -104,8 +104,8 @@ func Shutdown() {
 	shutdownApps(config.LicenseLocation, config.ValidApps)
 }
 
-// GetLicenseDefaults gets the default validApps for MFW
-// @return []string - string array of app descriptions for CLS to use
+// GetLicenseDefaults gets the default validApps
+// @return []string - string array of app keys for CLS to use
 func GetLicenseDefaults() []string {
 	logger.Debug("GetLicenseDefaults()\n")
 	keys := make([]string, len(config.ValidApps))
@@ -121,6 +121,12 @@ func GetLicenseDefaults() []string {
 // ClsIsAlive resets the watchdog interval for license <> app synchronization
 func ClsIsAlive() {
 	watchDog.Reset(config.WatchDogInterval)
+}
+
+// GetAppStates gets the current Service States
+// @return []AppState - array of current app states
+func GetAppStates() []AppState {
+	return appStates
 }
 
 // SetAppState sets the desired state of an app
