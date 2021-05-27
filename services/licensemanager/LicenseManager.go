@@ -203,7 +203,7 @@ func findApp(appName string) (AppHook, error) {
 // @param map[string]AppHook appsToStore - kvp of apps to store
 // @return []appState - the app state array
 // @return error - associated errors
-func saveAppState(fileLocation string, appsToStore map[string]AppHook) ([]appState, error) {
+func saveAppState(fileLocation string, appsToStore map[string]AppHook) ([]AppState, error) {
 	var retAppStates = make([]AppState, 0)
 	for name, o := range appsToStore {
 		retAppStates = append(retAppStates, AppState{Name: name, IsEnabled: o.Enabled()})
