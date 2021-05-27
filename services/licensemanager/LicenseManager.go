@@ -148,7 +148,7 @@ func SetAppState(cmd AppCommand, save bool) error {
 		app.Stop()
 	}
 	if save {
-		appStates, err = saveAppState(config.LicenseLocation, config.ValidApps)
+		appStates, err = saveAppState(config.AppStateLocation, config.ValidApps)
 	}
 	return err
 }
