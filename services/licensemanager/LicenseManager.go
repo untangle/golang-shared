@@ -179,6 +179,27 @@ func IsEnabled(appName string) (bool, error) {
 	return app.Enabled(), nil
 }
 
+// GetLicenseDetails will use the current license location to load and return the license file
+// @return LicenseInfo - the license info, containing license details
+// @return error - associated errors
+func GetLicenseDetails() (LicenseInfo, error) {
+
+	var retLicense LicenseInfo
+
+	// Load file
+	jsonLicense, err := ioutil.ReadFile(config.LicenseLocation)
+
+	// Unmarshal
+	err = json.Unmarshal(jsonLicense, &retLicense)
+	if err != nil {
+		logger.Warn("Error unmarshalling licenseInfo: %s\n", err.Error())
+		return retLicense, err
+	}
+
+	// Return
+	return retLicense, nil
+}
+
 // shutdownApps iterates appsToShutdown and calls the shutdown hook on them, and also removes the license file
 // @param licenseFile string - the license file location
 // @param appsToShutdown map[string]AppHook - the apps we want to shutdown
