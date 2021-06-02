@@ -14,15 +14,16 @@ const (
 	StateDisable
 )
 
-func (state *State) fromString(cmd string) (State, error) {
+func (state *State) fromString(cmd string) error {
 
 	switch lowerCmd := strings.ToLower(cmd); lowerCmd {
 	case "enable":
-		return StateEnable, nil
+		*state = StateEnable
 	case "disable":
-		return StateDisable, nil
+		*state = StateDisable
 	default:
-		return StateDisable, errors.New("Unable to parse state\n")
-
+		return errors.New("Unable to parse state\n")
 	}
+
+	return nil
 }
