@@ -57,7 +57,7 @@ func Startup(configOptions LicenseManagerConfig) {
 		} else {
 			cmd.NewState = StateDisable
 		}
-		SetServiceState(cmd, true)
+		cmd.SetServiceState(true)
 	}
 
 	// restart licenses
@@ -129,30 +129,6 @@ func GetServiceStates() []ServiceState {
 	return serviceStates
 }
 
-// SetServiceState sets the desired state of an service
-// @param cmd ServiceCommand - the command to run on the service
-// @param save bool - if we should store the service state or not
-// @return error - associated errors
-func SetServiceState(cmd ServiceCommand, save bool) error {
-	var err error
-	var service ServiceHook
-	logger.Debug("Setting state for service %s to %v\n", cmd.Name, cmd.NewState)
-	if service, err = findService(cmd.Name); err != nil {
-		return serviceNotFound
-	}
-
-	switch cmd.NewState {
-	case StateEnable:
-		service.Start()
-	case StateDisable:
-		service.Stop()
-	}
-	if save {
-		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks)
-	}
-	return err
-}
-
 // RefreshLicences restart the client licence service
 func RefreshLicenses() error {
 	output, err := exec.Command("/etc/init.d/clientlic", "restart").CombinedOutput()
@@ -211,7 +187,7 @@ func shutdownServices(licenseFile string, servicesToShutdown map[string]ServiceH
 	}
 	for name, _ := range servicesToShutdown {
 		cmd := ServiceCommand{Name: name, NewState: StateDisable}
-		SetServiceState(cmd, false)
+		cmd.SetServiceState(false)
 	}
 }
 
