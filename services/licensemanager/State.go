@@ -14,7 +14,10 @@ const (
 	StateDisable
 )
 
-func (state *State) fromString(cmd string) error {
+// FromString is used to convert the string command into the current State
+// @param cmd - the command string
+// @return error - associated errors
+func (state *State) FromString(cmd string) error {
 
 	switch lowerCmd := strings.ToLower(cmd); lowerCmd {
 	case "enable":
