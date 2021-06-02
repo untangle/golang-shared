@@ -1,7 +1,7 @@
 package licensemanager
 
-// Command is used for specific commands (SetState)
-type AppCommand struct {
+// ServiceCommand is used for setting the service state
+type ServiceCommand struct {
 	Name     string `json:"name"`
 	NewState State  `json:"command"`
 }

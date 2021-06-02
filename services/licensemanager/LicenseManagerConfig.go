@@ -4,14 +4,14 @@ import "time"
 
 // LicenseManagerConfig contains config options used in the license manager
 type LicenseManagerConfig struct {
-	// ValidApps is a map of apps and startup/shutdown/enabled hooks
-	ValidApps map[string]AppHook
+	// ValidServiceHooks is a map of apps and startup/shutdown/enabled hooks
+	ValidServiceHooks map[string]ServiceHook
 
 	// LicenseLocation is the location of the license file
 	LicenseLocation string
 
-	// AppStateLocation is the location of the app state file
-	AppStateLocation string
+	// ServiceStateLocation is the location of the service state file
+	ServiceStateLocation string
 
 	// WatchDogInterval is the watch dog timer interval
 	WatchDogInterval time.Duration

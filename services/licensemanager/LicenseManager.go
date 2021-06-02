@@ -14,9 +14,9 @@ import (
 )
 
 var config LicenseManagerConfig
-var appStates []AppState
+var serviceStates []ServiceState
 
-var errAppNotFoundError error = errors.New("app_not_found")
+var serviceNotFound error = errors.New("service_not_found")
 var shutdownChannelLicense chan bool
 var wg sync.WaitGroup
 var watchDog *time.Timer
@@ -30,34 +30,34 @@ func Startup(configOptions LicenseManagerConfig) {
 
 	logger.Info("Starting the license service\n")
 
-	appStates, err := loadAppState(config.AppStateLocation)
+	serviceStates, err := loadServiceStates(config.ServiceStateLocation)
 	if err != nil {
-		logger.Warn("Unable to retrieve previous app state. %v\n", err)
+		logger.Warn("Unable to retrieve previous service state. %v\n", err)
 	}
 
-	if appStates == nil {
+	if serviceStates == nil {
 		// Gen a new state file
-		appStates, err = saveAppState(config.AppStateLocation, config.ValidApps)
+		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks)
 		if err != nil {
-			logger.Warn("Unable to initialize app states file. %v\n", err)
+			logger.Warn("Unable to initialize service states file. %v\n", err)
 			return
 		}
 	}
 
-	// Set each app to its previous state.
-	logger.Debug("appstate %+v\n", appStates)
-	for _, o := range appStates {
-		if _, err = findApp(o.Name); err != nil {
-			logger.Debug("App %s not found. Err: %v", o.Name, err)
+	// Set each service to its previous state.
+	logger.Debug("States %+v\n", serviceStates)
+	for _, o := range serviceStates {
+		if _, err = findService(o.Name); err != nil {
+			logger.Debug("Service %s not found. Err: %v", o.Name, err)
 			continue
 		}
-		cmd := AppCommand{Name: o.Name}
+		cmd := ServiceCommand{Name: o.Name}
 		if o.IsEnabled {
 			cmd.NewState = StateEnable
 		} else {
 			cmd.NewState = StateDisable
 		}
-		SetAppState(cmd, true)
+		SetServiceState(cmd, true)
 	}
 
 	// restart licenses
@@ -84,7 +84,7 @@ func Startup(configOptions LicenseManagerConfig) {
 				refreshErr := RefreshLicenses()
 				if refreshErr != nil {
 					logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
-					shutdownApps(config.LicenseLocation, config.ValidApps)
+					shutdownServices(config.LicenseLocation, config.ValidServiceHooks)
 				} else {
 					logger.Info("Restarted CLS from watchdog\n")
 				}
@@ -101,16 +101,16 @@ func Shutdown() {
 		close(shutdownChannelLicense)
 		wg.Wait()
 	}
-	shutdownApps(config.LicenseLocation, config.ValidApps)
+	shutdownServices(config.LicenseLocation, config.ValidServiceHooks)
 }
 
-// GetLicenseDefaults gets the default validApps
-// @return []string - string array of app keys for CLS to use
+// GetLicenseDefaults gets the default validServiceStates
+// @return []string - string array of service keys for CLS to use
 func GetLicenseDefaults() []string {
 	logger.Debug("GetLicenseDefaults()\n")
-	keys := make([]string, len(config.ValidApps))
+	keys := make([]string, len(config.ValidServiceHooks))
 	i := 0
-	for k := range config.ValidApps {
+	for k := range config.ValidServiceHooks {
 		keys[i] = k
 		i++
 	}
@@ -118,37 +118,37 @@ func GetLicenseDefaults() []string {
 	return keys
 }
 
-// ClsIsAlive resets the watchdog interval for license <> app synchronization
+// ClsIsAlive resets the watchdog interval for license <> service synchronization
 func ClsIsAlive() {
 	watchDog.Reset(config.WatchDogInterval)
 }
 
-// GetAppStates gets the current Service States
-// @return []AppState - array of current app states
-func GetAppStates() []AppState {
-	return appStates
+// GetServiceStates gets the current Service States
+// @return []ServiceState - array of current service states
+func GetServiceStates() []ServiceState {
+	return serviceStates
 }
 
-// SetAppState sets the desired state of an app
-// @param cmd AppCommand - the command to run on the app
-// @param save bool - if we should store the app state or not
+// SetServiceState sets the desired state of an service
+// @param cmd ServiceCommand - the command to run on the service
+// @param save bool - if we should store the service state or not
 // @return error - associated errors
-func SetAppState(cmd AppCommand, save bool) error {
+func SetServiceState(cmd ServiceCommand, save bool) error {
 	var err error
-	var app AppHook
-	logger.Debug("Setting state for app %s to %v\n", cmd.Name, cmd.NewState)
-	if app, err = findApp(cmd.Name); err != nil {
-		return errAppNotFoundError
+	var service ServiceHook
+	logger.Debug("Setting state for service %s to %v\n", cmd.Name, cmd.NewState)
+	if service, err = findService(cmd.Name); err != nil {
+		return serviceNotFound
 	}
 
 	switch cmd.NewState {
 	case StateEnable:
-		app.Start()
+		service.Start()
 	case StateDisable:
-		app.Stop()
+		service.Stop()
 	}
 	if save {
-		appStates, err = saveAppState(config.AppStateLocation, config.ValidApps)
+		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks)
 	}
 	return err
 }
@@ -168,15 +168,15 @@ func RefreshLicenses() error {
 	return nil
 }
 
-// IsEnabled is called from API to see if app is currently enabled.
-// @param appName string - the name of the app to check Enabled status of
-func IsEnabled(appName string) (bool, error) {
-	var app AppHook
+// IsEnabled is called from API to see if service is currently enabled.
+// @param serviceName string - the name of the service to check Enabled status of
+func IsEnabled(serviceName string) (bool, error) {
+	var serv ServiceHook
 	var err error
-	if app, err = findApp(appName); err != nil {
-		return false, errAppNotFoundError
+	if serv, err = findService(serviceName); err != nil {
+		return false, serviceNotFound
 	}
-	return app.Enabled(), nil
+	return serv.Enabled(), nil
 }
 
 // GetLicenseDetails will use the current license location to load and return the license file
@@ -200,42 +200,42 @@ func GetLicenseDetails() (LicenseInfo, error) {
 	return retLicense, nil
 }
 
-// shutdownApps iterates appsToShutdown and calls the shutdown hook on them, and also removes the license file
+// shutdownServices iterates servicesToShutdown and calls the shutdown hook on them, and also removes the license file
 // @param licenseFile string - the license file location
-// @param appsToShutdown map[string]AppHook - the apps we want to shutdown
-func shutdownApps(licenseFile string, appsToShutdown map[string]AppHook) {
+// @param servicesToShutdown map[string]ServiceHook - the services we want to shutdown
+func shutdownServices(licenseFile string, servicesToShutdown map[string]ServiceHook) {
 	err := os.Remove(licenseFile)
 	err = ioutil.WriteFile(licenseFile, []byte("{\"list\": []}"), 0444)
 	if err != nil {
 		logger.Warn("Failure to write non-license file: %v\n", err)
 	}
-	for name, _ := range appsToShutdown {
-		cmd := AppCommand{Name: name, NewState: StateDisable}
-		SetAppState(cmd, false)
+	for name, _ := range servicesToShutdown {
+		cmd := ServiceCommand{Name: name, NewState: StateDisable}
+		SetServiceState(cmd, false)
 	}
 }
 
-// findApp is used to check if app is valid and return its hooks
-// @param appName string - the name of the app
-func findApp(appName string) (AppHook, error) {
-	app, ok := config.ValidApps[appName]
+// findService is used to check if service is valid and return its hooks
+// @param serviceName string - the name of the service
+func findService(serviceName string) (ServiceHook, error) {
+	service, ok := config.ValidServiceHooks[serviceName]
 	if !ok {
-		return AppHook{}, errAppNotFoundError
+		return ServiceHook{}, serviceNotFound
 	}
-	return app, nil
+	return service, nil
 }
 
-// saveAppState stores the apps in the appstate file
-// @param string fileLocation - the location of the appstate file
-// @param map[string]AppHook appsToStore - kvp of apps to store
-// @return []appState - the app state array
+// saveServiceStates stores the services in the service state file
+// @param string fileLocation - the location of the service state file
+// @param map[string]ServiceHook serviceHooks - map of service hooks to create ServiceStates for
+// @return []ServiceState - the service state array
 // @return error - associated errors
-func saveAppState(fileLocation string, appsToStore map[string]AppHook) ([]AppState, error) {
-	var retAppStates = make([]AppState, 0)
-	for name, o := range appsToStore {
-		retAppStates = append(retAppStates, AppState{Name: name, IsEnabled: o.Enabled()})
+func saveServiceStates(fileLocation string, serviceHooks map[string]ServiceHook) ([]ServiceState, error) {
+	var serviceStates = make([]ServiceState, 0)
+	for name, o := range serviceHooks {
+		serviceStates = append(serviceStates, ServiceState{Name: name, IsEnabled: o.Enabled()})
 	}
-	data, err := json.Marshal(retAppStates)
+	data, err := json.Marshal(serviceStates)
 	if err != nil {
 		return nil, err
 	}
@@ -243,26 +243,26 @@ func saveAppState(fileLocation string, appsToStore map[string]AppHook) ([]AppSta
 	if err != nil {
 		return nil, err
 	}
-	return retAppStates, nil
+	return serviceStates, nil
 
 }
 
-// loadAppState retrieves the previously saved app state
-// @param fileLocation - the location of the app states file
-// @return []appState - an array of app states, loaded from the file
+// loadServiceStates retrieves the previously saved service state
+// @param fileLocation - the location of the service states file
+// @return []ServiceState - an array of service states, loaded from the file
 // @return error - associated errors
-func loadAppState(fileLocation string) ([]AppState, error) {
-	var retAppStates = make([]AppState, 0)
-	appStateContent, err := ioutil.ReadFile(fileLocation)
+func loadServiceStates(fileLocation string) ([]ServiceState, error) {
+	var serviceStates = make([]ServiceState, 0)
+	fileContent, err := ioutil.ReadFile(fileLocation)
 	if err != nil {
-		logger.Warn("Not able to find appstate file.\n", err)
+		logger.Warn("Not able to find service state file.\n", err)
 		return nil, nil
 	}
 
-	err = json.Unmarshal(appStateContent, &retAppStates)
+	err = json.Unmarshal(fileContent, &serviceStates)
 	if err != nil {
-		logger.Warn("Not able to read content of app state file.%v \n ", err)
+		logger.Warn("Not able to read content of service state file.%v \n ", err)
 		return nil, err
 	}
-	return retAppStates, nil
+	return serviceStates, nil
 }
