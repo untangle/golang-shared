@@ -22,6 +22,8 @@ const settingsFile = "/etc/config/settings.json"
 const defaultsFile = "/etc/config/defaults.json"
 const currentFile = "/etc/config/current.json"
 
+var syncCallbacks []func()
+
 // OSForSyncSettings is the os sync-settings should use
 var OSForSyncSettings string = "openwrt"
 
@@ -117,6 +119,12 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	}
 
 	return map[string]interface{}{"result": "OK", "output": output}, err
+}
+
+// RegisterSyncCallback registers a callback. Will be called after sync-settings complete.
+func RegisterSyncCallback(callback func()) {
+	// Insert callback
+	syncCallbacks = append(syncCallbacks, callback)
 }
 
 // readSettingsFileJSON reads the settings file and return the corresponding JSON object
@@ -405,6 +413,10 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 		return output, err
 	}
 
+	logger.Debug("Calling registered callbacks\n")
+	for _, cb := range syncCallbacks {
+		cb()
+	}
 	return output, nil
 }
 
