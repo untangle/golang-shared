@@ -18,13 +18,23 @@
     go mod vendor
     ```
 ## Updating golang vendor modules
-1. ### Go get with the -u flag will update to latest tag
+1. ### Verify the commit in golang-shared is tagged with a version
     ```
+    cd golang-shared
+    git tag vX.X.X
+    git push
+    git push --tags
+    ```
+2. ### In the dependent package (ie: packetd, reportd, etc) use Go get with the -u flag will update to latest tag
+    ```
+    cd packetd
     go get -u github.com/untangle/golang-shared
     ```
-    ### If you are relying on a specific commit, you can use the hash also
+
+3. ### Verify the version in go.mod has been updated
     ```
-    go get -u github.com/untangle/golang-shared@19fa40e
+    grep golang-shared go.mod
+        github.com/untangle/golang-shared v0.2.1
     ```
 2. ### Then we need to tidy and vendor again
     ```
