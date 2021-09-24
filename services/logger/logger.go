@@ -446,6 +446,7 @@ func initLoggerConfig() {
 	config["reports"] = "INFO"
 	config["restd"] = "INFO"
 	config["settings"] = "INFO"
+	config["webroot"] = "INFO"
 
 	// static source names used in the low level c handlers
 	config["common"] = "INFO"
