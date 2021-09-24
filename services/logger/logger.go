@@ -431,6 +431,7 @@ func initLoggerConfig() {
 	config["revdns"] = "INFO"
 	config["sni"] = "INFO"
 	config["stats"] = "INFO"
+	config["threatprevention"] = "INFO"
 
 	// services
 	config["certcache"] = "INFO"
