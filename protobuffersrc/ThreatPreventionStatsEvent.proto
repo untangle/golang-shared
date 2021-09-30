@@ -1,0 +1,11 @@
+syntax = "proto3";
+package reports;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ThreatPreventionStatsEvent";
+
+message ThreatPreventionStatsEvent {
+  int64 timeStamp = 1;
+  string blockedAddress = 2;
+  string clientAddress = 3;
+  int32 threatLevel = 4;
+}
