@@ -16,7 +16,7 @@ func (cmd *ServiceCommand) SetServiceState(save bool) error {
 	var service ServiceHook
 	logger.Debug("Setting state for service %s to %v\n", cmd.Name, cmd.NewState)
 	if service, err = findService(cmd.Name); err != nil {
-		return serviceNotFound
+		return errServiceNotFound
 	}
 
 	switch cmd.NewState {
