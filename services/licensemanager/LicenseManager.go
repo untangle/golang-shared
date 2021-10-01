@@ -13,7 +13,7 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
-var config LicenseManagerConfig
+var config Config
 var serviceStates []ServiceState
 
 var errServiceNotFound error = errors.New("service_not_found")
@@ -23,7 +23,7 @@ var watchDog *time.Timer
 
 // Startup the license manager service.
 // @param configOptions LicenseManagerConfig - a license manager config object used for configuring the service
-func Startup(configOptions LicenseManagerConfig) {
+func Startup(configOptions Config) {
 	shutdownChannelLicense = make(chan bool)
 
 	config = configOptions
