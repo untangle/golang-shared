@@ -19,5 +19,5 @@ message ZMQRequest {
         QUERY_CLOSE = 4;
     }
     Function function = 2;
-    repeated google.protobuf.Any data = 3;
+    google.protobuf.Any data = 3;
 }
