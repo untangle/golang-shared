@@ -2,8 +2,8 @@ package licensemanager
 
 import "time"
 
-// LicenseManagerConfig contains config options used in the license manager
-type LicenseManagerConfig struct {
+// Config contains config options used in the license manager
+type Config struct {
 	// ValidServiceHooks is a map of apps and startup/shutdown/enabled hooks
 	ValidServiceHooks map[string]ServiceHook
 

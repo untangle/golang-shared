@@ -13,17 +13,17 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
-var config LicenseManagerConfig
+var config Config
 var serviceStates []ServiceState
 
-var serviceNotFound error = errors.New("service_not_found")
+var errServiceNotFound error = errors.New("service_not_found")
 var shutdownChannelLicense chan bool
 var wg sync.WaitGroup
 var watchDog *time.Timer
 
 // Startup the license manager service.
 // @param configOptions LicenseManagerConfig - a license manager config object used for configuring the service
-func Startup(configOptions LicenseManagerConfig) {
+func Startup(configOptions Config) {
 	shutdownChannelLicense = make(chan bool)
 
 	config = configOptions
@@ -129,7 +129,7 @@ func GetServiceStates() []ServiceState {
 	return serviceStates
 }
 
-// RefreshLicences restart the client licence service
+// RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
 	output, err := exec.Command("/etc/init.d/clientlic", "restart").CombinedOutput()
 	if err != nil {
@@ -150,7 +150,7 @@ func IsEnabled(serviceName string) (bool, error) {
 	var serv ServiceHook
 	var err error
 	if serv, err = findService(serviceName); err != nil {
-		return false, serviceNotFound
+		return false, errServiceNotFound
 	}
 	return serv.Enabled(), nil
 }
@@ -185,7 +185,7 @@ func shutdownServices(licenseFile string, servicesToShutdown map[string]ServiceH
 	if err != nil {
 		logger.Warn("Failure to write non-license file: %v\n", err)
 	}
-	for name, _ := range servicesToShutdown {
+	for name := range servicesToShutdown {
 		cmd := ServiceCommand{Name: name, NewState: StateDisable}
 		cmd.SetServiceState(false)
 	}
@@ -196,7 +196,7 @@ func shutdownServices(licenseFile string, servicesToShutdown map[string]ServiceH
 func findService(serviceName string) (ServiceHook, error) {
 	service, ok := config.ValidServiceHooks[serviceName]
 	if !ok {
-		return ServiceHook{}, serviceNotFound
+		return ServiceHook{}, errServiceNotFound
 	}
 	return service, nil
 }
