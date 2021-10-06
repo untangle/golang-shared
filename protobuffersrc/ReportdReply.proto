@@ -1,12 +1,11 @@
 syntax = "proto3";
 package reports;
-import "google/protobuf/struct.proto";
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ReportdReply";
 
 message ReportdReply {
     string ServerError = 1;
-    repeated google.protobuf.Struct QueryCreate = 2;
-    repeated google.protobuf.Struct QueryData = 3;
-    repeated google.protobuf.Struct QueryClose = 4;    
+    uint64 QueryCreate = 2;
+    string QueryData = 3;
+    string QueryClose = 4;    
 }
