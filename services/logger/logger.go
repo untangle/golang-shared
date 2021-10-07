@@ -432,7 +432,7 @@ func initLoggerConfig() {
 	config["sni"] = "INFO"
 	config["stats"] = "INFO"
 	config["threatprevention"] = "INFO"
-	config["webfilter"] = "INFO"
+	config["sitefilter"] = "INFO"
 
 	// services
 	config["certcache"] = "INFO"
