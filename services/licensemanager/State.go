@@ -25,7 +25,7 @@ func (state *State) FromString(cmd string) error {
 	case "disable":
 		*state = StateDisable
 	default:
-		return errors.New("Unable to parse state\n")
+		return errors.New("Unable to parse state")
 	}
 
 	return nil

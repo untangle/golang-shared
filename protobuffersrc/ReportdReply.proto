@@ -1,0 +1,11 @@
+syntax = "proto3";
+package reports;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ReportdReply";
+
+message ReportdReply {
+    string ServerError = 1;
+    uint64 QueryCreate = 2;
+    string QueryData = 3;
+    string QueryClose = 4;    
+}
