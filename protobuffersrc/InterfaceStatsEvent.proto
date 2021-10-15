@@ -59,4 +59,5 @@ message InterfaceStatsEvent {
   uint64 txCarrierRate = 53;
   uint64 txCompressed = 54;
   uint64 txCompressedRate = 55;
+  bool offline = 56;
 }
