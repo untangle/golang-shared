@@ -7,5 +7,6 @@ message ReportdReply {
     string ServerError = 1;
     uint64 QueryCreate = 2;
     string QueryData = 3;
-    string QueryClose = 4;    
+    string QueryClose = 4;
+    string GetLatestInterfaceStats = 5;
 }
