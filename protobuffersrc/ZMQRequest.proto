@@ -15,6 +15,7 @@ message ZMQRequest {
         QUERY_CREATE = 2;
         QUERY_DATA = 3;
         QUERY_CLOSE = 4;
+        GET_LATEST_INTERFACE_STATS = 5;
     }
     Function function = 2;
     string data = 3;
