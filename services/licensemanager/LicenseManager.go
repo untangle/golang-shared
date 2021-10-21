@@ -141,6 +141,7 @@ func RefreshLicenses() error {
 		err = errors.New(string(output))
 		return err
 	}
+
 	return nil
 }
 

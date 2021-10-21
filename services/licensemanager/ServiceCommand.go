@@ -19,11 +19,15 @@ func (cmd *ServiceCommand) SetServiceState(save bool) error {
 		return errServiceNotFound
 	}
 
+	runInterrupt := false
 	switch cmd.NewState {
 	case StateEnable:
-		service.Start()
+		runInterrupt = service.ServiceStart()
 	case StateDisable:
-		service.Stop()
+		runInterrupt = service.ServiceStop()
+	}
+	if runInterrupt {
+		logger.Info("Must run interrupt\n")
 	}
 	if save {
 		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks)
