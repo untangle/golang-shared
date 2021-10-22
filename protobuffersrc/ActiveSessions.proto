@@ -1,0 +1,10 @@
+syntax = "proto3";
+package reports;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions";
+
+message ActiveSessions {
+    repeated google.protobuf.Struct sessionsList = 1;
+}
