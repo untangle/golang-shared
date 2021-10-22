@@ -9,6 +9,7 @@ type ServiceHook struct {
 	Enabled func() bool
 }
 
+// ServiceStart starts the service, either via sighup or normal start
 func (s *ServiceHook) ServiceStart() bool {
 	if s.Start == nil {
 		logger.Info("No start specified, using sighup\n")
@@ -18,6 +19,7 @@ func (s *ServiceHook) ServiceStart() bool {
 	return false
 }
 
+// ServiceStop stops the service, either via sighup or normal stop
 func (s *ServiceHook) ServiceStop() bool {
 	if s.Stop == nil {
 		logger.Info("No stop specified, using sighup\n")

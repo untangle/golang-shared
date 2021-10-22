@@ -1,0 +1,9 @@
+syntax = "proto3";
+package reports;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ServiceEnabledStatus";
+
+message ServiceEnabledStatus {
+    string ServiceName = 1;
+    bool Enabled = 2;   
+}

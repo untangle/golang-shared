@@ -28,6 +28,7 @@ func NewSignalHandler() *SignalHandler {
 	return hs
 }
 
+// SetTargets sets the targets to be used by the signal handler
 func (hs *SignalHandler) SetTargets(targets []func(syscall.Signal)) {
 	hs.Targets = targets
 }
