@@ -63,4 +63,6 @@ message Session {
   string certificate_subject_o = 55;
   string certificate_subject_san = 56;
   string server_reverse_dns = 57;
+  int32 wan_rule_id = 58;
+  string local_address = 59;
 }
