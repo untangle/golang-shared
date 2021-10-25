@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
@@ -37,7 +39,7 @@ func Startup(configOptions Config) {
 
 	if serviceStates == nil {
 		// Gen a new state file
-		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks)
+		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks, false)
 		if err != nil {
 			logger.Warn("Unable to initialize service states file. %v\n", err)
 			return
@@ -57,8 +59,9 @@ func Startup(configOptions Config) {
 		} else {
 			cmd.NewState = StateDisable
 		}
-		cmd.SetServiceState(true)
+		cmd.SetServiceState(false)
 	}
+	// TODO: run sighup here
 
 	// restart licenses
 	err = RefreshLicenses()
@@ -190,6 +193,7 @@ func shutdownServices(licenseFile string, servicesToShutdown map[string]ServiceH
 		cmd := ServiceCommand{Name: name, NewState: StateDisable}
 		cmd.SetServiceState(false)
 	}
+	// TODO run sighup here
 }
 
 // findService is used to check if service is valid and return its hooks
@@ -205,9 +209,10 @@ func findService(serviceName string) (ServiceHook, error) {
 // saveServiceStates stores the services in the service state file
 // @param string fileLocation - the location of the service state file
 // @param map[string]ServiceHook serviceHooks - map of service hooks to create ServiceStates for
+// @param runInterrupt TODO
 // @return []ServiceState - the service state array
 // @return error - associated errors
-func saveServiceStates(fileLocation string, serviceHooks map[string]ServiceHook) ([]ServiceState, error) {
+func saveServiceStates(fileLocation string, serviceHooks map[string]ServiceHook, runInterrupt bool) ([]ServiceState, error) {
 	var serviceStates = make([]ServiceState, 0)
 	for name, o := range serviceHooks {
 		serviceStates = append(serviceStates, ServiceState{Name: name, IsEnabled: o.Enabled()})
@@ -220,8 +225,39 @@ func saveServiceStates(fileLocation string, serviceHooks map[string]ServiceHook)
 	if err != nil {
 		return nil, err
 	}
+
+	if runInterrupt {
+		err = runSighup()
+		if err != nil {
+			return nil, err
+		}
+
+	}
 	return serviceStates, nil
 
+}
+
+func runSighup() error {
+	logger.Info("Running interrupt\n")
+	pidStr, err := exec.Command("pgrep", "packetd").CombinedOutput()
+	if err != nil {
+		logger.Err("Failure to get packetd pid: %s\n", err.Error())
+		return err
+	}
+	logger.Info("Pid: %s\n", pidStr)
+
+	pid, err := strconv.Atoi(strings.TrimSpace(string(pidStr)))
+	if err != nil {
+		logger.Err("Failure converting pid for packetd: %s\n", err.Error())
+		return err
+	}
+
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		logger.Err("Failure to get packetd process: %s\n", err.Error())
+		return err
+	}
+	return process.Signal(syscall.SIGHUP)
 }
 
 // loadServiceStates retrieves the previously saved service state

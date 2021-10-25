@@ -1,6 +1,8 @@
 package licensemanager
 
-import "github.com/untangle/golang-shared/services/logger"
+import (
+	"github.com/untangle/golang-shared/services/logger"
+)
 
 // ServiceCommand is used for setting the service state
 type ServiceCommand struct {
@@ -14,7 +16,7 @@ type ServiceCommand struct {
 func (cmd *ServiceCommand) SetServiceState(save bool) error {
 	var err error
 	var service ServiceHook
-	logger.Debug("Setting state for service %s to %v\n", cmd.Name, cmd.NewState)
+	logger.Info("Setting state for service %s to %v\n", cmd.Name, cmd.NewState)
 	if service, err = findService(cmd.Name); err != nil {
 		return errServiceNotFound
 	}
@@ -26,11 +28,8 @@ func (cmd *ServiceCommand) SetServiceState(save bool) error {
 	case StateDisable:
 		runInterrupt = service.ServiceStop()
 	}
-	if runInterrupt {
-		logger.Info("Must run interrupt\n")
-	}
 	if save {
-		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks)
+		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks, runInterrupt)
 	}
 	return err
 }
