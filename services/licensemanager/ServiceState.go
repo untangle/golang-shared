@@ -1,7 +1,62 @@
 package licensemanager
 
-// ServiceState is used to load and save AppState. Need to set each app to its previous state when starting up.
+import (
+	"encoding/json"
+	"io/ioutil"
+
+	"github.com/untangle/golang-shared/services/logger"
+)
+
+const (
+	// ServicesAllowedStatesLocation is the location where we put where services are enabled/disabled
+	ServicesAllowedStatesLocation = "/etc/config/"
+)
+
+// ServiceState is used for setting the service state
 type ServiceState struct {
-	Name      string `json:"name"`
-	IsEnabled bool   `json:"enabled"`
+	Name         string `json:"name"`
+	AllowedState State  `json:"allowedState"`
+}
+
+// ReadCommandFileAndGetStatus TODO
+func ReadCommandFileAndGetStatus(name string) (bool, error) {
+	var state ServiceState
+	fileContent, err := ioutil.ReadFile(ServicesAllowedStatesLocation + name)
+	if err != nil {
+		logger.Warn("Not able to find service state file.\n", err)
+		return false, err
+	}
+
+	err = json.Unmarshal(fileContent, &state)
+	if err != nil {
+		logger.Warn("Not able to read content of service command file.%v \n ", err)
+		return false, err
+	}
+
+	return state.getAllowedState() == StateEnable, nil
+}
+
+// writeOutServiceToEnableOrDisable() TODO
+func (state *ServiceState) writeOutServiceToEnableOrDisable() error {
+	data, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+
+	fileLocation := ServicesAllowedStatesLocation + state.Name
+	logger.Debug("Location of service command: %s\n", fileLocation)
+	err = ioutil.WriteFile(fileLocation, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (state *ServiceState) setAllowedState(newState State) {
+	state.AllowedState = newState
+}
+
+func (state *ServiceState) getAllowedState() State {
+	return state.AllowedState
 }
