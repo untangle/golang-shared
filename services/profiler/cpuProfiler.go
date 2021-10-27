@@ -16,10 +16,10 @@ type CPUProfiler struct {
 func (cpuProfiler *CPUProfiler) StartCPUProfile() error {
 	cpu, err := os.Create(cpuProfiler.CPUProfileFileName)
 	if err != nil {
-		logger.Alert("+++++ Error creating file for CPU profile:%v ++++++\n", err)
+		logger.Alert("+++++ Error creating file for CPU profile: %v ++++++\n", err)
 		return err
 	}
-	logger.Alert("+++++ CPU profiling is active. Output file:%s +++++\n", cpuProfiler.CPUProfileFileName)
+	logger.Alert("+++++ CPU profiling is active. Output file: %s +++++\n", cpuProfiler.CPUProfileFileName)
 	pprof.StartCPUProfile(cpu)
 	return nil
 }
