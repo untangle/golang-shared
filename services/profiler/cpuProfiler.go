@@ -8,6 +8,19 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
+/**
+Usage:
+// On Service Start
+cpuProfiler = profiler.CreateCPUProfiler(cpuProfileFilename)
+err = cpuProfiler.StartCPUProfile()
+if err != nil {
+	logger.Warn("CPU Profiler could not start: %s\n", err.Error())
+}
+
+// On Service Shutdown
+cpuProfiler.StopCPUProfile()
+*/
+
 // CPUProfiler struct wraps functionality for profiling the CPU
 type CPUProfiler struct {
 	CPUProfileFileName string
