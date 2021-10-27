@@ -24,6 +24,7 @@ cpuProfiler.StopCPUProfile()
 // CPUProfiler struct wraps functionality for profiling the CPU
 type CPUProfiler struct {
 	CPUProfileFileName string
+	file               *os.File
 	IsRunning          bool
 }
 
@@ -33,6 +34,7 @@ func (cpuProfiler *CPUProfiler) StartCPUProfile() error {
 		return errors.New("Cannot start cpu profiling. CPUProfileFileName must be specified!\n")
 	}
 	cpu, err := os.Create(cpuProfiler.CPUProfileFileName)
+	cpuProfiler.file = cpu
 	if err != nil {
 		logger.Alert("+++++ Error creating file for CPU profile: %v ++++++\n", err)
 		return err
@@ -50,6 +52,7 @@ func (cpuProfiler *CPUProfiler) StopCPUProfile() {
 		return
 	}
 	pprof.StopCPUProfile()
+	cpuProfiler.file.Close()
 	cpuProfiler.IsRunning = false
 	logger.Alert("+++++ CPU profiling is finished. Output file:% s  +++++\n", cpuProfiler.CPUProfileFileName)
 }
