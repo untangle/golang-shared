@@ -1,0 +1,68 @@
+syntax = "proto3";
+package reports;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions";
+
+message ActiveSessions {
+    repeated Session sessionsList = 1;
+}
+
+message Session {
+  uint64 age_milliseconds = 1;
+  uint64 bytes = 3;
+  uint64 client_bytes = 4;
+  uint64 server_bytes = 5;
+  int64 byte_rate = 6;
+  int64 client_byte_rate = 7;
+  int64 server_byte_rate = 8;
+  uint64 packets = 9;
+  uint64 client_packets = 10;
+  uint64 server_packets = 11;
+  int64 packet_rate = 12;
+  int64 client_packet_rate = 13;
+  int64 server_packet_rate = 14;
+  string client_address = 15;
+  string client_address_new = 16;
+  uint32 client_interface_id = 17;
+  uint32 client_interface_type = 18;
+  uint32 conntrack_id = 20;
+  uint32 family = 21;
+  uint32 ip_protocol = 22;
+  uint32 mark = 23;
+  uint32 priority = 24;
+  string server_address = 25;
+  string server_address_new = 26;
+  uint32 server_interface_id = 27;
+  uint32 server_interface_type = 28;
+  uint32 server_port = 29;
+  uint32 server_port_new = 30;
+  int64 session_id = 31;
+  uint32 tcp_state = 32;
+  uint64 timestamp_start = 33;
+  string wan_policy = 34;
+  string application_category = 35;
+  string application_category_inferred = 36;
+  int32 application_confidence = 37;
+  int32 application_confidence_inferred = 38;
+  string application_id = 39;
+  string application_id_inferred = 40;
+  int32 application_productivity = 41;
+  int32 application_productivity_inferred = 42;
+  string application_protochain = 43;
+  string application_protochain_inferred = 44;
+  int32 application_risk = 45;
+  int32 application_risk_inferred = 46;
+  string cert_dns_names = 47;
+  string certificate_issuer_c = 48;
+  string certificate_issuer_cn = 49;
+  string certificate_issuer_l = 50;
+  string certificate_issuer_o = 51;
+  string certificate_issuer_ou = 52;
+  string certificate_issuer_p = 53;
+  string certificate_subject_cn = 54;
+  string certificate_subject_o = 55;
+  string certificate_subject_san = 56;
+  string server_reverse_dns = 57;
+  int32 wan_rule_id = 58;
+  string local_address = 59;
+}
