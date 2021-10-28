@@ -17,7 +17,7 @@ before_install:
 - mv "$TRAVIS_BUILD_DIR" "${DIR}/golang-shared"
 - cd "${DIR}/golang-shared"
 script:
-- docker-compose -f build/docker-compose.build.yml up --build ${TARGET}-local --abort-on-container-exit || travis_terminate 1
+- docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
 notifications:
   email: false
   slack:
