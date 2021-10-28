@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/logger"
 )
 
@@ -434,6 +435,13 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 
 	logger.Info("Sighup: %v\n", ShouldRunSighup)
 	logger.Info("Executable: %s\n", SighupExecutable)
+	if ShouldRunSighup {
+		err = util.RunSighup(SighupExecutable)
+		if err != nil {
+			logger.Warn("Failure running sighup on required executable %s: %s\n", SighupExecutable, err.Error())
+			return output, err
+		}
+	}
 	return output, nil
 }
 
