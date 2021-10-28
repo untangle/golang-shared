@@ -433,8 +433,8 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 		cb()
 	}
 
-	logger.Info("Sighup: %v\n", ShouldRunSighup)
-	logger.Info("Executable: %s\n", SighupExecutable)
+	logger.Debug("Sighup: %v\n", ShouldRunSighup)
+	logger.Debug("Executable: %s\n", SighupExecutable)
 	if ShouldRunSighup {
 		err = util.RunSighup(SighupExecutable)
 		if err != nil {

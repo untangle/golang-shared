@@ -24,13 +24,13 @@ func PluginShutdown() {
 // @param executable - executable to run sighup on
 // @return any error from running
 func RunSighup(executable string) error {
-	logger.Info("Running interrupt\n")
+	logger.Debug("Running interrupt\n")
 	pidStr, err := exec.Command("pgrep", executable).CombinedOutput()
 	if err != nil {
 		logger.Err("Failure to get %s pid: %s\n", executable, err.Error())
 		return err
 	}
-	logger.Info("Pid: %s\n", pidStr)
+	logger.Debug("Pid: %s\n", pidStr)
 
 	pid, err := strconv.Atoi(strings.TrimSpace(string(pidStr)))
 	if err != nil {
