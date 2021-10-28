@@ -1,0 +1,27 @@
+sudo: required
+env:
+  global:
+  # DOCKER_PASSWORD
+  - secure: "wu/fIOi7F+Yyx/VjyWgmWWDsyTUWbHH2A1OT8w9j0WqS3K1aFYM4V+XYI3NwsgOBvbSOYon71pK9XIZpXLLWABVxa5K6UFTii0Lrj1D6E9Oe4jbmRUfOBppX2Iiznl0G5yvZ0tw4R6/4JJHAFN+xEPAs3sM7HdZ8ALXllRKmvQW72ZCtrnBPcknlMZdY5lAQHLPZ0vA294iLeSUKljuiDg1+Ng9mSAMQKXr4vBemMsnOJ60xcUXP69adzbO/MyhPFDgiOGXuV2nnY7G+ls2P6m0XwUK4AKBld12KbPuaTULXKeEKM5zKPHwoyUolyxskseiJfk90dEe8u2+ZnkneeDjBwacTy9NTzZNIBQD6DCA8yc973PI/be09haPh5hoKD+oCP2X2SrQ7gmBCqXubXqYKT/IMbfK+w/EceFzcDHeyj6fXbBd42HeOresa8x3eBk2EMiBcTQQRfg9DnqOzNf5DNLojWt5T/lfKXhlqa3dU0OnrDF8OxjndFAD7VeGLln04C8x4fQHBdPQtxxON78te2tDNz6PZOLk4Di7Dctoo6HQg21oQnapOWZ7hZbn06/InFBDnyL5CfW9lyKTVqy51N1flf8m0EGjgtQ3U1HA8+0gDqTwGXRs6T4vKx/mRsghppIM89TQu0pn8Q0kJd9LtgHX1XsoWX72QSvQOF38="
+  - DOCKER_USERNAME: untangleengineering
+  - GOPATH="${HOME}/go"
+  - DIR="${GOPATH}/src/github.com/untangle"
+  matrix:
+  - TARGET=glibc
+  - TARGET=musl
+services:
+- docker
+before_install:
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- mkdir -p "$DIR"
+- mv "$TRAVIS_BUILD_DIR" "${DIR}/golang-shared"
+- cd "${DIR}/golang-shared"
+script:
+- docker-compose -f build/docker-compose.build.yml up --build ${TARGET}-local || travis_terminate 1
+notifications:
+  email: false
+  slack:
+    rooms:
+      secure: "Ct7k1mJNZ9qfAKoA/3RPHohYaRbvr4GZCA0In08ZKpMA2oeQauyO5xB7homM4LtgSoOJul1+kOXU8Nfsl0RyunKt7njBx51tWKTPNg49js4Wr1TGhriBhqnqES9Bghwp5kroSYD1m7NsjoAThy+SQYHOefAfkCy4hQin1OH0TflVRwMT5m3s+pQNzNjqXiEmpsOQ85Vvy8rHdEFiR/rREIUiBtWh07F/X6/ObepFRuleUCdx7QOPQZ5qlBlpqFr3iRDd9hSvv9lftM0vRO5xyuSDmlh6IVdLd2sYtNCQ90DI4N5axK7oCStm4XBc97IhrcIfiigE2RWlp4Ufll1SX1hoyNzhzNsTEir7OnnE+r0uyDGT1E21Gy20Y6rGSRuTW4s8t7vyKpEQEHd7JDiaXPmrSoGC4evzLi1nq9ePZYvLBjnM+0uTkbFZs5xqBHSdUQgdZvOppeGkB/F0vz6nZTS3pR2/uym6A9UnTKfh42xi4tgDJDIz0e9mqjCu0tzCF/oFP83vppEB8P3y00VzunalOTHn6pTPMNaqUpQV3bKiCT0VXk/ScsS3F8JOvDwi2n6/3/QbCYnzsxnvWXv6NijOL+uZM+/gJMUymc9MmiKVjQsHtSehyhL2mcPxKQdOk0l567RDUuSssCIMAQgW6Pc/KIaqutV1WNue54N7nT4="
+    on_success: change
+    on_failure: always
