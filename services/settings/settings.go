@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
@@ -118,7 +117,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
 
-	return map[string]interface{}{"result": "OK", "output": output}, err
+	return map[string]interface{}{"output": output}, err
 }
 
 // RegisterSyncCallback registers a callback. Will be called after sync-settings complete.
@@ -293,7 +292,7 @@ func TrimSettingsFile(segments []string, filename string) (interface{}, error) {
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
 
-	return map[string]interface{}{"result": "OK", "output": output}, err
+	return map[string]interface{}{"output": output}, err
 }
 
 // setSettingsInJSON sets the value attribute specified of the segments path to the specified value
@@ -353,18 +352,12 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	outbytes, err := cmd.CombinedOutput()
 	output := string(outbytes)
 	if err != nil {
-		// if just a non-zero exit code, just use standard language
-		// otherwise use the real error message
-		if exiterr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				if status.ExitStatus() != 0 {
-					logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-					return output, errors.New("Failed to save settings")
-				}
-			}
-		}
+		// json decode the error, and get the attributes
+		var data map[string]string
+		json.Unmarshal([]byte(output), &data)
 		logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-		return output, err
+		// return the trace and the error raised
+		return data["traceback"], errors.New(data["raisedException"])
 	}
 	return output, nil
 }
