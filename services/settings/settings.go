@@ -27,6 +27,12 @@ var syncCallbacks []func()
 // OSForSyncSettings is the os sync-settings should use
 var OSForSyncSettings string = "openwrt"
 
+// ShouldRunSighup is if sighup should be run after sync-settings callbacks
+var ShouldRunSighup bool = false
+
+// SighupExecutable is the executable to run for sighup if necessary
+var SighupExecutable string = ""
+
 // Startup settings service
 func Startup() {
 }
@@ -39,6 +45,14 @@ func Shutdown() {
 // SetOS sets the os for settings to use
 func SetOS(newOS string) {
 	OSForSyncSettings = newOS
+}
+
+// SetSighupProperties sets the properties of running sighup, such as if it should and the process to sighup
+// @param shouldRunSighup - true if sighup should be run after callsbacks, false otherwise
+// @param sighupExecutable - executable to call sighup on, empty string if none
+func SetSighupProperties(shouldRunSighup bool, sighupExecutable string) {
+	ShouldRunSighup = shouldRunSighup
+	SighupExecutable = sighupExecutable
 }
 
 // GetCurrentSettings returns the current settings from the specified path
@@ -417,6 +431,9 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 	for _, cb := range syncCallbacks {
 		cb()
 	}
+
+	logger.Info("Sighup: %v\n", ShouldRunSighup)
+	logger.Info("Executable: %s\n", SighupExecutable)
 	return output, nil
 }
 
