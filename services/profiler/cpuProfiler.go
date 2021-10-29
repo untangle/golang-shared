@@ -31,7 +31,7 @@ type CPUProfiler struct {
 // StartCPUProfile sets up and starts cpu profiling
 func (cpuProfiler *CPUProfiler) StartCPUProfile() error {
 	if cpuProfiler.CPUProfileFileName == "" {
-		return errors.New("annot start cpu profiling. CPUProfileFileName must be specified")
+		return errors.New("cannot start cpu profiling. CPUProfileFileName must be specified")
 	}
 	cpu, err := os.Create(cpuProfiler.CPUProfileFileName)
 	cpuProfiler.file = cpu
