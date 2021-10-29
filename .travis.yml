@@ -18,10 +18,3 @@ before_install:
 - cd "${DIR}/golang-shared"
 script:
 - docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
-notifications:
-  email: false
-  slack:
-    rooms:
-      secure: "Ct7k1mJNZ9qfAKoA/3RPHohYaRbvr4GZCA0In08ZKpMA2oeQauyO5xB7homM4LtgSoOJul1+kOXU8Nfsl0RyunKt7njBx51tWKTPNg49js4Wr1TGhriBhqnqES9Bghwp5kroSYD1m7NsjoAThy+SQYHOefAfkCy4hQin1OH0TflVRwMT5m3s+pQNzNjqXiEmpsOQ85Vvy8rHdEFiR/rREIUiBtWh07F/X6/ObepFRuleUCdx7QOPQZ5qlBlpqFr3iRDd9hSvv9lftM0vRO5xyuSDmlh6IVdLd2sYtNCQ90DI4N5axK7oCStm4XBc97IhrcIfiigE2RWlp4Ufll1SX1hoyNzhzNsTEir7OnnE+r0uyDGT1E21Gy20Y6rGSRuTW4s8t7vyKpEQEHd7JDiaXPmrSoGC4evzLi1nq9ePZYvLBjnM+0uTkbFZs5xqBHSdUQgdZvOppeGkB/F0vz6nZTS3pR2/uym6A9UnTKfh42xi4tgDJDIz0e9mqjCu0tzCF/oFP83vppEB8P3y00VzunalOTHn6pTPMNaqUpQV3bKiCT0VXk/ScsS3F8JOvDwi2n6/3/QbCYnzsxnvWXv6NijOL+uZM+/gJMUymc9MmiKVjQsHtSehyhL2mcPxKQdOk0l567RDUuSssCIMAQgW6Pc/KIaqutV1WNue54N7nT4="
-    on_success: change
-    on_failure: always
