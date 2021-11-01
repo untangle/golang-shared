@@ -15,4 +15,7 @@ type Config struct {
 
 	// WatchDogInterval is the watch dog timer interval
 	WatchDogInterval time.Duration
+
+	// Executable calling with this config
+	Executable string
 }

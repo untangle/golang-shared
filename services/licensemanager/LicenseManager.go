@@ -6,10 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
@@ -283,32 +281,6 @@ func saveServiceStates(fileLocation string, serviceStates []ServiceState) error 
 
 	return nil
 
-}
-
-func runSighup() error {
-	logger.Info("Running interrupt\n")
-	// write out service commands
-
-	// TODO make generic here
-	pidStr, err := exec.Command("pgrep", "packetd").CombinedOutput()
-	if err != nil {
-		logger.Err("Failure to get packetd pid: %s\n", err.Error())
-		return err
-	}
-	logger.Info("Pid: %s\n", pidStr)
-
-	pid, err := strconv.Atoi(strings.TrimSpace(string(pidStr)))
-	if err != nil {
-		logger.Err("Failure converting pid for packetd: %s\n", err.Error())
-		return err
-	}
-
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		logger.Err("Failure to get packetd process: %s\n", err.Error())
-		return err
-	}
-	return process.Signal(syscall.SIGHUP)
 }
 
 // loadServiceStates retrieves the previously saved service state

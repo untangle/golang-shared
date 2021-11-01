@@ -1,6 +1,9 @@
 package licensemanager
 
-import "github.com/untangle/golang-shared/services/logger"
+import (
+	"github.com/untangle/golang-shared/plugins/util"
+	"github.com/untangle/golang-shared/services/logger"
+)
 
 // Service struct is used to state/hook of each service
 type Service struct {
@@ -32,7 +35,7 @@ func (s *Service) setServiceState(newAllowedState State) error {
 
 	// api called the sighup, so enable/disable service
 	if runInterrupt {
-		err := runSighup()
+		err := util.RunSighup(config.Executable)
 		if err != nil {
 			return err
 		}
