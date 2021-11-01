@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"strconv"
@@ -46,6 +47,7 @@ func Shutdown() {
 	logger.Info("Shutting down the Application Classification Table manager service\n")
 }
 
+// GetTable gets the classd table specified by the table param
 func GetTable(table string) (string, error) {
 	logger.Debug("Getting %s table...\n", table)
 
@@ -56,6 +58,8 @@ func GetTable(table string) (string, error) {
 		data, err = getApplicationTable()
 	case "category":
 		data, err = getCategoryTable()
+	default:
+		return data, errors.New("failed_to_get_table")
 	}
 
 	if err != nil {
