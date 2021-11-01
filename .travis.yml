@@ -1,0 +1,20 @@
+sudo: required
+env:
+  global:
+  # DOCKER_PASSWORD
+  - secure: "QuM2DBRguEDUalQmfgHriv/C6ftk0GyAHypMrMA4Vqki8O0W5HKeqNzRNAElrUzYzElDYq/rrTXINaRTiCoMgbSOe1i9vnQYFCNcqN0RZRsiNvrzLhB+NC2IQ/kU73EAxT4cej2oHF6HJAUIPEHogZUCzUBZNAIo/z7vGfNnuHflfzlECehkxruj/WIpJBLRw1b1uPS3Oa6oFa7L3fs7HR70W17/Ple1YtV985MbLovzs2UYEtBgDbs44zF3rjrFvBcOyft64fk8uIs4JdcuAx7lY8LfL2WHoVKreRyBU9fANagr1nobArRAIzSuCGfDoCyFn36iyuu7LjCAUedM+YxySJKoMYLdbsYcHmijHEEGCQ5ytwxmuEzGRq6XZHvUFD2FfbFPmIRmWnt+7N/l+3tOgZo9Fg5OnPpz16ajavckso4TRq7tyHBmti1HyDYVTafeLrMlrB/MwDQHV4CyUBO1G1nndHAxR+8Z4LHupjEmPxWS2nPT6ND+KhWp+3E3b0Q1+5H1jUM3x3rKyDaw7RNWciGnYfaR01DQOVGg5HvQ+GGMvLPUHEeOy5hC1nxp6K67XeOBSMzqGqGlNSXy4Ykq+4T8uBjXP2HMqkFc8/5C4mgWf5ZQgUyJtF27w/sTx5VV7fmVfT5A5WlUtdQP5DeD7+lY0d/t2pU7TwVMi8s="
+  - DOCKER_USERNAME: untangleengineering
+  - GOPATH="${HOME}/go"
+  - DIR="${GOPATH}/src/github.com/untangle"
+  matrix:
+  - TARGET=glibc
+  - TARGET=musl
+services:
+- docker
+before_install:
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- mkdir -p "$DIR"
+- mv "$TRAVIS_BUILD_DIR" "${DIR}/golang-shared"
+- cd "${DIR}/golang-shared"
+script:
+- docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
