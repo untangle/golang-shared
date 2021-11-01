@@ -25,7 +25,7 @@ func ReadCommandFileAndGetStatus(name string) (bool, error) {
 	filename := ServicesAllowedStatesLocation + name
 	fileContent, err := ioutil.ReadFile(filename)
 	if err != nil {
-		logger.Warn("Not able to find service state file.\n", err)
+		logger.Warn("Not able to find service state file %s: %s\n", name, err.Error())
 		return false, err
 	}
 
