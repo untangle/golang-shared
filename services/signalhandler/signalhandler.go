@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"sync"
 	"sync/atomic"
 	"syscall"
 
@@ -16,7 +15,6 @@ import (
 type SignalHandler struct {
 	shutdownFlag    uint32
 	ShutdownChannel chan bool // ShutdownChannel is used to signal to other routines that the system is shutting down
-	Targets         []func(syscall.Signal)
 }
 
 // NewSignalHandler creates a new SignalHandler with channel and flag set
@@ -26,11 +24,6 @@ func NewSignalHandler() *SignalHandler {
 	hs.ShutdownChannel = make(chan bool)
 
 	return hs
-}
-
-// SetTargets sets the targets to be used by the signal handler
-func (hs *SignalHandler) SetTargets(targets []func(syscall.Signal)) {
-	hs.Targets = targets
 }
 
 // HandleSignals adds functionality to handle system signals
@@ -56,36 +49,6 @@ func (hs *SignalHandler) HandleSignals() {
 			go hs.dumpStack()
 		}
 	}()
-
-	// Add SIGHUP handler (call handlers)
-	hupch := make(chan os.Signal, 1)
-	signal.Notify(hupch, syscall.SIGHUP)
-	go func() {
-		for {
-			sig := <-hupch
-			if len(hs.Targets) != 0 {
-				logger.Info("Received signal [%v]. Calling handlers\n", sig)
-				hs.signalPlugins(syscall.SIGHUP)
-			} else {
-				logger.Info("No targets for signal, doing nothing...\n")
-			}
-		}
-	}()
-}
-
-// signalPlugins signals all plugins with a handler (in parallel)
-func (hs *SignalHandler) signalPlugins(message syscall.Signal) {
-	var wg sync.WaitGroup
-
-	for _, f := range hs.Targets {
-		wg.Add(1)
-		go func(f func(syscall.Signal)) {
-			f(message)
-			wg.Done()
-		}(f)
-	}
-
-	wg.Wait()
 }
 
 // dumpStack dumps the stack trace to /tmp/reportd.stack and log

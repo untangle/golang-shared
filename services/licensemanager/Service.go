@@ -5,14 +5,14 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
-// Service struct is used to state/hook of each service
+// Service struct is used to store state/hook of each service
 type Service struct {
 	State ServiceState `json:"state"`
 	Hook  ServiceHook  `json:"hook"`
 }
 
-// SetServiceState sets the desired state of an service
-// @param save bool - if we should store the service state or not, one off save
+// setServiceState sets the desired state of an service
+// @param State newAllowedState - new allowed state
 // @return error - associated errors
 func (s *Service) setServiceState(newAllowedState State) error {
 	var err error
@@ -20,8 +20,10 @@ func (s *Service) setServiceState(newAllowedState State) error {
 	runInterrupt := false
 	oldAllowedState := s.State.getAllowedState()
 	s.State.setAllowedState(newAllowedState)
-	logger.Info("old state: %v\n", oldAllowedState)
-	logger.Info("new state: %v\n", s.State.getAllowedState())
+
+	logger.Debug("old state: %v\n", oldAllowedState)
+	logger.Debug("new state: %v\n", s.State.getAllowedState())
+
 	switch newAllowedState {
 	case StateEnable:
 		// if switching, need to run start
@@ -45,9 +47,11 @@ func (s *Service) setServiceState(newAllowedState State) error {
 }
 
 // ServiceStart starts the service, either via sighup or normal start
+// @return bool - if sighup should be run or not
 func (s *Service) ServiceStart() bool {
+	// if no Start() in hook, run sighup and write out file
 	if s.Hook.Start == nil {
-		logger.Info("No start specified, using sighup\n")
+		logger.Debug("No start specified, using sighup\n")
 		err := s.State.writeOutServiceToEnableOrDisable()
 		if err != nil {
 			logger.Warn("Failure to write out service start: %s\n", err.Error())
@@ -60,9 +64,11 @@ func (s *Service) ServiceStart() bool {
 }
 
 // ServiceStop stops the service, either via sighup or normal stop
+// @return bool on if sighup should be run or not
 func (s *Service) ServiceStop() bool {
+	// if no Stop() in hook, run sighup and write out file
 	if s.Hook.Stop == nil {
-		logger.Info("No stop specified, using sighup\n")
+		logger.Debug("No stop specified, using sighup\n")
 		err := s.State.writeOutServiceToEnableOrDisable()
 		if err != nil {
 			logger.Warn("Failure to write out service stop: %s\n", err.Error())

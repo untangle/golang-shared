@@ -37,7 +37,7 @@ func Startup(configOptions Config) {
 	}
 
 	if serviceStates == nil {
-		// Gen a new state file
+		// Gen a new state file with services set to StateDisable
 		blankServiceStates := make([]ServiceState, 0)
 		for name := range config.ValidServiceHooks {
 			newServiceState := ServiceState{Name: name, AllowedState: StateDisable}
@@ -180,7 +180,11 @@ func GetLicenseDetails() (LicenseInfo, error) {
 	return retLicense, nil
 }
 
-// SetServiceState TODO
+// SetServiceState sets the given serviceName to the given allowedState
+// @param string serviceName - service to set
+// @param string newAllowedState - new allowed state such as enabled or disabled
+// @param bool saveStates - whether ServiceState file should be saved
+// @return any error
 func SetServiceState(serviceName string, newAllowedState string, saveStates bool) error {
 	service, err := findService(serviceName)
 	if err != nil {
@@ -233,7 +237,10 @@ func findServiceHook(serviceName string) (ServiceHook, error) {
 	return service, nil
 }
 
-// TODO
+// findService finds the service in the services map
+// @param string serviceName - service to find
+// @return *Service - the service found, nil if not found
+// @return error such as errServiceNotFound
 func findService(serviceName string) (*Service, error) {
 	service, ok := services[serviceName]
 	if !ok {
@@ -242,7 +249,11 @@ func findService(serviceName string) (*Service, error) {
 	return service, nil
 }
 
-// TODO
+// findServiceState finds a given service in the passed ServiceState array
+// @param string serviceName - service to find
+// @param []ServiceState serviceStates - array of ServiceState to search through
+// @return ServiceState of the state found, blank ServiceState if not found
+// @return bool on if found
 func findServiceState(serviceName string, serviceStates []ServiceState) (ServiceState, bool) {
 	for _, o := range serviceStates {
 		if o.Name == serviceName {
@@ -252,7 +263,10 @@ func findServiceState(serviceName string, serviceStates []ServiceState) (Service
 	return ServiceState{}, false
 }
 
-// TODO
+// saveServiceStatesFromServices saves the services states in an array of services
+// @param string fileLocation - location to save service states to
+// @param map[string]*Service services - services to save
+// @return any error from saving, returned from saveServiceStates
 func saveServiceStatesFromServices(fileLocation string, services map[string]*Service) error {
 	serviceStates := make([]ServiceState, 0)
 	for _, o := range services {
@@ -263,9 +277,7 @@ func saveServiceStatesFromServices(fileLocation string, services map[string]*Ser
 
 // saveServiceStates stores the services in the service state file
 // @param string fileLocation - the location of the service state file
-// @param map[string]ServiceHook serviceHooks - map of service hooks to create ServiceStates for
-// @param runInterrupt TODO
-// @return []ServiceState - the service state array
+// @param []ServiceState serviceStates - map of service hooks to create ServiceStates for
 // @return error - associated errors
 func saveServiceStates(fileLocation string, serviceStates []ServiceState) error {
 	data, err := json.Marshal(serviceStates)
