@@ -21,7 +21,7 @@ import (
 
 type Config struct {
 	FileLocation string
-	Services     map[string]string
+	LogLevelMap  map[string]string
 	OutputWriter io.Writer
 }
 
@@ -350,12 +350,12 @@ func logMessage(level int32, format string, args ...interface{}) {
 	}
 }
 
-// validateConfig ensures all the log levels set in config.Services are valid
+// validateConfig ensures all the log levels set in config.LogLevelMap are valid
 func validateConfig() error {
 	if config.FileLocation == "" {
 		return errors.New("FileLocation must be set")
 	}
-	for key, value := range config.Services {
+	for key, value := range config.LogLevelMap {
 		if !util.ContainsString(logLevelName[:], value) {
 			return fmt.Errorf("%s is using an incorrect log level: %s", key, value)
 		}
@@ -438,51 +438,8 @@ func loadLoggerConfig() {
 func writeLoggerConfigToJSON() {
 	Alert("Log configuration not found. Creating default File: %s\n", config.FileLocation)
 
-	// // make a map and fill it with a default log level for every package
-	// config := make(map[string]string)
-	// config["_ValidLevels_"] = comment
-
-	// // plugins
-	// config["certfetch"] = "INFO"
-	// config["certsniff"] = "INFO"
-	// config["classify"] = "INFO"
-	// config["dns"] = "INFO"
-	// config["example"] = "INFO"
-	// config["geoip"] = "INFO"
-	// config["predicttraffic"] = "INFO"
-	// config["reporter"] = "INFO"
-	// config["revdns"] = "INFO"
-	// config["sni"] = "INFO"
-	// config["stats"] = "INFO"
-	// config["threatprevention"] = "INFO"
-	// config["sitefilter"] = "INFO"
-
-	// // services
-	// config["certcache"] = "INFO"
-	// config["certmanager"] = "INFO"
-	// config["dict"] = "INFO"
-	// config["dispatch"] = "INFO"
-	// config["kernel"] = "INFO"
-	// config["logger"] = "INFO"
-	// config["netspace"] = "INFO"
-	// config["overseer"] = "INFO"
-	// config["predicttrafficsvc"] = "INFO"
-	// config["reports"] = "INFO"
-	// config["restd"] = "INFO"
-	// config["settings"] = "INFO"
-	// config["webroot"] = "INFO"
-
-	// // static source names used in the low level c handlers
-	// config["common"] = "INFO"
-	// config["conntrack"] = "INFO"
-	// config["netlogger"] = "INFO"
-	// config["nfqueue"] = "INFO"
-	// config["warehouse"] = "INFO"
-	// config["system"] = "INFO"
-	// config["gin"] = "INFO"
-
 	// convert the config map to a json object
-	jstr, err := json.MarshalIndent(config.Services, "", "")
+	jstr, err := json.MarshalIndent(config.LogLevelMap, "", "")
 	if err != nil {
 		Alert("Log failure creating default configuration: %s\n", err.Error())
 		return
