@@ -19,6 +19,7 @@ import (
 	"github.com/untangle/golang-shared/util"
 )
 
+// Config struct retains information about the where the log level map is stored, default log levels and writer that should be used
 type Config struct {
 	FileLocation string
 	LogLevelMap  map[string]string
@@ -210,7 +211,7 @@ type LogWriter struct {
 	source string
 }
 
-// NewLogWriter creates an io Writer to steam output to the Log facility
+// DefaultLogWriter creates an io Writer to steam output to the Log facility
 func DefaultLogWriter(name string) *LogWriter {
 	writer := new(LogWriter)
 	writer.buffer = make([]byte, 0)
