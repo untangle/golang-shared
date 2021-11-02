@@ -3,7 +3,9 @@ package logger
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"runtime"
@@ -14,9 +16,17 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/overseer"
+	"github.com/untangle/golang-shared/util"
 )
 
-const logConfigFile = "/tmp/logconfig.js"
+// Config struct retains information about the where the log level map is stored, default log levels and writer that should be used
+type Config struct {
+	FileLocation string
+	LogLevelMap  map[string]string
+	OutputWriter io.Writer
+}
+
+var config Config
 
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
 var logLevelMap map[string]*int32
@@ -52,16 +62,26 @@ const LogLevelDebug int32 = 7
 const LogLevelTrace int32 = 8
 
 // Startup starts the logging service
-func Startup() {
+func Startup(newConfig Config) {
+	config = newConfig
+	err := validateConfig()
+	if err != nil {
+		Err("Logger Configuration is invalid: %s\n", err.Error())
+		return
+	}
+
 	// capture startup time
 	launchTime = time.Now()
 
 	// create the map and load the Log configuration
-	logLevelMap = make(map[string]*int32)
 	loadLoggerConfig()
 
 	// Set system logger to use our logger
-	log.SetOutput(NewLogWriter("system"))
+	if config.OutputWriter != nil {
+		log.SetOutput(config.OutputWriter)
+	} else {
+		log.SetOutput(DefaultLogWriter("system"))
+	}
 }
 
 // Shutdown stops the logging service
@@ -191,8 +211,8 @@ type LogWriter struct {
 	source string
 }
 
-// NewLogWriter creates an io Writer to steam output to the Log facility
-func NewLogWriter(name string) *LogWriter {
+// DefaultLogWriter creates an io Writer to steam output to the Log facility
+func DefaultLogWriter(name string) *LogWriter {
 	writer := new(LogWriter)
 	writer.buffer = make([]byte, 0)
 	writer.source = name
@@ -331,23 +351,37 @@ func logMessage(level int32, format string, args ...interface{}) {
 	}
 }
 
+// validateConfig ensures all the log levels set in config.LogLevelMap are valid
+func validateConfig() error {
+	if config.FileLocation == "" {
+		return errors.New("FileLocation must be set")
+	}
+	for key, value := range config.LogLevelMap {
+		if !util.ContainsString(logLevelName[:], value) {
+			return fmt.Errorf("%s is using an incorrect log level: %s", key, value)
+		}
+	}
+	return nil
+}
+
 // loadLoggerConfig loads the logger configuration file
 func loadLoggerConfig() {
 	var file *os.File
 	var info os.FileInfo
 	var err error
+	logLevelMap = make(map[string]*int32)
 
 	// open the logger configuration file
-	file, err = os.Open(logConfigFile)
+	file, err = os.Open(config.FileLocation)
 
 	// if there was an error create the config and try the open again
 	if err != nil {
-		initLoggerConfig()
-		file, err = os.Open(logConfigFile)
+		writeLoggerConfigToJSON()
+		file, err = os.Open(config.FileLocation)
 
 		// if there is still an error we are out of options
 		if err != nil {
-			Err("Unable to load Log configuration file: %s\n", logConfigFile)
+			Err("Unable to load Log configuration file: %s\n", config.FileLocation)
 			return
 		}
 	}
@@ -363,7 +397,7 @@ func loadLoggerConfig() {
 	}
 
 	// read the raw configuration json from the file
-	config := make(map[string]string)
+	serviceMap := make(map[string]string)
 	var data = make([]byte, info.Size())
 	len, err := file.Read(data)
 
@@ -373,14 +407,14 @@ func loadLoggerConfig() {
 	}
 
 	// unmarshal the configuration into a map
-	err = json.Unmarshal(data, &config)
+	err = json.Unmarshal(data, &serviceMap)
 	if err != nil {
 		Err("Unable to parse Log configuration\n")
 		return
 	}
 
 	// put the name/string pairs from the file into the name/int lookup map we us in the Log function
-	for cfgname, cfglevel := range config {
+	for cfgname, cfglevel := range serviceMap {
 		// ignore any comment strings that start and end with underscore
 		if strings.HasPrefix(cfgname, "_") && strings.HasSuffix(cfgname, "_") {
 			continue
@@ -402,71 +436,18 @@ func loadLoggerConfig() {
 	}
 }
 
-func initLoggerConfig() {
-	Alert("Log configuration not found. Creating default file: %s\n", logConfigFile)
-
-	// create a comment that shows all valid log level names
-	var comment string
-	for item, element := range logLevelName {
-		if item != 0 {
-			comment += "|"
-		}
-		comment += element
-	}
-
-	// make a map and fill it with a default log level for every package
-	config := make(map[string]string)
-	config["_FileVersion_"] = "200"
-	config["_ValidLevels_"] = comment
-
-	// plugins
-	config["certfetch"] = "INFO"
-	config["certsniff"] = "INFO"
-	config["classify"] = "INFO"
-	config["dns"] = "INFO"
-	config["example"] = "INFO"
-	config["geoip"] = "INFO"
-	config["predicttraffic"] = "INFO"
-	config["reporter"] = "INFO"
-	config["revdns"] = "INFO"
-	config["sni"] = "INFO"
-	config["stats"] = "INFO"
-	config["threatprevention"] = "INFO"
-	config["sitefilter"] = "INFO"
-
-	// services
-	config["certcache"] = "INFO"
-	config["certmanager"] = "INFO"
-	config["dict"] = "INFO"
-	config["dispatch"] = "INFO"
-	config["kernel"] = "INFO"
-	config["logger"] = "INFO"
-	config["netspace"] = "INFO"
-	config["overseer"] = "INFO"
-	config["predicttrafficsvc"] = "INFO"
-	config["reports"] = "INFO"
-	config["restd"] = "INFO"
-	config["settings"] = "INFO"
-	config["webroot"] = "INFO"
-
-	// static source names used in the low level c handlers
-	config["common"] = "INFO"
-	config["conntrack"] = "INFO"
-	config["netlogger"] = "INFO"
-	config["nfqueue"] = "INFO"
-	config["warehouse"] = "INFO"
-	config["system"] = "INFO"
-	config["gin"] = "INFO"
+func writeLoggerConfigToJSON() {
+	Alert("Log configuration not found. Creating default File: %s\n", config.FileLocation)
 
 	// convert the config map to a json object
-	jstr, err := json.MarshalIndent(config, "", "")
+	jstr, err := json.MarshalIndent(config.LogLevelMap, "", "")
 	if err != nil {
 		Alert("Log failure creating default configuration: %s\n", err.Error())
 		return
 	}
 
 	// create the logger configuration file
-	file, err := os.Create(logConfigFile)
+	file, err := os.Create(config.FileLocation)
 	if err != nil {
 		return
 	}
