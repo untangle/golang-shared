@@ -3,6 +3,7 @@ package logger
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -351,6 +352,9 @@ func logMessage(level int32, format string, args ...interface{}) {
 
 // validateConfig ensures all the log levels set in config.Services are valid
 func validateConfig() error {
+	if config.FileLocation == "" {
+		return errors.New("FileLocation must be set")
+	}
 	for key, value := range config.Services {
 		if !util.ContainsString(logLevelName[:], value) {
 			return fmt.Errorf("%s is using an incorrect log level: %s", key, value)
@@ -392,7 +396,7 @@ func loadLoggerConfig() {
 	}
 
 	// read the raw configuration json from the file
-	config := make(map[string]string)
+	serviceMap := make(map[string]string)
 	var data = make([]byte, info.Size())
 	len, err := file.Read(data)
 
@@ -402,14 +406,14 @@ func loadLoggerConfig() {
 	}
 
 	// unmarshal the configuration into a map
-	err = json.Unmarshal(data, &config)
+	err = json.Unmarshal(data, &serviceMap)
 	if err != nil {
 		Err("Unable to parse Log configuration\n")
 		return
 	}
 
 	// put the name/string pairs from the file into the name/int lookup map we us in the Log function
-	for cfgname, cfglevel := range config {
+	for cfgname, cfglevel := range serviceMap {
 		// ignore any comment strings that start and end with underscore
 		if strings.HasPrefix(cfgname, "_") && strings.HasSuffix(cfgname, "_") {
 			continue
@@ -432,16 +436,7 @@ func loadLoggerConfig() {
 }
 
 func writeLoggerConfigToJSON() {
-	Alert("Log configuration not found. Creating default FileLocation: %s\n", config.FileLocation)
-
-	// create a comment that shows all valid log level names
-	var comment string
-	for item, element := range logLevelName {
-		if item != 0 {
-			comment += "|"
-		}
-		comment += element
-	}
+	Alert("Log configuration not found. Creating default File: %s\n", config.FileLocation)
 
 	// // make a map and fill it with a default log level for every package
 	// config := make(map[string]string)
