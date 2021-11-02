@@ -62,7 +62,12 @@ const LogLevelTrace int32 = 8
 // Startup starts the logging service
 func Startup(newConfig Config) {
 	config = newConfig
-	validateConfig()
+	err := validateConfig()
+	if err != nil {
+		Err("Logger Configuration is invalid: %s\n", err.Error())
+		return
+	}
+
 	// capture startup time
 	launchTime = time.Now()
 
