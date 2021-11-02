@@ -62,6 +62,7 @@ const LogLevelTrace int32 = 8
 // Startup starts the logging service
 func Startup(newConfig Config) {
 	config = newConfig
+	validateConfig()
 	// capture startup time
 	launchTime = time.Now()
 
