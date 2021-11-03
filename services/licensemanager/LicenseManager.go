@@ -59,7 +59,7 @@ func Startup(configOptions Config) {
 		if !found {
 			serviceState = ServiceState{Name: name, AllowedState: StateDisable}
 		}
-		service := Service{Hook: o, State: serviceState}
+		service := Service{Name: name, Hook: o, State: serviceState}
 		services[name] = &service
 	}
 
@@ -225,16 +225,6 @@ func shutdownServices(licenseFile string, servicesToShutdown map[string]*Service
 	for _, service := range servicesToShutdown {
 		service.setServiceState(StateDisable)
 	}
-}
-
-// findServiceHook is used to check if service is valid and return its hooks
-// @param serviceName string - the name of the service
-func findServiceHook(serviceName string) (ServiceHook, error) {
-	service, ok := config.ValidServiceHooks[serviceName]
-	if !ok {
-		return ServiceHook{}, errServiceNotFound
-	}
-	return service, nil
 }
 
 // findService finds the service in the services map
