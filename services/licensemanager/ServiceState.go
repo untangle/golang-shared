@@ -3,7 +3,6 @@ package licensemanager
 import (
 	"encoding/json"
 	"io/ioutil"
-	"os"
 
 	"github.com/untangle/golang-shared/services/logger"
 )
@@ -39,12 +38,6 @@ func ReadCommandFileAndGetStatus(name string) (bool, error) {
 	if err != nil {
 		logger.Warn("Not able to read content of service command file: %s \n ", err.Error())
 		return false, err
-	}
-
-	// remove file
-	err = os.Remove(filename)
-	if err != nil {
-		logger.Warn("Failure removing file %s, continueing anyways: %s\n", filename, err.Error())
 	}
 
 	// return if StateEnable

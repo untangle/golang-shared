@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 )
 
 var config Config
@@ -180,12 +181,58 @@ func GetLicenseDetails() (LicenseInfo, error) {
 	return retLicense, nil
 }
 
-// SetServiceState sets the given serviceName to the given allowedState
+// SetServices will disable any disabled services to un-enabled in settings
+func SetServices(enabledServices map[string]bool) error {
+	var err error = nil
+	for serviceName, valid := range enabledServices {
+		if !valid {
+			// find service, get disabled hook, and run it
+			var service *Service
+			logger.Debug("Set %s to invalid\n", serviceName)
+			service, err = findService(serviceName)
+			if err != nil {
+				logger.Warn("Failed to set un-enabled for service %s\n", serviceName)
+				continue
+			}
+
+			// get the new disabled settings, the segments to set, and any errors
+			newSettings, settingsSegments, disableErr := service.Hook.Disabled()
+			if disableErr != nil {
+				logger.Warn("Failed to get disabled settings for service %s\n", serviceName)
+				err = disableErr
+				continue
+			}
+
+			// Set settings
+			_, err = settings.SetSettings(settingsSegments, newSettings, true)
+			if err != nil {
+				logger.Warn("Failed to set disabled settings for service %s\n", serviceName)
+			}
+		}
+	}
+
+	for serviceName, valid := range enabledServices {
+		cmd := "disable"
+		if valid {
+			cmd = "enable"
+		}
+		err = setServiceState(serviceName, cmd, true)
+
+		if err != nil {
+			logger.Warn("FAiled to set service: %s: %s\n", serviceName, err.Error())
+			continue
+		}
+	}
+
+	return err
+}
+
+// setServiceState sets the given serviceName to the given allowedState
 // @param string serviceName - service to set
 // @param string newAllowedState - new allowed state such as enabled or disabled
 // @param bool saveStates - whether ServiceState file should be saved
 // @return any error
-func SetServiceState(serviceName string, newAllowedState string, saveStates bool) error {
+func setServiceState(serviceName string, newAllowedState string, saveStates bool) error {
 	service, err := findService(serviceName)
 	if err != nil {
 		logger.Warn("Failure to find service: %s\n", err.Error())
