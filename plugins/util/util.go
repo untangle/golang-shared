@@ -24,7 +24,23 @@ func PluginShutdown() {
 // @param executable - executable to run sighup on
 // @return any error from running
 func RunSighup(executable string) error {
-	logger.Debug("Running interrupt\n")
+	return SendSignal(executable, syscall.SIGHUP)
+}
+
+// RunSigusr1 will take the given executable and run Sigusr1 on it
+// @param executable - executable to run Sigusr1 on
+// @return any error from running
+func RunSigusr1(executable string) error {
+	return SendSignal(executable, syscall.SIGUSR1)
+}
+
+// SendSignal will use a pid and send a signal to that pid
+// @param excutable string - the binary process name
+// @param signal syscall.Signal - the signal type to send
+func SendSignal(executable string, signal syscall.Signal) error {
+
+	logger.Debug("Sending %s to %s\n", signal, executable)
+
 	pidStr, err := exec.Command("pgrep", executable).CombinedOutput()
 	if err != nil {
 		logger.Err("Failure to get %s pid: %s\n", executable, err.Error())
@@ -40,8 +56,8 @@ func RunSighup(executable string) error {
 
 	process, err := os.FindProcess(pid)
 	if err != nil {
-		logger.Err("Failure to get %s process: %s\n", executable, err.Error())
+		logger.Err("Failure to get %d process: %s\n", pid, err.Error())
 		return err
 	}
-	return process.Signal(syscall.SIGHUP)
+	return process.Signal(signal)
 }
