@@ -65,4 +65,10 @@ message Session {
   string server_reverse_dns = 57;
   int32 wan_rule_id = 58;
   string local_address = 59;
+  string client_country = 60;
+  string server_country = 61;
+  string application_name = 62;
+  string application_name_inferred = 63;
+  string server_dns_hint = 64;
+  string client_dns_hint = 65;
 }
