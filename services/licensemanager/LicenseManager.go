@@ -11,10 +11,11 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 )
 
 var config Config
-var serviceStates []ServiceState
+var services map[string]*Service
 
 var errServiceNotFound error = errors.New("service_not_found")
 var shutdownChannelLicense chan bool
@@ -25,6 +26,7 @@ var watchDog *time.Timer
 // @param configOptions LicenseManagerConfig - a license manager config object used for configuring the service
 func Startup(configOptions Config) {
 	shutdownChannelLicense = make(chan bool)
+	services = make(map[string]*Service)
 
 	config = configOptions
 
@@ -36,28 +38,30 @@ func Startup(configOptions Config) {
 	}
 
 	if serviceStates == nil {
-		// Gen a new state file
-		serviceStates, err = saveServiceStates(config.ServiceStateLocation, config.ValidServiceHooks)
+		// Gen a new state file with services set to StateDisable
+		blankServiceStates := make([]ServiceState, 0)
+		for name := range config.ValidServiceHooks {
+			newServiceState := ServiceState{Name: name, AllowedState: StateDisable}
+			blankServiceStates = append(blankServiceStates, newServiceState)
+		}
+		err = saveServiceStates(config.ServiceStateLocation, blankServiceStates)
 		if err != nil {
 			logger.Warn("Unable to initialize service states file. %v\n", err)
 			return
 		}
 	}
 
-	// Set each service to its previous state.
+	// Create each service
 	logger.Debug("States %+v\n", serviceStates)
-	for _, o := range serviceStates {
-		if _, err = findService(o.Name); err != nil {
-			logger.Debug("Service %s not found. Err: %v", o.Name, err)
-			continue
+	for name, o := range config.ValidServiceHooks {
+		var serviceState ServiceState
+		var found bool
+		serviceState, found = findServiceState(name, serviceStates)
+		if !found {
+			serviceState = ServiceState{Name: name, AllowedState: StateDisable}
 		}
-		cmd := ServiceCommand{Name: o.Name}
-		if o.IsEnabled {
-			cmd.NewState = StateEnable
-		} else {
-			cmd.NewState = StateDisable
-		}
-		cmd.SetServiceState(true)
+		service := Service{Name: name, Hook: o, State: serviceState}
+		services[name] = &service
 	}
 
 	// restart licenses
@@ -84,7 +88,7 @@ func Startup(configOptions Config) {
 				refreshErr := RefreshLicenses()
 				if refreshErr != nil {
 					logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
-					shutdownServices(config.LicenseLocation, config.ValidServiceHooks)
+					shutdownServices(config.LicenseLocation, services)
 				} else {
 					logger.Info("Restarted CLS from watchdog\n")
 				}
@@ -101,7 +105,7 @@ func Shutdown() {
 		close(shutdownChannelLicense)
 		wg.Wait()
 	}
-	shutdownServices(config.LicenseLocation, config.ValidServiceHooks)
+	shutdownServices(config.LicenseLocation, services)
 }
 
 // GetLicenseDefaults gets the default validServiceStates
@@ -123,10 +127,10 @@ func ClsIsAlive() {
 	watchDog.Reset(config.WatchDogInterval)
 }
 
-// GetServiceStates gets the current Service States
-// @return []ServiceState - array of current service states
-func GetServiceStates() []ServiceState {
-	return serviceStates
+// GetServices gets the current Service
+// @return []Service - array of current services
+func GetServices() map[string]*Service {
+	return services
 }
 
 // RefreshLicenses restart the client licence service
@@ -141,18 +145,19 @@ func RefreshLicenses() error {
 		err = errors.New(string(output))
 		return err
 	}
+
 	return nil
 }
 
-// IsEnabled is called from API to see if service is currently enabled.
+// IsLicenseEnabled is called from API to see if service is currently enabled.
 // @param serviceName string - the name of the service to check Enabled status of
-func IsEnabled(serviceName string) (bool, error) {
-	var serv ServiceHook
+func IsLicenseEnabled(serviceName string) (bool, error) {
+	var serv *Service
 	var err error
 	if serv, err = findService(serviceName); err != nil {
 		return false, errServiceNotFound
 	}
-	return serv.Enabled(), nil
+	return serv.State.getAllowedState() == StateEnable, nil
 }
 
 // GetLicenseDetails will use the current license location to load and return the license file
@@ -176,50 +181,154 @@ func GetLicenseDetails() (LicenseInfo, error) {
 	return retLicense, nil
 }
 
+// SetServices will disable any disabled services to un-enabled in settings
+func SetServices(enabledServices map[string]bool) error {
+	var err error = nil
+	for serviceName, valid := range enabledServices {
+		if !valid {
+			// find service, get disabled hook, and run it
+			var service *Service
+			logger.Debug("Set %s to invalid\n", serviceName)
+			service, err = findService(serviceName)
+			if err != nil {
+				logger.Warn("Failed to set un-enabled for service %s\n", serviceName)
+				continue
+			}
+
+			// get the new disabled settings, the segments to set, and any errors
+			newSettings, settingsSegments, disableErr := service.Hook.Disabled()
+			if disableErr != nil {
+				logger.Warn("Failed to get disabled settings for service %s\n", serviceName)
+				err = disableErr
+				continue
+			}
+
+			// Set settings
+			_, err = settings.SetSettings(settingsSegments, newSettings, true)
+			if err != nil {
+				logger.Warn("Failed to set disabled settings for service %s\n", serviceName)
+			}
+		}
+	}
+
+	for serviceName, valid := range enabledServices {
+		cmd := "disable"
+		if valid {
+			cmd = "enable"
+		}
+		err = setServiceState(serviceName, cmd, true)
+
+		if err != nil {
+			logger.Warn("Failed to set service: %s: %s\n", serviceName, err.Error())
+			continue
+		}
+	}
+
+	return err
+}
+
+// setServiceState sets the given serviceName to the given allowedState
+// @param string serviceName - service to set
+// @param string newAllowedState - new allowed state such as enabled or disabled
+// @param bool saveStates - whether ServiceState file should be saved
+// @return any error
+func setServiceState(serviceName string, newAllowedState string, saveStates bool) error {
+	service, err := findService(serviceName)
+	if err != nil {
+		logger.Warn("Failure to find service: %s\n", err.Error())
+		return err
+	}
+
+	var newState State
+	err = newState.FromString(newAllowedState)
+	if err != nil {
+		logger.Warn("Failure getting newAllowedState: %s\n", err.Error())
+		return err
+	}
+
+	err = service.setServiceState(newState)
+	if err != nil {
+		logger.Warn("Failure setting service state: %s\n", err.Error())
+		return err
+	}
+
+	if saveStates {
+		err = saveServiceStatesFromServices(config.ServiceStateLocation, services)
+	}
+
+	return nil
+
+}
+
 // shutdownServices iterates servicesToShutdown and calls the shutdown hook on them, and also removes the license file
 // @param licenseFile string - the license file location
-// @param servicesToShutdown map[string]ServiceHook - the services we want to shutdown
-func shutdownServices(licenseFile string, servicesToShutdown map[string]ServiceHook) {
+// @param servicesToShutdown map[string]Service - the services we want to shutdown
+func shutdownServices(licenseFile string, servicesToShutdown map[string]*Service) {
 	err := os.Remove(licenseFile)
 	err = ioutil.WriteFile(licenseFile, []byte("{\"list\": []}"), 0444)
 	if err != nil {
 		logger.Warn("Failure to write non-license file: %v\n", err)
 	}
-	for name := range servicesToShutdown {
-		cmd := ServiceCommand{Name: name, NewState: StateDisable}
-		cmd.SetServiceState(false)
+	for _, service := range servicesToShutdown {
+		service.setServiceState(StateDisable)
 	}
 }
 
-// findService is used to check if service is valid and return its hooks
-// @param serviceName string - the name of the service
-func findService(serviceName string) (ServiceHook, error) {
-	service, ok := config.ValidServiceHooks[serviceName]
+// findService finds the service in the services map
+// @param string serviceName - service to find
+// @return *Service - the service found, nil if not found
+// @return error such as errServiceNotFound
+func findService(serviceName string) (*Service, error) {
+	service, ok := services[serviceName]
 	if !ok {
-		return ServiceHook{}, errServiceNotFound
+		return nil, errServiceNotFound
 	}
 	return service, nil
 }
 
+// findServiceState finds a given service in the passed ServiceState array
+// @param string serviceName - service to find
+// @param []ServiceState serviceStates - array of ServiceState to search through
+// @return ServiceState of the state found, blank ServiceState if not found
+// @return bool on if found
+func findServiceState(serviceName string, serviceStates []ServiceState) (ServiceState, bool) {
+	for _, o := range serviceStates {
+		if o.Name == serviceName {
+			return o, true
+		}
+	}
+	return ServiceState{}, false
+}
+
+// saveServiceStatesFromServices saves the services states in an array of services
+// @param string fileLocation - location to save service states to
+// @param map[string]*Service services - services to save
+// @return any error from saving, returned from saveServiceStates
+func saveServiceStatesFromServices(fileLocation string, services map[string]*Service) error {
+	serviceStates := make([]ServiceState, 0)
+	for _, o := range services {
+		serviceStates = append(serviceStates, o.State)
+	}
+	return saveServiceStates(fileLocation, serviceStates)
+}
+
 // saveServiceStates stores the services in the service state file
 // @param string fileLocation - the location of the service state file
-// @param map[string]ServiceHook serviceHooks - map of service hooks to create ServiceStates for
-// @return []ServiceState - the service state array
+// @param []ServiceState serviceStates - map of service hooks to create ServiceStates for
 // @return error - associated errors
-func saveServiceStates(fileLocation string, serviceHooks map[string]ServiceHook) ([]ServiceState, error) {
-	var serviceStates = make([]ServiceState, 0)
-	for name, o := range serviceHooks {
-		serviceStates = append(serviceStates, ServiceState{Name: name, IsEnabled: o.Enabled()})
-	}
+func saveServiceStates(fileLocation string, serviceStates []ServiceState) error {
 	data, err := json.Marshal(serviceStates)
 	if err != nil {
-		return nil, err
+		logger.Warn("Failure to marshal states: %s\n", err.Error())
+		return err
 	}
 	err = ioutil.WriteFile(fileLocation, data, 0644)
 	if err != nil {
-		return nil, err
+		logger.Warn("Failure to write state file: %s\n", err.Error())
+		return err
 	}
-	return serviceStates, nil
+
+	return nil
 
 }
 
