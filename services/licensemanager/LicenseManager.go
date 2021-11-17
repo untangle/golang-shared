@@ -219,7 +219,7 @@ func SetServices(enabledServices map[string]bool) error {
 		err = setServiceState(serviceName, cmd, true)
 
 		if err != nil {
-			logger.Warn("FAiled to set service: %s: %s\n", serviceName, err.Error())
+			logger.Warn("Failed to set service: %s: %s\n", serviceName, err.Error())
 			continue
 		}
 	}
