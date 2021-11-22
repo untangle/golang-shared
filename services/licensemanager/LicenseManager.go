@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	LicenseFileDoesNotExistStr string = "license_file_does_not_exist"
+	LicenseFileDoesNotExistStr string = "RELOAD_LICENSES"
 )
 
 var config Config
