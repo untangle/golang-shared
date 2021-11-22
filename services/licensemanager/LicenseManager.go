@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	// LicenseFileDoesNotExistStr is the string to check if licenses should be reloaded when status is returned
 	LicenseFileDoesNotExistStr string = "RELOAD_LICENSES"
 )
 
@@ -195,6 +196,8 @@ func GetLicenseDetails() (LicenseInfo, error) {
 	return retLicense, nil
 }
 
+// GetLicenseFileDoesNotExistStr returns the error string for license file does not exist for comparison reasons
+// @return string of the license file does not exist error
 func GetLicenseFileDoesNotExistStr() string {
 	return LicenseFileDoesNotExistStr
 }
