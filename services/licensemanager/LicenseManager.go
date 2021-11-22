@@ -169,6 +169,10 @@ func GetLicenseDetails() (LicenseInfo, error) {
 
 	// Load file
 	jsonLicense, err := ioutil.ReadFile(config.LicenseLocation)
+	if err != nil {
+		logger.Warn("Error opening license file: %s\n", err.Error())
+		return retLicense, err
+	}
 
 	// Unmarshal
 	err = json.Unmarshal(jsonLicense, &retLicense)
