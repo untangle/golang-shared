@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/r3labs/diff/v2"
 	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/logger"
 )
@@ -130,7 +131,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 
 	output, err := syncAndSave(jsonSettings, filename, force)
 	if err != nil {
-		if strings.Contains(err.Error(), "CONFIRM") {
+		if strings.Contains(err.Error(), "CONFIRM") { // TODO do regex
 			return determineSetSettingsError(err, output, jsonSettingsOld, jsonSettings)
 		}
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
@@ -147,7 +148,8 @@ func RegisterSyncCallback(callback func()) {
 
 // determineSetSettingsError determines the error to send back after sync-settings
 func determineSetSettingsError(err error, output string, jsonSettingsOld map[string]interface{}, jsonSettings map[string]interface{}) (interface{}, error) {
-	logger.Info("Got the confirmation error\n")
+	change, err := diff.Diff(jsonSettingsOld, jsonSettings)
+	logger.Info("%v\n", change)
 	return map[string]interface{}{"error": err.Error(), "output": output}, err
 }
 
