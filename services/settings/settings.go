@@ -109,15 +109,16 @@ func GetSettingsFile(segments []string, filename string) (interface{}, error) {
 func SetSettingsFile(segments []string, value interface{}, filename string, force bool) (interface{}, error) {
 	var ok bool
 	var err error
+	var jsonSettingsOld map[string]interface{}
 	var jsonSettings map[string]interface{}
 	var newSettings interface{}
 
-	jsonSettings, err = readSettingsFileJSON(filename)
+	jsonSettingsOld, err = readSettingsFileJSON(filename)
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
 
-	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
+	newSettings, err = setSettingsInJSON(jsonSettingsOld, segments, value)
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
@@ -129,6 +130,9 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 
 	output, err := syncAndSave(jsonSettings, filename, force)
 	if err != nil {
+		if strings.Contains(err.Error(), "CONFIRM") {
+			return determineSetSettingsError(err, output, jsonSettingsOld, jsonSettings)
+		}
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
 
@@ -139,6 +143,12 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 func RegisterSyncCallback(callback func()) {
 	// Insert callback
 	syncCallbacks = append(syncCallbacks, callback)
+}
+
+// determineSetSettingsError determines the error to send back after sync-settings
+func determineSetSettingsError(err error, output string, jsonSettingsOld map[string]interface{}, jsonSettings map[string]interface{}) (interface{}, error) {
+	logger.Info("Got the confirmation error\n")
+	return map[string]interface{}{"error": err.Error(), "output": output}, err
 }
 
 // readSettingsFileJSON reads the settings file and return the corresponding JSON object
