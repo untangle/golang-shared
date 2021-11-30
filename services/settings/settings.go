@@ -110,16 +110,15 @@ func GetSettingsFile(segments []string, filename string) (interface{}, error) {
 func SetSettingsFile(segments []string, value interface{}, filename string, force bool) (interface{}, error) {
 	var ok bool
 	var err error
-	var jsonSettingsOld map[string]interface{}
 	var jsonSettings map[string]interface{}
 	var newSettings interface{}
 
-	jsonSettingsOld, err = readSettingsFileJSON(filename)
+	jsonSettings, err = readSettingsFileJSON(filename)
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
 
-	newSettings, err = setSettingsInJSON(jsonSettingsOld, segments, value)
+	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
@@ -132,7 +131,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	output, err := syncAndSave(jsonSettings, filename, force)
 	if err != nil {
 		if strings.Contains(err.Error(), "CONFIRM") { // TODO do regex
-			return determineSetSettingsError(err, output, jsonSettingsOld, jsonSettings)
+			return determineSetSettingsError(err, output, filename, jsonSettings)
 		}
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
@@ -147,10 +146,136 @@ func RegisterSyncCallback(callback func()) {
 }
 
 // determineSetSettingsError determines the error to send back after sync-settings
-func determineSetSettingsError(err error, output string, jsonSettingsOld map[string]interface{}, jsonSettings map[string]interface{}) (interface{}, error) {
-	change, err := diff.Diff(jsonSettingsOld, jsonSettings)
-	logger.Info("%v\n", change)
-	return map[string]interface{}{"error": err.Error(), "output": output}, err
+func determineSetSettingsError(origErr error, output string, settingsFile string, jsonSettings map[string]interface{}) (interface{}, error) {
+	jsonSettingsOld, oldSettingsErr := readSettingsFileJSON(settingsFile)
+	if oldSettingsErr == nil {
+		// build messages for delete, disable, and enable
+		errorMessage, buildMessageErr := buildMessage(jsonSettingsOld, jsonSettings, origErr)
+		if buildMessageErr == nil {
+			return map[string]interface{}{"error": errorMessage, "output": output}, origErr
+		}
+	}
+	return map[string]interface{}{"error": "failed", "output": output}, origErr
+}
+
+// todo
+func buildMessage(jsonSettingsOld map[string]interface{}, jsonSettings map[string]interface{}, origErr error) (string, error) {
+	deletedChanges, disableChanges, _, changeSetErr := determineChangeSet(jsonSettingsOld, jsonSettings, origErr)
+	if changeSetErr != nil {
+		return "", changeSetErr
+	}
+
+	settingsError, settingsErrorStructErr := getSettingsErrorStruct(origErr)
+	if settingsErrorStructErr != nil {
+		return "", settingsErrorStructErr
+	}
+
+	messages := make([]SetSettingsErrorUI, 0)
+	if len(deletedChanges) > 0 {
+		deleteMessage := determineDeletedOrDisableMessage(settingsError, "deleted")
+		messages = append(messages, deleteMessage)
+	}
+
+	if len(disableChanges) > 0 {
+		disableMessage := determineDeletedOrDisableMessage(settingsError, "disabled")
+		messages = append(messages, disableMessage)
+	}
+
+	bytes, bytesErr := json.Marshal(messages)
+	if bytesErr != nil {
+		logger.Warn("Failed to unmarshal messages: %s\n", bytesErr.Error())
+		return "", bytesErr
+	}
+
+	return "CONFIRM: " + string(bytes), nil
+}
+
+// todo
+func determineChangeSet(jsonSettingsOld map[string]interface{}, jsonSettings map[string]interface{}, origErr error) ([]diff.Change, []diff.Change, []diff.Change, error) {
+	deletedChanges := make([]diff.Change, 0)
+	disableChanges := make([]diff.Change, 0)
+	enableChanges := make([]diff.Change, 0)
+
+	changes, diffErr := diff.Diff(jsonSettingsOld, jsonSettings)
+	if diffErr != nil {
+		logger.Warn("Failed to diff the json settings")
+		return nil, nil, nil, diffErr
+	}
+
+	for _, changeRaw := range changes {
+		if changeRaw.To == nil {
+			deletedChanges = append(deletedChanges, changeRaw)
+		} else {
+			change, ok := changeRaw.To.(bool)
+			if !ok {
+				logger.Warn("Unsupported change type, ignorning\n")
+				continue
+			}
+			oldVal, oldValOk := changeRaw.From.(bool)
+			if !oldValOk {
+				logger.Warn("Unsupported change type, ignoring\n")
+				continue
+			}
+			if change == false && oldVal == true {
+				disableChanges = append(disableChanges, changeRaw)
+			}
+			if change == true && oldVal == false {
+				enableChanges = append(enableChanges, changeRaw)
+			}
+		}
+	}
+
+	// if deletes are accompanied by disable/enable changes, then something went wrong or the UI was changed
+	if len(deletedChanges) > 0 && len(disableChanges) > 0 && len(enableChanges) > 0 {
+		logger.Warn("This should not happen unless we start doing a soft delete\n")
+		return nil, nil, nil, errors.New("Need to rethink deletes")
+	}
+
+	return deletedChanges, disableChanges, enableChanges, nil
+}
+
+// todo
+func getSettingsErrorStruct(origErr error) (*SetSettingsError, error) {
+	settingsError := &SetSettingsError{
+		Confirm: Confirmation{
+			Rules:    map[string]InvalidType{},
+			Policies: map[string]InvalidType{},
+		},
+	}
+	err := json.Unmarshal([]byte(origErr.Error()), &settingsError)
+	if err != nil {
+		logger.Err("Couldn't get error: %s\n", err.Error())
+		return nil, origErr
+	}
+
+	return settingsError, nil
+}
+
+// todo
+func determineDeletedOrDisableMessage(settingsError *SetSettingsError, invalidReason string) SetSettingsErrorUI {
+	// create delete message, don't need to correlate so just use the output
+	newErr := SetSettingsErrorUI{}
+	newErr.MainTranslationString = "affected_item_disabled_or_deleted"
+	newErr.InvalidReason = invalidReason
+	newErr.AffectedValues = make([]AffectedValue, 0)
+
+	for _, rule := range settingsError.Confirm.Rules {
+		affectedValue := AffectedValue{
+			AffectedType:  "rule",
+			AffectedValue: rule.AffectedValue,
+		}
+		newErr.AffectedValues = append(newErr.AffectedValues, affectedValue)
+	}
+
+	for _, policy := range settingsError.Confirm.Policies {
+		affectedValue := AffectedValue{
+			AffectedType:  "policy",
+			AffectedValue: policy.AffectedValue,
+		}
+		newErr.AffectedValues = append(newErr.AffectedValues, affectedValue)
+	}
+
+	return newErr
 }
 
 // readSettingsFileJSON reads the settings file and return the corresponding JSON object
