@@ -72,69 +72,69 @@ type Session struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AgeMilliseconds                 uint64 `protobuf:"varint,1,opt,name=age_milliseconds,json=ageMilliseconds,proto3" json:"age_milliseconds,omitempty"`
-	Bytes                           uint64 `protobuf:"varint,3,opt,name=bytes,proto3" json:"bytes,omitempty"`
-	ClientBytes                     uint64 `protobuf:"varint,4,opt,name=client_bytes,json=clientBytes,proto3" json:"client_bytes,omitempty"`
-	ServerBytes                     uint64 `protobuf:"varint,5,opt,name=server_bytes,json=serverBytes,proto3" json:"server_bytes,omitempty"`
-	ByteRate                        int64  `protobuf:"varint,6,opt,name=byte_rate,json=byteRate,proto3" json:"byte_rate,omitempty"`
-	ClientByteRate                  int64  `protobuf:"varint,7,opt,name=client_byte_rate,json=clientByteRate,proto3" json:"client_byte_rate,omitempty"`
-	ServerByteRate                  int64  `protobuf:"varint,8,opt,name=server_byte_rate,json=serverByteRate,proto3" json:"server_byte_rate,omitempty"`
-	Packets                         uint64 `protobuf:"varint,9,opt,name=packets,proto3" json:"packets,omitempty"`
-	ClientPackets                   uint64 `protobuf:"varint,10,opt,name=client_packets,json=clientPackets,proto3" json:"client_packets,omitempty"`
-	ServerPackets                   uint64 `protobuf:"varint,11,opt,name=server_packets,json=serverPackets,proto3" json:"server_packets,omitempty"`
-	PacketRate                      int64  `protobuf:"varint,12,opt,name=packet_rate,json=packetRate,proto3" json:"packet_rate,omitempty"`
-	ClientPacketRate                int64  `protobuf:"varint,13,opt,name=client_packet_rate,json=clientPacketRate,proto3" json:"client_packet_rate,omitempty"`
-	ServerPacketRate                int64  `protobuf:"varint,14,opt,name=server_packet_rate,json=serverPacketRate,proto3" json:"server_packet_rate,omitempty"`
-	ClientAddress                   string `protobuf:"bytes,15,opt,name=client_address,json=clientAddress,proto3" json:"client_address,omitempty"`
-	ClientAddressNew                string `protobuf:"bytes,16,opt,name=client_address_new,json=clientAddressNew,proto3" json:"client_address_new,omitempty"`
-	ClientInterfaceId               uint32 `protobuf:"varint,17,opt,name=client_interface_id,json=clientInterfaceId,proto3" json:"client_interface_id,omitempty"`
-	ClientInterfaceType             uint32 `protobuf:"varint,18,opt,name=client_interface_type,json=clientInterfaceType,proto3" json:"client_interface_type,omitempty"`
-	ConntrackId                     uint32 `protobuf:"varint,20,opt,name=conntrack_id,json=conntrackId,proto3" json:"conntrack_id,omitempty"`
-	Family                          uint32 `protobuf:"varint,21,opt,name=family,proto3" json:"family,omitempty"`
-	IpProtocol                      uint32 `protobuf:"varint,22,opt,name=ip_protocol,json=ipProtocol,proto3" json:"ip_protocol,omitempty"`
-	Mark                            uint32 `protobuf:"varint,23,opt,name=mark,proto3" json:"mark,omitempty"`
-	Priority                        uint32 `protobuf:"varint,24,opt,name=priority,proto3" json:"priority,omitempty"`
-	ServerAddress                   string `protobuf:"bytes,25,opt,name=server_address,json=serverAddress,proto3" json:"server_address,omitempty"`
-	ServerAddressNew                string `protobuf:"bytes,26,opt,name=server_address_new,json=serverAddressNew,proto3" json:"server_address_new,omitempty"`
-	ServerInterfaceId               uint32 `protobuf:"varint,27,opt,name=server_interface_id,json=serverInterfaceId,proto3" json:"server_interface_id,omitempty"`
-	ServerInterfaceType             uint32 `protobuf:"varint,28,opt,name=server_interface_type,json=serverInterfaceType,proto3" json:"server_interface_type,omitempty"`
-	ServerPort                      uint32 `protobuf:"varint,29,opt,name=server_port,json=serverPort,proto3" json:"server_port,omitempty"`
-	ServerPortNew                   uint32 `protobuf:"varint,30,opt,name=server_port_new,json=serverPortNew,proto3" json:"server_port_new,omitempty"`
-	SessionId                       int64  `protobuf:"varint,31,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	TcpState                        uint32 `protobuf:"varint,32,opt,name=tcp_state,json=tcpState,proto3" json:"tcp_state,omitempty"`
-	TimestampStart                  uint64 `protobuf:"varint,33,opt,name=timestamp_start,json=timestampStart,proto3" json:"timestamp_start,omitempty"`
-	WanPolicy                       string `protobuf:"bytes,34,opt,name=wan_policy,json=wanPolicy,proto3" json:"wan_policy,omitempty"`
-	ApplicationCategory             string `protobuf:"bytes,35,opt,name=application_category,json=applicationCategory,proto3" json:"application_category,omitempty"`
-	ApplicationCategoryInferred     string `protobuf:"bytes,36,opt,name=application_category_inferred,json=applicationCategoryInferred,proto3" json:"application_category_inferred,omitempty"`
-	ApplicationConfidence           int32  `protobuf:"varint,37,opt,name=application_confidence,json=applicationConfidence,proto3" json:"application_confidence,omitempty"`
-	ApplicationConfidenceInferred   int32  `protobuf:"varint,38,opt,name=application_confidence_inferred,json=applicationConfidenceInferred,proto3" json:"application_confidence_inferred,omitempty"`
-	ApplicationId                   string `protobuf:"bytes,39,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
-	ApplicationIdInferred           string `protobuf:"bytes,40,opt,name=application_id_inferred,json=applicationIdInferred,proto3" json:"application_id_inferred,omitempty"`
-	ApplicationProductivity         int32  `protobuf:"varint,41,opt,name=application_productivity,json=applicationProductivity,proto3" json:"application_productivity,omitempty"`
-	ApplicationProductivityInferred int32  `protobuf:"varint,42,opt,name=application_productivity_inferred,json=applicationProductivityInferred,proto3" json:"application_productivity_inferred,omitempty"`
-	ApplicationProtochain           string `protobuf:"bytes,43,opt,name=application_protochain,json=applicationProtochain,proto3" json:"application_protochain,omitempty"`
-	ApplicationProtochainInferred   string `protobuf:"bytes,44,opt,name=application_protochain_inferred,json=applicationProtochainInferred,proto3" json:"application_protochain_inferred,omitempty"`
-	ApplicationRisk                 int32  `protobuf:"varint,45,opt,name=application_risk,json=applicationRisk,proto3" json:"application_risk,omitempty"`
-	ApplicationRiskInferred         int32  `protobuf:"varint,46,opt,name=application_risk_inferred,json=applicationRiskInferred,proto3" json:"application_risk_inferred,omitempty"`
-	CertDnsNames                    string `protobuf:"bytes,47,opt,name=cert_dns_names,json=certDnsNames,proto3" json:"cert_dns_names,omitempty"`
-	CertificateIssuerC              string `protobuf:"bytes,48,opt,name=certificate_issuer_c,json=certificateIssuerC,proto3" json:"certificate_issuer_c,omitempty"`
-	CertificateIssuerCn             string `protobuf:"bytes,49,opt,name=certificate_issuer_cn,json=certificateIssuerCn,proto3" json:"certificate_issuer_cn,omitempty"`
-	CertificateIssuerL              string `protobuf:"bytes,50,opt,name=certificate_issuer_l,json=certificateIssuerL,proto3" json:"certificate_issuer_l,omitempty"`
-	CertificateIssuerO              string `protobuf:"bytes,51,opt,name=certificate_issuer_o,json=certificateIssuerO,proto3" json:"certificate_issuer_o,omitempty"`
-	CertificateIssuerOu             string `protobuf:"bytes,52,opt,name=certificate_issuer_ou,json=certificateIssuerOu,proto3" json:"certificate_issuer_ou,omitempty"`
-	CertificateIssuerP              string `protobuf:"bytes,53,opt,name=certificate_issuer_p,json=certificateIssuerP,proto3" json:"certificate_issuer_p,omitempty"`
-	CertificateSubjectCn            string `protobuf:"bytes,54,opt,name=certificate_subject_cn,json=certificateSubjectCn,proto3" json:"certificate_subject_cn,omitempty"`
-	CertificateSubjectO             string `protobuf:"bytes,55,opt,name=certificate_subject_o,json=certificateSubjectO,proto3" json:"certificate_subject_o,omitempty"`
-	CertificateSubjectSan           string `protobuf:"bytes,56,opt,name=certificate_subject_san,json=certificateSubjectSan,proto3" json:"certificate_subject_san,omitempty"`
-	ServerReverseDns                string `protobuf:"bytes,57,opt,name=server_reverse_dns,json=serverReverseDns,proto3" json:"server_reverse_dns,omitempty"`
-	WanRuleId                       int32  `protobuf:"varint,58,opt,name=wan_rule_id,json=wanRuleId,proto3" json:"wan_rule_id,omitempty"`
-	LocalAddress                    string `protobuf:"bytes,59,opt,name=local_address,json=localAddress,proto3" json:"local_address,omitempty"`
-	ClientCountry                   string `protobuf:"bytes,60,opt,name=client_country,json=clientCountry,proto3" json:"client_country,omitempty"`
-	ServerCountry                   string `protobuf:"bytes,61,opt,name=server_country,json=serverCountry,proto3" json:"server_country,omitempty"`
-	ApplicationName                 string `protobuf:"bytes,62,opt,name=application_name,json=applicationName,proto3" json:"application_name,omitempty"`
-	ApplicationNameInferred         string `protobuf:"bytes,63,opt,name=application_name_inferred,json=applicationNameInferred,proto3" json:"application_name_inferred,omitempty"`
-	ServerDnsHint                   string `protobuf:"bytes,64,opt,name=server_dns_hint,json=serverDnsHint,proto3" json:"server_dns_hint,omitempty"`
-	ClientDnsHint                   string `protobuf:"bytes,65,opt,name=client_dns_hint,json=clientDnsHint,proto3" json:"client_dns_hint,omitempty"`
+	AgeMilliseconds                 uint64  `protobuf:"varint,1,opt,name=age_milliseconds,json=ageMilliseconds,proto3" json:"age_milliseconds,omitempty"`
+	Bytes                           uint64  `protobuf:"varint,3,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	ClientBytes                     uint64  `protobuf:"varint,4,opt,name=client_bytes,json=clientBytes,proto3" json:"client_bytes,omitempty"`
+	ServerBytes                     uint64  `protobuf:"varint,5,opt,name=server_bytes,json=serverBytes,proto3" json:"server_bytes,omitempty"`
+	ByteRate                        float32 `protobuf:"fixed32,6,opt,name=byte_rate,json=byteRate,proto3" json:"byte_rate,omitempty"`
+	ClientByteRate                  float32 `protobuf:"fixed32,7,opt,name=client_byte_rate,json=clientByteRate,proto3" json:"client_byte_rate,omitempty"`
+	ServerByteRate                  float32 `protobuf:"fixed32,8,opt,name=server_byte_rate,json=serverByteRate,proto3" json:"server_byte_rate,omitempty"`
+	Packets                         uint64  `protobuf:"varint,9,opt,name=packets,proto3" json:"packets,omitempty"`
+	ClientPackets                   uint64  `protobuf:"varint,10,opt,name=client_packets,json=clientPackets,proto3" json:"client_packets,omitempty"`
+	ServerPackets                   uint64  `protobuf:"varint,11,opt,name=server_packets,json=serverPackets,proto3" json:"server_packets,omitempty"`
+	PacketRate                      float32 `protobuf:"fixed32,12,opt,name=packet_rate,json=packetRate,proto3" json:"packet_rate,omitempty"`
+	ClientPacketRate                float32 `protobuf:"fixed32,13,opt,name=client_packet_rate,json=clientPacketRate,proto3" json:"client_packet_rate,omitempty"`
+	ServerPacketRate                float32 `protobuf:"fixed32,14,opt,name=server_packet_rate,json=serverPacketRate,proto3" json:"server_packet_rate,omitempty"`
+	ClientAddress                   string  `protobuf:"bytes,15,opt,name=client_address,json=clientAddress,proto3" json:"client_address,omitempty"`
+	ClientAddressNew                string  `protobuf:"bytes,16,opt,name=client_address_new,json=clientAddressNew,proto3" json:"client_address_new,omitempty"`
+	ClientInterfaceId               uint32  `protobuf:"varint,17,opt,name=client_interface_id,json=clientInterfaceId,proto3" json:"client_interface_id,omitempty"`
+	ClientInterfaceType             uint32  `protobuf:"varint,18,opt,name=client_interface_type,json=clientInterfaceType,proto3" json:"client_interface_type,omitempty"`
+	ConntrackId                     uint32  `protobuf:"varint,20,opt,name=conntrack_id,json=conntrackId,proto3" json:"conntrack_id,omitempty"`
+	Family                          uint32  `protobuf:"varint,21,opt,name=family,proto3" json:"family,omitempty"`
+	IpProtocol                      uint32  `protobuf:"varint,22,opt,name=ip_protocol,json=ipProtocol,proto3" json:"ip_protocol,omitempty"`
+	Mark                            uint32  `protobuf:"varint,23,opt,name=mark,proto3" json:"mark,omitempty"`
+	Priority                        uint32  `protobuf:"varint,24,opt,name=priority,proto3" json:"priority,omitempty"`
+	ServerAddress                   string  `protobuf:"bytes,25,opt,name=server_address,json=serverAddress,proto3" json:"server_address,omitempty"`
+	ServerAddressNew                string  `protobuf:"bytes,26,opt,name=server_address_new,json=serverAddressNew,proto3" json:"server_address_new,omitempty"`
+	ServerInterfaceId               uint32  `protobuf:"varint,27,opt,name=server_interface_id,json=serverInterfaceId,proto3" json:"server_interface_id,omitempty"`
+	ServerInterfaceType             uint32  `protobuf:"varint,28,opt,name=server_interface_type,json=serverInterfaceType,proto3" json:"server_interface_type,omitempty"`
+	ServerPort                      uint32  `protobuf:"varint,29,opt,name=server_port,json=serverPort,proto3" json:"server_port,omitempty"`
+	ServerPortNew                   uint32  `protobuf:"varint,30,opt,name=server_port_new,json=serverPortNew,proto3" json:"server_port_new,omitempty"`
+	SessionId                       int64   `protobuf:"varint,31,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	TcpState                        uint32  `protobuf:"varint,32,opt,name=tcp_state,json=tcpState,proto3" json:"tcp_state,omitempty"`
+	TimestampStart                  uint64  `protobuf:"varint,33,opt,name=timestamp_start,json=timestampStart,proto3" json:"timestamp_start,omitempty"`
+	WanPolicy                       string  `protobuf:"bytes,34,opt,name=wan_policy,json=wanPolicy,proto3" json:"wan_policy,omitempty"`
+	ApplicationCategory             string  `protobuf:"bytes,35,opt,name=application_category,json=applicationCategory,proto3" json:"application_category,omitempty"`
+	ApplicationCategoryInferred     string  `protobuf:"bytes,36,opt,name=application_category_inferred,json=applicationCategoryInferred,proto3" json:"application_category_inferred,omitempty"`
+	ApplicationConfidence           int32   `protobuf:"varint,37,opt,name=application_confidence,json=applicationConfidence,proto3" json:"application_confidence,omitempty"`
+	ApplicationConfidenceInferred   int32   `protobuf:"varint,38,opt,name=application_confidence_inferred,json=applicationConfidenceInferred,proto3" json:"application_confidence_inferred,omitempty"`
+	ApplicationId                   string  `protobuf:"bytes,39,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	ApplicationIdInferred           string  `protobuf:"bytes,40,opt,name=application_id_inferred,json=applicationIdInferred,proto3" json:"application_id_inferred,omitempty"`
+	ApplicationProductivity         int32   `protobuf:"varint,41,opt,name=application_productivity,json=applicationProductivity,proto3" json:"application_productivity,omitempty"`
+	ApplicationProductivityInferred int32   `protobuf:"varint,42,opt,name=application_productivity_inferred,json=applicationProductivityInferred,proto3" json:"application_productivity_inferred,omitempty"`
+	ApplicationProtochain           string  `protobuf:"bytes,43,opt,name=application_protochain,json=applicationProtochain,proto3" json:"application_protochain,omitempty"`
+	ApplicationProtochainInferred   string  `protobuf:"bytes,44,opt,name=application_protochain_inferred,json=applicationProtochainInferred,proto3" json:"application_protochain_inferred,omitempty"`
+	ApplicationRisk                 int32   `protobuf:"varint,45,opt,name=application_risk,json=applicationRisk,proto3" json:"application_risk,omitempty"`
+	ApplicationRiskInferred         int32   `protobuf:"varint,46,opt,name=application_risk_inferred,json=applicationRiskInferred,proto3" json:"application_risk_inferred,omitempty"`
+	CertDnsNames                    string  `protobuf:"bytes,47,opt,name=cert_dns_names,json=certDnsNames,proto3" json:"cert_dns_names,omitempty"`
+	CertificateIssuerC              string  `protobuf:"bytes,48,opt,name=certificate_issuer_c,json=certificateIssuerC,proto3" json:"certificate_issuer_c,omitempty"`
+	CertificateIssuerCn             string  `protobuf:"bytes,49,opt,name=certificate_issuer_cn,json=certificateIssuerCn,proto3" json:"certificate_issuer_cn,omitempty"`
+	CertificateIssuerL              string  `protobuf:"bytes,50,opt,name=certificate_issuer_l,json=certificateIssuerL,proto3" json:"certificate_issuer_l,omitempty"`
+	CertificateIssuerO              string  `protobuf:"bytes,51,opt,name=certificate_issuer_o,json=certificateIssuerO,proto3" json:"certificate_issuer_o,omitempty"`
+	CertificateIssuerOu             string  `protobuf:"bytes,52,opt,name=certificate_issuer_ou,json=certificateIssuerOu,proto3" json:"certificate_issuer_ou,omitempty"`
+	CertificateIssuerP              string  `protobuf:"bytes,53,opt,name=certificate_issuer_p,json=certificateIssuerP,proto3" json:"certificate_issuer_p,omitempty"`
+	CertificateSubjectCn            string  `protobuf:"bytes,54,opt,name=certificate_subject_cn,json=certificateSubjectCn,proto3" json:"certificate_subject_cn,omitempty"`
+	CertificateSubjectO             string  `protobuf:"bytes,55,opt,name=certificate_subject_o,json=certificateSubjectO,proto3" json:"certificate_subject_o,omitempty"`
+	CertificateSubjectSan           string  `protobuf:"bytes,56,opt,name=certificate_subject_san,json=certificateSubjectSan,proto3" json:"certificate_subject_san,omitempty"`
+	ServerReverseDns                string  `protobuf:"bytes,57,opt,name=server_reverse_dns,json=serverReverseDns,proto3" json:"server_reverse_dns,omitempty"`
+	WanRuleId                       int32   `protobuf:"varint,58,opt,name=wan_rule_id,json=wanRuleId,proto3" json:"wan_rule_id,omitempty"`
+	LocalAddress                    string  `protobuf:"bytes,59,opt,name=local_address,json=localAddress,proto3" json:"local_address,omitempty"`
+	ClientCountry                   string  `protobuf:"bytes,60,opt,name=client_country,json=clientCountry,proto3" json:"client_country,omitempty"`
+	ServerCountry                   string  `protobuf:"bytes,61,opt,name=server_country,json=serverCountry,proto3" json:"server_country,omitempty"`
+	ApplicationName                 string  `protobuf:"bytes,62,opt,name=application_name,json=applicationName,proto3" json:"application_name,omitempty"`
+	ApplicationNameInferred         string  `protobuf:"bytes,63,opt,name=application_name_inferred,json=applicationNameInferred,proto3" json:"application_name_inferred,omitempty"`
+	ServerDnsHint                   string  `protobuf:"bytes,64,opt,name=server_dns_hint,json=serverDnsHint,proto3" json:"server_dns_hint,omitempty"`
+	ClientDnsHint                   string  `protobuf:"bytes,65,opt,name=client_dns_hint,json=clientDnsHint,proto3" json:"client_dns_hint,omitempty"`
 }
 
 func (x *Session) Reset() {
@@ -197,21 +197,21 @@ func (x *Session) GetServerBytes() uint64 {
 	return 0
 }
 
-func (x *Session) GetByteRate() int64 {
+func (x *Session) GetByteRate() float32 {
 	if x != nil {
 		return x.ByteRate
 	}
 	return 0
 }
 
-func (x *Session) GetClientByteRate() int64 {
+func (x *Session) GetClientByteRate() float32 {
 	if x != nil {
 		return x.ClientByteRate
 	}
 	return 0
 }
 
-func (x *Session) GetServerByteRate() int64 {
+func (x *Session) GetServerByteRate() float32 {
 	if x != nil {
 		return x.ServerByteRate
 	}
@@ -239,21 +239,21 @@ func (x *Session) GetServerPackets() uint64 {
 	return 0
 }
 
-func (x *Session) GetPacketRate() int64 {
+func (x *Session) GetPacketRate() float32 {
 	if x != nil {
 		return x.PacketRate
 	}
 	return 0
 }
 
-func (x *Session) GetClientPacketRate() int64 {
+func (x *Session) GetClientPacketRate() float32 {
 	if x != nil {
 		return x.ClientPacketRate
 	}
 	return 0
 }
 
-func (x *Session) GetServerPacketRate() int64 {
+func (x *Session) GetServerPacketRate() float32 {
 	if x != nil {
 		return x.ServerPacketRate
 	}
@@ -629,12 +629,12 @@ var file_ActiveSessions_proto_rawDesc = []byte{
 	0x6e, 0x74, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x65, 0x72, 0x76, 0x65,
 	0x72, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0b, 0x73,
 	0x65, 0x72, 0x76, 0x65, 0x72, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x1b, 0x0a, 0x09, 0x62, 0x79,
-	0x74, 0x65, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x62,
+	0x74, 0x65, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x02, 0x52, 0x08, 0x62,
 	0x79, 0x74, 0x65, 0x52, 0x61, 0x74, 0x65, 0x12, 0x28, 0x0a, 0x10, 0x63, 0x6c, 0x69, 0x65, 0x6e,
 	0x74, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28,
-	0x03, 0x52, 0x0e, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x42, 0x79, 0x74, 0x65, 0x52, 0x61, 0x74,
+	0x02, 0x52, 0x0e, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x42, 0x79, 0x74, 0x65, 0x52, 0x61, 0x74,
 	0x65, 0x12, 0x28, 0x0a, 0x10, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x74, 0x65,
-	0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0e, 0x73, 0x65, 0x72,
+	0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x02, 0x52, 0x0e, 0x73, 0x65, 0x72,
 	0x76, 0x65, 0x72, 0x42, 0x79, 0x74, 0x65, 0x52, 0x61, 0x74, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x70,
 	0x61, 0x63, 0x6b, 0x65, 0x74, 0x73, 0x18, 0x09, 0x20, 0x01, 0x28, 0x04, 0x52, 0x07, 0x70, 0x61,
 	0x63, 0x6b, 0x65, 0x74, 0x73, 0x12, 0x25, 0x0a, 0x0e, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f,
@@ -643,12 +643,12 @@ var file_ActiveSessions_proto_rawDesc = []byte{
 	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x5f, 0x70, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x73, 0x18, 0x0b,
 	0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x50, 0x61, 0x63, 0x6b,
 	0x65, 0x74, 0x73, 0x12, 0x1f, 0x0a, 0x0b, 0x70, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x5f, 0x72, 0x61,
-	0x74, 0x65, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x70, 0x61, 0x63, 0x6b, 0x65, 0x74,
+	0x74, 0x65, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x02, 0x52, 0x0a, 0x70, 0x61, 0x63, 0x6b, 0x65, 0x74,
 	0x52, 0x61, 0x74, 0x65, 0x12, 0x2c, 0x0a, 0x12, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x70,
-	0x61, 0x63, 0x6b, 0x65, 0x74, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x03,
+	0x61, 0x63, 0x6b, 0x65, 0x74, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x02,
 	0x52, 0x10, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x50, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x61,
 	0x74, 0x65, 0x12, 0x2c, 0x0a, 0x12, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x5f, 0x70, 0x61, 0x63,
-	0x6b, 0x65, 0x74, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x03, 0x52, 0x10,
+	0x6b, 0x65, 0x74, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x02, 0x52, 0x10,
 	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x50, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65,
 	0x12, 0x25, 0x0a, 0x0e, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65,
 	0x73, 0x73, 0x18, 0x0f, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74,
