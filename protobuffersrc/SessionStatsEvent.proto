@@ -9,13 +9,13 @@ message SessionStatsEvent {
   uint64 bytes = 3;
   uint64 clientBytes = 4;
   uint64 serverBytes = 5;
-  float byteRate = 6;
-  float clientByteRate = 7;
-  float serverByteRate = 8;
+  uint32 byteRate = 6;
+  uint32 clientByteRate = 7;
+  uint32 serverByteRate = 8;
   uint64 packets = 9;
   uint64 clientPackets = 10;
   uint64 serverPackets = 11;
-  float packetRate = 12;
-  float clientPacketRate = 13;
-  float serverPacketRate = 14;
+  uint32 packetRate = 12;
+  uint32 clientPacketRate = 13;
+  uint32 serverPacketRate = 14;
 }
