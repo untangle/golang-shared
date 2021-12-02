@@ -129,7 +129,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 
 	output, err := syncAndSave(jsonSettings, filename, force)
 	if err != nil {
-		if strings.Contains(err.Error(), "CONFIRM") { // TODO do regex
+		if strings.Contains(err.Error(), "CONFIRM") { // regex?
 			return determineSetSettingsError(err, output, filename, jsonSettings)
 		}
 		logger.Warn("Failed to save settings: %s\n", err.Error())
