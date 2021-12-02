@@ -9,31 +9,36 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
+// SetSettingsError TODO
 type SetSettingsError struct {
 	Confirm Confirmation `json:"CONFIRM"`
 }
 
+// Confirmation TODO
 type Confirmation struct {
 	InvalidItems map[string]InvalidItem `json:"invalidItems"`
 }
 
+// InvalidItem TODO
 type InvalidItem struct {
 	ChildType  string `json:"childType"`
-	ChildId    string `json:"childId"`
+	ChildID    string `json:"childId"`
 	Reason     string `json:"reason"`
 	Type       string `json:"type"`
 	Value      string `json:"value"`
 	Link       string `json:"link"`
-	ParentId   string `json:"parentId"`
+	ParentID   string `json:"parentId"`
 	ParentType string `json:"parentType"`
 }
 
+// SetSettingsErrorUI todo
 type SetSettingsErrorUI struct {
 	MainTranslationString string          `json:"mainTranslationString"`
 	InvalidReason         string          `json:"invalidReason"`
 	AffectedValues        []AffectedValue `json:"affectedValues"`
 }
 
+// AffectedValue TODO
 type AffectedValue struct {
 	AffectedType  string `json:"affectedType"`
 	AffectedValue string `json:"affectedValue"`
@@ -49,9 +54,8 @@ func determineSetSettingsError(origErr error, output string, settingsFile string
 		errorMessage, buildMessageErr := buildMessage(jsonSettingsOld, jsonSettings, origErr)
 		if buildMessageErr == nil {
 			return map[string]interface{}{"error": errorMessage, "output": output}, origErr
-		} else {
-			err = buildMessageErr
 		}
+		err = buildMessageErr
 	} else {
 		err = oldSettingsErr
 	}
@@ -185,12 +189,12 @@ func determineMessage(settingsError *SetSettingsError, invalidReason string, bui
 		if invalidReason == "disabled" || invalidReason == "enabled" {
 			pathForAffectedItem = pathForAffectedItem[:len(pathForAffectedItem)-1]
 		}
-		affectedItemId, err := getAffectedItemId(jsonSettingsOld, pathForAffectedItem)
+		affectedItemID, err := getAffectedItemID(jsonSettingsOld, pathForAffectedItem)
 		if err != nil {
 			return newErr, errors.New("Could not find affected item id")
 		}
 
-		messages, buildErr := buildIndividualMessage(affectedItemId, invalidReason, buildFrom, settingsError)
+		messages, buildErr := buildIndividualMessage(affectedItemID, invalidReason, buildFrom, settingsError)
 		if buildErr != nil {
 			logger.Warn("Failed to create whole individual message: %s\n", buildErr.Error())
 			return newErr, buildErr
@@ -206,7 +210,7 @@ func determineMessage(settingsError *SetSettingsError, invalidReason string, bui
 	return newErr, nil
 }
 
-func getAffectedItemId(jsonSettingsOld map[string]interface{}, path []string) (string, error) {
+func getAffectedItemID(jsonSettingsOld map[string]interface{}, path []string) (string, error) {
 	valueRaw, err := getSettingsFromJSON(jsonSettingsOld, path)
 	if err != nil {
 		logger.Warn("Failed to get settings items\n")
@@ -219,7 +223,7 @@ func getAffectedItemId(jsonSettingsOld map[string]interface{}, path []string) (s
 		return "", errors.New("Failed to get affected item")
 	}
 
-	return determineId(path, value)
+	return determineID(path, value)
 }
 
 func buildIndividualMessage(id string, invalidReason string, buildFrom string, settingsError *SetSettingsError) ([]AffectedValue, error) {
@@ -231,16 +235,16 @@ func buildIndividualMessage(id string, invalidReason string, buildFrom string, s
 		return affectedValues, errors.New("Could not find changed id")
 	}
 
-	nextId := determineNextId(invalidItem, buildFrom)
+	nextID := determineNextID(invalidItem, buildFrom)
 
-	if len(nextId) <= 0 {
+	if len(nextID) <= 0 {
 		// done
 		return affectedValues, nil
 	}
 
-	invalidItemToAdd, found := settingsError.Confirm.InvalidItems[nextId]
+	invalidItemToAdd, found := settingsError.Confirm.InvalidItems[nextID]
 	if !found {
-		logger.Warn("Could not find invalid id: %s\n", nextId)
+		logger.Warn("Could not find invalid id: %s\n", nextID)
 		return affectedValues, errors.New("Could not find invalid item id")
 	}
 
@@ -255,7 +259,7 @@ func buildIndividualMessage(id string, invalidReason string, buildFrom string, s
 	}
 	affectedValues = append(affectedValues, affectedValue)
 
-	moreValues, buildErr := buildIndividualMessage(nextId, invalidReason, buildFrom, settingsError)
+	moreValues, buildErr := buildIndividualMessage(nextID, invalidReason, buildFrom, settingsError)
 	if buildErr != nil {
 		logger.Warn("Failed to create whole individual message: %s\n", buildErr.Error())
 		return affectedValues, buildErr
@@ -266,35 +270,35 @@ func buildIndividualMessage(id string, invalidReason string, buildFrom string, s
 }
 
 // determine
-func determineNextId(invalidItem InvalidItem, buildFrom string) string {
+func determineNextID(invalidItem InvalidItem, buildFrom string) string {
 	if buildFrom == "child" { //disable/delete
-		return invalidItem.ChildId
+		return invalidItem.ChildID
 	} else if buildFrom == "parent" { // enable
-		return invalidItem.ParentId
+		return invalidItem.ParentID
 	}
 	return ""
 }
 
 // todo
-func determineId(path []string, value map[string]interface{}) (string, error) {
-	var rawId interface{}
+func determineID(path []string, value map[string]interface{}) (string, error) {
+	var rawID interface{}
 	var found bool = false
 	if path[0] == "wan" && path[1] == "policy_chains" && path[3] == "rules" {
-		rawId, found = value["ruleId"]
+		rawID, found = value["ruleId"]
 	} else if path[0] == "wan" && path[1] == "policies" {
-		rawId, found = value["policyId"]
+		rawID, found = value["policyId"]
 	} else if path[0] == "network" && path[1] == "interfaces" {
-		rawId, found = value["interfaceId"]
+		rawID, found = value["interfaceId"]
 	}
 
 	if !found {
-		logger.Warn("Failed to find given changed id: %v\n", rawId)
+		logger.Warn("Failed to find given changed id: %v\n", rawID)
 		return "", errors.New("Failed to find changed id")
 	}
 
-	id, ok := rawId.(string)
+	id, ok := rawID.(string)
 	if !ok {
-		idFloat, ok := rawId.(float64)
+		idFloat, ok := rawID.(float64)
 		if !ok {
 			logger.Warn("Failed to get id\n")
 			return "", errors.New("Failed to get id")
