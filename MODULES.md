@@ -25,10 +25,10 @@
     git push
     git push --tags
     ```
-2. ### In the dependent package (ie: packetd, reportd, etc) use Go get with the -u flag will update to latest tag
+2. ### In the dependent package (ie: packetd, reportd, etc) use Go get with the -u flag and include the version hash until the PR is approved
     ```
     cd packetd
-    go get -u github.com/untangle/golang-shared
+    go get -u github.com/untangle/golang-shared@e5a6b85ad935713ac76d83ab5b2bf157069279a8
     ```
 
 3. ### Verify the version in go.mod has been updated
@@ -38,6 +38,6 @@
     ```
 2. ### Then we need to tidy and vendor again
     ```
-    go mod tidy
     go mod vendor
+    go mod tidy
     ```
