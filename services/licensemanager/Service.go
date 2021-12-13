@@ -27,10 +27,8 @@ func (s *Service) setServiceState(newAllowedState State) error {
 
 	switch newAllowedState {
 	case StateEnable:
-		// if switching, need to run start
-		if oldAllowedState == StateDisable {
-			runInterrupt = s.ServiceStart()
-		}
+		// always run start
+		runInterrupt = s.ServiceStart()
 	case StateDisable:
 		// always run stop
 		runInterrupt = s.ServiceStop()
