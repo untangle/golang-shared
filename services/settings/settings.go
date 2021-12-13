@@ -129,17 +129,18 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 
 	output, err := syncAndSave(jsonSettings, filename, force)
 	if err != nil {
-		errJson, errJsonErr := createJSONErrorObject(err), err
 		confirmStringFound := false
-
-		// use simple string comparison if json object not created
-		if errJsonErr != nil {
+		var errJson map[string]interface{}
+		marshalErr := json.Unmarshal([]byte(err.Error()), &errJson)
+		if marshalErr != nil {
+			logger.Warn("Failed to marshal into json: %s\n", marshalErr.Error())
 			if strings.Contains(err.Error(), "CONFIRM") {
+				return determineSetSettingsError(err, output, filename, jsonSettings)
+			}
+		} else {
+			if _, ok := errJson["CONFIRM"]; ok {
 				confirmStringFound = true
 			}
-			// use created error object to find key more explicitly
-		} else {
-			_, confirmStringFound = errJson["CONFIRM"]
 		}
 		if confirmStringFound {
 			return determineSetSettingsError(err, output, filename, jsonSettings)
