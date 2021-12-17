@@ -19,7 +19,7 @@ rule = child
 interface can be parent to policy
 
 Steps of execution :
-1. Sync-settings returns an error with the CONFIRM string in it.
+1. Sync-settings returns an error with the CONFIRM object as a string in it.
 2. We determine the current settings.
 3. We determine the changeset between the current settings the newly created settings that failed.
 4. From the changeset we put each change into an enabled, deleted, or disabled array.
