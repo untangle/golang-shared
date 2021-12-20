@@ -14,6 +14,11 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
+const (
+	// LicenseFileDoesNotExistStr is the string to check if licenses should be reloaded when status is returned
+	LicenseFileDoesNotExistStr string = "RELOAD_LICENSES"
+)
+
 var config Config
 var services map[string]*Service
 
@@ -168,7 +173,17 @@ func GetLicenseDetails() (LicenseInfo, error) {
 	var retLicense LicenseInfo
 
 	// Load file
+	licenseFileExists := licenseFileExists(config.LicenseLocation)
+	if !licenseFileExists {
+		logger.Warn("License file does not exist\n")
+		return retLicense, errors.New(LicenseFileDoesNotExistStr)
+	}
+
 	jsonLicense, err := ioutil.ReadFile(config.LicenseLocation)
+	if err != nil {
+		logger.Warn("Error opening license file: %s\n", err.Error())
+		return retLicense, err
+	}
 
 	// Unmarshal
 	err = json.Unmarshal(jsonLicense, &retLicense)
@@ -179,6 +194,12 @@ func GetLicenseDetails() (LicenseInfo, error) {
 
 	// Return
 	return retLicense, nil
+}
+
+// GetLicenseFileDoesNotExistStr returns the error string for license file does not exist for comparison reasons
+// @return string of the license file does not exist error
+func GetLicenseFileDoesNotExistStr() string {
+	return LicenseFileDoesNotExistStr
 }
 
 // SetServices will disable any disabled services to un-enabled in settings
@@ -258,6 +279,16 @@ func setServiceState(serviceName string, newAllowedState string, saveStates bool
 
 	return nil
 
+}
+
+// licenseFileExists checks if a file exists and is not a directory before we
+// try using it to prevent further errors.
+func licenseFileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 // shutdownServices iterates servicesToShutdown and calls the shutdown hook on them, and also removes the license file
