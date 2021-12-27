@@ -142,7 +142,11 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 			}
 		}
 		logger.Warn("Failed to save settings: %s\n", err.Error())
-		return map[string]interface{}{"error": "failed_sync_settings", "output": output}, err
+		responseErr := err.Error()
+		if len(err.Error()) == 0 {
+			responseErr = "failed_sync_settings"
+		}
+		return map[string]interface{}{"error": responseErr, "output": output}, err
 	}
 
 	return map[string]interface{}{"output": output}, err
