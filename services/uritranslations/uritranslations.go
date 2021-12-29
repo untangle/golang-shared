@@ -131,21 +131,21 @@ func getURITranslation(uri string, path bool) (string, error) {
 		buildMaps()
 	}
 
-	parsedUrl, err := url.Parse(uri)
+	parsedURL, err := url.Parse(uri)
 	if err != nil {
 		// Unable to parse uri.
 		logger.Info("Unable to parse uri=%s with error=%v\n", uri, err.Error())
 		err = fmt.Errorf("Unable to parse uri=%v", uri)
 	}else{
 		// Get and clear query from parsed
-		rawQuery := parsedUrl.RawQuery
-		parsedUrl.RawQuery = ""
+		rawQuery := parsedURL.RawQuery
+		parsedURL.RawQuery = ""
 	
 		mapMutex.RLock()
 		if path == true{
-			translatedURL, ok = hostMap[parsedUrl.Host]
+			translatedURL, ok = hostMap[parsedURL.Host]
 		}else{
-			translatedURL, ok = uriMap[parsedUrl.String()]
+			translatedURL, ok = uriMap[parsedURL.String()]
 		}
 		mapMutex.RUnlock()
 
@@ -154,20 +154,20 @@ func getURITranslation(uri string, path bool) (string, error) {
 			logger.Err("Unable to find url=%v\n", uri)
 			err = fmt.Errorf("Unable to find url=%v", uri)
 		}else{
-			// Update the parsedUrl based URL with translated values.
+			// Update the parsedURL based URL with translated values.
 			if translatedURL.Scheme != "" {
-				parsedUrl.Scheme = translatedURL.Scheme
+				parsedURL.Scheme = translatedURL.Scheme
 			}
 			if translatedURL.Host != "" {
-				parsedUrl.Host = translatedURL.Host
+				parsedURL.Host = translatedURL.Host
 			}
 			// Only add path if we're not explicitly overwrititng it.
 			if path == false && translatedURL.Path != "" {
-				parsedUrl.Path = translatedURL.Path
+				parsedURL.Path = translatedURL.Path
 			}
 			// Add query back.
-			parsedUrl.RawQuery = rawQuery
-			uri = parsedUrl.String()
+			parsedURL.RawQuery = rawQuery
+			uri = parsedURL.String()
 		}
 	}
 
