@@ -12,7 +12,7 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-// Settings fields for uriTranslation
+// URITranslation settings fields
 type URITranslation struct {
 	URI	    string `json:"uri"`
 	Scheme  string `json:"scheme"`
@@ -125,7 +125,7 @@ func buildMaps() {
 func getURITranslation(uri string, path bool) (string, error) {
 	var err error = nil
 	var ok bool
-	var translatedUrl *url.URL
+	var translatedURL *url.URL
 
 	if uriMap == nil {
 		buildMaps()
@@ -143,9 +143,9 @@ func getURITranslation(uri string, path bool) (string, error) {
 	
 		mapMutex.RLock()
 		if path == true{
-			translatedUrl, ok = hostMap[parsedUrl.Host]
+			translatedURL, ok = hostMap[parsedUrl.Host]
 		}else{
-			translatedUrl, ok = uriMap[parsedUrl.String()]
+			translatedURL, ok = uriMap[parsedUrl.String()]
 		}
 		mapMutex.RUnlock()
 
@@ -155,15 +155,15 @@ func getURITranslation(uri string, path bool) (string, error) {
 			err = fmt.Errorf("Unable to find url=%v", uri)
 		}else{
 			// Update the parsedUrl based URL with translated values.
-			if translatedUrl.Scheme != "" {
-				parsedUrl.Scheme = translatedUrl.Scheme
+			if translatedURL.Scheme != "" {
+				parsedUrl.Scheme = translatedURL.Scheme
 			}
-			if translatedUrl.Host != "" {
-				parsedUrl.Host = translatedUrl.Host
+			if translatedURL.Host != "" {
+				parsedUrl.Host = translatedURL.Host
 			}
 			// Only add path if we're not explicitly overwrititng it.
-			if path == false && translatedUrl.Path != "" {
-				parsedUrl.Path = translatedUrl.Path
+			if path == false && translatedURL.Path != "" {
+				parsedUrl.Path = translatedURL.Path
 			}
 			// Add query back.
 			parsedUrl.RawQuery = rawQuery
@@ -180,7 +180,7 @@ func GetURI(uri string) (string, error) {
 	return getURITranslation(uri, false);
 }
 
-// GetURI looks up the host from the specified URI (ignoring query) and returns the appropriate match with the lookup URI's 
+// GetURIWithPath looks up the host from the specified URI (ignoring query) and returns the appropriate match with the lookup URI's 
 // path substituted for the translated value.
 // It returns an error if not found.
 func GetURIWithPath(uri string) (string, error) {
