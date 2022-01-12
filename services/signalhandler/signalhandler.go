@@ -29,7 +29,7 @@ func NewSignalHandler() *SignalHandler {
 
 // HandleSignals adds functionality to handle system signals
 func (hs *SignalHandler) HandleSignals(lc *licensehandler.Config) {
-	// Add SIGINT, SIGTERM, SIGUSR1 handlers
+	// Add SIGINT & SIGTERM handler (exit)
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -48,17 +48,6 @@ func (hs *SignalHandler) HandleSignals(lc *licensehandler.Config) {
 			sig := <-quitch
 			logger.Info("Received signal [%v]. Calling dumpStack()\n", sig)
 			go hs.dumpStack()
-		}
-	}()
-
-	// Add SIGUSR1 handler will reload the license
-	usr1ch := make(chan os.Signal, 1)
-	signal.Notify(usr1ch, syscall.SIGUSR1)
-	go func() {
-		for {
-			sig := <-quitch
-			logger.Info("Received signal [%v]. Calling RunLicenseChecks()\n", sig)
-			go licensehandler.RunLicenseChecks(lc, 0)
 		}
 	}()
 }
