@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
@@ -140,18 +142,20 @@ func GetServices() map[string]*Service {
 
 // RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
-	output, err := exec.Command("/etc/init.d/clientlic", "restart").CombinedOutput()
+	// pkill is not installed on MFW.
+	output, err := exec.Command("pgrep", "client-license-service").CombinedOutput()
 	if err != nil {
-		logger.Warn("license fetch failed: %s\n", err.Error())
-		return err
+		spid := strings.TrimSuffix(string(output), "\n")
+		npid, err := strconv.Atoi(spid)
+		if err != nil {
+			logger.Warn("Not able to get pid of CLS: %v\n", err)
+			return err
+		}
+		syscall.Kill(npid, syscall.SIGUSR1)
+		return nil
 	}
-	if strings.Contains(string(output), "Command failed") {
-		logger.Warn("license fetch failed: %s\n", string(output))
-		err = errors.New(string(output))
-		return err
-	}
-
-	return nil
+	logger.Warn("Not able to refresh CLS: %v\n", err)
+	return err
 }
 
 // IsLicenseEnabled is called from API to see if service is currently enabled.
