@@ -5,13 +5,10 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"os/exec"
-	"strconv"
-	"strings"
 	"sync"
-	"syscall"
 	"time"
 
+	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -142,19 +139,7 @@ func GetServices() map[string]*Service {
 
 // RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
-	// pkill is not installed on MFW.
-	output, err := exec.Command("pgrep", "client-license-service").CombinedOutput()
-	if err != nil {
-		spid := strings.TrimSuffix(string(output), "\n")
-		npid, err := strconv.Atoi(spid)
-		if err != nil {
-			logger.Warn("Not able to get pid of CLS: %v\n", err)
-			return err
-		}
-		syscall.Kill(npid, syscall.SIGUSR1)
-		return nil
-	}
-	logger.Warn("Not able to refresh CLS: %v\n", err)
+	err := util.RunSigusr1("client-license-service")
 	return err
 }
 

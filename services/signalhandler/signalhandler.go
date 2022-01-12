@@ -29,7 +29,7 @@ func NewSignalHandler() *SignalHandler {
 
 // HandleSignals adds functionality to handle system signals
 func (hs *SignalHandler) HandleSignals(lc *licensehandler.Config) {
-	// Add SIGINT & SIGTERM handler (exit)
+	// Add SIGINT, SIGTERM, SIGUSR1 handlers
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
