@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/untangle/client-license-service/services/licensehandler"
 	"github.com/untangle/golang-shared/services/logger"
 )
 
@@ -28,7 +27,7 @@ func NewSignalHandler() *SignalHandler {
 }
 
 // HandleSignals adds functionality to handle system signals
-func (hs *SignalHandler) HandleSignals(lc *licensehandler.Config) {
+func (hs *SignalHandler) HandleSignals() {
 	// Add SIGINT & SIGTERM handler (exit)
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)
