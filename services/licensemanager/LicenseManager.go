@@ -5,11 +5,10 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"os/exec"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -140,18 +139,8 @@ func GetServices() map[string]*Service {
 
 // RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
-	output, err := exec.Command("/etc/init.d/clientlic", "restart").CombinedOutput()
-	if err != nil {
-		logger.Warn("license fetch failed: %s\n", err.Error())
-		return err
-	}
-	if strings.Contains(string(output), "Command failed") {
-		logger.Warn("license fetch failed: %s\n", string(output))
-		err = errors.New(string(output))
-		return err
-	}
-
-	return nil
+	err := util.RunSigusr1("client-license-service")
+	return err
 }
 
 // IsLicenseEnabled is called from API to see if service is currently enabled.
