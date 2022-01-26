@@ -139,7 +139,7 @@ func GetServices() map[string]*Service {
 
 // RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
-	err := util.RunSigusr1("client-license-service")
+	err := util.RunSigusr1("bin/client-license-service")
 	return err
 }
 
