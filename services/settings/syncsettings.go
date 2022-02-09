@@ -81,6 +81,20 @@ func (s *SyncSettings) NormalSync() error {
 	return nil
 }
 
+// Simulate will run sync-settings with simulation flag on the given filePath
+// This will not write any files out or restart any services
+// but will get the return result as if the file was run properly
+func (s *SyncSettings) SimulateSync(filePath string) error {
+	cmdArgs := []string{"-o", s.OsForSyncSettings, "-s", "-f", filePath}
+	err := s.runSyncSettings(cmdArgs)
+	if err != nil {
+		logger.Warn("Error running sync-settings with simulate flag : %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
 // FirstSyncSettingsRun will create the settings file if it doesn't exist, or rerun sync-settings for good measure
 func (s *SyncSettings) FirstSyncSettingsRun() error {
 	cmdArgs := []string{"-o", s.OsForSyncSettings, "-n"}
