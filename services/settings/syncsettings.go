@@ -17,20 +17,20 @@ type SyncSettings struct {
 	SettingsFile           string
 	DefaultsFile           string
 	CurrentFile            string
-	OsForSyncSettings      string
+	OS                     string
 	TmpSettingsFile        string
 	SyncSettingsExecutable string
 	UidFile                string
 }
 
 // NewSyncSettings creates a new settings object
-func NewSyncSettings(settingsfile string, defaultsfile string, currentfile string, osforsyncsettings string, tmpsettingsfile string, syncsettingsexecutable string, uidfile string) *SyncSettings {
+func NewSyncSettings(settingsfile string, defaultsfile string, currentfile string, os string, tmpsettingsfile string, syncsettingsexecutable string, uidfile string) *SyncSettings {
 	s := new(SyncSettings)
 
 	s.SettingsFile = settingsfile
 	s.DefaultsFile = defaultsfile
 	s.CurrentFile = currentfile
-	s.OsForSyncSettings = osforsyncsettings
+	s.OS = os
 	s.TmpSettingsFile = tmpsettingsfile
 	s.SyncSettingsExecutable = syncsettingsexecutable
 	s.UidFile = uidfile
@@ -42,7 +42,7 @@ func NewSyncSettings(settingsfile string, defaultsfile string, currentfile strin
 // CreateDefaults creates the settings defauls.json file
 func (s *SyncSettings) CreateDefaults() error {
 	// sync the defaults
-	cmdArgs := []string{"-o", s.OsForSyncSettings, "-c", "-s", "-f", s.TmpSettingsFile}
+	cmdArgs := []string{"-o", s.OS, "-c", "-s", "-f", s.TmpSettingsFile}
 	err := s.runSyncSettings(cmdArgs)
 	if err != nil {
 		logger.Warn("Error creating defaults: %s\n", err.Error())
@@ -72,7 +72,7 @@ func (s *SyncSettings) CreateDefaults() error {
 
 // NormalSync runs sync settings with OS and filename specified
 func (s *SyncSettings) NormalSync() error {
-	cmdArgs := []string{"-o", s.OsForSyncSettings, "-f", s.SettingsFile}
+	cmdArgs := []string{"-o", s.OS, "-f", s.SettingsFile}
 	err := s.runSyncSettings(cmdArgs)
 	if err != nil {
 		logger.Warn("Error running sync-settings: %s\n", err.Error())
@@ -85,7 +85,7 @@ func (s *SyncSettings) NormalSync() error {
 // This will not write any files out or restart any services
 // but will get the return result as if the file was run properly
 func (s *SyncSettings) SimulateSync(filePath string) error {
-	cmdArgs := []string{"-o", s.OsForSyncSettings, "-s", "-f", filePath}
+	cmdArgs := []string{"-o", s.OS, "-s", "-f", filePath}
 	err := s.runSyncSettings(cmdArgs)
 	if err != nil {
 		logger.Warn("Error running sync-settings with simulate flag : %s\n", err.Error())
@@ -97,7 +97,7 @@ func (s *SyncSettings) SimulateSync(filePath string) error {
 
 // FirstSyncSettingsRun will create the settings file if it doesn't exist, or rerun sync-settings for good measure
 func (s *SyncSettings) FirstSyncSettingsRun() error {
-	cmdArgs := []string{"-o", s.OsForSyncSettings, "-n"}
+	cmdArgs := []string{"-o", s.OS, "-n"}
 
 	// check if settings.json exists, if not create it
 	info, checkErr := os.Stat(s.SettingsFile)
