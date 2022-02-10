@@ -20,7 +20,7 @@ type SyncSettings struct {
 	OS                     string
 	TmpSettingsFile        string
 	SyncSettingsExecutable string
-	UidFile                string
+	UIDFile                string
 }
 
 // NewSyncSettings creates a new settings object
@@ -33,7 +33,7 @@ func NewSyncSettings(settingsfile string, defaultsfile string, currentfile strin
 	s.OS = os
 	s.TmpSettingsFile = tmpsettingsfile
 	s.SyncSettingsExecutable = syncsettingsexecutable
-	s.UidFile = uidfile
+	s.UIDFile = uidfile
 
 	return s
 
