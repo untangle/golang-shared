@@ -81,7 +81,7 @@ func (s *SyncSettings) NormalSync() error {
 	return nil
 }
 
-// Simulate will run sync-settings with simulation flag on the given filePath
+// SimulateSync will run sync-settings with simulation flag on the given filePath
 // This will not write any files out or restart any services
 // but will get the return result as if the file was run properly
 func (s *SyncSettings) SimulateSync(filePath string) error {
