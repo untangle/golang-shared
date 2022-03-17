@@ -1,0 +1,50 @@
+version: '2'
+services:
+    musl:
+      image: untangleinc/discoverd:build-musl
+      volumes:
+        - ..:/go/discoverd
+
+    glibc:
+      image: untangleinc/discoverd:build-glibc
+      volumes:
+        - ..:/go/discoverd
+
+    # the next 2 services allow for local changes and tests to the
+    # docker images, before pushing new official ones to GitHub: the
+    # build images are being built locally
+
+    musl-local:
+      build:
+        context: .
+        dockerfile: Dockerfile.build-musl
+      volumes:
+        - ..:/go/discoverd
+
+    
+    musl-lint:
+      environment: 
+        SSH_AUTH_SOCK: /ssh-agent
+      build:
+        context: .
+        dockerfile: Dockerfile.lint-musl
+      volumes:
+        - ..:/go/discoverd
+        - ${SSH_AUTH_SOCK}:/ssh-agent
+
+    glibc-local:
+      build:
+        context: .
+        dockerfile: Dockerfile.build-glibc
+      volumes:
+        - ..:/go/discoverd
+
+    glibc-lint:
+      environment: 
+        SSH_AUTH_SOCK: /ssh-agent
+      build:
+        context: .
+        dockerfile: Dockerfile.lint-glibc
+      volumes:
+        - ..:/go/discoverd
+        - ${SSH_AUTH_SOCK}:/ssh-agent

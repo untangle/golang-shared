@@ -1,0 +1,24 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build & install discoverd",
+            "type": "shell",
+            "command": "./.vscode/vsbuild.sh -t ${input:mfw_address} -m true",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "mfw_address",
+            "type":"promptString",
+            "description": "IP of your MFW Instance",
+            "default": "192.168.1.1"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+ # linter doesn't work on 1.13, but it does on 1.15
+FROM golang:1.15.9-alpine3.12
+LABEL maintainer="Sebastien Delafond <sdelafond@gmail.com>"
+
+RUN apk update
+RUN apk add --update gcc musl-dev
+
+# build deps for libnetfilter_queue
+RUN apk add make
+RUN apk add git
+
+# build packetd
+RUN mkdir -p /go/discoverd
+VOLUME /go/discoverd
+WORKDIR /go/discoverd
+CMD make lint
