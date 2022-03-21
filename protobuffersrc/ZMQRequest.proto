@@ -7,6 +7,7 @@ message ZMQRequest {
     enum Service {
         PACKETD = 0;
         REPORTD = 1;
+        DISCOVERD = 2;
     }
     Service service = 1;
     enum Function {
@@ -15,6 +16,7 @@ message ZMQRequest {
         QUERY_CREATE = 2;
         QUERY_DATA = 3;
         QUERY_CLOSE = 4;
+        GET_DEVICES = 5; // Request all known devices from discoverd.
     }
     Function function = 2;
     string data = 3;
