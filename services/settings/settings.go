@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/untangle/golang-shared/plugins/util"
@@ -32,6 +33,9 @@ var ShouldRunSighup bool = false
 
 // SighupExecutable is the executable to run for sighup if necessary
 var SighupExecutable string = ""
+
+// saveLocker is used to synchronize calls to the setsettings call
+var saveLocker sync.RWMutex
 
 // Startup settings service
 func Startup() {
@@ -111,6 +115,8 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	var err error
 	var jsonSettings map[string]interface{}
 	var newSettings interface{}
+	saveLocker.Lock()
+	defer saveLocker.Unlock()
 
 	jsonSettings, err = readSettingsFileJSON(filename)
 	if err != nil {
