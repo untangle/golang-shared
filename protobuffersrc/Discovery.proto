@@ -17,21 +17,19 @@ message DiscoveryEntry {
 
 message LLDP {
         // Chassis
-        string macAddress = 1;
-        string IP = 2;
-        string lldpSysName = 3;
-        string lldpSysDesc = 4;
-        repeated LLDPCapabilities lldpChassisCapabilities = 5;
+        string sysName = 1;
+        string sysDesc = 2;
+        repeated LLDPCapabilities chassisCapabilities = 3;
         // LLDP-MED
-        string lldpDeviceType = 6;
-        repeated LLDPCapabilities lldpMedCapabilities = 7;
+        string deviceType = 4;
+        repeated LLDPCapabilities medCapabilities = 5;
         // LLDP-MED-DEVICE
-        string lldpInventoryHWRev = 8;
-        string lldpInventorySoftRev = 9;
-        string lldpInventorySerial = 10;
-        string lldpInventoryAssetTag = 11;
-        string lldpInventoryModel = 12;
-        string lldpInventoryVendor = 13;
+        string inventoryHWRev = 6;
+        string inventorySoftRev = 7;
+        string inventorySerial = 8;
+        string inventoryAssetTag = 9;
+        string inventoryModel = 10;
+        string inventoryVendor = 11;
 }
 
 message LLDPCapabilities {
