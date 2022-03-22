@@ -7,7 +7,7 @@ option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/D
 message DiscoveryEntry {
     string macAddress = 1;
     string IPv4Address = 2;
-    string LastUpdate = 3;
+    int64 LastUpdate = 3;
     LLDP lldp = 10;
     ARP arp = 11;
     NMAP nmap = 12;
