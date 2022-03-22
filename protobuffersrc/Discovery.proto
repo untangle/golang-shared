@@ -3,16 +3,14 @@ package discoverd;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
 
-message DiscoveryMessage {
-    repeated DiscoveryEntry discoveryList = 1;
-}
 
 message DiscoveryEntry {
     string macAddress = 1;
     string IPv4Address = 2;
-    LLDP lldp = 3;
-    ARP arp = 4;
-    NMAP nmap = 5;
+    string LastUpdate = 3;
+    LLDP lldp = 10;
+    ARP arp = 11;
+    NMAP nmap = 12;
 }
 
 message LLDP {
