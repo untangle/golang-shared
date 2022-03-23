@@ -1,0 +1,50 @@
+syntax = "proto3";
+package discoverd;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
+
+
+message DiscoveryEntry {
+    string macAddress = 1;
+    string IPv4Address = 2;
+    int64 LastUpdate = 3;
+    LLDP lldp = 10;
+    ARP arp = 11;
+    NMAP nmap = 12;
+}
+
+message LLDP {
+        // Chassis
+        string sysName = 1;
+        string sysDesc = 2;
+        repeated LLDPCapabilities chassisCapabilities = 3;
+        // LLDP-MED
+        string deviceType = 4;
+        repeated LLDPCapabilities medCapabilities = 5;
+        // LLDP-MED-DEVICE
+        string inventoryHWRev = 6;
+        string inventorySoftRev = 7;
+        string inventorySerial = 8;
+        string inventoryAssetTag = 9;
+        string inventoryModel = 10;
+        string inventoryVendor = 11;
+}
+
+message LLDPCapabilities {
+    string capability = 1;
+    bool enabled = 2;
+}
+
+message ARP {
+     string ip = 1;
+     string mac = 2;
+}
+
+message NMAP {
+    repeated NMAPPorts openPorts = 1;
+}
+
+message NMAPPorts {
+     int32 port = 1;
+     string protocol = 2;
+}
