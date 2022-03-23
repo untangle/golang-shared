@@ -12,10 +12,11 @@ import (
 	"syscall"
 	"time"
 
-
+	"github.com/untangle/discoverd/plugins/arp"
+	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/services/example"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/profiler"
-	"github.com/untangle/discoverd/services/example"
 )
 
 var shutdownFlag uint32
@@ -57,6 +58,8 @@ func main() {
 	// Start services
 	startServices()
 
+	startPlugins()
+
 	// Handle the stop signals
 	handleSignals()
 
@@ -76,6 +79,7 @@ func main() {
 	logger.Info("Shutdown discoverd...\n")
 
 	stopServices()
+	stopPlugins()
 
 	cpuProfiler.StopCPUProfile()
 }
@@ -83,11 +87,20 @@ func main() {
 /* startServices starts the gin server and cert manager */
 func startServices() {
 	example.Startup()
+	discovery.Startup()
 }
 
 /* stopServices stops the gin server, cert manager, and logger*/
 func stopServices() {
 	example.Shutdown()
+}
+
+func startPlugins() {
+	arp.Start()
+}
+
+func stopPlugins() {
+	arp.Stop()
 }
 
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */
@@ -174,6 +187,8 @@ func createLoggerConfig() logger.Config {
 func getLogLevels() map[string]string {
 	return map[string]string{
 		// services
-		"example":        "INFO",
+		"example":   "INFO",
+		"discovery": "INFO",
+		"arp":       "INFO",
 	}
 }
