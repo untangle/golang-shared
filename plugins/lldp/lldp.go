@@ -3,6 +3,7 @@ package lldp
 import (
 	"encoding/json"
 	"os/exec"
+	"reflect"
 
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
@@ -13,6 +14,9 @@ import (
 func Start() {
 	logger.Info("Starting LLDP collector plugin\n")
 	discovery.RegisterCollector(LldpcallBackHandler)
+
+  // initial run
+  LldpcallBackHandler(nil)
 }
 
 // Stop stops LLDP collector
@@ -24,99 +28,98 @@ func LldpcallBackHandler(commands []discovery.Command) {
 	logger.Debug("LLDP neighbors callback handler: Received %d commands\n", len(commands))
 
 	// run neighbors command
-	cmd := exec.Command("lldpcli", "-f", "json", "show", "n", "-d")
+	cmd := exec.Command("lldpcli", "-f", "json", "show", "n", "details")
 	output, _ := cmd.CombinedOutput()
 
-	logger.Debug(string(output))
+  // logger.Info("LLDP output: %s\n", string(output))
 
 	// parse json output data
 	var result map[string]interface{}
 	if err := json.Unmarshal([]byte(output), &result); err != nil {
-			logger.Err("Unable to unmarshal json: %s\n", err)
+		logger.Err("Unable to unmarshal json: %s\n", err)
 	}
 
-	// extract lldp -> interface slice
-	interfaces, _ := result["lldp"].(map[string]interface{})["interface"]
+  lldp, _ := result["lldp"].(map[string]interface{})
+
+  if (lldp["interface"] == nil) {
+    logger.Debug("No LLDP neighbors found!\n")
+    return
+  }
+
+  interfacesType := reflect.TypeOf(lldp["interface"])
+
+  // create a slice (array) of interfaces
+  interfaces := make([]interface{}, 0, 0)
+  // when having an array of interfaces
+  if (interfacesType.Kind() == reflect.Slice) {
+    interfaces = lldp["interface"].([]interface{})
+  }
+  // when just a single interface
+  if (interfacesType.Kind() == reflect.Map) {
+    for _, value := range lldp["interface"].(map[string]interface {}) {
+      interfaces = append(interfaces, value)
+    }
+  }
 
 	// iterate over interface items
-	for _, intf := range interfaces.([]interface{}) {
+	for _, intf := range interfaces {
+    // initialize the discovery entry
+    entry := discovery.DeviceEntry{}
+    entry.Init()
+    entry.Data.Lldp = &Discoverd.LLDP{}
+
 		// mac is used as id for discovery entry update
 		var mac = ""
 
-		// LLDP proto
-		var sysName string = ""
-		var sysDesc string = ""
-		var inventoryHWRev string = ""
-		var inventorySoftRev string = ""
-		var inventorySerial string = ""
-		var inventoryAssetTag string = ""
-		var inventoryModel string = ""
-		var inventoryVendor string = ""
+    // processing interfaces "eth0": { ... }
+    for _, value := range intf.(map[string]interface {}) {
+      // chassis
+      chassis, _ := value.(map[string]interface {})["chassis"]
+      if (chassis == nil) {
+        continue
+      }
+      for key, value := range chassis.(map[string]interface {}) {
+        entry.Data.Lldp.SysName = key
+        ch, _ := value.(map[string]interface {})
+        entry.Data.Lldp.SysDesc = ch["descr"].(string)
 
-		for _, intf_map := range intf.(map[string]interface{}) {
+        chassis_id, _ := ch["id"].(map[string]interface{})
+        chassis_id_type, _ := chassis_id["type"].(string)
+        chassis_id_value, _ := chassis_id["value"].(string)
 
-			// chassis
-			chassis, _ := intf_map.(map[string]interface{})["chassis"]
+        // if chassis id type is "mac", populate mac value
+        if (chassis_id_type == "mac") {
+            mac = chassis_id_value
+        }
+      }
 
-			if (chassis != nil) {
-				for chassis_key, chassis_map := range chassis.(map[string]interface{}) {
-					// chassis_key is the sysName
-					sysName = chassis_key
+      // LLDP-MED
+      lldp_med, _ := value.(map[string]interface{})["lldp-med"]
+      if (lldp_med == nil) {
+        continue
+      }
+      inventory, _ := lldp_med.(map[string]interface {})["inventory"]
+      if (inventory == nil) {
+        continue
+      }
+      for inv_key, inv_map := range inventory.(map[string]interface{}) {
+        switch inv_key {
+          case "hardware":
+            entry.Data.Lldp.InventoryHWRev = inv_map.(string)
+          case "software":
+            entry.Data.Lldp.InventorySoftRev = inv_map.(string)
+          case "serial":
+            entry.Data.Lldp.InventorySerial = inv_map.(string)
+          case "model":
+            entry.Data.Lldp.InventoryModel = inv_map.(string)
+          case "manufacturer":
+            entry.Data.Lldp.InventoryVendor = inv_map.(string)
+        }
+      }
+    }
 
-					ch := chassis_map.(map[string]interface{})
-					sysDesc, _ = ch["descr"].(string)
-
-					chassis_id, _ := ch["id"].(map[string]interface{})
-					chassis_id_type, _ := chassis_id["type"].(string)
-					chassis_id_value, _ := chassis_id["value"].(string)
-
-					// if chassis id type is "mac", populate mac value
-					if (chassis_id_type == "mac") {
-							mac = chassis_id_value
-					}
-				}
-			}
-
-			// LLPD-MED
-			lldp_med, _ := intf_map.(map[string]interface{})["lldp-med"]
-			if (lldp_med != nil) {
-				inventory, _ := lldp_med.(map[string]interface {})["inventory"]
-
-				if (inventory != nil) {
-					for inv_key, inv_map := range inventory.(map[string]interface{}) {
-						switch inv_key {
-							case "hardware":
-								inventoryHWRev = inv_map.(string)
-							case "software":
-								inventorySoftRev = inv_map.(string)
-							case "serial":
-								inventorySerial = inv_map.(string)
-							case "model":
-								inventoryModel = inv_map.(string)
-							case "manufacturer":
-								inventoryVendor = inv_map.(string)
-						}
-					}
-				}
-			}
-
-			entry := discovery.DeviceEntry{}
-			entry.Init()
-			entry.Data.Lldp = &Discoverd.LLDP{}
-
-			entry.Data.Lldp.SysName = sysName
-			entry.Data.Lldp.SysDesc = sysDesc
-
-			entry.Data.Lldp.InventoryHWRev = inventoryHWRev
-			entry.Data.Lldp.InventorySoftRev = inventorySoftRev
-			entry.Data.Lldp.InventorySerial = inventorySerial
-			entry.Data.Lldp.InventoryAssetTag = inventoryAssetTag
-			entry.Data.Lldp.InventoryModel = inventoryModel
-			entry.Data.Lldp.InventoryVendor = inventoryVendor
-
-			if (mac != "") {
-				discovery.UpdateDiscoveryEntry(mac, entry)
-			}
-		}
-	}
+    if (mac != "") {
+      discovery.UpdateDiscoveryEntry(mac, entry)
+    }
+  }
 }
