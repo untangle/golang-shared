@@ -23,13 +23,13 @@ type Intf struct {
 }
 
 type Chassis struct {
-	Id []ChassisId                 `json:"id"`
+	Id []Id                        `json:"id"`
 	Name []Value                   `json:"name"`
 	Desc []Value                   `json:"descr"`
 	Capability []ChassisCapability `json:"capability"`
 }
 
-type ChassisId struct {
+type Id struct {
 	Type  string `json:"type,omitempty"`
 	Value string `json:"value,omitempty"`
 }
