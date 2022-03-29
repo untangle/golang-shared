@@ -14,6 +14,7 @@ import (
 
 	"github.com/untangle/discoverd/plugins/arp"
 	"github.com/untangle/discoverd/plugins/lldp"
+	"github.com/untangle/discoverd/plugins/nmap"
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/discoverd/services/example"
 	"github.com/untangle/golang-shared/services/logger"
@@ -99,11 +100,13 @@ func stopServices() {
 func startPlugins() {
 	arp.Start()
 	lldp.Start()
+	nmap.Start()
 }
 
 func stopPlugins() {
 	arp.Stop()
 	lldp.Stop()
+	nmap.Stop()
 }
 
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */
@@ -194,5 +197,6 @@ func getLogLevels() map[string]string {
 		"discovery": "INFO",
 		"arp":       "INFO",
 		"lldp":      "INFO",
+		"nmap":      "INFO",
 	}
 }
