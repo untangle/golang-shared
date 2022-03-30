@@ -6,15 +6,9 @@ package discoverd;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
 
 
-service RequestAllEntriesService {
+service Disoveryd {
     rpc RequestAllEntries (google.protobuf.Empty) returns (RequestResponse) {};
-  }
-
-service ScanNetService {
     rpc ScanNet (ScanNetRequest) returns (RequestResponse) {};
-  }
-
-  service ScanHostService {
     rpc ScanHost (ScanHostRequest) returns (RequestResponse) {};
   }
 
@@ -38,7 +32,6 @@ message ScanNetRequest {
 message ScanHostRequest {
     repeated string host = 1;
 }
-
 
 message DiscoveryEntry {
     string macAddress = 1;
