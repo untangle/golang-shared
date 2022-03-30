@@ -41,7 +41,12 @@ message ARP {
 }
 
 message NMAP {
-    repeated NMAPPorts openPorts = 1;
+    string hostname = 1;
+    string macVendor = 2;
+    string uptime = 3;
+    string lastBoot = 4;
+    string os = 5;
+    repeated NMAPPorts openPorts = 6;
 }
 
 message NMAPPorts {
