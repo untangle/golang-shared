@@ -1,14 +1,12 @@
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
-
 package discoverd;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
 
 
 service Disoveryd {
-    rpc RequestAllEntries (google.protobuf.Empty) returns (RequestResponse) {};
+    rpc RequestAllEntries (EmptyParam) returns (RequestResponse) {};
     rpc ScanNet (ScanNetRequest) returns (RequestResponse) {};
     rpc ScanHost (ScanHostRequest) returns (RequestResponse) {};
   }
@@ -19,6 +17,9 @@ enum ResponseCode {
     ERROR = 2;
     INVALID_REQUEST = 3;
 };
+
+message EmptyParam {
+}
 
 message RequestResponse {
     ResponseCode result = 1;

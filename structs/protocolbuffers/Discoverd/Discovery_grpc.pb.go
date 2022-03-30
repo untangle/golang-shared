@@ -8,7 +8,6 @@ package Discoverd
 
 import (
 	context "context"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DisoverydClient interface {
-	RequestAllEntries(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*RequestResponse, error)
+	RequestAllEntries(ctx context.Context, in *EmptyParam, opts ...grpc.CallOption) (*RequestResponse, error)
 	ScanNet(ctx context.Context, in *ScanNetRequest, opts ...grpc.CallOption) (*RequestResponse, error)
 	ScanHost(ctx context.Context, in *ScanHostRequest, opts ...grpc.CallOption) (*RequestResponse, error)
 }
@@ -36,7 +35,7 @@ func NewDisoverydClient(cc grpc.ClientConnInterface) DisoverydClient {
 	return &disoverydClient{cc}
 }
 
-func (c *disoverydClient) RequestAllEntries(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*RequestResponse, error) {
+func (c *disoverydClient) RequestAllEntries(ctx context.Context, in *EmptyParam, opts ...grpc.CallOption) (*RequestResponse, error) {
 	out := new(RequestResponse)
 	err := c.cc.Invoke(ctx, "/discoverd.Disoveryd/RequestAllEntries", in, out, opts...)
 	if err != nil {
@@ -67,7 +66,7 @@ func (c *disoverydClient) ScanHost(ctx context.Context, in *ScanHostRequest, opt
 // All implementations must embed UnimplementedDisoverydServer
 // for forward compatibility
 type DisoverydServer interface {
-	RequestAllEntries(context.Context, *empty.Empty) (*RequestResponse, error)
+	RequestAllEntries(context.Context, *EmptyParam) (*RequestResponse, error)
 	ScanNet(context.Context, *ScanNetRequest) (*RequestResponse, error)
 	ScanHost(context.Context, *ScanHostRequest) (*RequestResponse, error)
 	mustEmbedUnimplementedDisoverydServer()
@@ -77,7 +76,7 @@ type DisoverydServer interface {
 type UnimplementedDisoverydServer struct {
 }
 
-func (UnimplementedDisoverydServer) RequestAllEntries(context.Context, *empty.Empty) (*RequestResponse, error) {
+func (UnimplementedDisoverydServer) RequestAllEntries(context.Context, *EmptyParam) (*RequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestAllEntries not implemented")
 }
 func (UnimplementedDisoverydServer) ScanNet(context.Context, *ScanNetRequest) (*RequestResponse, error) {
@@ -100,7 +99,7 @@ func RegisterDisoverydServer(s grpc.ServiceRegistrar, srv DisoverydServer) {
 }
 
 func _Disoveryd_RequestAllEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(EmptyParam)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -112,7 +111,7 @@ func _Disoveryd_RequestAllEntries_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/discoverd.Disoveryd/RequestAllEntries",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DisoverydServer).RequestAllEntries(ctx, req.(*empty.Empty))
+		return srv.(DisoverydServer).RequestAllEntries(ctx, req.(*EmptyParam))
 	}
 	return interceptor(ctx, in, info, handler)
 }
