@@ -3,7 +3,8 @@ all: lint compile-protobuffs
 
 compile-protobuffs:
 	rm -rf structs/protocolbuffers/*
-	protoc --proto_path=protobuffersrc --go_out=. --go-grpc_out=protobuffersrc --go-grpc_opt=paths=source_relative --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
+	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
+	protoc --proto_path=protobuffersrc --go-grpc_out=structs/protocolbuffers --go-grpc_opt=paths=source_relative protobuffersrc/Discovery.proto
 
 lint:
 	GO111MODULE=off go get -u golang.org/x/lint/golint
