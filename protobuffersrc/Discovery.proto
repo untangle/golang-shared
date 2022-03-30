@@ -1,7 +1,43 @@
 syntax = "proto3";
+
+import "google/protobuf/empty.proto";
 package discoverd;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
+
+
+service RequestAllEntriesService {
+    rpc RequestAllEntries (google.protobuf.Empty) returns (RequestResponse) {};
+  }
+
+service ScanNetService {
+    rpc ScanNet (ScanNetRequest) returns (RequestResponse) {};
+  }
+
+  service ScanHostService {
+    rpc ScanHost (ScanHostRequest) returns (RequestResponse) {};
+  }
+
+enum ResponseCode {
+    UNKNOWN = 0;
+    OK = 1;
+    ERROR = 2;
+    INVALID_REQUEST = 3;
+};
+
+message RequestResponse {
+    ResponseCode result = 1;
+}
+
+// param: net is a string in CIDR notation
+message ScanNetRequest {
+    repeated string net = 1;
+}
+
+// param: host is a string in host/ip notation
+message ScanHostRequest {
+    repeated string host = 1;
+}
 
 
 message DiscoveryEntry {
@@ -47,4 +83,5 @@ message NMAP {
 message NMAPPorts {
      int32 port = 1;
      string protocol = 2;
+     string state = 3; 
 }
