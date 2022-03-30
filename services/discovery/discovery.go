@@ -1,10 +1,13 @@
 package discovery
 
 import (
+	"net"
 	"time"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
+	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
+	"google.golang.org/grpc"
 )
 
 type zmqMessage struct {
@@ -12,17 +15,23 @@ type zmqMessage struct {
 	Message []byte
 }
 
-var messageChannel = make(chan *zmqMessage, 1000)
+// Messages to be published to the ZMQ socket
+var messagePublisherChannel = make(chan *zmqMessage, 1000)
 
+// List of registered collectors
 var collectors []CollectorHandlerFunction = nil
 
+// Channel to signal shutdown of periodic collector timer
 var collectorTimerQuit = make(chan bool)
+
+// GRPC server.
+var sgrpc *grpc.Server
 
 const (
 
-	// CmdScanHost is a command to scan a host, argument is the hostname
+	// CmdScanHost is a command to scan a host, argument is the hostnames
 	CmdScanHost int = 1
-	// CmdScanNet is a command to scan a network, argument is the network
+	// CmdScanNet is a command to scan a network, argument is the networks (CIDR notation)
 	CmdScanNet int = 2
 )
 
@@ -56,11 +65,28 @@ func Startup() {
 			}
 		}
 	}()
+
+	// Start the gRPC server to handle incoming requests.
+	lis, err := net.Listen("tcp", ":5563")
+	if err != nil {
+		logger.Err("Failed to listen: %v\n", err)
+		return
+	}
+
+	sgrpc = grpc.NewServer()
+	go func() {
+		disco.RegisterDisoverydServer(sgrpc, &discoveryServer{})
+		if err := sgrpc.Serve(lis); err != nil {
+			logger.Err("failed to serve: %v", err)
+		}
+	}()
+
 }
 
 // Shutdown the discovery service.
 func Shutdown() {
 	logger.Info("Shutting down discovery service\n")
+	sgrpc.GracefulStop()
 	collectorTimerQuit <- true
 }
 
@@ -75,7 +101,7 @@ func zmqPublisher() {
 
 	for {
 		select {
-		case msg := <-messageChannel:
+		case msg := <-messagePublisherChannel:
 			sentBytes, err := socket.SendMessage(msg.Topic, msg.Message)
 			if err != nil {
 				logger.Err("Test publisher error: %s\n", err)
@@ -87,7 +113,7 @@ func zmqPublisher() {
 	}
 }
 
-// setupZmqSocket sets up the ZMQ socket for publishing
+// setupZmqPubSocket sets up the ZMQ socket for publishing
 func setupZmqPubSocket() (soc *zmq.Socket, err error) {
 	logger.Info("Setting up ZMQ Publishing socket...\n")
 

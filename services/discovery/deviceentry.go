@@ -68,5 +68,13 @@ func zmqpublishEntry(entry DeviceEntry) {
 		logger.Err("Unable to marshal discovery entry: %s\n", err)
 		return
 	}
-	messageChannel <- &zmqMessage{"arista:discovery:device", message}
+	messagePublisherChannel <- &zmqMessage{"arista:discovery:device", message}
+}
+
+func publishAll() {
+	deviceListLock.RLock()
+	for _, entry := range deviceList {
+		zmqpublishEntry(entry)
+	}
+	deviceListLock.RUnlock()
 }

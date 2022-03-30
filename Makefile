@@ -3,8 +3,7 @@
 GOFLAGS ?= "-mod=vendor"
 GO111MODULE ?= "on"
 
-all: build-discoverd
-
+all: lint build-discoverd
 build-%:
 	cd cmd/$* ; \
 	export GO111MODULE=$(GO111MODULE) ; \
