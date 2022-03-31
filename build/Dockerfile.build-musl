@@ -1,4 +1,5 @@
-FROM golang:1.17.8-alpine3.15
+# Do not upgrade Go version, unless OpenWRT build env has support.
+FROM golang:1.13.15-alpine3.12
 LABEL maintainer="Sebastien Delafond <sdelafond@gmail.com>"
 
 RUN apk update
@@ -12,9 +13,11 @@ RUN apk add libtool
 RUN apk add git
 RUN apk add zeromq-dev
 RUN apk add curl
+RUN apk add openssh
 
 # build discoverd
 RUN mkdir -p /go/discoverd
 VOLUME /go/discoverd
 WORKDIR /go/discoverd
+RUN git config --global url."git@github.com:/untangle/golang-shared".insteadOf "https://github.com/untangle/golang-shared"
 CMD make all

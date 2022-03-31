@@ -1,13 +1,10 @@
 package discovery
 
 import (
-	"net"
 	"time"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
-	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
-	"google.golang.org/grpc"
 )
 
 type zmqMessage struct {
@@ -23,9 +20,6 @@ var collectors []CollectorHandlerFunction = nil
 
 // Channel to signal shutdown of periodic collector timer
 var collectorTimerQuit = make(chan bool)
-
-// GRPC server.
-var sgrpc *grpc.Server
 
 const (
 
@@ -66,27 +60,30 @@ func Startup() {
 		}
 	}()
 
-	// Start the gRPC server to handle incoming requests.
-	lis, err := net.Listen("tcp", ":5563")
-	if err != nil {
-		logger.Err("Failed to listen: %v\n", err)
-		return
-	}
-
-	sgrpc = grpc.NewServer()
-	go func() {
-		disco.RegisterDisoverydServer(sgrpc, &discoveryServer{})
-		if err := sgrpc.Serve(lis); err != nil {
-			logger.Err("failed to serve: %v", err)
+	/*
+		// Start the gRPC server to handle incoming requests.
+		lis, err := net.Listen("tcp", ":5563")
+		if err != nil {
+			logger.Err("Failed to listen: %v\n", err)
+			return
 		}
-	}()
+
+
+			sgrpc = grpc.NewServer()
+			go func() {
+				disco.RegisterDisoverydServer(sgrpc, &discoveryServer{})
+				if err := sgrpc.Serve(lis); err != nil {
+					logger.Err("failed to serve: %v", err)
+				}
+			}()
+	*/
 
 }
 
 // Shutdown the discovery service.
 func Shutdown() {
 	logger.Info("Shutting down discovery service\n")
-	sgrpc.GracefulStop()
+	// sgrpc.GracefulStop()
 	collectorTimerQuit <- true
 }
 
