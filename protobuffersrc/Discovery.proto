@@ -4,7 +4,7 @@ package discoverd;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
 
-
+/*
 service Disoveryd {
     rpc RequestAllEntries (EmptyParam) returns (RequestResponse) {};
     rpc ScanNet (ScanNetRequest) returns (RequestResponse) {};
@@ -34,7 +34,7 @@ message ScanNetRequest {
 message ScanHostRequest {
     repeated string host = 1;
 }
-
+*/
 message DiscoveryEntry {
     string macAddress = 1;
     string IPv4Address = 2;
