@@ -4,13 +4,6 @@ package discoverd;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
 
-
-service Disoveryd {
-    rpc RequestAllEntries (EmptyParam) returns (RequestResponse) {};
-    rpc ScanNet (ScanNetRequest) returns (RequestResponse) {};
-    rpc ScanHost (ScanHostRequest) returns (RequestResponse) {};
-  }
-
 enum ResponseCode {
     UNKNOWN = 0;
     OK = 1;
