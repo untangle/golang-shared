@@ -4,6 +4,17 @@ GOFLAGS ?= "-mod=vendor"
 GO111MODULE ?= "on"
 GOPRIVATE ?= GOPRIVATE=github.com/untangle/golang-shared
 
+# logging
+NC := "\033[0m" # no color
+YELLOW := "\033[1;33m"
+ifneq ($(DEV),false)
+  GREEN := "\033[1;32m"
+else
+  GREEN :=
+endif
+LOG_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(GREEN)$(1)$(NC)
+WARN_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(YELLOW)$(1)$(NC)
+
 all: environment modules lint build-discoverd
 build-discoverd:
 	$(call LOG_FUNCTION,"Building discoverd...")
