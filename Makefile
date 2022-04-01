@@ -27,6 +27,7 @@ environment:
 	export $(GOPRIVATE)
 	mkdir -p ~/.ssh/
 	ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+	git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 
 modules:
 	$(call LOG_FUNCTION,"Vendoring modules...")
