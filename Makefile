@@ -2,18 +2,22 @@
 # 1.11
 GOFLAGS ?= "-mod=vendor"
 GO111MODULE ?= "on"
+GOPRIVATE ?= GOPRIVATE=github.com/untangle/golang-shared
 
-all: build-discoverd
-build-%:
-	cd cmd/$* ; \
+all: environment lint build-discoverd
+build-discoverd:
+	cd cmd/discoverd ; \
 	export GO111MODULE=$(GO111MODULE) ; \
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.43.0 ; \
-	./bin/golangci-lint run ; \
-	export GOPRIVATE=github.com/untangle/golang-shared ; \
-	go build $(GOFLAGS) -ldflags "-X main.Version=$(shell git describe --tags --always --long --dirty)"
+	$(GOPRIVATE) go build $(GOFLAGS)
+
+environment:
+	export $(GOPRIVATE)
+	mkdir -p ~/.ssh/
+	ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
 
 lint:
-	GO111MODULE=off go get -u golang.org/x/lint/golint
-	GO111MODULE=on GOPRIVATE=github.com/untangle/golang-shared $(shell go env GOPATH)/bin/golint -set_exit_status $(shell go list $(GOFLAGS) ./...)
+ 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.43.0 ; \
+ 	./bin/golangci-lint run
 
-.PHONY: build lint
+.PHONY: build lint environment

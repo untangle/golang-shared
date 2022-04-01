@@ -18,16 +18,8 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.build-musl
-      volumes:
-        - ..:/go/discoverd
-
-    
-    musl-lint:
-      environment: 
+      environment:
         SSH_AUTH_SOCK: /ssh-agent
-      build:
-        context: .
-        dockerfile: Dockerfile.lint-musl
       volumes:
         - ..:/go/discoverd
         - ${SSH_AUTH_SOCK}:/ssh-agent
@@ -36,15 +28,8 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.build-glibc
-      volumes:
-        - ..:/go/discoverd
-
-    glibc-lint:
-      environment: 
+      environment:
         SSH_AUTH_SOCK: /ssh-agent
-      build:
-        context: .
-        dockerfile: Dockerfile.lint-glibc
       volumes:
         - ..:/go/discoverd
         - ${SSH_AUTH_SOCK}:/ssh-agent

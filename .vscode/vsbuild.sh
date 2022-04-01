@@ -28,12 +28,6 @@ then
         echo "Build failed, aborting"
         exit -1
     fi
-    docker-compose -f build/docker-compose.build.yml up --exit-code-from musl-lint --build musl-lint
-    if [ $? -ne 0 ]
-    then 
-        echo "Lint failed, aborting"
-        exit -1
-    fi
 else
     docker-compose -f build/docker-compose.build.yml up  --exit-code-from musl --build musl
     if [ $? -ne 0 ]

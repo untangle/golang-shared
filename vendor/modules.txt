@@ -1,15 +1,12 @@
 # github.com/pebbe/zmq4 v1.2.8
-## explicit
 github.com/pebbe/zmq4
-# github.com/untangle/golang-shared v0.9.3-0.20220331165434-840d87464984
-## explicit
+# github.com/untangle/golang-shared v0.9.3-0.20220331194404-1e1f21db1ce5
 github.com/untangle/golang-shared/services/logger
 github.com/untangle/golang-shared/services/overseer
 github.com/untangle/golang-shared/services/profiler
 github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd
 github.com/untangle/golang-shared/util
 # google.golang.org/protobuf v1.28.0
-## explicit
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt

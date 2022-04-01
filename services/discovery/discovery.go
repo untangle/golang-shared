@@ -1,6 +1,9 @@
 package discovery
 
 import (
+	"net"
+	"net/http"
+	"net/rpc"
 	"time"
 
 	zmq "github.com/pebbe/zmq4"
@@ -60,23 +63,17 @@ func Startup() {
 		}
 	}()
 
-	/*
-		// Start the gRPC server to handle incoming requests.
-		lis, err := net.Listen("tcp", ":5563")
-		if err != nil {
-			logger.Err("Failed to listen: %v\n", err)
-			return
-		}
+	rpcServer := new(DiscoveryRPCService)
+	rpc.Register(rpcServer)
+	rpc.HandleHTTP()
 
+	lis, err := net.Listen("tcp", "127.0.0.1:5563")
+	if err != nil {
+		logger.Err("Failed to listen: %v\n", err)
+		return
+	}
 
-			sgrpc = grpc.NewServer()
-			go func() {
-				disco.RegisterDisoverydServer(sgrpc, &discoveryServer{})
-				if err := sgrpc.Serve(lis); err != nil {
-					logger.Err("failed to serve: %v", err)
-				}
-			}()
-	*/
+	go http.Serve(lis, nil)
 
 }
 
