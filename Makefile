@@ -16,7 +16,7 @@ LOG_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(GREEN)$(1)$(NC)
 WARN_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(YELLOW)$(1)$(NC)
 
 all: lint build
-build: environment modules
+build: modules
 	$(call LOG_FUNCTION,"Building discoverd...")
 	cd cmd/discoverd ; \
 	export GO111MODULE=$(GO111MODULE) ; \
@@ -29,11 +29,11 @@ environment:
 	ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 	git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 
-modules:
+modules: environment
 	$(call LOG_FUNCTION,"Vendoring modules...")
 	$(GOPRIVATE) go mod vendor
 
-lint: environment modules
+lint: modules
 	$(call LOG_FUNCTION,"Running golang linter...")
 	cd /tmp; GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.8
 	$(shell go env GOPATH)/bin/golangci-lint --version
