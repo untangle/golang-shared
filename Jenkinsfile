@@ -33,8 +33,10 @@ pipeline {
 
                         stage('Build discoverd musl') {
                             steps {
-                                builddiscoverd(libc, buildDir)
-                                stash(name:"discoverd-${libc}", includes:"cmd/discoverd/discoverd*")
+                                sshagent (credentials: ['buildbot']) {
+                                    builddiscoverd(libc, buildDir)
+                                    stash(name:"discoverd-${libc}", includes:"cmd/discoverd/discoverd*")
+                                }
                             }
                         }
                     }
@@ -59,8 +61,10 @@ pipeline {
 
                         stage('Build discoverd glibc') {
                             steps {
-                                builddiscoverd(libc, buildDir)
-                                stash(name:"discoverd-${libc}", includes:'cmd/discoverd/discoverd*')
+                                sshagent (credentials: ['buildbot']) {
+                                    builddiscoverd(libc, buildDir)
+                                    stash(name:"discoverd-${libc}", includes:'cmd/discoverd/discoverd*')
+                                }
                             }
                         }
                     }
