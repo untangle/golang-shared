@@ -28,7 +28,7 @@
 2. ### In the dependent package (ie: packetd, reportd, etc) use Go get with the -u flag and include the version hash until the PR is approved
     ```
     cd packetd
-    GOPRIVATE=github.com/untangle/golang-shared go get -u github.com/untangle/golang-shared@9eb30a3d32ae74ac7e925824a5601817e895067b
+    GOPRIVATE=github.com/untangle/golang-shared go get github.com/untangle/golang-shared@9eb30a3d32ae74ac7e925824a5601817e895067b
     ```
 
 3. ### Verify the version in go.mod has been updated
