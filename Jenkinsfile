@@ -76,58 +76,6 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-
-            parallel {
-                stage('Lint musl') {
-                    agent { label 'docker' }
-
-                    environment {
-                        libc = 'musl'
-                        buildDir = "${env.HOME}/build-discoverd-${env.BRANCH_NAME}-${libc}/go/src/github.com/untangle/discoverd"
-                    }
-
-                    stages {
-                        stage('Prep WS musl') {
-                            steps { dir(buildDir) { checkout scm } }
-                        }
-
-                        stage('Lint discoverd musl') {
-                            steps {
-                                sshagent (credentials: ['buildbot']) {
-                                    lintdiscoverd(libc, buildDir)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Lint glibc') {
-                    agent { label 'docker' }
-
-                    environment {
-                        libc = 'glibc'
-                        buildDir = "${env.HOME}/build-discoverd-${env.BRANCH_NAME}-${libc}/go/src/github.com/untangle/discoverd"
-                    }
-
-                    stages {
-                        stage('Prep WS glibc') {
-                            steps { dir(buildDir) { checkout scm } }
-                        }
-
-                        stage('Lint discoverd glibc') {
-                            steps {
-                                sshagent (credentials: ['buildbot']) {
-                                    lintdiscoverd(libc, buildDir)
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-
         stage('Test') {
             parallel {
                 stage('Test musl') {
