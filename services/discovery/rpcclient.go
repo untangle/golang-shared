@@ -10,9 +10,10 @@ import (
 // ReuestNetworkScan is a stub for the RPC call
 func RequestNetworkScan(args disco.ScanNetRequest) {
 	logger.Info("Requesting network scan\n")
-	client, err := rpc.DialHTTP("tcp", "127.0.1:5563")
+	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
 	if err != nil {
-		logger.Alert("Failed to connect to discovery service: %s\n", err.Error())
+		logger.Err("Failed to connect to discovery service: %s\n", err.Error())
+		return
 	}
 	defer client.Close()
 
@@ -26,9 +27,10 @@ func RequestNetworkScan(args disco.ScanNetRequest) {
 // ReuestNetworkScan is a stub for the RPC call
 func RequestHostScan(args disco.ScanHostRequest) {
 	logger.Info("Requesting host scan\n")
-	client, err := rpc.DialHTTP("tcp", "127.0.1:5563")
+	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
 	if err != nil {
-		logger.Alert("Failed to connect to discovery service: %s\n", err.Error())
+		logger.Err("Failed to connect to discovery service: %s\n", err.Error())
+		return
 	}
 	defer client.Close()
 
@@ -42,9 +44,10 @@ func RequestHostScan(args disco.ScanHostRequest) {
 // ReuestNetworkScan is a stub for the RPC call
 func RequestAllEntries() {
 	logger.Info("Requesting all entries\n")
-	client, err := rpc.DialHTTP("tcp", "127.0.1:5563")
+	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
 	if err != nil {
-		logger.Alert("Failed to connect to discovery service: %s\n", err.Error())
+		logger.Err("Failed to connect to discovery service: %s\n", err.Error())
+		return
 	}
 	defer client.Close()
 
