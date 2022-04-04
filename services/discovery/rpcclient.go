@@ -7,7 +7,7 @@ import (
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
-// ReuestNetworkScan is a stub for the RPC call
+// RequestNetworkScan is a stub for the RPC call
 func RequestNetworkScan(args disco.ScanNetRequest) {
 	logger.Info("Requesting network scan\n")
 	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
@@ -24,7 +24,7 @@ func RequestNetworkScan(args disco.ScanNetRequest) {
 	}
 }
 
-// ReuestNetworkScan is a stub for the RPC call
+// RequestHostScan is a stub for the RPC call
 func RequestHostScan(args disco.ScanHostRequest) {
 	logger.Info("Requesting host scan\n")
 	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
@@ -41,7 +41,7 @@ func RequestHostScan(args disco.ScanHostRequest) {
 	}
 }
 
-// ReuestNetworkScan is a stub for the RPC call
+// RequestAllEntries is a stub for the RPC call
 func RequestAllEntries() {
 	logger.Info("Requesting all entries\n")
 	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
