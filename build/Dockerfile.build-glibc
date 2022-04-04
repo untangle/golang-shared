@@ -10,7 +10,8 @@ RUN echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/no-recommends 
 RUN echo "deb http://foo:foo@updates.untangle.com/public/stretch 14.1.1 main non-free" > /etc/apt/sources.list.d/14.1.1.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 735A9E18E8F62EDF413592460B9D6AE3627BF103
 RUN apt-get update -q
-RUN apt-get install unzip openssh-client -q
+RUN apt-get install -y unzip
+RUN apt-get install -y openssh-client
 RUN apt-get install -y libzmq3-dev
 
 # Used for compiling protocolbuffers
