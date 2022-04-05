@@ -18,18 +18,26 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.build-musl
+      working_dir: /app
       environment:
         SSH_AUTH_SOCK: /ssh-agent
       volumes:
-        - ..:/go/discoverd
+        - ..:/app
         - ${SSH_AUTH_SOCK}:/ssh-agent
+        - go_cache:/go
+      #command: tail -f /dev/null
 
     glibc-local:
       build:
         context: .
         dockerfile: Dockerfile.build-glibc
+      working_dir: /app
       environment:
         SSH_AUTH_SOCK: /ssh-agent
       volumes:
-        - ..:/go/discoverd
+        - ..:/app
         - ${SSH_AUTH_SOCK}:/ssh-agent
+        - go_cache:/go
+
+volumes: 
+  go_cache:

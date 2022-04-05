@@ -33,8 +33,8 @@ github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:
 github.com/r3labs/diff/v2 v2.14.2/go.mod h1:I8noH9Fc2fjSaMxqF3G2lhDdC0b+JXCfyx85tWFM9kc=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
-github.com/untangle/golang-shared v0.9.3-0.20220331194404-1e1f21db1ce5 h1:nR4/M9ztfbyDP3s/aia5kyDwoYZpjWP6Fpb9i+8tQyM=
-github.com/untangle/golang-shared v0.9.3-0.20220331194404-1e1f21db1ce5/go.mod h1:qYXipEaOkt6VwvQqV8GYK8izP6qM4/3XGNss+rXL9dY=
+github.com/untangle/golang-shared v0.9.4 h1:7Qu6gqZWXYPIWzsykYjVr2Qn8GWwCBs4FYNtflUM9h4=
+github.com/untangle/golang-shared v0.9.4/go.mod h1:qYXipEaOkt6VwvQqV8GYK8izP6qM4/3XGNss+rXL9dY=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=

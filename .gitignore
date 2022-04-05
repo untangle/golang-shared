@@ -11,3 +11,4 @@ ipkg-x86_64/
 .prepared
 .quilt_checked
 .source_dir
+vendor/*
