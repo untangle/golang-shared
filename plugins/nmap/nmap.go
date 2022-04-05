@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"os/exec"
 	"strconv"
+	"syscall"
 
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
@@ -110,7 +111,18 @@ func NmapcallBackHandler(commands []discovery.Command) {
 	// -oX = output XML
 	// TODO: pass the box IP/prefix subnet to be scanned
 	cmd := exec.Command("nmap", "-sT", "-O", "-F", "-oX", "-", "192.168.101.0/24")
-	output, _ := cmd.CombinedOutput()
+
+	// ensure that nmap process gets killed when discoverd is stopped or restarted
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Pdeathsig: syscall.SIGTERM,
+	}
+
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		logger.Err("Error while executing nmap: %s\n", err)
+		return
+	}
 
 	// parse xml output data
 	var nmap nmap
