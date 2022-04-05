@@ -4,7 +4,10 @@ import (
 	"encoding/xml"
 	"os/exec"
 	"strconv"
+	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
@@ -17,13 +20,13 @@ type nmap struct {
 }
 
 type host struct {
-	XMLName   xml.Name  `xml:"host"`
-	Status    status    `xml:"status"`
-	Address   []address `xml:"address"`
-	Hostnames hostnames `xml:"hostnames"`
-	Ports     ports     `xml:"ports"`
-	Os        os        `xml:"os"`
-	Uptime    uptime    `xml:"uptime,omitempty"`
+	XMLName   xml.Name        `xml:"host"`
+	Status    status          `xml:"status"`
+	Address   []address       `xml:"address"`
+	Hostnames hostnames       `xml:"hostnames"`
+	Ports     ports           `xml:"ports"`
+	Os        operatingSystem `xml:"os"`
+	Uptime    uptime          `xml:"uptime,omitempty"`
 }
 
 type status struct {
@@ -71,7 +74,7 @@ type service struct {
 	Method  string   `xml:"method,attr"` // e.g. table
 }
 
-type os struct {
+type operatingSystem struct {
 	XMLName xml.Name  `xml:"os"`
 	OsMatch []osMatch `xml:"osmatch"`
 }
@@ -86,6 +89,14 @@ type uptime struct {
 	Seconds  string   `xml:"seconds,attr"`  // e.g. 1212665
 	LastBoot string   `xml:"lastboot,attr"` // e.g. Wed Mar 16 09:43:39 2022
 }
+
+type nmapProcess struct {
+	timeStarted int64
+	pid         int
+}
+
+var nmapProcesses = make(map[string]nmapProcess)
+var nmapProcessesMutex sync.RWMutex = sync.RWMutex{}
 
 // Start starts the NMAP collector
 func Start() {
@@ -109,21 +120,63 @@ func NmapcallBackHandler(commands []discovery.Command) {
 	// -O scan OS
 	// -F = fast mode (fewer ports)
 	// -oX = output XML
-	// TODO: pass the box IP/prefix subnet to be scanned
-	cmd := exec.Command("nmap", "-sT", "-O", "-F", "-oX", "-", "192.168.101.0/24")
 
-	// ensure that nmap process gets killed when discoverd is stopped or restarted
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Pdeathsig: syscall.SIGTERM,
+	for _, command := range commands {
+		// Network Scan
+		if command.Command == discovery.CmdScanNet {
+			for _, network := range command.Arguments {
+				args := []string{"nmap", "-sT", "-O", "-F", "-oX", "-", network}
+				go runNMAPcmd(args)
+			}
+		}
+		// Host Scan
+		if command.Command == discovery.CmdScanHost {
+			for _, host := range command.Arguments {
+				args := []string{"nmap", "-sT", "-O", "-F", "-oX", "-", host}
+				go runNMAPcmd(args)
+			}
+		}
 	}
+}
 
-	output, err := cmd.CombinedOutput()
-
-	if err != nil {
-		logger.Err("Error while executing nmap: %s\n", err)
+func runNMAPcmd(args []string) {
+	if cmdAllreadyRunning(args) {
+		logger.Warn("NMap scan already running for %v, running since %s\n", args, time.Unix(nmapProcesses[strings.Join(args, " ")].timeStarted, 0))
 		return
 	}
 
+	cmd := createCmd(args)
+	output, _ := cmd.CombinedOutput()
+	removeProcess(args)
+	processScan(output)
+}
+
+func createCmd(args []string) *exec.Cmd {
+	cmd := exec.Command("nmap", args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	return cmd
+}
+
+func cmdAllreadyRunning(args []string) bool {
+	argsStr := strings.Join(args, " ")
+	nmapProcessesMutex.Lock()
+	defer nmapProcessesMutex.Unlock()
+	if _, ok := nmapProcesses[argsStr]; ok {
+		return true
+	} else {
+		nmapProcesses[argsStr] = nmapProcess{time.Now().Unix(), 0}
+		return false
+	}
+}
+
+func removeProcess(args []string) {
+	argsStr := strings.Join(args, " ")
+	nmapProcessesMutex.Lock()
+	delete(nmapProcesses, argsStr)
+	nmapProcessesMutex.Unlock()
+}
+
+func processScan(output []byte) {
 	// parse xml output data
 	var nmap nmap
 	if err := xml.Unmarshal([]byte(output), &nmap); err != nil {
@@ -157,44 +210,45 @@ func NmapcallBackHandler(commands []discovery.Command) {
 			}
 		}
 
-		logger.Info("--- nmap discovery ---\n")
+		logger.Debug("--- nmap discovery ---\n")
 
 		if mac != "" {
-			logger.Info("> MAC: %s, Vendor: %s\n", mac, macVendor)
+			logger.Debug("--- nmap discovery ---\n")
+			logger.Debug("> MAC: %s, Vendor: %s\n", mac, macVendor)
 			entry.Data.Nmap.MacVendor = macVendor
 		} else {
-			logger.Info("> MAC: n/a\n")
+			logger.Debug("> MAC: n/a\n")
 		}
 
-		logger.Info("> IPv4: %s\n", ip)
+		logger.Debug("> IPv4: %s\n", ip)
 
 		// hostname
 		if len(host.Hostnames.Hostname) > 0 {
 			var hostname = host.Hostnames.Hostname[0].Name
-			logger.Info("> Hostname: %s\n", hostname)
+			logger.Debug("> Hostname: %s\n", hostname)
 			entry.Data.Nmap.Hostname = hostname
 		} else {
-			logger.Info("> Hostname: n/a\n")
+			logger.Debug("> Hostname: n/a\n")
 		}
 
 		// os
 		if len(host.Os.OsMatch) > 0 {
 			var osname = host.Os.OsMatch[0].Name
-			logger.Info("> OS: %s\n", osname)
+			logger.Debug("> OS: %s\n", osname)
 			entry.Data.Nmap.Os = osname
 		} else {
-			logger.Info("> OS: n/a\n")
+			logger.Debug("> OS: n/a\n")
 		}
 
 		// uptime
 		if host.Uptime.Seconds != "" {
-			logger.Info("> Uptime: %s seconds\n", host.Uptime.Seconds)
-			logger.Info("> Last boot: %s\n", host.Uptime.LastBoot)
+			logger.Debug("> Uptime: %s seconds\n", host.Uptime.Seconds)
+			logger.Debug("> Last boot: %s\n", host.Uptime.LastBoot)
 			entry.Data.Nmap.Uptime = host.Uptime.Seconds
 			entry.Data.Nmap.LastBoot = host.Uptime.LastBoot
 		} else {
-			logger.Info("> Uptime: n/a\n")
-			logger.Info("> Last boot: n/a\n")
+			logger.Debug("> Uptime: n/a\n")
+			logger.Debug("> Last boot: n/a\n")
 		}
 
 		// ports
@@ -215,9 +269,9 @@ func NmapcallBackHandler(commands []discovery.Command) {
 					}
 				}
 			}
-			logger.Info("> Open Ports: %s\n", portInfo)
+			logger.Debug("> Open Ports: %s\n", portInfo)
 		} else {
-			logger.Info("> Open Ports: n/a\n")
+			logger.Debug("> Open Ports: n/a\n")
 		}
 
 		// update entry if mac exists

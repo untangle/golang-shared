@@ -4,7 +4,6 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
-	"time"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
@@ -20,9 +19,6 @@ var messagePublisherChannel = make(chan *zmqMessage, 1000)
 
 // List of registered collectors
 var collectors []CollectorHandlerFunction = nil
-
-// Channel to signal shutdown of periodic collector timer
-var collectorTimerQuit = make(chan bool)
 
 const (
 
@@ -49,20 +45,6 @@ func Startup() {
 	// Start the ZMQ publisher
 	go zmqPublisher()
 
-	// Start the collector timer
-	collectorTimer := time.NewTicker(time.Second * 60)
-	go func() {
-		for {
-			select {
-			case <-collectorTimer.C:
-				callCollectors([]Command{})
-			case <-collectorTimerQuit:
-				collectorTimer.Stop()
-				return
-			}
-		}
-	}()
-
 	rpcServer := new(DiscoveryRPCService)
 	rpc.Register(rpcServer)
 	rpc.HandleHTTP()
@@ -80,8 +62,6 @@ func Startup() {
 // Shutdown the discovery service.
 func Shutdown() {
 	logger.Info("Shutting down discovery service\n")
-	// sgrpc.GracefulStop()
-	collectorTimerQuit <- true
 }
 
 // zmqPublisher reads from the messageChannel and sends the events to the associated topic

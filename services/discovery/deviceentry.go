@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -48,6 +49,23 @@ func (n DeviceEntry) Init() {
 // If existing entry is present we update only fields that are set in the new entry
 func UpdateDiscoveryEntry(mac string, entry DeviceEntry) {
 
+	// If there is no Mac address, lets see if there is an existing entry with the IP address
+	if mac == "" {
+		if entry.Data.IPv4Address != "" {
+			existingEntry, ok := getDeviceEntryFromIP(entry.Data.IPv4Address)
+			if ok {
+				entry.Data.MacAddress = existingEntry.Data.MacAddress
+			} else {
+				logger.Warn("No entry found for IP address %s, which is missing Mac Address. Can't add\n", entry.Data.IPv4Address)
+				return
+			}
+		}
+	}
+	// Do a check to see if mac is really a Mac Address
+	if !isMacAddress(mac) {
+		logger.Warn("UpdateDiscoveryEntry: Invalid MAC address: %s\n", mac)
+		return
+	}
 	deviceListLock.Lock()
 	if oldEntry, ok := deviceList[mac]; ok {
 		// Merge the old entry with the new one
@@ -77,4 +95,28 @@ func publishAll() {
 		zmqpublishEntry(entry)
 	}
 	deviceListLock.RUnlock()
+}
+
+func isMacAddress(mac string) bool {
+	var validChars = "0123456789abcdefABCDEF:"
+	if len(mac) != 17 {
+		return false
+	}
+	for _, c := range mac {
+		if !strings.Contains(validChars, string(c)) {
+			return false
+		}
+	}
+	return true
+}
+
+func getDeviceEntryFromIP(ip string) (DeviceEntry, bool) {
+	deviceListLock.RLock()
+	for _, entry := range deviceList {
+		if entry.Data.IPv4Address == ip {
+			deviceListLock.RUnlock()
+			return entry, true
+		}
+	}
+	return DeviceEntry{}, false
 }
