@@ -171,11 +171,16 @@ func parseArguments() {
 	logger.Debug("Parsing cmd arguments\n")
 
 	cpuProfilePtr := flag.String("cpuprofile", "", "filename for CPU pprof output")
+	nmapNetworkPtr := flag.String("nmap-network", "", "network to scan for hosts")
 
 	flag.Parse()
 
 	if len(*cpuProfilePtr) > 0 {
 		cpuProfileFilename = *cpuProfilePtr
+	}
+
+	if len(*nmapNetworkPtr) > 0 {
+		nmap.SetNetwork(*nmapNetworkPtr)
 	}
 }
 

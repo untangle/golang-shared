@@ -2,6 +2,7 @@ package nmap
 
 import (
 	"encoding/xml"
+	"net"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -95,6 +96,9 @@ type nmapProcess struct {
 	pid         int
 }
 
+var defaultNetwork string
+var serviceShutdown = make(chan bool)
+
 var nmapProcesses = make(map[string]nmapProcess)
 var nmapProcessesMutex sync.RWMutex = sync.RWMutex{}
 
@@ -103,7 +107,7 @@ func Start() {
 	logger.Info("Starting NMAP collector plugin\n")
 	discovery.RegisterCollector(NmapcallBackHandler)
 
-	// initial run
+	// Do an initial scan
 	NmapcallBackHandler(nil)
 }
 
@@ -120,6 +124,16 @@ func NmapcallBackHandler(commands []discovery.Command) {
 	// -O scan OS
 	// -F = fast mode (fewer ports)
 	// -oX = output XML
+
+	if commands == nil && defaultNetwork != "" {
+		logger.Debug("NMap scan handler: Running default scan on %s\n", defaultNetwork)
+		commands = []discovery.Command{
+			{
+				Command:   discovery.CmdScanNet,
+				Arguments: []string{defaultNetwork},
+			},
+		}
+	}
 
 	for _, command := range commands {
 		// Network Scan
@@ -273,10 +287,16 @@ func processScan(output []byte) {
 		} else {
 			logger.Debug("> Open Ports: n/a\n")
 		}
-
-		// update entry if mac exists
-		if mac != "" {
-			discovery.UpdateDiscoveryEntry(mac, entry)
-		}
 	}
+}
+
+// SetNetwork, sets the default network for nmap to scan.
+func SetNetwork(network string) {
+	logger.Debug("Setting network to %s\n", network)
+	_, _, err := net.ParseCIDR(network)
+	if err != nil {
+		logger.Err("Invalid network: %s\n", err)
+		return
+	}
+	defaultNetwork = network
 }
