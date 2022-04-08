@@ -250,7 +250,7 @@ func getLogLevel(packageName string, functionName string) int32 {
 		logLevelLocker.RLock()
 		ptr, stat := logLevelMap[functionName]
 		logLevelLocker.RUnlock()
-		if stat == true {
+		if stat {
 			return atomic.LoadInt32(ptr)
 		}
 	}
@@ -259,7 +259,7 @@ func getLogLevel(packageName string, functionName string) int32 {
 		logLevelLocker.RLock()
 		ptr, stat := logLevelMap[packageName]
 		logLevelLocker.RUnlock()
-		if stat == true {
+		if stat {
 			return atomic.LoadInt32(ptr)
 		}
 	}
@@ -430,7 +430,7 @@ func loadLoggerConfig() {
 				found = true
 			}
 		}
-		if found == false {
+		if !found {
 			Warn("Invalid Log configuration entry: %s=%s\n", cfgname, cfglevel)
 		}
 	}
@@ -523,7 +523,7 @@ func SearchSourceLogLevel(source string) int32 {
 	logLevelLocker.RLock()
 	ptr, stat := logLevelMap[source]
 	logLevelLocker.RUnlock()
-	if stat == false {
+	if !stat {
 		return -1
 	}
 
@@ -536,7 +536,7 @@ func AdjustSourceLogLevel(source string, level int32) int32 {
 	logLevelLocker.RLock()
 	ptr, stat := logLevelMap[source]
 	logLevelLocker.RUnlock()
-	if stat == false {
+	if !stat {
 		Notice("Adding log level source NAME:%s LEVEL:%d\n", source, level)
 		ptr = new(int32)
 		atomic.StoreInt32(ptr, -1)

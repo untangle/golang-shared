@@ -43,7 +43,7 @@ func socketServer(processer Processer) {
 	// Set up socket
 	zmqSocket, err := zmq.NewSocket(zmq.REP)
 	if err != nil {
-		logger.Warn("Failed to create zmq socket...", err)
+		logger.Warn("Failed to create zmq socket %s\n", err.Error())
 	}
 
 	// Put socket into the waitgroup
@@ -88,7 +88,7 @@ func socketServer(processer Processer) {
 						serverErr = "Error on unmasharling " + err.Error()
 					} else {
 						// Process message if unmarshal is successful and set set error if any error found
-						logger.Debug("Received ", request, "\n")
+						logger.Debug("Received %v", request, "\n")
 
 						reply, replyErr = processMessage(proc, request)
 						if replyErr != nil {
@@ -109,7 +109,7 @@ func socketServer(processer Processer) {
 
 				// Send message
 				socket.SendMessage(reply)
-				logger.Debug("Sent ", reply, "\n")
+				logger.Debug("Sent %v", reply, "\n")
 			}
 		}
 	}(&wg, zmqSocket, processer)
