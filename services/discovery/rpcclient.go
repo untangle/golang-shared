@@ -20,7 +20,7 @@ func RequestNetworkScan(args disco.ScanNetRequest) {
 	var reply int
 	err = client.Call("DiscoveryRPCService.ScanNet", args, &reply)
 	if err != nil {
-		logger.Err("Failed to call DiscoveryRPCService.ScanNet", err)
+		logger.Err("Failed to call DiscoveryRPCService.ScanNet %s\n", err.Error())
 	}
 }
 
@@ -37,7 +37,7 @@ func RequestHostScan(args disco.ScanHostRequest) {
 	var reply int
 	err = client.Call("DiscoveryRPCService.ScanHost", args, &reply)
 	if err != nil {
-		logger.Err("Failed to call DiscoveryRPCService.ScanHost", err)
+		logger.Err("Failed to call DiscoveryRPCService.ScanHost %s\n", err.Error())
 	}
 }
 
@@ -54,6 +54,6 @@ func RequestAllEntries() {
 	var reply int
 	err = client.Call("DiscoveryRPCService.RequestAllEntries", 0, &reply)
 	if err != nil {
-		logger.Err("Failed to call DiscoveryRPCService.RequestAllEntries", err)
+		logger.Err("Failed to call DiscoveryRPCService.RequestAllEntries %s\n", err.Error())
 	}
 }
