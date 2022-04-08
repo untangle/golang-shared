@@ -19,9 +19,12 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	list.Lock.RLock()
 	defer list.Lock.RUnlock()
 
-	if entry, ok := list.Devices[ip]; ok {
-		return &entry.Data
+	for _, entry := range list.Devices {
+		if entry.Data.IPv4Address == ip {
+			return &entry.Data
+		}
 	}
+
 	return nil
 }
 
