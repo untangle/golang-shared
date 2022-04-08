@@ -25,7 +25,7 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
-func (n *DeviceEntry) merge(o DeviceEntry) {
+func (n *DeviceEntry) Merge(o DeviceEntry) {
 	if n.Data.IPv4Address != "" {
 		o.Data.IPv4Address = n.Data.IPv4Address
 	}
