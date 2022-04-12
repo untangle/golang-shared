@@ -14,18 +14,14 @@ enum ResponseCode {
 message EmptyParam {
 }
 
-message RequestResponse {
+message NmapResponse {
     ResponseCode result = 1;
 }
 
 // param: net is a string in CIDR notation
-message ScanNetRequest {
+message NmapRequest {
     repeated string net = 1;
-}
-
-// param: host is a string in host/ip notation
-message ScanHostRequest {
-    repeated string host = 1;
+    repeated string host = 2;
 }
 
 message DiscoveryEntry {
