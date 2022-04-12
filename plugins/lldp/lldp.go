@@ -170,6 +170,7 @@ func LldpcallBackHandler(commands []discovery.Command) {
 		}
 
 		if mac != "" {
+			entry.Data.MacAddress = mac
 			discovery.UpdateDiscoveryEntry(mac, entry)
 		}
 	}

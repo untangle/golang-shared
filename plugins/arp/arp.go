@@ -46,6 +46,7 @@ func ArpcallBackHandler(commands []discovery.Command) {
 		// Populate the entry
 		entry.Data.Arp.Ip = fields[0]
 		entry.Data.Arp.Mac = fields[3]
+		entry.Data.MacAddress = entry.Data.Arp.Mac
 
 		// Make sure the IP is valid before updating the entry, this also excludes headings
 		if net.ParseIP(entry.Data.Arp.Ip) != nil {

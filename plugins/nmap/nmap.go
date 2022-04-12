@@ -287,6 +287,8 @@ func processScan(output []byte) {
 		} else {
 			logger.Debug("> Open Ports: n/a\n")
 		}
+		entry.Data.MacAddress = mac
+		discovery.UpdateDiscoveryEntry(mac, entry)
 	}
 }
 

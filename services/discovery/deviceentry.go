@@ -49,12 +49,18 @@ func (n DeviceEntry) Init() {
 // If existing entry is present we update only fields that are set in the new entry
 func UpdateDiscoveryEntry(mac string, entry DeviceEntry) {
 
+	if entry.Data.IPv4Address == "" && mac == "" {
+		logger.Warn("UpdateDiscoveryEntry called with empty IP and MAC address\n")
+		return
+	}
+	logger.Debug("Received %+v\n", entry)
 	// If there is no Mac address, lets see if there is an existing entry with the IP address
 	if mac == "" {
 		if entry.Data.IPv4Address != "" {
 			existingEntry, ok := getDeviceEntryFromIP(entry.Data.IPv4Address)
 			if ok {
 				entry.Data.MacAddress = existingEntry.Data.MacAddress
+				mac = existingEntry.Data.MacAddress
 			} else {
 				logger.Warn("No entry found for IP address %s, which is missing Mac Address. Can't add\n", entry.Data.IPv4Address)
 				return
@@ -76,7 +82,7 @@ func UpdateDiscoveryEntry(mac string, entry DeviceEntry) {
 	deviceListLock.Unlock()
 
 	// ZMQ publish the entry
-	logger.Debug("Publishing discovery entry for %s\n", mac)
+	logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.Data.IPv4Address)
 	zmqpublishEntry(entry)
 }
 
