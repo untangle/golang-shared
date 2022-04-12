@@ -8,7 +8,7 @@ import (
 )
 
 // RequestNetworkScan is a stub for the RPC call
-func RequestNetworkScan(args disco.ScanNetRequest) {
+func RequestNetworkScan(args disco.NmapRequest) {
 	logger.Info("Requesting network scan\n")
 	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
 	if err != nil {
@@ -25,7 +25,7 @@ func RequestNetworkScan(args disco.ScanNetRequest) {
 }
 
 // RequestHostScan is a stub for the RPC call
-func RequestHostScan(args disco.ScanHostRequest) {
+func RequestHostScan(args disco.NmapRequest) {
 	logger.Info("Requesting host scan\n")
 	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
 	if err != nil {
