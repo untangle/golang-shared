@@ -28,6 +28,15 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
+// Init initialize a new DeviceEntry
+func (n *DeviceEntry) Init() {
+	n.Data.IPv4Address = ""
+	n.Data.MacAddress = ""
+	n.Data.Lldp = nil
+	n.Data.Arp = nil
+	n.Data.Nmap = nil
+}
+
 func (n *DeviceEntry) Merge(o DeviceEntry) {
 	if n.Data.IPv4Address == "" {
 		n.Data.IPv4Address = o.Data.IPv4Address
