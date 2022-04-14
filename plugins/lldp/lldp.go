@@ -5,6 +5,7 @@ import (
 	"os/exec"
 
 	"github.com/untangle/discoverd/services/discovery"
+	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
@@ -100,7 +101,7 @@ func LldpcallBackHandler(commands []discovery.Command) {
 	// iterate over interface items
 	for _, intf := range result.Lldp[0].Intf {
 		// initialize the discovery entry
-		entry := discovery.DeviceEntry{}
+		entry := disc.DeviceEntry{}
 		entry.Init()
 		entry.Data.Lldp = &Discoverd.LLDP{}
 

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/services/discovery"
+	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
@@ -209,7 +210,7 @@ func processScan(output []byte) {
 		}
 
 		// initialize the discovery entry
-		entry := discovery.DeviceEntry{}
+		entry := disc.DeviceEntry{}
 		entry.Init()
 		entry.Data.Nmap = &Discoverd.NMAP{}
 
