@@ -7,8 +7,9 @@ import (
 )
 
 func main() {
+	var config logger.Config
 
-	logger.Startup()
+	logger.Startup(config)
 	overseer.Startup()
 	settings.Startup()
 

@@ -1,10 +1,42 @@
-# currently the only thing we do in this Makefile is run lint, and build the protocol buffer structures
-all: lint compile-protobuffs
+# default to vendor mod, since our minimal supported version of Go is
+# 1.11
+GOFLAGS ?= "-mod=vendor"
+GO111MODULE ?= "on"
+GOPRIVATE ?= GOPRIVATE=github.com/untangle/golang-shared
 
-compile-protobuffs:
+# logging
+NC := "\033[0m" # no color
+YELLOW := "\033[1;33m"
+ifneq ($(DEV),false)
+  GREEN := "\033[1;32m"
+else
+  GREEN :=
+endif
+LOG_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(GREEN)$(1)$(NC)
+WARN_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(YELLOW)$(1)$(NC)
+
+all: lint build
+build: modules
+	$(call LOG_FUNCTION,"Compiling protocol buffers...")
 	rm -rf structs/protocolbuffers/*
 	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
 
-lint:
-	GO111MODULE=off go get -u golang.org/x/lint/golint
-	$(shell go env GOPATH)/bin/golint -set_exit_status $(shell go list $(GOFLAGS) ./...)
+environment:
+	$(call LOG_FUNCTION,"Setting up environment...")
+	export $(GOPRIVATE)
+	mkdir -p ~/.ssh/
+	ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+	git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+
+modules: environment
+	$(call LOG_FUNCTION,"Vendoring modules...")
+	$(GOPRIVATE) go mod vendor
+
+lint: modules
+	$(call LOG_FUNCTION,"Running golang linter...")
+	cd /tmp; GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.8
+	$(shell go env GOPATH)/bin/golangci-lint --version
+# IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
+	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
+
+.PHONY: build lint environment

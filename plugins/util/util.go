@@ -41,7 +41,7 @@ func SendSignal(executable string, signal syscall.Signal) error {
 
 	logger.Debug("Sending %s to %s\n", signal, executable)
 
-	pidStr, err := exec.Command("pgrep", executable).CombinedOutput()
+	pidStr, err := exec.Command("pgrep", "-of", executable).CombinedOutput()
 	if err != nil {
 		logger.Err("Failure to get %s pid: %s\n", executable, err.Error())
 		return err

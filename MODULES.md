@@ -7,7 +7,7 @@
     ```
 2. ### Use go get to add the package
     ```
-    go get -d github.com/untangle/golang-shared
+    GOPRIVATE=github.com/untangle/golang-shared go get -d github.com/untangle/golang-shared
     ```
 3. ### Use go tidy to cleanup dependencies
     ```
@@ -28,7 +28,7 @@
 2. ### In the dependent package (ie: packetd, reportd, etc) use Go get with the -u flag and include the version hash until the PR is approved
     ```
     cd packetd
-    go get -u github.com/untangle/golang-shared@e5a6b85ad935713ac76d83ab5b2bf157069279a8
+    GOPRIVATE=github.com/untangle/golang-shared go get github.com/untangle/golang-shared@9eb30a3d32ae74ac7e925824a5601817e895067b
     ```
 
 3. ### Verify the version in go.mod has been updated
@@ -36,7 +36,7 @@
     grep golang-shared go.mod
         github.com/untangle/golang-shared v0.2.1
     ```
-2. ### Then we need to tidy and vendor again
+4. ### Then we need to tidy and vendor again
     ```
     go mod vendor
     go mod tidy
