@@ -458,6 +458,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 			return output, err
 		}
 	}
+	os.Remove(tmpfile.Name())
 	return output, nil
 }
 
