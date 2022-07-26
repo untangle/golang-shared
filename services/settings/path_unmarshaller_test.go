@@ -91,6 +91,22 @@ func (suite *TestJSONUnmarshalSuite) TestNestedStructs() {
 
 	json := `
 {"ignore": null,
+ "large_object": [
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+1,
+2,
+3,
+4,
+5,
+6,
+7
+],
  "otherIgnore": {"key": false, "key2": false},
  "pathComp1": {
    "pathComp2": {
@@ -100,7 +116,16 @@ func (suite *TestJSONUnmarshalSuite) TestNestedStructs() {
          {"name": "world!", "status": 42, "is_cool": true},
          {"name": "doge", "status": 99, "is_cool": true},
          {"name": "goop", "status": 9000, "is_cool": true},
-         {"name": "glop", "status": 0, "is_cool": false}
+         {"name": "glop", "status": 0, "is_cool": false},
+         {"name": "doge", "status": 998, "is_cool": true},
+         {"name": "goop", "status": 9009, "is_cool": true},
+         {"name": "glop", "status": 2, "is_cool": false},
+         {"name": "doge", "status": 998, "is_cool": true},
+         {"name": "goop", "status": 9009, "is_cool": true},
+         {"name": "glop", "status": 2, "is_cool": false},
+         {"name": "doge", "status": 998, "is_cool": true},
+         {"name": "goop", "status": 9009, "is_cool": true},
+         {"name": "glop", "status": 2, "is_cool": false}
        ]
      }
    }
@@ -110,18 +135,27 @@ func (suite *TestJSONUnmarshalSuite) TestNestedStructs() {
 	unm := suite.getUnmarshallerForString(json)
 	suite.Nil(unm.UnmarshalAtPath(&output, "pathComp1", "pathComp2", "pathComp3"))
 	suite.Equal(output.Key, "hello!")
-	suite.Equal(len(output.Inners), 4)
+	suite.Equal(len(output.Inners), 13)
 	expected := []Inner{
 		{Name: "world!", Status: 42, IsCool: true},
 		{Name: "doge", Status: 99, IsCool: true},
 		{Name: "goop", Status: 9000, IsCool: true},
 		{Name: "glop", Status: 0, IsCool: false},
+		{Name: "doge", Status: 998, IsCool: true},
+		{Name: "goop", Status: 9009, IsCool: true},
+		{Name: "glop", Status: 2, IsCool: false},
+		{Name: "doge", Status: 998, IsCool: true},
+		{Name: "goop", Status: 9009, IsCool: true},
+		{Name: "glop", Status: 2, IsCool: false},
+		{Name: "doge", Status: 998, IsCool: true},
+		{Name: "goop", Status: 9009, IsCool: true},
+		{Name: "glop", Status: 2, IsCool: false},
 	}
 	suite.Equal(expected, output.Inners)
 }
 
 func (suite *TestJSONUnmarshalSuite) getUnmarshallerForString(json string) *PathUnmarshaller {
-	reader := bytes.NewBuffer([]byte(json))
+	reader := bytes.NewReader([]byte(json))
 	return NewPathUnmarshaller(reader)
 }
 

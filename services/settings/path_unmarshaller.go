@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+const notFound = int64(-1)
+
 // PathUnmarshaller unmarshals objects in a JSON object given a path
 // through the JSON input object to that desired target object.
 // e.g. given {"x": {"y": "z"}} and the path "x", "y", we can extract
@@ -16,6 +18,9 @@ type PathUnmarshaller struct {
 
 	// should we call UseNumber when we decode the object we find?
 	useNumber bool
+
+	// underlying io object.
+	iostream io.ReadSeeker
 
 	// the path being searched for.
 	searchedForPath []string
@@ -139,34 +144,34 @@ func pathMatchStatus(fullPath []string, partialPath []string) matchResult {
 // 3. other -- ignore (eat it up).
 func (unm *PathUnmarshaller) processObject(
 	currentPath []string,
-	searchPath []string) (io.Reader, error) {
+	searchPath []string) (int64, error) {
 	for {
 		next, err := unm.getToken()
 		if err != nil {
-			return nil, err
+			return notFound, err
 		}
 		switch tok := next.(type) {
 		case json.Delim:
 			switch tok {
 			case '{':
 				if result, err := unm.searchObject(currentPath,
-					searchPath); result != nil {
+					searchPath); result != notFound {
 					return result, err
 				} else if err != nil {
-					return nil, err
+					return notFound, err
 				}
 			case '[':
 				if err := unm.ignoreUntil(']'); err != nil {
-					return nil, err
+					return notFound, err
 				}
 			default:
-				return nil, unm.formatError(
+				return notFound, unm.formatError(
 					"unexpected json delim: %s", tok)
 			}
 		case string, int64, int, float64, float32:
-			return nil, nil
+			return notFound, nil
 		default:
-			return nil, unm.formatError("unexpected json token: %s", tok)
+			return notFound, unm.formatError("unexpected json token: %s", tok)
 		}
 	}
 }
@@ -177,11 +182,11 @@ func (unm *PathUnmarshaller) processObject(
 // the matching path.
 func (unm *PathUnmarshaller) searchObject(
 	currentPath []string,
-	searchPath []string) (io.Reader, error) {
+	searchPath []string) (int64, error) {
 	for {
 		next, err := unm.getToken()
 		if err != nil {
-			return nil, err
+			return notFound, err
 		}
 		switch tok := next.(type) {
 		case string:
@@ -191,21 +196,21 @@ func (unm *PathUnmarshaller) searchObject(
 			matchResult := pathMatchStatus(searchPath, newPath)
 			switch matchResult {
 			case completeMatch:
-				return unm.decoder.Buffered(), nil
+				return unm.decoder.InputOffset(), nil
 			case partialMatch:
 				return unm.processObject(newPath, searchPath)
 			case noMatch:
 				if err := unm.ignoreNextObject(); err != nil {
-					return nil, err
+					return notFound, err
 				}
 			}
 		case json.Delim:
 			if tok == '}' {
-				return nil, nil
+				return notFound, nil
 			}
-			return nil, unm.formatError("unexpected JSON delim: %s", tok)
+			return notFound, unm.formatError("unexpected JSON delim: %s", tok)
 		default:
-			return nil, unm.formatError("unexpected JSON token: %T (%s)", tok, tok)
+			return notFound, unm.formatError("unexpected JSON token: %T (%s)", tok, tok)
 		}
 	}
 }
@@ -213,10 +218,10 @@ func (unm *PathUnmarshaller) searchObject(
 // The JSON tokenizer does not have : tokens. So when we find the key
 // we look for, and get the stream for that point, there is still a
 // ':' in the stream. So we eat it up.
-func (unm *PathUnmarshaller) fastForwardToValue(reader io.Reader) error {
+func (unm *PathUnmarshaller) fastForwardToValue() error {
 	bytes := []byte{0}
 	for {
-		n, err := reader.Read(bytes)
+		n, err := unm.iostream.Read(bytes)
 		if n != 1 || err != nil {
 			return unm.formatError(
 				"couldn't read expected object from JSON stream: %w",
@@ -238,9 +243,10 @@ func (unm *PathUnmarshaller) UseNumber() {
 // from reader. reader should point to valid JSON. The JSON object
 // should be a dict object (curly braces), not any other kind of JSON
 // object.
-func NewPathUnmarshaller(reader io.Reader) *PathUnmarshaller {
+func NewPathUnmarshaller(reader io.ReadSeeker) *PathUnmarshaller {
 	return &PathUnmarshaller{
-		decoder: json.NewDecoder(reader),
+		iostream: reader,
+		decoder:  json.NewDecoder(reader),
 	}
 }
 
@@ -252,17 +258,21 @@ func NewPathUnmarshaller(reader io.Reader) *PathUnmarshaller {
 // be anything json.Unmarshal accepts.
 func (unm *PathUnmarshaller) UnmarshalAtPath(output interface{}, path ...string) error {
 	unm.searchedForPath = path
-	outputReader, err := unm.processObject([]string{}, path)
+	outputPosition, err := unm.processObject([]string{}, path)
 	if err != nil {
 		return err
-	} else if outputReader == nil {
+	} else if outputPosition == notFound {
 		return unm.formatError("couldn't find path: %s", path)
 	}
-	err = unm.fastForwardToValue(outputReader)
+	if _, err := unm.iostream.Seek(outputPosition, io.SeekStart); err != nil {
+		return fmt.Errorf("error seeking to position of object: %w", err)
+	}
+
+	err = unm.fastForwardToValue()
 	if err != nil {
 		return err
 	}
-	newDecoder := json.NewDecoder(outputReader)
+	newDecoder := json.NewDecoder(unm.iostream)
 	if unm.useNumber {
 		newDecoder.UseNumber()
 	}
