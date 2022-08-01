@@ -3,6 +3,11 @@
 GOFLAGS ?= "-mod=vendor"
 GO111MODULE ?= "on"
 GOPRIVATE ?= GOPRIVATE=github.com/untangle/golang-shared
+EXTRA_TEST_FLAGS ?=
+GOTEST_COVERAGE ?= yes
+GO_COVERPROFILE ?= /tmp/packetd_coverage.out
+COVERAGE_HTML ?= /tmp/packetd_coverage.html
+BROWSER ?= x-www-browser
 
 # logging
 NC := "\033[0m" # no color
@@ -38,5 +43,17 @@ lint: modules
 	$(shell go env GOPATH)/bin/golangci-lint --version
 # IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
 	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
+
+test: build
+	if [ $(GOTEST_COVERAGE) = "yes" ]; \
+	then \
+		go test -vet=off $(EXTRA_TEST_FLAGS) -coverprofile=$(GO_COVERPROFILE) ./...; \
+	else \
+		go test -vet=off $(EXTRA_TEST_FLAGS) ./...; \
+	fi
+
+racetest: EXTRA_TEST_FLAGS=-race
+racetest: test
+
 
 .PHONY: build lint environment

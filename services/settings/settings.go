@@ -91,6 +91,24 @@ func GetDefaultSettings(segments []string) (interface{}, error) {
 	return GetSettingsFile(segments, defaultsFile)
 }
 
+// UnmarshalSettingsAtPath is a wrapper function for the
+// PathUnmarshaller struct and associated functions. It opens the
+// settings file and unmarshalls the object at path into output.  it
+// has the same behavior PathUnmarshaller.UnmarshalAtPath, with the
+// PathUnmarshaller having been constructed with a reader that reads
+// from settingsFile.
+func UnmarshalSettingsAtPath(output interface{}, path ...string) error {
+	saveLocker.RLock()
+	defer saveLocker.RUnlock()
+	reader, err := os.Open(settingsFile)
+	if err != nil {
+		return err
+	}
+	unmarshaller := NewPathUnmarshaller(reader)
+	err = unmarshaller.UnmarshalAtPath(output, path...)
+	return err
+}
+
 // GetSettingsFile returns the settings from the specified path of the specified filename
 func GetSettingsFile(segments []string, filename string) (interface{}, error) {
 	var err error

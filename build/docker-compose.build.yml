@@ -4,8 +4,9 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.build-musl
-      environment: 
+      environment:
         SSH_AUTH_SOCK: /ssh-agent
+        UNIT_TEST: "yes"
       volumes:
         - ..:/go/untangle-shared
         - ${SSH_AUTH_SOCK}:/ssh-agent
@@ -14,8 +15,9 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.build-glibc
-      environment: 
+      environment:
         SSH_AUTH_SOCK: /ssh-agent
+        UNIT_TEST: "yes"
       volumes:
         - ..:/go/untangle-shared
         - ${SSH_AUTH_SOCK}:/ssh-agent
