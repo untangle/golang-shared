@@ -74,6 +74,7 @@ func (cache *LruCache) Remove(key string) {
 	}
 }
 
+// Clear all all internal data structures
 func (cache *LruCache) Clear() {
 	cache.Elements = make(map[string]*list.Element)
 	cache.List.Init()

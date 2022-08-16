@@ -66,6 +66,7 @@ func (suite *LruCacheTestSuite) TestGet() {
 }
 
 func (suite *LruCacheTestSuite) TestCapacityExceeded() {
+
 	// The first element put in the cache is the least recently used element
 	// so adding more elements should delete it from the queue
 	toRemove := "0"
