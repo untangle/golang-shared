@@ -1,8 +1,6 @@
 package lrucache
 
 import (
-	"container/list"
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -65,20 +63,30 @@ func (suite *LruCacheTestSuite) TestGet() {
 	}
 }
 
+func (suite *LruCacheTestSuite) TestGetCurrentCapacity() {
+	assert.Equal(suite.T(), int(capacity), suite.cache.GetCurrentCapacity())
+}
+
 func (suite *LruCacheTestSuite) TestCapacityExceeded() {
+	// Check that the cache has something in it to start with
 
 	// The first element put in the cache is the least recently used element
 	// so adding more elements should delete it from the queue
 	toRemove := "0"
 
-	for e := suite.cache.List.Front(); e != nil; e = e.Next() {
-		fmt.Println(e.Value.(*list.Element).Value.(KeyPair).Key)
-	}
-
 	suite.cache.Put(strconv.Itoa(int(capacity)), capacity)
 
 	_, okAfterOverwritten := suite.cache.Get(toRemove)
 	assert.False(suite.T(), okAfterOverwritten, "The element with key %s was not overwritten in the cache", toRemove)
+}
+
+func (suite *LruCacheTestSuite) TestClear() {
+	// Check that the cache has something in it to start with
+	assert.Equal(suite.T(), int(capacity), suite.cache.GetCurrentCapacity(), "The cache is missing elements. It was not setup properly by SetupTest()")
+
+	suite.cache.Clear()
+
+	assert.Equal(suite.T(), 0, suite.cache.GetCurrentCapacity(), "The cache was not successfully cleared")
 }
 
 func TestLruCacheTestSuite(t *testing.T) {

@@ -2,6 +2,7 @@ package lrucache
 
 import (
 	"container/list"
+	"sync"
 )
 
 type KeyPair struct {
@@ -10,13 +11,18 @@ type KeyPair struct {
 }
 
 type LruCache struct {
-	Capacity uint
-	List     *list.List
-	Elements map[string]*list.Element
+	Capacity   uint
+	List       *list.List
+	CacheMutex sync.Mutex
+	Elements   map[string]*list.Element
 }
 
 func NewLruCache(capacity uint) *LruCache {
-	return &LruCache{capacity, list.New(), make(map[string]*list.Element)}
+	return &LruCache{
+		Capacity: capacity,
+		List:     list.New(),
+		Elements: make(map[string]*list.Element),
+	}
 }
 
 // Gets an item from the cache using a provided key. Once an item has been
@@ -26,6 +32,8 @@ func (cache *LruCache) Get(key string) (interface{}, bool) {
 	var value interface{}
 	var found bool
 
+	cache.CacheMutex.Lock()
+	defer cache.CacheMutex.Unlock()
 	if node, ok := cache.Elements[key]; ok {
 		value = node.Value.(*list.Element).Value.(KeyPair).Value
 		found = true
@@ -39,6 +47,9 @@ func (cache *LruCache) Get(key string) (interface{}, bool) {
 // If the item's key is already in the cache, update the key's value
 // and move the the item to the front of the queue.
 func (cache *LruCache) Put(key string, value interface{}) {
+	cache.CacheMutex.Lock()
+	defer cache.CacheMutex.Unlock()
+
 	// Update key's value if already present in the cache
 	if node, ok := cache.Elements[key]; ok {
 		cache.List.MoveToFront(node)
@@ -68,6 +79,8 @@ func (cache *LruCache) Put(key string, value interface{}) {
 
 // Delete an item from the cache based off the key
 func (cache *LruCache) Remove(key string) {
+	cache.CacheMutex.Lock()
+	defer cache.CacheMutex.Unlock()
 	if node, ok := cache.Elements[key]; ok {
 		delete(cache.Elements, key)
 		cache.List.Remove(node)
@@ -76,16 +89,28 @@ func (cache *LruCache) Remove(key string) {
 
 // Clear all all internal data structures
 func (cache *LruCache) Clear() {
+	cache.CacheMutex.Lock()
+	defer cache.CacheMutex.Unlock()
 	cache.Elements = make(map[string]*list.Element)
 	cache.List.Init()
 }
 
 func (cache *LruCache) GetMostRecentlyUsed() (interface{}, interface{}) {
+	cache.CacheMutex.Lock()
+	defer cache.CacheMutex.Unlock()
 	keyPair := cache.List.Front().Value.(*list.Element).Value.(KeyPair)
 	return keyPair.Key, keyPair.Value
 }
 
 func (cache *LruCache) GetLeastRecentlyUsed() (interface{}, interface{}) {
+	cache.CacheMutex.Lock()
+	defer cache.CacheMutex.Unlock()
 	keyPair := cache.List.Back().Value.(*list.Element).Value.(KeyPair)
 	return keyPair.Key, keyPair.Value
+}
+
+func (cache *LruCache) GetCurrentCapacity() int {
+	cache.CacheMutex.Lock()
+	defer cache.CacheMutex.Unlock()
+	return cache.List.Len()
 }
