@@ -4,5 +4,5 @@ type CacheInterface interface {
 	Get(string) (interface{}, bool)
 	Put(string, interface{})
 	Clear()
-	Remove()
+	Remove(string)
 }
