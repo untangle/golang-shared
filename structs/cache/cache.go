@@ -1,7 +1,7 @@
 package cache
 
 type CacheInterface interface {
-	Get() (interface{}, bool)
+	Get(string) (interface{}, bool)
 	Put()
 	Clear()
 	Remove()
