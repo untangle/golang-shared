@@ -8,5 +8,5 @@ type Cacher interface {
 	Remove(string)
 
 	// An iterator
-	NextElement() interface{}
+	GetIterator() interface{}
 }
