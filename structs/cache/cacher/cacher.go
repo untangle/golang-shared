@@ -8,5 +8,5 @@ type Cacher interface {
 	Remove(string)
 
 	// An iterator
-	GetIterator() interface{}
+	GetIterator() func() (string, interface{}, bool)
 }
