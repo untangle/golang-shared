@@ -4,6 +4,6 @@ package sweeper
 // StartSweep should kickoff a goroutine that scans the a
 // cache on a set interval.
 type Sweeper interface {
-	StartSweep(int)
-	Remove(interface{}, interface{}) bool
+	StartSweeping(func())
+	StopSweeping()
 }

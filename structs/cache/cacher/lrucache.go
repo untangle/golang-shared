@@ -53,7 +53,7 @@ func (cache *LruCache) Get(key string) (interface{}, bool) {
 	return value, found
 }
 
-func (cache *LruCache) GetIterator() func() (string, interface{}, bool) {
+func (cache *LruCache) GetIterator() func() (string, *interface{}, bool) {
 	// Once an iterator has been retrieved, it captures the state of
 	// of the cache. If the cache is updated the iterator won't contain
 	// the update
@@ -63,7 +63,7 @@ func (cache *LruCache) GetIterator() func() (string, interface{}, bool) {
 
 	node := listSnapshot.Front()
 	// Return key, val, and if there is anything left to iterate over
-	return func() (string, interface{}, bool) {
+	return func() (string, *interface{}, bool) {
 		if node != nil {
 
 			currentNode := node
@@ -72,7 +72,7 @@ func (cache *LruCache) GetIterator() func() (string, interface{}, bool) {
 
 			node = node.Next()
 
-			return currentKey, currentValue, true
+			return currentKey, &currentValue, true
 		} else {
 			return "", nil, false
 		}

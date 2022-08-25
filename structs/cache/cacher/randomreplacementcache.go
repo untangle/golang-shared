@@ -26,7 +26,7 @@ func NewRandomReplacementCache(capacity uint, cacheName string) *RandomReplaceme
 	}
 }
 
-func (cache *RandomReplacementCache) GetIterator() func() (string, interface{}, bool) {
+func (cache *RandomReplacementCache) GetIterator() func() (string, *interface{}, bool) {
 	// Once an iterator has been retrieved, it captures the state of
 	// of the cache. If the cache is updated the iterator won't contain
 	// the update
@@ -36,7 +36,7 @@ func (cache *RandomReplacementCache) GetIterator() func() (string, interface{}, 
 
 	i := 0
 	// Return key, val, and if there is anything left to iterate over
-	return func() (string, interface{}, bool) {
+	return func() (string, *interface{}, bool) {
 		if i == len(keys) {
 			return "", nil, false
 		}
@@ -46,7 +46,7 @@ func (cache *RandomReplacementCache) GetIterator() func() (string, interface{}, 
 		// The value could be nil if the map was altered
 		value, _ := cache.Get(currentKey)
 		i += 1
-		return currentKey, value, true
+		return currentKey, &value, true
 	}
 }
 
