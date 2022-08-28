@@ -27,6 +27,7 @@ func (sweptCache *SweptCache) generateCleanupTask(cleanupFunc func(string, *inte
 				sweptCache.Cacher.Remove(key)
 			}
 		}
+
 	}
 }
 
