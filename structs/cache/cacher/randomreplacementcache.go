@@ -12,7 +12,7 @@ import (
 const badKeySignifier string = "badKey"
 
 // Simple cache that removes elements randomly when the cache capacity is met.
-// O(1) lookups and insertions. For O(1) insertions, size complexity had to be increased.
+// O(1) lookups and insertions. For O(1) insertions, space complexity had to be increased.
 // The size of the cache will grow for every cache deletion since the keys slice can't
 // have elements removed from it.
 // The cache can be read from by multiple threads, but written to by one.

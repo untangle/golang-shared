@@ -86,6 +86,11 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 
 	// Check if the size is the same, and that the list has changed
 	suite.Equal(int(suite.capacity), len(suite.cache.elements))
+	suite.Equal(suite.cache.maxCapacity, uint(len(suite.cache.keyToIndex)))
+
+	// The keys slice grew since its elements can't be removed
+	suite.True(len(suite.cache.keys) > int(suite.cache.maxCapacity))
+
 	suite.NotEqual(keysAfterPut, keysBeforePut)
 }
 
