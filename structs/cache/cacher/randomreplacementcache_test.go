@@ -92,3 +92,16 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 func (suite *RRCacheTestSuite) TestGetCurrentCapacity() {
 	suite.Equal(int(suite.capacity), suite.cache.GetCurrentCapacity())
 }
+
+func (suite *RRCacheTestSuite) TestRemove() {
+	keyToRemove := "2"
+	_, ok := suite.cache.Get(keyToRemove)
+	suite.True(ok, "The key -- %s -- going to be removed wasn't in the cache at the start of the test", keyToRemove)
+
+	suite.cache.Remove("2")
+
+	_, ok = suite.cache.Get(keyToRemove)
+	suite.False(ok, "The key -- %s -- remained in the cache after being removed", keyToRemove)
+	suite.Equal(suite.cache.maxCapacity-1, uint(len(suite.cache.elements)))
+	suite.Equal(suite.cache.maxCapacity-1, uint(len(suite.cache.keyToIndex)))
+}

@@ -14,13 +14,13 @@ type SweptCache struct {
 
 // The sweeper runs a function when certain criteria is met. To give the function being run by the sweeper
 // access to the cache, use a closure.
-func (sweptCache *SweptCache) generateCleanupTask(cleanupFunc func(string, *interface{}) bool) func() {
+func (sweptCache *SweptCache) generateCleanupTask(cleanupFunc func(string, interface{}) bool) func() {
 
-	cache := &sweptCache.Cacher
+	cache := sweptCache.Cacher
 
 	return func() {
 
-		getNext := (*cache).GetIterator()
+		getNext := cache.GetIterator()
 
 		for key, value, ok := getNext(); ok; key, value, ok = getNext() {
 			if cleanupFunc(key, value) {
@@ -40,7 +40,7 @@ func NewSweptCache(cache cacher.Cacher, sweeper sweeper.Sweeper) *SweptCache {
 // once a sweep is triggered.
 // The key of the cache element, and a pointer to it, must be handled by the provided function.
 // If false is returned from the provided function, the cache element will be removed.
-func (sweptCache *SweptCache) StartSweeping(cleanupFunc func(string, *interface{}) bool) {
+func (sweptCache *SweptCache) StartSweeping(cleanupFunc func(string, interface{}) bool) {
 	sweptCache.sweeper.StartSweeping(sweptCache.generateCleanupTask(cleanupFunc))
 }
 

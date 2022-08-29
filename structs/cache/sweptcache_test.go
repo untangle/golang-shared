@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -27,16 +26,17 @@ func (suite *TestSweptCache) SetupTest() {
 	suite.sweptCache = *NewSweptCache(cacher.NewRandomReplacementCache(5, "sweptCacheTest"), sweeper.NewSweepOnTime(time.Duration(suite.sweepInterval)*time.Second))
 
 	for i := 0; i < 5; i++ {
-		suite.sweptCache.Put(strconv.Itoa(int(i)), i)
+		newVal := i
+		suite.sweptCache.Put(strconv.Itoa(int(i)), &newVal)
 	}
 }
 
 func (suite *TestSweptCache) TestElementDeletionFunction() {
 
 	// Remove elements with a value less than 3. Run every second
-	suite.sweptCache.StartSweeping(func(s string, i *interface{}) bool {
+	suite.sweptCache.StartSweeping(func(s string, i interface{}) bool {
 		deleteElement := false
-		if (*i).(int) < 3 {
+		if *(*(i.(*interface{}))).(*int) < 3 {
 			deleteElement = true
 		}
 
@@ -48,15 +48,15 @@ func (suite *TestSweptCache) TestElementDeletionFunction() {
 	next := suite.sweptCache.GetIterator()
 
 	for key, val, ok := next(); ok; key, val, ok = next() {
-		suite.True((*val).(int) >= 3, "The key %s was not swept as expected", key)
+		suite.True(*(*(val.(*interface{}))).(*int) >= 3, "The key %s was not swept as expected", key)
 	}
 
 }
 
 func (suite *TestSweptCache) TestElementMutationFunction() {
-	suite.sweptCache.StartSweeping(func(s string, i *interface{}) bool {
-		if (*i).(int) < 4 {
-			(*i) = 4
+	suite.sweptCache.StartSweeping(func(s string, i interface{}) bool {
+		if *(*(i.(*interface{}))).(*int) < 4 {
+			*(*(i.(*interface{}))).(*int) = 4
 		}
 
 		return false
@@ -66,8 +66,8 @@ func (suite *TestSweptCache) TestElementMutationFunction() {
 
 	next := suite.sweptCache.GetIterator()
 	for key, val, ok := next(); ok; key, val, ok = next() {
-		fmt.Printf("%s %d\n", key, *val)
-		suite.True((*val).(int) == 5, "The key %s was not altered as expected", key)
+
+		suite.True(*(*(val.(*interface{}))).(*int) == 4, "The key %s was not altered as expected", key)
 	}
 
 }
