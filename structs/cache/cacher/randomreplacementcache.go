@@ -1,15 +1,13 @@
 package cacher
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/util"
 )
-
-// Used to signal that an index should be ignored in the list of keys
-const badKeySignifier string = "badKey"
 
 // Simple cache that removes elements randomly when the cache capacity is met.
 // O(1) lookups and insertions. For O(1) insertions, space complexity had to be increased.
@@ -21,8 +19,8 @@ type RandomReplacementCache struct {
 	elements    map[string]interface{}
 	cacheName   string
 	cacheMutex  sync.RWMutex
-	keys        []string
-	keyToIndex  map[string]int
+
+	keys []string
 }
 
 func NewRandomReplacementCache(capacity uint, cacheName string) *RandomReplacementCache {
@@ -35,8 +33,7 @@ func NewRandomReplacementCache(capacity uint, cacheName string) *RandomReplaceme
 		// keyToIndex map. For a performance bump, just set removed element's keys to
 		// nil when removed. Since keys capacity will exceed that of the maps, give it
 		// a much larger size to avoid too many copies
-		keys:       make([]string, 2*capacity),
-		keyToIndex: make(map[string]int, capacity),
+		keys: make([]string, 2*capacity),
 	}
 }
 
@@ -47,7 +44,8 @@ func (cache *RandomReplacementCache) ForEach(cleanupFunc func(string, interface{
 	for key, val := range cache.elements {
 		// Remove element if the cleanUp func returns true
 		if cleanupFunc(key, val) {
-			cache.removeElement(key)
+			//cache.removeElement(key)
+			fmt.Print("whateverI ")
 		}
 	}
 
@@ -97,52 +95,48 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 	} else {
 		// Remove element randomly if the capacity has been met
 		if uint(len(cache.elements)) >= cache.maxCapacity {
-			cache.removeElement(cache.getRandomKeyForRemoval())
+			indexToSwap := rand.Intn(len(cache.keys))
+			keyToRemove := cache.keys[indexToSwap]
+
+			// Swap the last key with a random key. Delete the new last key.
+			lastElementCopy := cache.keys[len(cache.keys)-1]
+			cache.keys[len(cache.keys)-1] = cache.keys[indexToSwap]
+			cache.keys[indexToSwap] = lastElementCopy
+			cache.keys = cache.keys[:len(cache.keys)-1]
+
+			delete(cache.elements, keyToRemove)
+
 			logger.Debug("Removed element with key %s from the cache named %s", key, cache.cacheName)
 		}
 
 		// Add new element
 		cache.elements[key] = value
-		keyIndex := len(cache.elements)
 		cache.keys = append(cache.keys, key)
-		cache.keyToIndex[key] = keyIndex
 
 		logger.Debug("Added element with key %s to the cache named %s", key, cache.cacheName)
 
 	}
 }
 
-// This should never be called on an empty cache
-func (cache *RandomReplacementCache) getRandomKeyForRemoval() string {
-	keyForRemoval := badKeySignifier
-
-	for keyForRemoval == badKeySignifier {
-		keyForRemoval = cache.keys[rand.Intn(len(cache.keys))]
-	}
-
-	return keyForRemoval
-}
-
-// Don't just use the public function to remove elements since Put/Remove both
-// need the write lock. Put calling Remove would result in a deadlock, so
-// use this function that they can both call after acquiring the cache's mutex
-func (cache *RandomReplacementCache) removeElement(key string) {
-	if indexToRemove, ok := cache.keyToIndex[key]; ok {
-		// Deleting keys from the keys list would alter what they're mapped to in keyToIndex
-		// Instead, set them to a nonsense value to signify they've been removed
-		cache.keys[indexToRemove] = badKeySignifier
-
-		delete(cache.keyToIndex, key)
-		delete(cache.elements, key)
-
-		logger.Debug("Removed element with key %s from the cache named %s", key, cache.cacheName)
-	}
-}
-
+// Remove is an O(n) operation since the key to be removed must be found first
 func (cache *RandomReplacementCache) Remove(key string) {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
-	cache.removeElement(key)
+
+	if _, ok := cache.elements[key]; ok {
+		delete(cache.elements, key)
+
+		for i := 0; i < len(cache.keys); i++ {
+			if cache.keys[i] == key {
+				// Order doesn't matter for the keys slice, so delete the fast way.
+				// Which is just swapping the element to delete with the last element
+				// then ignoring the last element of the slice
+				cache.keys[i] = cache.keys[len(cache.keys)-1]
+				cache.keys = cache.keys[:len(cache.keys)-1]
+			}
+		}
+
+	}
 	// else the key didn't exists in the cache and nothing should be done
 }
 
@@ -150,7 +144,6 @@ func (cache *RandomReplacementCache) Clear() {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
 	cache.elements = make(map[string]interface{}, cache.maxCapacity)
-	cache.keyToIndex = make(map[string]int, cache.maxCapacity)
 	cache.keys = make([]string, cache.maxCapacity)
 	logger.Debug("Cleared cache of name %s", cache.cacheName)
 }

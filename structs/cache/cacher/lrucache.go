@@ -35,6 +35,19 @@ func NewLruCache(capacity uint, cacheName string) *LruCache {
 	}
 }
 
+func (cache *LruCache) ForEach(cleanupFunc func(string, interface{}) bool) {
+	cache.cacheMutex.Lock()
+	defer cache.cacheMutex.Unlock()
+
+	for key, val := range cache.elements {
+		// Remove element if the cleanUp func returns true
+		if cleanupFunc(key, val) {
+			cache.removeElement(key)
+		}
+	}
+
+}
+
 // Gets an item from the cache using a provided key. Once an item has been
 // retrieved, move it to the front of the cache's queue. Return a bool to
 // signify a value was found since a key could be mapped to nil.
@@ -124,15 +137,20 @@ func (cache *LruCache) Put(key string, value interface{}) {
 	}
 }
 
-// Delete an item from the cache based off the key
-func (cache *LruCache) Remove(key string) {
-	cache.cacheMutex.Lock()
-	defer cache.cacheMutex.Unlock()
+// Does NOT take the cache's lock. Functions calling removeElement() need to
+func (cache *LruCache) removeElement(key string) {
 	if node, ok := cache.elements[key]; ok {
 		delete(cache.elements, key)
 		cache.list.Remove(node)
 		logger.Debug("Removed element with key %s from the cache name %s", key, cache.cacheName)
 	}
+}
+
+// Delete an item from the cache based off the key
+func (cache *LruCache) Remove(key string) {
+	cache.cacheMutex.Lock()
+	defer cache.cacheMutex.Unlock()
+	cache.removeElement(key)
 }
 
 // Clear all all internal data structures
