@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/untangle/golang-shared/util"
 )
 
 type RRCacheTestSuite struct {
@@ -79,16 +78,18 @@ func (suite *RRCacheTestSuite) TestClear() {
 }
 
 func (suite *RRCacheTestSuite) TestCapacityExceeded() {
-	keysBeforePut := util.GetMapKeys(suite.cache.elements)
+	keysBeforePut := getMapKeys(&suite.cache.elements)
+	newKey := "6"
+	newVal := 6
 
 	suite.cache.Put("6", 6)
-	keysAfterPut := util.GetMapKeys(suite.cache.elements)
+	keysAfterPut := getMapKeys(&suite.cache.elements)
 
-	// Check if the size is the same, and that the list has changed
 	suite.Equal(int(suite.capacity), len(suite.cache.elements))
 
-	// The keys slice grew since its elements can't be removed
-	suite.True(len(suite.cache.keys) > int(suite.cache.maxCapacity))
+	val, ok := suite.cache.Get("6")
+	suite.True(ok, "The cache did not contain the newly added value with key %s", newKey)
+	suite.Equal(newVal, val, "The key %s did not have the expected value of %d", newKey, newVal)
 
 	suite.NotEqual(keysAfterPut, keysBeforePut)
 }
@@ -106,5 +107,5 @@ func (suite *RRCacheTestSuite) TestRemove() {
 
 	_, ok = suite.cache.Get(keyToRemove)
 	suite.False(ok, "The key -- %s -- remained in the cache after being removed", keyToRemove)
-	suite.Equal(suite.cache.maxCapacity-1, uint(len(suite.cache.elements)))
+	suite.Equal(suite.cache.maxCapacity-1, suite.cache.totalElements)
 }

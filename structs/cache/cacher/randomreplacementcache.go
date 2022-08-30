@@ -1,13 +1,16 @@
 package cacher
 
 import (
-	"fmt"
 	"math/rand"
 	"sync"
 
 	"github.com/untangle/golang-shared/services/logger"
-	"github.com/untangle/golang-shared/util"
 )
+
+type Value struct {
+	keyIndex uint
+	value    interface{}
+}
 
 // Simple cache that removes elements randomly when the cache capacity is met.
 // O(1) lookups and insertions. For O(1) insertions, space complexity had to be increased.
@@ -16,24 +19,21 @@ import (
 // The cache can be read from by multiple threads, but written to by one.
 type RandomReplacementCache struct {
 	maxCapacity uint
-	elements    map[string]interface{}
+	elements    map[string]*Value
 	cacheName   string
 	cacheMutex  sync.RWMutex
 
-	keys []string
+	keys          []string
+	totalElements uint
 }
 
 func NewRandomReplacementCache(capacity uint, cacheName string) *RandomReplacementCache {
 	return &RandomReplacementCache{
-		maxCapacity: capacity,
-		elements:    make(map[string]interface{}, capacity),
-		cacheName:   cacheName,
-
-		// Removing elements from the keys slice would cause an entire update of the
-		// keyToIndex map. For a performance bump, just set removed element's keys to
-		// nil when removed. Since keys capacity will exceed that of the maps, give it
-		// a much larger size to avoid too many copies
-		keys: make([]string, 2*capacity),
+		maxCapacity:   capacity,
+		elements:      make(map[string]*Value, capacity),
+		cacheName:     cacheName,
+		keys:          make([]string, capacity),
+		totalElements: 0,
 	}
 }
 
@@ -44,11 +44,25 @@ func (cache *RandomReplacementCache) ForEach(cleanupFunc func(string, interface{
 	for key, val := range cache.elements {
 		// Remove element if the cleanUp func returns true
 		if cleanupFunc(key, val) {
-			//cache.removeElement(key)
-			fmt.Print("whateverI ")
+			cache.removeWithoutLock(key)
+
 		}
 	}
 
+}
+
+// It's useful to get the keys directly from the map instead of the array of keys
+// Since the array of keys will have empty strings in it
+func getMapKeys(m *map[string]*Value) []string {
+	keys := make([]string, len(*m))
+
+	i := 0
+	for key := range *m {
+		keys[i] = key
+		i++
+	}
+
+	return keys
 }
 
 func (cache *RandomReplacementCache) GetIterator() func() (string, interface{}, bool) {
@@ -56,7 +70,7 @@ func (cache *RandomReplacementCache) GetIterator() func() (string, interface{}, 
 	// of the cache. If the cache is updated the iterator won't contain
 	// the update
 	cache.cacheMutex.RLock()
-	keys := util.GetMapKeys(cache.elements)
+	keys := getMapKeys(&cache.elements)
 	cache.cacheMutex.RUnlock()
 
 	i := 0
@@ -79,9 +93,11 @@ func (cache *RandomReplacementCache) Get(key string) (interface{}, bool) {
 	cache.cacheMutex.RLock()
 	defer cache.cacheMutex.RUnlock()
 
-	value, ok := cache.elements[key]
-
-	return value, ok
+	if value, ok := cache.elements[key]; ok {
+		return value.value, ok
+	} else {
+		return nil, ok
+	}
 }
 
 func (cache *RandomReplacementCache) Put(key string, value interface{}) {
@@ -90,19 +106,27 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 
 	// Update element if already present in cache
 	if _, ok := cache.elements[key]; ok {
-		cache.elements[key] = value
+		cache.elements[key].value = value
 		logger.Debug("Updated the element with key %s in the cache named %s", key, cache.cacheName)
 	} else {
 		// Remove element randomly if the capacity has been met
-		if uint(len(cache.elements)) >= cache.maxCapacity {
+		if cache.totalElements >= cache.maxCapacity {
 			indexToSwap := rand.Intn(len(cache.keys))
 			keyToRemove := cache.keys[indexToSwap]
 
 			// Swap the last key with a random key. Delete the new last key.
 			lastElementCopy := cache.keys[len(cache.keys)-1]
+
+			// Update index of the value getting swapped
+			cache.elements[lastElementCopy].keyIndex = uint(indexToSwap)
+
 			cache.keys[len(cache.keys)-1] = cache.keys[indexToSwap]
 			cache.keys[indexToSwap] = lastElementCopy
-			cache.keys = cache.keys[:len(cache.keys)-1]
+
+			// Don't just reassign the keys list, it'll alter the size and
+			// throw everything off
+			cache.keys[len(cache.keys)-1] = ""
+			cache.totalElements -= 1
 
 			delete(cache.elements, keyToRemove)
 
@@ -110,46 +134,50 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 		}
 
 		// Add new element
-		cache.elements[key] = value
-		cache.keys = append(cache.keys, key)
-
+		cache.totalElements += 1
+		cache.elements[key] = &Value{keyIndex: cache.totalElements - 1, value: value}
+		cache.keys[cache.totalElements-1] = key
 		logger.Debug("Added element with key %s to the cache named %s", key, cache.cacheName)
-
 	}
+}
+
+func (cache *RandomReplacementCache) removeWithoutLock(key string) {
+	if _, ok := cache.elements[key]; ok {
+		indexToRemove := cache.elements[key].keyIndex
+
+		// Order doesn't matter for the keys slice, so delete the fast way.
+		// Which is just swapping the element to delete with the last element
+		// then ignoring the last element of the slice
+		cache.keys[indexToRemove] = cache.keys[len(cache.keys)-1]
+		cache.keys = cache.keys[:len(cache.keys)-1]
+
+		// Update index of moved element
+		cache.elements[key].keyIndex = indexToRemove
+
+		delete(cache.elements, key)
+		cache.totalElements -= 1
+	}
+	// else the key didn't exists in the cache and nothing should be done
 }
 
 // Remove is an O(n) operation since the key to be removed must be found first
 func (cache *RandomReplacementCache) Remove(key string) {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
-
-	if _, ok := cache.elements[key]; ok {
-		delete(cache.elements, key)
-
-		for i := 0; i < len(cache.keys); i++ {
-			if cache.keys[i] == key {
-				// Order doesn't matter for the keys slice, so delete the fast way.
-				// Which is just swapping the element to delete with the last element
-				// then ignoring the last element of the slice
-				cache.keys[i] = cache.keys[len(cache.keys)-1]
-				cache.keys = cache.keys[:len(cache.keys)-1]
-			}
-		}
-
-	}
-	// else the key didn't exists in the cache and nothing should be done
+	cache.removeWithoutLock(key)
 }
 
 func (cache *RandomReplacementCache) Clear() {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
-	cache.elements = make(map[string]interface{}, cache.maxCapacity)
+	cache.elements = make(map[string]*Value, cache.maxCapacity)
 	cache.keys = make([]string, cache.maxCapacity)
+	cache.totalElements = 0
 	logger.Debug("Cleared cache of name %s", cache.cacheName)
 }
 
 func (cache *RandomReplacementCache) GetCurrentCapacity() int {
 	cache.cacheMutex.RLock()
 	defer cache.cacheMutex.RUnlock()
-	return len(cache.elements)
+	return int(cache.totalElements)
 }
