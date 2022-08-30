@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -29,22 +30,70 @@ func (suite *RRCacheTestSuite) SetupTest() {
 	}
 }
 
-func (suite *RRCacheTestSuite) TestNextElement() {
-	next := suite.cache.GetIterator()
-	var key string
-	var isNext bool
+// The suite is not being used since
+// a pointer is required as a cache value
+// if any alteration to the value are going to
+// be successful
+func TestForEachElementMutation(t *testing.T) {
+	capacity := 5
+	cacheName := "cacheMutationTest"
+	testCache := *NewRandomReplacementCache(uint(capacity), cacheName)
 
-	count := 0
-	for key, _, isNext = next(); isNext == true; key, _, isNext = next() {
-		_, ok := suite.cache.elements[key]
-
-		suite.True(ok, "The iterator retrieved a value not in the cache")
-		count += 1
+	for i := 0; i < capacity; i++ {
+		// Create a copy of i so all elements don't
+		// point to the same int
+		newVal := i
+		testCache.Put(strconv.Itoa(int(i)), &newVal)
 	}
 
-	suite.Equal(suite.capacity, uint(count), "The iterator did not iterate over ever element in the cache")
+	assert.Equal(t, testCache.GetCurrentCapacity(), capacity)
 
+	mutateElement := func(s string, i interface{}) bool {
+		deleteElement := false
+		if *(i).(*int) != 3 {
+			*(i).(*int) = 3
+		}
+
+		return deleteElement
+	}
+	testCache.ForEach(mutateElement)
+
+	for key, val := range testCache.elements {
+		assert.Equal(t, 3, *(val.value.(*int)), "The key %s was not altered as expected", key)
+	}
 }
+
+func (suite *RRCacheTestSuite) TestForEachElementDeletion() {
+	suite.cache.ForEach(func(s string, i interface{}) bool {
+		deleteElement := false
+		if i.(int) < 4 {
+			deleteElement = true
+		}
+
+		return deleteElement
+	})
+
+	for key, val := range suite.cache.elements {
+		suite.Equal(4, val.value.(int), "The key %s was not altered as expected", key)
+	}
+}
+
+// func (suite *RRCacheTestSuite) TestNextElement() {
+// 	next := suite.cache.GetIterator()
+// 	var key string
+// 	var isNext bool
+
+// 	count := 0
+// 	for key, _, isNext = next(); isNext == true; key, _, isNext = next() {
+// 		_, ok := suite.cache.elements[key]
+
+// 		suite.True(ok, "The iterator retrieved a value not in the cache")
+// 		count += 1
+// 	}
+
+// 	suite.Equal(suite.capacity, uint(count), "The iterator did not iterate over ever element in the cache")
+
+// }
 
 func (suite *RRCacheTestSuite) TestGet() {
 	for i := 0; i < int(suite.capacity); i++ {

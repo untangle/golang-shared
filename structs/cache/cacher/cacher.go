@@ -8,7 +8,7 @@ type Cacher interface {
 	Remove(string)
 
 	// An iterator
-	GetIterator() func() (string, interface{}, bool)
+	//GetIterator() func() (string, interface{}, bool)
 
 	// Runs a given function on each cache element
 	ForEach(func(string, interface{}) bool)

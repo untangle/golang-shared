@@ -15,6 +15,7 @@ type KeyPair struct {
 // A simple LRU Cache implementation. The least recently used elements
 // in the cache are removed if the cache's max capacity is hit. The cache's
 // mutex cannot be a RWMutex since Gets alter the cache's underlying data structures.
+// Slower concurrent performance than a Random Removal cache, but more cache hits.
 // O(1) reads and O(1) insertions.
 type LruCache struct {
 	capacity   uint
@@ -41,8 +42,8 @@ func (cache *LruCache) ForEach(cleanupFunc func(string, interface{}) bool) {
 
 	for key, val := range cache.elements {
 		// Remove element if the cleanUp func returns true
-		if cleanupFunc(key, val) {
-			cache.removeElement(key)
+		if cleanupFunc(key, val.Value.(*list.Element).Value.(KeyPair).Value) {
+			cache.removeElementNoLock(key)
 		}
 	}
 
@@ -66,39 +67,39 @@ func (cache *LruCache) Get(key string) (interface{}, bool) {
 	return value, found
 }
 
-func (cache *LruCache) GetIterator() func() (string, *interface{}, bool) {
-	// Once an iterator has been retrieved, it captures the state of
-	// of the cache. If the cache is updated the iterator won't contain
-	// the update
-	cache.cacheMutex.Lock()
-	listSnapshot := copyLinkedList(cache.list)
-	cache.cacheMutex.Unlock()
+// func (cache *LruCache) GetIterator() func() (string, interface{}, bool) {
+// 	// Once an iterator has been retrieved, it captures the state of
+// 	// of the cache. If the cache is updated the iterator won't contain
+// 	// the update
+// 	cache.cacheMutex.Lock()
+// 	listSnapshot := copyLinkedList(cache.list)
+// 	cache.cacheMutex.Unlock()
 
-	node := listSnapshot.Front()
-	// Return key, val, and if there is anything left to iterate over
-	return func() (string, *interface{}, bool) {
-		if node != nil {
+// 	node := listSnapshot.Front()
+// 	// Return key, val, and if there is anything left to iterate over
+// 	return func() (string, interface{}, bool) {
+// 		if node != nil {
 
-			currentNode := node
-			currentKey := currentNode.Value.(*list.Element).Value.(KeyPair).Key
-			currentValue := currentNode.Value.(*list.Element).Value.(KeyPair).Value
+// 			currentNode := node
+// 			currentKey := currentNode.Value.(*list.Element).Value.(KeyPair).Key
+// 			currentValue := currentNode.Value.(*list.Element).Value.(KeyPair).Value
 
-			node = node.Next()
+// 			node = node.Next()
 
-			return currentKey, &currentValue, true
-		} else {
-			return "", nil, false
-		}
-	}
-}
+// 			return currentKey, currentValue, true
+// 		} else {
+// 			return "", nil, false
+// 		}
+// 	}
+// }
 
-func copyLinkedList(original *list.List) *list.List {
-	listCopy := list.New()
-	for node := original.Front(); node != nil; node = node.Next() {
-		listCopy.PushBack(node.Value)
-	}
-	return listCopy
-}
+// func copyLinkedList(original *list.List) *list.List {
+// 	listCopy := list.New()
+// 	for node := original.Front(); node != nil; node = node.Next() {
+// 		listCopy.PushBack(node.Value)
+// 	}
+// 	return listCopy
+// }
 
 // Add an item to the cache and move it to the front of the queue.
 // If the item's key is already in the cache, update the key's value
@@ -137,8 +138,9 @@ func (cache *LruCache) Put(key string, value interface{}) {
 	}
 }
 
-// Does NOT take the cache's lock. Functions calling removeElement() need to
-func (cache *LruCache) removeElement(key string) {
+// Does NOT take the cache's lock. Functions calling removeElementNoLock()
+// need to do it themselves
+func (cache *LruCache) removeElementNoLock(key string) {
 	if node, ok := cache.elements[key]; ok {
 		delete(cache.elements, key)
 		cache.list.Remove(node)
@@ -150,7 +152,7 @@ func (cache *LruCache) removeElement(key string) {
 func (cache *LruCache) Remove(key string) {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
-	cache.removeElement(key)
+	cache.removeElementNoLock(key)
 }
 
 // Clear all all internal data structures

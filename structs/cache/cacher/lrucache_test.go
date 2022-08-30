@@ -28,17 +28,17 @@ func TestLruCacheTestSuite(t *testing.T) {
 	suite.Run(t, new(LruCacheTestSuite))
 }
 
-func (suite *LruCacheTestSuite) TestGetIterator() {
-	next := suite.cache.GetIterator()
+// func (suite *LruCacheTestSuite) TestGetIterator() {
+// 	next := suite.cache.GetIterator()
 
-	count := 0
-	for key, _, isNext := next(); isNext; key, _, isNext = next() {
-		_, ok := suite.cache.Get(key)
-		suite.True(ok, "The iterator returned a value not in the cache")
-		count += 1
-	}
-	suite.Equal(suite.cache.capacity, uint(count))
-}
+// 	count := 0
+// 	for key, _, isNext := next(); isNext; key, _, isNext = next() {
+// 		_, ok := suite.cache.Get(key)
+// 		suite.True(ok, "The iterator returned a value not in the cache")
+// 		count += 1
+// 	}
+// 	suite.Equal(suite.cache.capacity, uint(count))
+// }
 
 func (suite *LruCacheTestSuite) TestGetMostRecentlyUsed() {
 	expectedKey, expectedValue := "4", 4
