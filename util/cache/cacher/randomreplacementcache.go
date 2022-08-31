@@ -47,7 +47,6 @@ func (cache *RandomReplacementCache) ForEach(cleanupFunc func(string, interface{
 			cache.removeWithoutLock(key)
 		}
 	}
-
 }
 
 // It's useful to get the keys directly from the map instead of the array of keys

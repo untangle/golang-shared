@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
@@ -23,6 +24,7 @@ func NewTimeSweptCache(cache cacher.Cacher, waitTime time.Duration) *TimeSweptCa
 }
 
 func (sweeper *TimeSweptCache) StartSweeping(cleanupFunc func(string, interface{}) bool) {
+	fmt.Println("!!!!!!!!!!!!starting the sweeper")
 	go sweeper.runCleanup(cleanupFunc)
 }
 
@@ -33,6 +35,7 @@ func (sweeper *TimeSweptCache) runCleanup(cleanupFunc func(string, interface{}) 
 			sweeper.shutdownChannel <- true
 			return
 		case <-time.After(sweeper.waitTime):
+			fmt.Println("??????????????")
 			sweeper.Cacher.ForEach(cleanupFunc)
 		}
 	}
