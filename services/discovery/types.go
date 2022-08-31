@@ -1,7 +1,9 @@
 package discovery
 
 import (
+	"net"
 	"sync"
+	"time"
 
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
@@ -13,6 +15,43 @@ type DeviceEntry struct {
 type DevicesList struct {
 	Devices map[string]DeviceEntry
 	Lock    sync.RWMutex
+}
+
+type ListPredicate func(entry *DeviceEntry) bool
+
+func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
+	return func(entry *DeviceEntry) bool {
+		lastUpdated := time.Unix(entry.Data.LastUpdate, 0)
+		now := time.Now()
+		return (now.Sub(lastUpdated) <= period)
+	}
+}
+
+func IsNotFromLocalInterface(osListedInterfaces []net.Interface) ListPredicate {
+	mapOfMacs := map[string]*net.Interface{}
+	for _, intf := range osListedInterfaces {
+		mapOfMacs[intf.HardwareAddr.String()] = &intf
+	}
+	return func(entry *DeviceEntry) bool {
+		_, isMACFromThisMachine := mapOfMacs[entry.Data.MacAddress]
+		return !isMACFromThisMachine
+	}
+}
+
+func (list *DevicesList) ListDevices(preds ...ListPredicate) (returns []DeviceEntry) {
+	list.Lock.RLock()
+	defer list.Lock.RUnlock()
+	returns = []DeviceEntry{}
+search:
+	for _, device := range list.Devices {
+		for _, pred := range preds {
+			if !pred(&device) {
+				continue search
+			}
+		}
+		returns = append(returns, device)
+	}
+	return
 }
 
 func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
