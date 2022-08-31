@@ -7,15 +7,16 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
+// The value with it's corresponding index in the slice
+// used to keep track of all the keys in the cache.
 type Value struct {
 	keyIndex uint
 	value    interface{}
 }
 
 // Simple cache that removes elements randomly when the cache capacity is met.
-// O(1) lookups and insertions. For O(1) insertions, space complexity had to be increased.
-// The size of the cache will grow for every cache deletion since the keys slice can't
-// have elements removed from it.
+// O(1) lookups and insertions. For O(1) insertions, space complexity had to be increased
+// by adding a few data structures for bookkeeping.
 // The cache can be read from by multiple threads, but written to by one.
 type RandomReplacementCache struct {
 	maxCapacity uint
@@ -23,10 +24,16 @@ type RandomReplacementCache struct {
 	cacheName   string
 	cacheMutex  sync.RWMutex
 
+	// Keys is a slice of all the keys in the cache
+	// Used to randomly select which item should be
+	// removed from the cache when the capacity is
+	// exceeded
 	keys          []string
 	totalElements uint
 }
 
+// Returns a pointer to a newly initialized RandomReplacement and sets its cache capacity
+// and name to those provided by capacity and cacheName, respectively
 func NewRandomReplacementCache(capacity uint, cacheName string) *RandomReplacementCache {
 	return &RandomReplacementCache{
 		maxCapacity:   capacity,
@@ -37,6 +44,9 @@ func NewRandomReplacementCache(capacity uint, cacheName string) *RandomReplaceme
 	}
 }
 
+// Iterates over each key, value pair in the cache and runs them through
+// the provided cleanup function. If the cleanup function provided returns true,
+// The element will be removed from the cache
 func (cache *RandomReplacementCache) ForEach(cleanupFunc func(string, interface{}) bool) {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
@@ -63,30 +73,7 @@ func getMapKeys(m *map[string]*Value) []string {
 	return keys
 }
 
-// func (cache *RandomReplacementCache) GetIterator() func() (string, interface{}, bool) {
-// 	// Once an iterator has been retrieved, it captures the state of
-// 	// of the cache. If the cache is updated the iterator won't contain
-// 	// the update
-// 	cache.cacheMutex.RLock()
-// 	keys := getMapKeys(&cache.elements)
-// 	cache.cacheMutex.RUnlock()
-
-// 	i := 0
-// 	// Return key, val, and if there is anything left to iterate over
-// 	return func() (string, interface{}, bool) {
-// 		if i == len(keys) {
-// 			return "", nil, false
-// 		}
-
-// 		currentKey := keys[i]
-
-// 		// The value could be nil if the map was altered
-// 		value, _ := cache.Get(currentKey)
-// 		i += 1
-// 		return currentKey, &value, true
-// 	}
-// }
-
+// Retrieves a value from the cache corresponding to the provided key
 func (cache *RandomReplacementCache) Get(key string) (interface{}, bool) {
 	cache.cacheMutex.RLock()
 	defer cache.cacheMutex.RUnlock()
@@ -98,6 +85,9 @@ func (cache *RandomReplacementCache) Get(key string) (interface{}, bool) {
 	}
 }
 
+// Places the provided value in the cache. If it already exists, the new value
+// provided replaces the previous one. If the capacity of the cache has been met,
+// an element from the cache is randomly deleted and the provided value is added.
 func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
@@ -124,6 +114,8 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 	}
 }
 
+// Deletes an element from the cache. Does not acquire the mutex lock
+// Any function calling this should acquire the mutex lock there
 func (cache *RandomReplacementCache) removeWithoutLock(key string) {
 	if _, ok := cache.elements[key]; ok {
 		indexToRemove := cache.elements[key].keyIndex
@@ -143,13 +135,14 @@ func (cache *RandomReplacementCache) removeWithoutLock(key string) {
 	// else the key didn't exists in the cache and nothing should be done
 }
 
-// Remove is an O(n) operation since the key to be removed must be found first
+// Removes an element from the cache.
 func (cache *RandomReplacementCache) Remove(key string) {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
 	cache.removeWithoutLock(key)
 }
 
+// Removes all elements from the cache
 func (cache *RandomReplacementCache) Clear() {
 	cache.cacheMutex.Lock()
 	defer cache.cacheMutex.Unlock()
@@ -159,7 +152,8 @@ func (cache *RandomReplacementCache) Clear() {
 	logger.Debug("Cleared cache of name %s", cache.cacheName)
 }
 
-func (cache *RandomReplacementCache) GetCurrentCapacity() int {
+// Returns the total elements currently in the cache
+func (cache *RandomReplacementCache) GetTotalElements() int {
 	cache.cacheMutex.RLock()
 	defer cache.cacheMutex.RUnlock()
 	return int(cache.totalElements)

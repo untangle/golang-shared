@@ -30,6 +30,7 @@ func (suite *RRCacheTestSuite) SetupTest() {
 	}
 }
 
+// Test mutating elements in a RandomReplacement cache
 // The suite is not being used since
 // a pointer is required as a cache value
 // if any alteration to the value are going to
@@ -46,7 +47,7 @@ func TestForEachElementMutation(t *testing.T) {
 		testCache.Put(strconv.Itoa(int(i)), &newVal)
 	}
 
-	assert.Equal(t, testCache.GetCurrentCapacity(), capacity)
+	assert.Equal(t, testCache.GetTotalElements(), capacity)
 
 	mutateElement := func(s string, i interface{}) bool {
 		deleteElement := false
@@ -63,6 +64,7 @@ func TestForEachElementMutation(t *testing.T) {
 	}
 }
 
+// Test deleting elements using the ForEach method
 func (suite *RRCacheTestSuite) TestForEachElementDeletion() {
 	suite.cache.ForEach(func(s string, i interface{}) bool {
 		deleteElement := false
@@ -78,23 +80,7 @@ func (suite *RRCacheTestSuite) TestForEachElementDeletion() {
 	}
 }
 
-// func (suite *RRCacheTestSuite) TestNextElement() {
-// 	next := suite.cache.GetIterator()
-// 	var key string
-// 	var isNext bool
-
-// 	count := 0
-// 	for key, _, isNext = next(); isNext == true; key, _, isNext = next() {
-// 		_, ok := suite.cache.elements[key]
-
-// 		suite.True(ok, "The iterator retrieved a value not in the cache")
-// 		count += 1
-// 	}
-
-// 	suite.Equal(suite.capacity, uint(count), "The iterator did not iterate over ever element in the cache")
-
-// }
-
+// Test retrieving elements from the cache
 func (suite *RRCacheTestSuite) TestGet() {
 	for i := 0; i < int(suite.capacity); i++ {
 		value, ok := suite.cache.Get(strconv.Itoa(i))
@@ -104,6 +90,7 @@ func (suite *RRCacheTestSuite) TestGet() {
 	}
 }
 
+// Test updating an element in the cache
 func (suite *RRCacheTestSuite) TestUpdatingCacheValue() {
 	toUpdate := "2"
 	updatedValue := 10
@@ -118,14 +105,16 @@ func (suite *RRCacheTestSuite) TestUpdatingCacheValue() {
 	suite.Equal(updatedValue, value)
 }
 
+// Test clearing the cache
 func (suite *RRCacheTestSuite) TestClear() {
-	suite.Equal(int(suite.capacity), suite.cache.GetCurrentCapacity(), "The cache is missing elements. It was not setup properly by SetupTest()")
+	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements(), "The cache is missing elements. It was not setup properly by SetupTest()")
 
 	suite.cache.Clear()
 
-	suite.Equal(0, suite.cache.GetCurrentCapacity(), "The cache was not successfully cleared")
+	suite.Equal(0, suite.cache.GetTotalElements(), "The cache was not successfully cleared")
 }
 
+// Test adding an element when the cache is already at capacity
 func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 	keysBeforePut := getMapKeys(&suite.cache.elements)
 	newKey := "6"
@@ -143,10 +132,12 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 	suite.NotEqual(keysAfterPut, keysBeforePut)
 }
 
-func (suite *RRCacheTestSuite) TestGetCurrentCapacity() {
-	suite.Equal(int(suite.capacity), suite.cache.GetCurrentCapacity())
+// Test getting the total elements in the cache
+func (suite *RRCacheTestSuite) TestGetTotalElements() {
+	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements())
 }
 
+// Test removing elements from the cache
 func (suite *RRCacheTestSuite) TestRemove() {
 	keyToRemove := "2"
 	_, ok := suite.cache.Get(keyToRemove)

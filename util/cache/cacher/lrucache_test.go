@@ -28,18 +28,7 @@ func TestLruCacheTestSuite(t *testing.T) {
 	suite.Run(t, new(LruCacheTestSuite))
 }
 
-// func (suite *LruCacheTestSuite) TestGetIterator() {
-// 	next := suite.cache.GetIterator()
-
-// 	count := 0
-// 	for key, _, isNext := next(); isNext; key, _, isNext = next() {
-// 		_, ok := suite.cache.Get(key)
-// 		suite.True(ok, "The iterator returned a value not in the cache")
-// 		count += 1
-// 	}
-// 	suite.Equal(suite.cache.capacity, uint(count))
-// }
-
+// Tests getting the most recently fetched element from the cache
 func (suite *LruCacheTestSuite) TestGetMostRecentlyUsed() {
 	expectedKey, expectedValue := "4", 4
 	key, value := suite.cache.GetMostRecentlyUsed()
@@ -48,6 +37,7 @@ func (suite *LruCacheTestSuite) TestGetMostRecentlyUsed() {
 	suite.Equal(expectedValue, value)
 }
 
+// Tests getting the least recently used element from the cache
 func (suite *LruCacheTestSuite) TestGetLeastRecentlyUsed() {
 	expectedKey, expectedValue := "0", 0
 	key, value := suite.cache.GetLeastRecentlyUsed()
@@ -56,6 +46,7 @@ func (suite *LruCacheTestSuite) TestGetLeastRecentlyUsed() {
 	suite.Equal(expectedValue, value)
 }
 
+// Tests removing an element from the cache
 func (suite *LruCacheTestSuite) TestRemove() {
 	toRemove := "2"
 	_, ok := suite.cache.Get(toRemove)
@@ -82,10 +73,12 @@ func (suite *LruCacheTestSuite) TestGet() {
 	}
 }
 
+// Tests getting the total number of elements in the cache
 func (suite *LruCacheTestSuite) TestGetCurrentCapacity() {
-	suite.Equal(int(suite.capacity), suite.cache.GetCurrentCapacity())
+	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements())
 }
 
+// Tests adding an element to the cache when the cache is at capacity
 func (suite *LruCacheTestSuite) TestCapacityExceeded() {
 	// Check that the cache has something in it to start with
 
@@ -99,6 +92,7 @@ func (suite *LruCacheTestSuite) TestCapacityExceeded() {
 	suite.False(okAfterOverwritten, "The element with key %s was not overwritten in the cache", toRemove)
 }
 
+// Tests writing to a value already in the cache
 func (suite *LruCacheTestSuite) TestUpdatingCacheValue() {
 	toUpdate := "2"
 	updatedValue := 10
@@ -118,11 +112,12 @@ func (suite *LruCacheTestSuite) TestUpdatingCacheValue() {
 	suite.Equal(updatedValue, value)
 }
 
+// Tests clearing the cache
 func (suite *LruCacheTestSuite) TestClear() {
 	// Check that the cache has something in it to start with
-	suite.Equal(int(suite.capacity), suite.cache.GetCurrentCapacity(), "The cache is missing elements. It was not setup properly by SetupTest()")
+	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements(), "The cache is missing elements. It was not setup properly by SetupTest()")
 
 	suite.cache.Clear()
 
-	suite.Equal(0, suite.cache.GetCurrentCapacity(), "The cache was not successfully cleared")
+	suite.Equal(0, suite.cache.GetTotalElements(), "The cache was not successfully cleared")
 }

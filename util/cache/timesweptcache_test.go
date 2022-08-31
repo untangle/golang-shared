@@ -67,6 +67,7 @@ func (suite *TestTimeSweptCache) SetupTest() {
 	}
 }
 
+// Test that the provided cleanup function to StartSweeping() is being ran
 func (suite *TestTimeSweptCache) TestCleanupTaskRan() {
 
 	// Remove elements that aren't equal to 4
