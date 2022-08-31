@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
-	"github.com/untangle/golang-shared/structs/cache/cacher"
+	"github.com/untangle/golang-shared/util/cache/cacher"
 )
 
 type TimeSweptCache struct {
