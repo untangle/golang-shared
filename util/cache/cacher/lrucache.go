@@ -7,8 +7,7 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
-// Attaches the value being added to the cache with
-// it's key used to it
+// Attach the key, used to look up a value in the cache, to its value.
 type KeyPair struct {
 	Key   string
 	Value interface{}
