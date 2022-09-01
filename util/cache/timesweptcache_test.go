@@ -2,6 +2,7 @@ package cache
 
 import (
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -9,36 +10,45 @@ import (
 )
 
 type MockCache struct {
-	elements map[string]interface{}
+	elements  map[string]interface{}
+	cacheLock sync.RWMutex
 }
 
 func (cache *MockCache) Get(key string) (interface{}, bool) {
+	cache.cacheLock.RLock()
+	defer cache.cacheLock.RUnlock()
 	val, ok := cache.elements[key]
 	return val, ok
 }
 
 func (cache *MockCache) Put(key string, value interface{}) {
+	cache.cacheLock.Lock()
+	defer cache.cacheLock.Unlock()
 	cache.elements[key] = value
 }
 
 func (cache *MockCache) Clear() {
+	cache.cacheLock.Lock()
+	defer cache.cacheLock.Unlock()
 	cache.elements = make(map[string]interface{})
 }
 
 func (cache *MockCache) Remove(key string) {
+	cache.cacheLock.Lock()
+	defer cache.cacheLock.Unlock()
+	cache.removeNoLock(key)
+}
+
+func (cache *MockCache) removeNoLock(key string) {
 	delete(cache.elements, key)
 }
 
-func (cache *MockCache) GetIterator() func() (string, interface{}, bool) {
-	return func() (string, interface{}, bool) {
-		return "true", "true", false
-	}
-}
-
 func (cache *MockCache) ForEach(cleanUp func(string, interface{}) bool) {
+	cache.cacheLock.Lock()
+	defer cache.cacheLock.Unlock()
 	for key, val := range cache.elements {
 		if cleanUp(key, val) {
-			cache.Remove(key)
+			cache.removeNoLock(key)
 		}
 	}
 }

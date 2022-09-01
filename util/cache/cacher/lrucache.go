@@ -13,7 +13,7 @@ type KeyPair struct {
 	Value interface{}
 }
 
-// A simple LRU Cache implementation. The least recently used elements
+// A simple LRU Cache implementation. The least recently used element
 // in the cache are removed if the cache's max capacity is hit. The cache's
 // mutex cannot be a RWMutex since Gets alter the cache's underlying data structures.
 // Slower concurrent performance than a Random Removal cache, but more cache hits.
@@ -111,6 +111,7 @@ func (cache *LruCache) Put(key string, value interface{}) {
 	}
 }
 
+// Removes an element from the cache.
 // Does NOT take the cache's lock. Functions calling removeElementNoLock()
 // need to do it themselves
 func (cache *LruCache) removeElementNoLock(key string) {
