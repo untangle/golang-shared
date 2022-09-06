@@ -17,7 +17,7 @@ func RequestNetworkScan(args disco.NmapRequest) {
 	}
 	defer client.Close()
 
-	var reply int
+	var reply disco.NmapResponse
 	err = client.Call("DiscoveryRPCService.ScanNet", args, &reply)
 	if err != nil {
 		logger.Err("Failed to call DiscoveryRPCService.ScanNet %s\n", err.Error())
@@ -34,7 +34,7 @@ func RequestHostScan(args disco.NmapRequest) {
 	}
 	defer client.Close()
 
-	var reply int
+	var reply disco.NmapResponse
 	err = client.Call("DiscoveryRPCService.ScanHost", args, &reply)
 	if err != nil {
 		logger.Err("Failed to call DiscoveryRPCService.ScanHost %s\n", err.Error())
