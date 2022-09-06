@@ -51,7 +51,7 @@ func RequestAllEntries() {
 	}
 	defer client.Close()
 
-	var reply int
+	var reply disco.NmapResponse
 	err = client.Call("DiscoveryRPCService.RequestAllEntries", 0, &reply)
 	if err != nil {
 		logger.Err("Failed to call DiscoveryRPCService.RequestAllEntries %s\n", err.Error())
