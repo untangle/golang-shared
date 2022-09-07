@@ -1,14 +1,12 @@
 package discovery
 
 import (
-	"fmt"
 	"net"
 	"strings"
 	"sync"
 	"time"
 
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
-	mfw_ifaces "github.com/untangle/golang-shared/util/net"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -16,24 +14,21 @@ type DeviceEntry struct {
 	disco.DiscoveryEntry
 }
 
+// DevicesList is an in-memory 'list' of all known devices (stored as
+// a map from mac address string to device).
 type DevicesList struct {
 	Devices map[string]*DeviceEntry
 	Lock    sync.RWMutex
 }
 
-type SystemNetInterface interface {
-	Addrs() ([]net.Addr, error)
-	GetName() string
-}
-
-type SystemInterfaceProxy net.Interface
-
-func (iface *SystemInterfaceProxy) GetName() string {
-	return iface.Name
-}
-
+// ListPredicate is a function that when applied to an entry returns
+// true if it 'accepts' the entry.
 type ListPredicate func(entry *DeviceEntry) bool
 
+// WithUpdatesWithinDuration returns a predicate ensuring that the
+// LastUpdate member was within the period. So if period is an hour
+// for example, the returned predicate will return true when the
+// device has a LastUpdate time within the last hour.
 func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 	return func(entry *DeviceEntry) bool {
 		lastUpdated := time.Unix(entry.LastUpdate, 0)
@@ -47,18 +42,9 @@ func IsNotFromLocalInterface(osListedInterfaces []net.Interface) ListPredicate {
 	for _, intf := range osListedInterfaces {
 		mapOfMacs[strings.ToUpper(intf.HardwareAddr.String())] = &intf
 	}
-	fmt.Printf("map of macs: %#v\n", mapOfMacs)
 	return func(entry *DeviceEntry) bool {
-		fmt.Printf("getting entry for: %s", strings.ToUpper(entry.MacAddress))
 		_, isMACFromThisMachine := mapOfMacs[strings.ToUpper(entry.MacAddress)]
 		return !isMACFromThisMachine
-	}
-}
-
-func IsNotFromWANDevice(allInterfaces []*mfw_ifaces.Interface, osListedInetfaces []SystemNetInterface) ListPredicate {
-	//bannedNetworks := []net.IPNet{}
-	return func(entry *DeviceEntry) bool {
-		return false
 	}
 }
 
@@ -68,6 +54,9 @@ func (list *DevicesList) PutDevice(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
 }
 
+// listDevices returns a list of devices matching all predicates. It
+// doesn't do anything with locks so without the outer function
+// locking appropriately is unsafe.
 func (list *DevicesList) listDevices(preds ...ListPredicate) (returns []*DeviceEntry) {
 
 	returns = []*DeviceEntry{}
@@ -85,12 +74,12 @@ search:
 
 // ApplyToDeviceList applys doToList to the list of device entries in
 // all the DeviceList device entries that match all the predicates. It
-// does this with the read lock taken.
+// does this with the lock taken.
 func (list *DevicesList) ApplyToDeviceList(
 	doToList func([]*DeviceEntry) (interface{}, error),
 	preds ...ListPredicate) (interface{}, error) {
-	list.Lock.RLock()
-	defer list.Lock.RUnlock()
+	list.Lock.Lock()
+	defer list.Lock.Unlock()
 	listOfDevs := list.listDevices(preds...)
 	return doToList(listOfDevs)
 }

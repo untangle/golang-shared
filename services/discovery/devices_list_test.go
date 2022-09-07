@@ -8,10 +8,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
-	mfw_ifaces "github.com/untangle/golang-shared/util/net"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -68,6 +66,7 @@ func (suite *DeviceListTestSuite) TestListing() {
 	mac3hwaddr, _ := net.ParseMAC(suite.mac3)
 	localInterfaces := []net.Interface{
 		{Index: 1, MTU: 1500, Name: "bar", HardwareAddr: mac1hwaddr},
+		// random hardware address.
 		{Index: 2, MTU: 1500, Name: "bar", HardwareAddr: []byte{0x00, 0x11, 0x22, 0x33, 0x44, 0x88}},
 		{Index: 3, MTU: 1500, Name: "bar", HardwareAddr: mac3hwaddr},
 	}
@@ -111,6 +110,9 @@ func (suite *DeviceListTestSuite) TestListing() {
 	}
 }
 
+// TestMarshallingList tests that we can marshal a list of devices
+// obtained via the ApplyToDeviceList function to JSON without getting
+// an exception.
 func (suite *DeviceListTestSuite) TestMarshallingList() {
 	mac1hwaddr, _ := net.ParseMAC(suite.mac1)
 	mac3hwaddr, _ := net.ParseMAC(suite.mac3)
@@ -129,61 +131,12 @@ func (suite *DeviceListTestSuite) TestMarshallingList() {
 	fmt.Printf("JSON string output: %s\n", string(bytes))
 }
 
+// TestGetDevFromIP just tests that GetDeviceEntryFromIP functions as
+// indended.
 func (suite *DeviceListTestSuite) TestGetDevFromIP() {
 	dev := suite.devicesTable.Devices[suite.mac1]
 	foundDev := suite.devicesTable.GetDeviceEntryFromIP(dev.IPv4Address)
 	suite.True(proto.Equal(dev, foundDev))
-}
-
-type MockNetInterface struct {
-	net.Interface
-	mock.Mock
-}
-
-func (mock *MockNetInterface) GetName() string {
-	return mock.Name
-}
-
-func (mock *MockNetInterface) Addrs() ([]net.Addr, error) {
-	outputs := mock.Called()
-	return outputs.Get(0).([]net.Addr), outputs.Error(1)
-}
-
-func (suite *DeviceListTestSuite) TestWANDeviceFilter() {
-	mfwInterfaces := []*mfw_ifaces.Interface{
-		{
-			Name:   "wan0",
-			Device: "eth0",
-			IsWAN:  true,
-		},
-		{
-			Name:  "lan0",
-			IsWAN: false,
-		},
-	}
-	localInterfaces := []*MockNetInterface{
-		{
-			Interface: net.Interface{Name: "eth0"},
-		},
-		{
-			Interface: net.Interface{Name: "eth1"},
-		},
-	}
-	localInterfacesSysNet := []SystemNetInterface{}
-	for _, iface := range localInterfaces {
-		localInterfacesSysNet = append(localInterfacesSysNet, iface)
-	}
-	_, wanNet, err := net.ParseCIDR("192.168.56.2/24")
-	suite.Nil(err)
-	// eth0 is the WAN and has this network, 192.168.56.1/24.  So
-	// when something shows up from there, we disregard it.
-	localInterfaces[0].On("Addrs").Return(
-		[]net.Addr{
-			wanNet,
-		})
-	predicate := IsNotFromWANDevice(mfwInterfaces, localInterfacesSysNet)
-	suite.False(
-		predicate(&DeviceEntry{}))
 }
 
 func TestDeviceList(t *testing.T) {
