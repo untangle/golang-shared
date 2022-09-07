@@ -27,6 +27,7 @@ type DeviceListTestSuite struct {
 	aDayago      time.Time
 }
 
+// SetupTest just populates the device table.
 func (suite *DeviceListTestSuite) SetupTest() {
 	suite.now = time.Now()
 	suite.oneHourAgo = suite.now.Add(-1 * time.Hour)
@@ -101,6 +102,10 @@ func (suite *DeviceListTestSuite) TestListing() {
 	// duplicate the tests for concurrent testing.
 	testsDuplicated := append(tests, tests...)
 	testsDuplicated = append(testsDuplicated, tests...)
+
+	// clone a device list, which will be given to us by
+	// ApplyToDeviceList. We can't just return a copy because the
+	// entries are locked.
 	cloneDevs := func(inputs []*DeviceEntry) (interface{}, error) {
 		output := []*DeviceEntry{}
 		for _, dev := range inputs {
