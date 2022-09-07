@@ -3,6 +3,7 @@ package discovery
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -18,19 +19,23 @@ type DeviceListTestSuite struct {
 	mac1         string
 	mac2         string
 	mac3         string
+	mac4         string
 	devicesTable *DevicesList
 	now          time.Time
 	oneHourAgo   time.Time
 	halfHourAgo  time.Time
+	aDayago      time.Time
 }
 
 func (suite *DeviceListTestSuite) SetupTest() {
 	suite.now = time.Now()
 	suite.oneHourAgo = suite.now.Add(-1 * time.Hour)
 	suite.halfHourAgo = suite.now.Add(-30 * time.Minute)
+	suite.aDayago = suite.now.Add(-24 * time.Hour)
 	suite.mac1 = "00:11:22:33:44:55"
 	suite.mac2 = "00:11:22:33:44:66"
 	suite.mac3 = "00:11:33:44:55:66"
+	suite.mac4 = "00:aa:bb:cc:dd:ee"
 	suite.devicesTable = &DevicesList{
 		Devices: map[string]*DeviceEntry{
 			suite.mac1: {disco.DiscoveryEntry{
@@ -47,6 +52,10 @@ func (suite *DeviceListTestSuite) SetupTest() {
 				MacAddress:  suite.mac3,
 				LastUpdate:  suite.halfHourAgo.Unix(),
 				IPv4Address: "192.168.56.3",
+			}},
+			suite.mac4: {disco.DiscoveryEntry{
+				MacAddress: suite.mac4,
+				LastUpdate: suite.aDayago.Unix(),
 			}},
 		},
 	}
@@ -72,7 +81,7 @@ func (suite *DeviceListTestSuite) TestListing() {
 	tests := []testSpec{
 		{
 			predicates:       []ListPredicate{},
-			expectedListMacs: []string{suite.mac1, suite.mac2, suite.mac3},
+			expectedListMacs: []string{suite.mac1, suite.mac2, suite.mac3, suite.mac4},
 			description:      "Empty predicate list should return all MACs.",
 		},
 		{
@@ -89,18 +98,41 @@ func (suite *DeviceListTestSuite) TestListing() {
 		},
 	}
 
+	// duplicate the tests for concurrent testing.
 	testsDuplicated := append(tests, tests...)
+	testsDuplicated = append(testsDuplicated, tests...)
+	cloneDevs := func(inputs []*DeviceEntry) (interface{}, error) {
+		output := []*DeviceEntry{}
+		for _, dev := range inputs {
+			new := &DeviceEntry{}
+			proto.Merge(
+				&new.DiscoveryEntry,
+				&dev.DiscoveryEntry)
+			output = append(output, new)
+		}
+		return output, nil
+	}
 
-	for _, test := range testsDuplicated {
+	wg := sync.WaitGroup{}
+	for i := range testsDuplicated {
+		wg.Add(1)
 		// localTest is in it's own scope and can be captured
 		// in a close reliably, but the test loop variable is
 		// in an outer scope and repeatedly overwritten.
-		localTest := test
+		localTest := &testsDuplicated[i]
 		go func() {
-			theList := suite.devicesTable.listDevices(localTest.predicates...)
+			theListIface, err := suite.devicesTable.ApplyToDeviceList(cloneDevs, localTest.predicates...)
+			suite.Nil(err)
+			theList := theListIface.([]*DeviceEntry)
 			assert.ElementsMatch(suite.T(), localTest.expectedListMacs, getMacs(theList), localTest.description)
+			// then re-put all devices for more assurance that this works, creating race conditions.
+			for _, entry := range theList {
+				suite.devicesTable.PutDevice(entry)
+			}
+			wg.Done()
 		}()
 	}
+	wg.Wait()
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
