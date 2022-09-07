@@ -224,6 +224,7 @@ type DiscoveryEntry struct {
 	Lldp        *LLDP  `protobuf:"bytes,10,opt,name=lldp,proto3" json:"lldp,omitempty"`
 	Arp         *ARP   `protobuf:"bytes,11,opt,name=arp,proto3" json:"arp,omitempty"`
 	Nmap        *NMAP  `protobuf:"bytes,12,opt,name=nmap,proto3" json:"nmap,omitempty"`
+
 }
 
 func (x *DiscoveryEntry) Reset() {
@@ -298,6 +299,124 @@ func (x *DiscoveryEntry) GetNmap() *NMAP {
 		return x.Nmap
 	}
 	return nil
+}
+
+type Conntrack struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Direction string `protobuf:"bytes,1,opt,name=direction,proto3" json:"direction,omitempty"`
+	LayerThree *ConntrackLayerThree `protobuf:"bytes,2,opt,name=layerThree,proto3" json:"layerThree,omitempty"`
+	LayerFour *ConntrackLayerFour `protobuf:"bytes,3,opt,name=layerFour,proto3" json:"layerFour,omitempty"`
+}
+
+func (x *Conntrack) Reset() {
+	*x = Conntrack{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_Discovery_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Conntrack) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *Conntrack) GetLayerThree() *ConntrackLayerThree {
+	if x != nil {
+		return x.LayerThree
+	}
+	return nil
+}
+
+func (x *Conntrack) GetLayerFour() *ConntrackLayerFour {
+	if x != nil {
+		return x.LayerFour
+	}
+	return nil
+}
+
+type ConntrackLayerThree struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Protonum int32 `protobuf:"bytes,1,opt,name=protonum,proto3" json:"protonum,omitempty"`
+	Protoname string `protobuf:"bytes,2,opt,name=protoname,proto3" json:"protoname,omitempty"`
+	Src string `protobuf:"bytes,3,opt,name=src,proto3" json:"src,omitempty"`
+	Dest string `protobuf:"bytes,4,opt,name=dest,proto3" json:"dest,omitempty"`
+}
+
+func (x *ConntrackLayerThree) GetProtonum() int32 {
+	if x != nil {
+		return x.Protonum
+	}
+	return -1
+}
+
+func (x *ConntrackLayerThree) GetProtoname() string {
+	if x != nil {
+		return x.Protoname
+	}
+	return ""
+}
+
+func (x *ConntrackLayerThree) GetSrc() string {
+	if x != nil {
+		return x.Src
+	}
+	return ""
+}
+
+func (x *ConntrackLayerThree) GetDest() string {
+	if x != nil {
+		return x.Dest
+	}
+	return ""
+}
+
+type ConntrackLayerFour struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Protonum int32 `protobuf:"bytes,1,opt,name=protonum,proto3" json:"protonum,omitempty"`
+	Protoname string `protobuf:"bytes,2,opt,name=protoname,proto3" json:"protoname,omitempty"`
+	SPort int32 `protobuf:"bytes,3,opt,name=sPort,proto3" json:"sPort,omitempty"`
+	DPort int32 `protobuf:"bytes,4,opt,name=dPort,proto3" json:"dPort,omitempty"`
+}
+
+func (x *ConntrackLayerFour) GetProtonum() int32 {
+	if x != nil {
+		return x.Protonum
+	}
+	return -1
+}
+
+func (x *ConntrackLayerFour) GetProtoname() string {
+	if x != nil {
+		return x.Protoname
+	}
+	return ""
+}
+
+func (x *ConntrackLayerFour) GetSPort() int32 {
+	if x != nil {
+		return x.Protonum
+	}
+	return 0
+}
+
+func (x *ConntrackLayerFour) GetDPort() int32 {
+	if x != nil {
+		return x.Protonum
+	}
+	return 0
 }
 
 type LLDP struct {
@@ -797,18 +916,21 @@ func file_Discovery_proto_rawDescGZIP() []byte {
 }
 
 var file_Discovery_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_Discovery_proto_goTypes = []interface{}{
-	(ResponseCode)(0),        // 0: discoverd.ResponseCode
-	(*EmptyParam)(nil),       // 1: discoverd.EmptyParam
-	(*NmapResponse)(nil),     // 2: discoverd.NmapResponse
-	(*NmapRequest)(nil),      // 3: discoverd.NmapRequest
-	(*DiscoveryEntry)(nil),   // 4: discoverd.DiscoveryEntry
-	(*LLDP)(nil),             // 5: discoverd.LLDP
-	(*LLDPCapabilities)(nil), // 6: discoverd.LLDPCapabilities
-	(*ARP)(nil),              // 7: discoverd.ARP
-	(*NMAP)(nil),             // 8: discoverd.NMAP
-	(*NMAPPorts)(nil),        // 9: discoverd.NMAPPorts
+	(ResponseCode)(0),        	//  0: discoverd.ResponseCode
+	(*EmptyParam)(nil),       	//  1: discoverd.EmptyParam
+	(*NmapResponse)(nil),     	//  2: discoverd.NmapResponse
+	(*NmapRequest)(nil),      	//  3: discoverd.NmapRequest
+	(*DiscoveryEntry)(nil),   	//  4: discoverd.DiscoveryEntry
+	(*LLDP)(nil),             	//  5: discoverd.LLDP
+	(*LLDPCapabilities)(nil), 	//  6: discoverd.LLDPCapabilities
+	(*ARP)(nil),              	//  7: discoverd.ARP
+	(*NMAP)(nil),             	//  8: discoverd.NMAP
+	(*NMAPPorts)(nil),        	//  9: discoverd.NMAPPorts
+	(*Conntrack)(nil), 		  	// 10: discoverd.Conntrack
+	(*ConntrackLayerThree)(nil),// 11: discoverd.ConntrackLayerThree
+	(*ConntrackLayerFour)(nil), // 12: discoverd.ConntrackLayerFour
 }
 var file_Discovery_proto_depIdxs = []int32{
 	0, // 0: discoverd.NmapResponse.result:type_name -> discoverd.ResponseCode

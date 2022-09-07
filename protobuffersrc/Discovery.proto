@@ -31,6 +31,7 @@ message DiscoveryEntry {
     LLDP lldp = 10;
     ARP arp = 11;
     NMAP nmap = 12;
+    Conntrack conntrack = 13;
 }
 
 message LLDP {
@@ -73,4 +74,27 @@ message NMAPPorts {
      int32 port = 1;
      string protocol = 2;
      string state = 3; 
+}
+
+message Conntrack {
+    // Flow
+    string direction = 1;
+
+    ConntrackLayerThree layerThree = 2;
+    ConntrackLayerThree layerFour = 3;
+}
+
+message ConntrackLayerThree {
+    string protonum = 1;
+    string protoname = 2;
+    string src = 3;
+    string dest = 4;
+
+}
+
+message ConntrackLayerFour {
+    string protonum = 1;
+    string protoname = 2;
+    string sPort = 3;
+    string dPort = 4;
 }
