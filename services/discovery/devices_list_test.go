@@ -3,7 +3,6 @@ package discovery
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"testing"
 	"time"
 
@@ -53,6 +52,8 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	}
 }
 
+//TestListing tests that applying various predicates to the list
+// works.
 func (suite *DeviceListTestSuite) TestListing() {
 
 	getMacs := func(devs []*DeviceEntry) (output []string) {
@@ -61,14 +62,6 @@ func (suite *DeviceListTestSuite) TestListing() {
 			output = append(output, dev.MacAddress)
 		}
 		return
-	}
-	mac1hwaddr, _ := net.ParseMAC(suite.mac1)
-	mac3hwaddr, _ := net.ParseMAC(suite.mac3)
-	localInterfaces := []net.Interface{
-		{Index: 1, MTU: 1500, Name: "bar", HardwareAddr: mac1hwaddr},
-		// random hardware address.
-		{Index: 2, MTU: 1500, Name: "bar", HardwareAddr: []byte{0x00, 0x11, 0x22, 0x33, 0x44, 0x88}},
-		{Index: 3, MTU: 1500, Name: "bar", HardwareAddr: mac3hwaddr},
 	}
 
 	type testSpec struct {
@@ -89,14 +82,6 @@ func (suite *DeviceListTestSuite) TestListing() {
 		},
 		{
 			predicates: []ListPredicate{
-				IsNotFromLocalInterface(localInterfaces),
-			},
-			expectedListMacs: []string{suite.mac2},
-			description:      "MAcs not on the local interface list should be one, mac2.",
-		},
-		{
-			predicates: []ListPredicate{
-				IsNotFromLocalInterface(localInterfaces),
 				WithUpdatesWithinDuration(time.Minute * 20),
 			},
 			expectedListMacs: []string{},
@@ -104,9 +89,17 @@ func (suite *DeviceListTestSuite) TestListing() {
 		},
 	}
 
-	for _, test := range tests {
-		theList := suite.devicesTable.listDevices(test.predicates...)
-		assert.ElementsMatch(suite.T(), test.expectedListMacs, getMacs(theList), test.description)
+	testsDuplicated := append(tests, tests...)
+
+	for _, test := range testsDuplicated {
+		// localTest is in it's own scope and can be captured
+		// in a close reliably, but the test loop variable is
+		// in an outer scope and repeatedly overwritten.
+		localTest := test
+		go func() {
+			theList := suite.devicesTable.listDevices(localTest.predicates...)
+			assert.ElementsMatch(suite.T(), localTest.expectedListMacs, getMacs(theList), localTest.description)
+		}()
 	}
 }
 
@@ -114,18 +107,10 @@ func (suite *DeviceListTestSuite) TestListing() {
 // obtained via the ApplyToDeviceList function to JSON without getting
 // an exception.
 func (suite *DeviceListTestSuite) TestMarshallingList() {
-	mac1hwaddr, _ := net.ParseMAC(suite.mac1)
-	mac3hwaddr, _ := net.ParseMAC(suite.mac3)
-	localInterfaces := []net.Interface{
-		{Index: 1, MTU: 1500, Name: "bar", HardwareAddr: mac1hwaddr},
-		{Index: 2, MTU: 1500, Name: "bar", HardwareAddr: []byte{0x00, 0x11, 0x22, 0x33, 0x44, 0x88}},
-		{Index: 3, MTU: 1500, Name: "bar", HardwareAddr: mac3hwaddr},
-	}
 	output, err := suite.devicesTable.ApplyToDeviceList(
 		func(list []*DeviceEntry) (interface{}, error) {
 			return json.Marshal(list)
-		},
-		IsNotFromLocalInterface(localInterfaces))
+		})
 	suite.Nil(err)
 	bytes := output.([]byte)
 	fmt.Printf("JSON string output: %s\n", string(bytes))

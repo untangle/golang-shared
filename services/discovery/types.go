@@ -71,6 +71,8 @@ func (list *DevicesList) ApplyToDeviceList(
 	return doToList(listOfDevs)
 }
 
+// GetDeviceEntryFromIP returns a device entry in the list with IP
+// address ip. *Currently only works with ipv4*.
 func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	list.Lock.RLock()
 	defer list.Lock.RUnlock()
