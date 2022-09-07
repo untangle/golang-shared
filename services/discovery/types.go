@@ -1,8 +1,6 @@
 package discovery
 
 import (
-	"net"
-	"strings"
 	"sync"
 	"time"
 
@@ -34,17 +32,6 @@ func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 		lastUpdated := time.Unix(entry.LastUpdate, 0)
 		now := time.Now()
 		return (now.Sub(lastUpdated) <= period)
-	}
-}
-
-func IsNotFromLocalInterface(osListedInterfaces []net.Interface) ListPredicate {
-	mapOfMacs := map[string]*net.Interface{}
-	for _, intf := range osListedInterfaces {
-		mapOfMacs[strings.ToUpper(intf.HardwareAddr.String())] = &intf
-	}
-	return func(entry *DeviceEntry) bool {
-		_, isMACFromThisMachine := mapOfMacs[strings.ToUpper(entry.MacAddress)]
-		return !isMACFromThisMachine
 	}
 }
 
