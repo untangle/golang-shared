@@ -76,15 +76,30 @@ message NMAPPorts {
      string state = 3; 
 }
 
-message Conntrack {
-    // Flow
-    string direction = 1;
-
-    ConntrackLayerThree layerThree = 2;
-    ConntrackLayerThree layerFour = 3;
+message ConnectionTracking {
+    Independent independent = 1;
+    Reply reply = 2;
+    Original original = 3; 
 }
 
-message ConntrackLayerThree {
+message Independent {
+    int32 timeout = 1;
+    int32 mark = 2;
+    int32 use = 3;
+    int32 id = 4;
+}
+
+message Reply {
+    LayerThree layerThree = 1;
+    LayerFour layerFour = 2;
+}
+
+message Original {
+    LayerThree layerThree = 1;
+    LayerFour layerFour = 2;
+}
+
+message LayerThree {
     string protonum = 1;
     string protoname = 2;
     string src = 3;
@@ -92,7 +107,7 @@ message ConntrackLayerThree {
 
 }
 
-message ConntrackLayerFour {
+message LayerFour {
     string protonum = 1;
     string protoname = 2;
     string sPort = 3;

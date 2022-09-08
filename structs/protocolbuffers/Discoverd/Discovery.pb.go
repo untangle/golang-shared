@@ -224,7 +224,7 @@ type DiscoveryEntry struct {
 	Lldp        *LLDP  `protobuf:"bytes,10,opt,name=lldp,proto3" json:"lldp,omitempty"`
 	Arp         *ARP   `protobuf:"bytes,11,opt,name=arp,proto3" json:"arp,omitempty"`
 	Nmap        *NMAP  `protobuf:"bytes,12,opt,name=nmap,proto3" json:"nmap,omitempty"`
-
+	ConnectionTracking *ConnectionTracking `protobuf:"bytes,13,opt,name=connectionTracking,proto3" json:"connectionTracking,omitempty"`
 }
 
 func (x *DiscoveryEntry) Reset() {
@@ -301,47 +301,258 @@ func (x *DiscoveryEntry) GetNmap() *NMAP {
 	return nil
 }
 
-type Conntrack struct {
+func (x *DiscoveryEntry) GetConnectionTracking() *ConnectionTracking {
+	if x != nil {
+		return x.ConnectionTracking
+	}
+	return nil
+}
+
+type ConnectionTracking struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Direction string `protobuf:"bytes,1,opt,name=direction,proto3" json:"direction,omitempty"`
-	LayerThree *ConntrackLayerThree `protobuf:"bytes,2,opt,name=layerThree,proto3" json:"layerThree,omitempty"`
-	LayerFour *ConntrackLayerFour `protobuf:"bytes,3,opt,name=layerFour,proto3" json:"layerFour,omitempty"`
+	Independent *Independent `protobuf:"bytes,1,opt,name=independent,proto3" json:"independent,omitempty"`
+	Reply *Reply `protobuf:"bytes,2,opt,name=reply,proto3" json:"reply,omitempty"`
+	Original *Original `protobuf:"bytes,3,opt,name=original,proto3" json:"original,omitempty"`
 }
 
-func (x *Conntrack) Reset() {
-	*x = Conntrack{}
+func (x *ConnectionTracking) Reset() {
+	*x = ConnectionTracking{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_Discovery_proto_msgTypes[5]
+		mi := &file_Discovery_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *Conntrack) GetDirection() string {
-	if x != nil {
-		return x.Direction
-	}
-	return ""
+func (x *ConnectionTracking) String() string {
+	return protoimpl.X.MessageStringOf(x)
 }
 
-func (x *Conntrack) GetLayerThree() *ConntrackLayerThree {
+func (*ConnectionTracking) ProtoMessage() {}
+
+func (x *ConnectionTracking) ProtoReflect() protoreflect.Message {
+	mi := &file_Discovery_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectionTracking.ProtoReflect.Descriptor instead.
+func (*ConnectionTracking) Descriptor() ([]byte, []int) {
+	return file_Discovery_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ConnectionTracking) GetReply() *Reply {
+	if x != nil {
+		return x.Reply
+	}
+	return nil
+}
+
+func (x *ConnectionTracking) GetOriginal() *Original {
+	if x != nil {
+		return x.Original
+	}
+	return nil
+}
+
+func (x *ConnectionTracking) GetIndependent() *Independent {
+	if x != nil {
+		return x.Independent
+	}
+	return nil
+}
+
+type Reply struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	LayerThree *LayerThree `protobuf:"bytes,1,opt,name=layerThree,proto3" json:"layerThree,omitempty"`
+	LayerFour *LayerFour `protobuf:"bytes,2,opt,name=layerFour,proto3" json:"layerFour,omitempty"`
+}
+
+func (x *Reply) Reset() {
+	*x = Reply{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_Discovery_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Reply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Reply) ProtoMessage() {}
+
+func (x *Reply) ProtoReflect() protoreflect.Message {
+	mi := &file_Discovery_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Reply.ProtoReflect.Descriptor instead.
+func (*Reply) Descriptor() ([]byte, []int) {
+	return file_Discovery_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Reply) GetLayerThree() *LayerThree {
 	if x != nil {
 		return x.LayerThree
 	}
 	return nil
 }
 
-func (x *Conntrack) GetLayerFour() *ConntrackLayerFour {
+func (x *Reply) GetLayerFour() *LayerFour {
 	if x != nil {
 		return x.LayerFour
 	}
 	return nil
 }
 
-type ConntrackLayerThree struct {
+type Original struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	LayerThree *LayerThree `protobuf:"bytes,1,opt,name=layerThree,proto3" json:"layerThree,omitempty"`
+	LayerFour *LayerFour `protobuf:"bytes,2,opt,name=layerFour,proto3" json:"layerFour,omitempty"`
+}
+
+func (x *Original) Reset() {
+	*x = Original{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_Discovery_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Original) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Original) ProtoMessage() {}
+
+func (x *Original) ProtoReflect() protoreflect.Message {
+	mi := &file_Discovery_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Original.ProtoReflect.Descriptor instead.
+func (*Original) Descriptor() ([]byte, []int) {
+	return file_Discovery_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Original) GetLayerThree() *LayerThree {
+	if x != nil {
+		return x.LayerThree
+	}
+	return nil
+}
+
+func (x *Original) GetLayerFour() *LayerFour {
+	if x != nil {
+		return x.LayerFour
+	}
+	return nil
+}
+
+type Independent struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Timeout int32 `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	Mark int32 `protobuf:"bytes,2,opt,name=mark,proto3" json:"mark,omitempty"`
+	Use int32 `protobuf:"bytes,3,opt,name=use,proto3" json:"use,omitempty"`
+	Id int32 `protobuf:"bytes,4,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *Independent) Reset() {
+	*x = Independent{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_Discovery_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Independent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Independent) ProtoMessage() {}
+
+func (x *Independent) ProtoReflect() protoreflect.Message {
+	mi := &file_Discovery_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Independent.ProtoReflect.Descriptor instead.
+func (*Independent) Descriptor() ([]byte, []int) {
+	return file_Discovery_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Independent) GetTimeout() int32 {
+	if x != nil {
+		return x.Timeout
+	}
+	return -1
+}
+
+func (x *Independent) GetMark() int32 {
+	if x != nil {
+		return x.Mark
+	}
+	return -1
+}
+
+func (x *Independent) GetUse() int32 {
+	if x != nil {
+		return x.Use
+	}
+	return -1
+}
+
+func (x *Independent) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return -1
+}
+
+type LayerThree struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -352,35 +563,67 @@ type ConntrackLayerThree struct {
 	Dest string `protobuf:"bytes,4,opt,name=dest,proto3" json:"dest,omitempty"`
 }
 
-func (x *ConntrackLayerThree) GetProtonum() int32 {
+func (x *LayerThree) Reset() {
+	*x = LayerThree{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_Discovery_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (*LayerThree) ProtoMessage() {}
+
+func (x *LayerThree) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (x *LayerThree) ProtoReflect() protoreflect.Message {
+	mi := &file_Discovery_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LayerThree.ProtoReflect.Descriptor instead.
+func (*LayerThree) Descriptor() ([]byte, []int) {
+	return file_Discovery_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LayerThree) GetProtonum() int32 {
 	if x != nil {
 		return x.Protonum
 	}
 	return -1
 }
 
-func (x *ConntrackLayerThree) GetProtoname() string {
+func (x *LayerThree) GetProtoname() string {
 	if x != nil {
 		return x.Protoname
 	}
 	return ""
 }
 
-func (x *ConntrackLayerThree) GetSrc() string {
+func (x *LayerThree) GetSrc() string {
 	if x != nil {
 		return x.Src
 	}
 	return ""
 }
 
-func (x *ConntrackLayerThree) GetDest() string {
+func (x *LayerThree) GetDest() string {
 	if x != nil {
 		return x.Dest
 	}
 	return ""
 }
 
-type ConntrackLayerFour struct {
+type LayerFour struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -391,28 +634,60 @@ type ConntrackLayerFour struct {
 	DPort int32 `protobuf:"bytes,4,opt,name=dPort,proto3" json:"dPort,omitempty"`
 }
 
-func (x *ConntrackLayerFour) GetProtonum() int32 {
+func (x *LayerFour) Reset() {
+	*x = LayerFour{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_Discovery_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LayerFour) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LayerFour) ProtoMessage() {}
+
+func (x *LayerFour) ProtoReflect() protoreflect.Message {
+	mi := &file_Discovery_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LayerFour.ProtoReflect.Descriptor instead.
+func (*LayerFour) Descriptor() ([]byte, []int) {
+	return file_Discovery_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LayerFour) GetProtonum() int32 {
 	if x != nil {
 		return x.Protonum
 	}
 	return -1
 }
 
-func (x *ConntrackLayerFour) GetProtoname() string {
+func (x *LayerFour) GetProtoname() string {
 	if x != nil {
 		return x.Protoname
 	}
 	return ""
 }
 
-func (x *ConntrackLayerFour) GetSPort() int32 {
+func (x *LayerFour) GetSPort() int32 {
 	if x != nil {
 		return x.Protonum
 	}
 	return 0
 }
 
-func (x *ConntrackLayerFour) GetDPort() int32 {
+func (x *LayerFour) GetDPort() int32 {
 	if x != nil {
 		return x.Protonum
 	}
@@ -916,7 +1191,7 @@ func file_Discovery_proto_rawDescGZIP() []byte {
 }
 
 var file_Discovery_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_Discovery_proto_goTypes = []interface{}{
 	(ResponseCode)(0),        	//  0: discoverd.ResponseCode
 	(*EmptyParam)(nil),       	//  1: discoverd.EmptyParam
@@ -928,9 +1203,12 @@ var file_Discovery_proto_goTypes = []interface{}{
 	(*ARP)(nil),              	//  7: discoverd.ARP
 	(*NMAP)(nil),             	//  8: discoverd.NMAP
 	(*NMAPPorts)(nil),        	//  9: discoverd.NMAPPorts
-	(*Conntrack)(nil), 		  	// 10: discoverd.Conntrack
-	(*ConntrackLayerThree)(nil),// 11: discoverd.ConntrackLayerThree
-	(*ConntrackLayerFour)(nil), // 12: discoverd.ConntrackLayerFour
+	(*ConnectionTracking)(nil), // 10: discoverd.ConnectionTracking
+	(*Reply)(nil), 				// 11: discoverd.Reply
+	(*Original)(nil), 			// 12: discoverd.Original
+	(*Independent)(nil), 		// 13: discoverd.Independent
+	(*LayerThree)(nil),			// 14: discoverd.LayerThree
+	(*LayerFour)(nil), 			// 15: discoverd.LayerFour
 }
 var file_Discovery_proto_depIdxs = []int32{
 	0, // 0: discoverd.NmapResponse.result:type_name -> discoverd.ResponseCode
