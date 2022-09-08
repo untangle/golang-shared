@@ -31,7 +31,7 @@ message DiscoveryEntry {
     LLDP lldp = 10;
     ARP arp = 11;
     NMAP nmap = 12;
-    Conntrack conntrack = 13;
+    ConnectionTracking connectionTracking = 13;
 }
 
 message LLDP {
@@ -100,7 +100,7 @@ message Original {
 }
 
 message LayerThree {
-    string protonum = 1;
+    int32 protonum = 1;
     string protoname = 2;
     string src = 3;
     string dest = 4;
@@ -108,8 +108,8 @@ message LayerThree {
 }
 
 message LayerFour {
-    string protonum = 1;
+    int32 protonum = 1;
     string protoname = 2;
-    string sPort = 3;
-    string dPort = 4;
+    int32 sPort = 3;
+    int32 dPort = 4;
 }
