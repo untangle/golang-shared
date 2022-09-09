@@ -1,5 +1,7 @@
 package connectiondetailer
 
+// Interface for fetching system connection details
 type ConnectionDetailer interface {
-	GetConnectionDetails() *ConnectionDetails
+	GetConnectionList() ([]*ConnectionInfo, error)
+	FetchSystemConnections() error
 }
