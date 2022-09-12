@@ -86,7 +86,7 @@ message Independent {
     int32 timeout = 1;
     int32 mark = 2;
     int32 use = 3;
-    int64 id = 4;
+    int64 string = 4;
 }
 
 message Reply {
