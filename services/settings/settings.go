@@ -133,13 +133,13 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	var err error
 	var jsonSettings map[string]interface{}
 	var newSettings interface{}
-	saveLocker.Lock()
-	defer saveLocker.Unlock()
 
 	jsonSettings, err = readSettingsFileJSON(filename)
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
+	saveLocker.Lock()
+	defer saveLocker.Unlock()
 
 	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
 	if err != nil {
@@ -184,6 +184,8 @@ func RegisterSyncCallback(callback func()) {
 
 // readSettingsFileJSON reads the settings file and return the corresponding JSON object
 func readSettingsFileJSON(filename string) (map[string]interface{}, error) {
+	saveLocker.RLock()
+	defer saveLocker.RUnlock()
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
