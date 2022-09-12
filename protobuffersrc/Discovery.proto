@@ -103,7 +103,7 @@ message LayerThree {
     int32 protonum = 1;
     string protoname = 2;
     string src = 3;
-    string dest = 4;
+    string dst = 4;
 
 }
 
