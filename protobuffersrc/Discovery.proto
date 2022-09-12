@@ -84,9 +84,9 @@ message ConnectionTracking {
 
 message Independent {
     int32 timeout = 1;
-    int32 mark = 2;
+    int64 mark = 2;
     int32 use = 3;
-    string id = 4;
+    int64 id = 4;
 }
 
 message Reply {
