@@ -3,10 +3,8 @@ package connectiondetailer
 import (
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"os/exec"
 
-	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
@@ -26,17 +24,17 @@ type Meta struct {
 	Direction string   `xml:"direction,attr"`
 
 	// Direction is original or reply
-	Layer3 ConntrackLayer3 `xml:"layer3"`
-	Layer4 ConntrackLayer4 `xml:"layer4"`
+	LayerThree ConntrackLayerThree `xml:"layer3"`
+	LayerFour  ConntrackLayerFour  `xml:"layer4"`
 
 	// Direction is independent
 	Timeout int32 `xml:"timeout"`
-	Mark    int32 `xml:"mark"`
+	Mark    int64 `xml:"mark"`
 	Use     int32 `xml:"use"`
 	Id      int64 `xml:"id"`
 }
 
-type ConntrackLayer3 struct {
+type ConntrackLayerThree struct {
 	XMLName   xml.Name `xml:"layer3"`
 	Protonum  int32    `xml:"protonum,attr"`
 	Protoname string   `xml:"protoname,attr"`
@@ -44,7 +42,7 @@ type ConntrackLayer3 struct {
 	Dst       string   `xml:"dst"`
 }
 
-type ConntrackLayer4 struct {
+type ConntrackLayerFour struct {
 	XMLName   xml.Name `xml:"layer4"`
 	Protonum  int32    `xml:"protonum,attr"`
 	Protoname string   `xml:"protoname,attr"`
@@ -93,56 +91,54 @@ func (connTrackerDetails *ConnTrackerDetails) GetConnectionList() ([]*Discoverd.
 
 	// Fail early if the XML provided by the conntrack command could not be read
 	if err != nil {
-		logger.Err("Could not Unmarshal XML output of the conntrack command")
-		fmt.Println(err)
 		return nil, err
 	}
 
-	connections := make([]*Discoverd.ConnectionTracking, len(connTracker.Flows))
+	//connections := make([]*Discoverd.ConnectionTracking, len(connTracker.Flows))
+	var connections []*Discoverd.ConnectionTracking
 
 	// XML structure is pretty awkward, pull out it's data and put it in a more friendly data structure
 	for _, flow := range connTracker.Flows {
-		connectionInfo := &Discoverd.ConnectionTracking{}
-
+		connectionInfo := new(Discoverd.ConnectionTracking)
 		for _, meta := range flow.Metas {
 
 			if meta.Direction == "independent" {
-				connectionInfo.Independent = &Discoverd.Independent{}
+				connectionInfo.Independent = new(Discoverd.Independent)
 				connectionInfo.Independent.Timeout = meta.Timeout
 				connectionInfo.Independent.Mark = meta.Mark
 				connectionInfo.Independent.Use = meta.Use
 				connectionInfo.Independent.Id = meta.Id
+
 			} else if meta.Direction == "reply" {
-				connectionInfo.Reply = &Discoverd.Reply{}
+				connectionInfo.Reply = new(Discoverd.Reply)
 
-				connectionInfo.Reply.LayerThree = &Discoverd.LayerThree{}
-				connectionInfo.Reply.LayerThree.Protonum = meta.Layer3.Protonum
-				connectionInfo.Reply.LayerThree.Protoname = meta.Layer3.Protoname
-				connectionInfo.Reply.LayerThree.Src = meta.Layer3.Src
-				connectionInfo.Reply.LayerThree.Dest = meta.Layer3.Dst
+				connectionInfo.Reply.LayerThree = new(Discoverd.LayerThree)
+				connectionInfo.Reply.LayerThree.Protonum = meta.LayerThree.Protonum
+				connectionInfo.Reply.LayerThree.Protoname = meta.LayerThree.Protoname
+				connectionInfo.Reply.LayerThree.Src = meta.LayerThree.Src
+				connectionInfo.Reply.LayerThree.Dst = meta.LayerThree.Dst
 
-				connectionInfo.Reply.LayerFour = &Discoverd.LayerFour{}
-				connectionInfo.Reply.LayerFour.Protonum = meta.Layer4.Protonum
-				connectionInfo.Reply.LayerFour.Protoname = meta.Layer4.Protoname
-				connectionInfo.Reply.LayerFour.SPort = meta.Layer4.SPort
-				connectionInfo.Reply.LayerFour.DPort = meta.Layer4.DPort
+				connectionInfo.Reply.LayerFour = new(Discoverd.LayerFour)
+				connectionInfo.Reply.LayerFour.Protonum = meta.LayerFour.Protonum
+				connectionInfo.Reply.LayerFour.Protoname = meta.LayerFour.Protoname
+				connectionInfo.Reply.LayerFour.SPort = meta.LayerFour.SPort
+				connectionInfo.Reply.LayerFour.DPort = meta.LayerFour.DPort
 			} else if meta.Direction == "original" {
-				connectionInfo.Original = &Discoverd.Original{}
+				connectionInfo.Original = new(Discoverd.Original)
 
-				connectionInfo.Original.LayerThree = &Discoverd.LayerThree{}
-				connectionInfo.Original.LayerThree.Protonum = meta.Layer3.Protonum
-				connectionInfo.Original.LayerThree.Protoname = meta.Layer3.Protoname
-				connectionInfo.Original.LayerThree.Src = meta.Layer3.Src
-				connectionInfo.Original.LayerThree.Dest = meta.Layer3.Dst
+				connectionInfo.Original.LayerThree = new(Discoverd.LayerThree)
+				connectionInfo.Original.LayerThree.Protonum = meta.LayerThree.Protonum
+				connectionInfo.Original.LayerThree.Protoname = meta.LayerThree.Protoname
+				connectionInfo.Original.LayerThree.Src = meta.LayerThree.Src
+				connectionInfo.Original.LayerThree.Dst = meta.LayerThree.Dst
 
-				connectionInfo.Original.LayerFour = &Discoverd.LayerFour{}
-				connectionInfo.Original.LayerFour.Protonum = meta.Layer4.Protonum
-				connectionInfo.Original.LayerFour.Protoname = meta.Layer4.Protoname
-				connectionInfo.Original.LayerFour.SPort = meta.Layer4.SPort
-				connectionInfo.Original.LayerFour.DPort = meta.Layer4.DPort
+				connectionInfo.Original.LayerFour = new(Discoverd.LayerFour)
+				connectionInfo.Original.LayerFour.Protonum = meta.LayerFour.Protonum
+				connectionInfo.Original.LayerFour.Protoname = meta.LayerFour.Protoname
+				connectionInfo.Original.LayerFour.SPort = meta.LayerFour.SPort
+				connectionInfo.Original.LayerFour.DPort = meta.LayerFour.DPort
 			}
 		}
-
 		connections = append(connections, connectionInfo)
 	}
 

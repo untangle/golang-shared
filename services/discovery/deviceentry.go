@@ -53,8 +53,6 @@ func UpdateDiscoveryEntry(mac string, entry discovery.DeviceEntry) {
 	deviceList[mac] = entry
 	deviceListLock.Unlock()
 
-	// ZMQ publish the entry
-	logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.Data.IPv4Address)
 	zmqpublishEntry(entry)
 }
 
