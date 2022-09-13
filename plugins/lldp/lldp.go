@@ -101,9 +101,9 @@ func LldpcallBackHandler(commands []discovery.Command) {
 	// iterate over interface items
 	for _, intf := range result.Lldp[0].Intf {
 		// initialize the discovery entry
-		entry := disc.DeviceEntry{}
+		entry := &disc.DeviceEntry{}
 		entry.Init()
-		entry.Data.Lldp = &Discoverd.LLDP{}
+		entry.Lldp = &Discoverd.LLDP{}
 
 		// mac is used as id for discovery entry update
 		var mac = ""
@@ -118,10 +118,10 @@ func LldpcallBackHandler(commands []discovery.Command) {
 			}
 
 			if len(chassis.Name) > 0 {
-				entry.Data.Lldp.SysName = chassis.Name[0].Value
+				entry.Lldp.SysName = chassis.Name[0].Value
 			}
 			if len(chassis.Desc) > 0 {
-				entry.Data.Lldp.SysDesc = chassis.Desc[0].Value
+				entry.Lldp.SysDesc = chassis.Desc[0].Value
 			}
 
 			// chasis capabilities
@@ -130,7 +130,7 @@ func LldpcallBackHandler(commands []discovery.Command) {
 					cap := &Discoverd.LLDPCapabilities{}
 					cap.Capability = val.Type
 					cap.Enabled = val.Enabled
-					entry.Data.Lldp.ChassisCapabilities = append(entry.Data.Lldp.ChassisCapabilities, cap)
+					entry.Lldp.ChassisCapabilities = append(entry.Lldp.ChassisCapabilities, cap)
 				}
 			}
 		}
@@ -143,19 +143,19 @@ func LldpcallBackHandler(commands []discovery.Command) {
 				inv := lldpmed.Inventory[0]
 
 				if len(inv.Hardware) > 0 {
-					entry.Data.Lldp.InventoryHWRev = inv.Hardware[0].Value
+					entry.Lldp.InventoryHWRev = inv.Hardware[0].Value
 				}
 				if len(inv.Software) > 0 {
-					entry.Data.Lldp.InventorySoftRev = inv.Software[0].Value
+					entry.Lldp.InventorySoftRev = inv.Software[0].Value
 				}
 				if len(inv.Serial) > 0 {
-					entry.Data.Lldp.InventorySerial = inv.Serial[0].Value
+					entry.Lldp.InventorySerial = inv.Serial[0].Value
 				}
 				if len(inv.Model) > 0 {
-					entry.Data.Lldp.InventoryModel = inv.Model[0].Value
+					entry.Lldp.InventoryModel = inv.Model[0].Value
 				}
 				if len(inv.Manufacturer) > 0 {
-					entry.Data.Lldp.InventoryVendor = inv.Manufacturer[0].Value
+					entry.Lldp.InventoryVendor = inv.Manufacturer[0].Value
 				}
 			}
 
@@ -165,13 +165,13 @@ func LldpcallBackHandler(commands []discovery.Command) {
 					cap := &Discoverd.LLDPCapabilities{}
 					cap.Capability = val.Type
 					cap.Enabled = val.Available
-					entry.Data.Lldp.MedCapabilities = append(entry.Data.Lldp.MedCapabilities, cap)
+					entry.Lldp.MedCapabilities = append(entry.Lldp.MedCapabilities, cap)
 				}
 			}
 		}
 
 		if mac != "" {
-			entry.Data.MacAddress = mac
+			entry.MacAddress = mac
 			discovery.UpdateDiscoveryEntry(mac, entry)
 		}
 	}

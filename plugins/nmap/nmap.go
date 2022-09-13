@@ -210,9 +210,9 @@ func processScan(output []byte) {
 		}
 
 		// initialize the discovery entry
-		entry := disc.DeviceEntry{}
+		entry := &disc.DeviceEntry{}
 		entry.Init()
-		entry.Data.Nmap = &Discoverd.NMAP{}
+		entry.Nmap = &Discoverd.NMAP{}
 
 		// iterate addresses to find mac
 		for _, address := range host.Address {
@@ -230,7 +230,7 @@ func processScan(output []byte) {
 		if mac != "" {
 			logger.Debug("--- nmap discovery ---\n")
 			logger.Debug("> MAC: %s, Vendor: %s\n", mac, macVendor)
-			entry.Data.Nmap.MacVendor = macVendor
+			entry.Nmap.MacVendor = macVendor
 		} else {
 			logger.Debug("> MAC: n/a\n")
 		}
@@ -241,7 +241,7 @@ func processScan(output []byte) {
 		if len(host.Hostnames.Hostname) > 0 {
 			var hostname = host.Hostnames.Hostname[0].Name
 			logger.Debug("> Hostname: %s\n", hostname)
-			entry.Data.Nmap.Hostname = hostname
+			entry.Nmap.Hostname = hostname
 		} else {
 			logger.Debug("> Hostname: n/a\n")
 		}
@@ -250,7 +250,7 @@ func processScan(output []byte) {
 		if len(host.Os.OsMatch) > 0 {
 			var osname = host.Os.OsMatch[0].Name
 			logger.Debug("> OS: %s\n", osname)
-			entry.Data.Nmap.Os = osname
+			entry.Nmap.Os = osname
 		} else {
 			logger.Debug("> OS: n/a\n")
 		}
@@ -259,8 +259,8 @@ func processScan(output []byte) {
 		if host.Uptime.Seconds != "" {
 			logger.Debug("> Uptime: %s seconds\n", host.Uptime.Seconds)
 			logger.Debug("> Last boot: %s\n", host.Uptime.LastBoot)
-			entry.Data.Nmap.Uptime = host.Uptime.Seconds
-			entry.Data.Nmap.LastBoot = host.Uptime.LastBoot
+			entry.Nmap.Uptime = host.Uptime.Seconds
+			entry.Nmap.LastBoot = host.Uptime.LastBoot
 		} else {
 			logger.Debug("> Uptime: n/a\n")
 			logger.Debug("> Last boot: n/a\n")
@@ -278,7 +278,7 @@ func processScan(output []byte) {
 						nmapPort.Port = int32(portNo)
 						nmapPort.Protocol = port.Service.Name
 
-						entry.Data.Nmap.OpenPorts = append(entry.Data.Nmap.OpenPorts, nmapPort)
+						entry.Nmap.OpenPorts = append(entry.Nmap.OpenPorts, nmapPort)
 
 						portInfo += port.PortID + "(" + port.Service.Name + ") "
 					}
@@ -288,7 +288,7 @@ func processScan(output []byte) {
 		} else {
 			logger.Debug("> Open Ports: n/a\n")
 		}
-		entry.Data.MacAddress = mac
+		entry.MacAddress = mac
 		discovery.UpdateDiscoveryEntry(mac, entry)
 	}
 }

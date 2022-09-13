@@ -5,7 +5,6 @@ go 1.13
 replace github.com/untangle/golang-shared => /home/jphillips/code-projects/golang-shared
 
 require (
-	github.com/go-playground/assert/v2 v2.2.0 // indirect
 	github.com/pebbe/zmq4 v1.2.9
 	github.com/stretchr/testify v1.8.0
 	github.com/untangle/golang-shared v0.9.9

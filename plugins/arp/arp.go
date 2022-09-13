@@ -3,18 +3,14 @@ package arp
 import (
 	"bufio"
 	"fmt"
-	"net"
 	"os"
-	"os/exec"
 	"regexp"
-	"strings"
 
 	"github.com/untangle/discoverd/services/discovery"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/interfaces"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	disco_proto "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
@@ -160,34 +156,15 @@ func (scanner *arpScanner) getArpEntriesFromFile() ([]*disc.DeviceEntry, error) 
 // ArpcallBackHandler is the callback handler for the ARP collector
 func ArpcallBackHandler(commands []discovery.Command) {
 	logger.Debug("Arp Callback handler: Received %d commands\n", len(commands))
-	cmd := exec.Command("cat", "/proc/net/arp")
-	output, _ := cmd.CombinedOutput()
-
-	// Parse each line
-	for _, line := range strings.Split(string(output), "\n") {
-		// Parse each field
-		fields := strings.Fields(line)
-
-		// If empty or mac address is not valid, skip
-		if len(fields) == 0 || fields[3] == "00:00:00:00:00:00" {
-			continue
-		}
-
-		// Initialize the entry
-		entry := disc.DeviceEntry{}
-		entry.Init()
-		entry.Arp = &Discoverd.ARP{}
-
-		// Populate the entry
-		entry.Arp.Ip = fields[0]
-		entry.Arp.Mac = fields[3]
-		entry.MacAddress = entry.Arp.Mac
-
-		// Make sure the IP is valid before updating the entry, this also excludes headings
-		if net.ParseIP(entry.Arp.Ip) != nil {
-			entry.IPv4Address = entry.Arp.Ip
-			entry.MacAddress = entry.Arp.Mac
-			discovery.UpdateDiscoveryEntry(entry.Arp.Mac, entry)
-		}
+	scanner := newArpScanner(
+		settings.GetSettingsFileSingleton(),
+		"/proc/net/arp")
+	entries, err := scanner.getArpEntriesFromFile()
+	if err != nil {
+		logger.Warn("Couldn't scan /proc/net/arp for devices: %s", err)
+		return
+	}
+	for _, entry := range entries {
+		discovery.UpdateDiscoveryEntry(entry.MacAddress, entry)
 	}
 }
