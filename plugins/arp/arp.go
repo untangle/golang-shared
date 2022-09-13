@@ -133,6 +133,7 @@ func (scanner *arpScanner) scanLineForEntries(line []byte) {
 func (scanner *arpScanner) getArpEntriesFromFile() ([]*disc.DeviceEntry, error) {
 	scanner.entryList = []*disc.DeviceEntry{}
 	arp, err := os.Open(scanner.arpFileName)
+
 	if err != nil {
 		return nil, fmt.Errorf("couldn't open arp file %s: %w", scanner.arpFileName, err)
 	}
@@ -149,6 +150,9 @@ func (scanner *arpScanner) getArpEntriesFromFile() ([]*disc.DeviceEntry, error) 
 
 	if fileScanner.Err() != nil {
 		return nil, fmt.Errorf("couldn't scan arp file: %w", fileScanner.Err())
+	}
+	if err := arp.Close(); err != nil {
+		logger.Debug("Couldn't close arp file: %s\n", err)
 	}
 	return scanner.entryList, nil
 }
