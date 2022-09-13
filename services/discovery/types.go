@@ -108,4 +108,7 @@ func (n *DeviceEntry) Merge(o *DeviceEntry) {
 	if n.Nmap == nil {
 		n.Nmap = o.Nmap
 	}
+	if n.ConnectionTracking == nil {
+		n.ConnectionTracking = o.ConnectionTracking
+	}
 }
