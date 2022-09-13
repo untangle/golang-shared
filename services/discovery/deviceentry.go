@@ -18,23 +18,23 @@ var deviceListLock sync.RWMutex = sync.RWMutex{}
 // If existing entry is present we update only fields that are set in the new entry
 func UpdateDiscoveryEntry(mac string, entry discovery.DeviceEntry) {
 
-	if entry.Data.IPv4Address == "" && mac == "" {
+	if entry.IPv4Address == "" && mac == "" {
 		logger.Warn("UpdateDiscoveryEntry called with empty IP and MAC address\n")
 		return
 	}
 
 	mac = strings.ToLower(mac)
-	entry.Data.MacAddress = mac
+	entry.MacAddress = mac
 	logger.Debug("Received %+v\n", entry)
 	// If there is no Mac address, lets see if there is an existing entry with the IP address
 	if mac == "" {
-		if entry.Data.IPv4Address != "" {
-			existingEntry, ok := getDeviceEntryFromIP(entry.Data.IPv4Address)
+		if entry.IPv4Address != "" {
+			existingEntry, ok := getDeviceEntryFromIP(entry.IPv4Address)
 			if ok {
-				entry.Data.MacAddress = existingEntry.Data.MacAddress
-				mac = existingEntry.Data.MacAddress
+				entry.MacAddress = existingEntry.MacAddress
+				mac = existingEntry.MacAddress
 			} else {
-				logger.Warn("No entry found for IP address %s, which is missing Mac Address. Can't add\n", entry.Data.IPv4Address)
+				logger.Warn("No entry found for IP address %s, which is missing Mac Address. Can't add\n", entry.IPv4Address)
 				return
 			}
 		}
@@ -47,17 +47,22 @@ func UpdateDiscoveryEntry(mac string, entry discovery.DeviceEntry) {
 	deviceListLock.Lock()
 	if oldEntry, ok := deviceList[mac]; ok {
 		// Merge the old entry with the new one
-		entry.Merge(oldEntry)
+		entry.Merge(&oldEntry)
 	}
-	entry.Data.LastUpdate = time.Now().Unix()
+	entry.LastUpdate = time.Now().Unix()
 	deviceList[mac] = entry
 	deviceListLock.Unlock()
 
+<<<<<<< HEAD
+=======
+	// ZMQ publish the entry
+	logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.IPv4Address)
+>>>>>>> mfw-2285-arp-table
 	zmqpublishEntry(entry)
 }
 
 func zmqpublishEntry(entry discovery.DeviceEntry) {
-	message, err := proto.Marshal(&entry.Data)
+	message, err := proto.Marshal(&entry)
 	if err != nil {
 		logger.Err("Unable to marshal discovery entry: %s\n", err)
 		return
@@ -89,7 +94,7 @@ func isMacAddress(mac string) bool {
 func getDeviceEntryFromIP(ip string) (discovery.DeviceEntry, bool) {
 	deviceListLock.RLock()
 	for _, entry := range deviceList {
-		if entry.Data.IPv4Address == ip {
+		if entry.IPv4Address == ip {
 			deviceListLock.RUnlock()
 			return entry, true
 		}
