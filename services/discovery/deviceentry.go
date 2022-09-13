@@ -53,11 +53,9 @@ func UpdateDiscoveryEntry(mac string, entry discovery.DeviceEntry) {
 	deviceList[mac] = entry
 	deviceListLock.Unlock()
 
-<<<<<<< HEAD
-=======
 	// ZMQ publish the entry
 	logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.IPv4Address)
->>>>>>> mfw-2285-arp-table
+
 	zmqpublishEntry(entry)
 }
 
