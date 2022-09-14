@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -104,8 +105,16 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	if entry.MacAddress == "" && entry.IPv4Address != "" {
 		if found := list.getDeviceFromIPUnsafe(entry.IPv4Address); found != nil {
 			entry.Merge(found)
+		} else {
+			fmt.Printf("RRR: %+v\n", entry)
+			fmt.Printf("L: %+#v\n", list)
+			for k, v := range list.Devices {
+				fmt.Printf("%s: %+v\n", k, v)
+			}
+			return
 		}
 	} else if entry.MacAddress == "" {
+		fmt.Printf("REarly: %+v\n", entry)
 		return
 	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
 		entry.Merge(oldEntry)
@@ -126,6 +135,9 @@ func (n *DeviceEntry) Init() {
 func (n *DeviceEntry) Merge(o *DeviceEntry) {
 	if n.IPv4Address == "" {
 		n.IPv4Address = o.IPv4Address
+	}
+	if n.MacAddress == "" {
+		n.MacAddress = o.MacAddress
 	}
 	if n.Lldp == nil {
 		n.Lldp = o.Lldp
