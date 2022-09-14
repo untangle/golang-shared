@@ -10,7 +10,7 @@ import (
 )
 
 // DeviceEntry represents a device found via discovery and methods on
-// it.
+// it. Mostly used as a key of DevicesList.
 type DeviceEntry struct {
 	disco.DiscoveryEntry
 }
