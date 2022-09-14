@@ -23,11 +23,3 @@ func (s *DiscoveryRPCService) ScanHost(args *disco.NmapRequest, reply *disco.Nma
 	reply = &disco.NmapResponse{Result: disco.ResponseCode_OK}
 	return nil
 }
-
-// ReqquestAllEntries is a command to request all entries via the ZMQ publisher
-// func (s *DiscoveryRPCService) RequestAllAntries(args *disco.EmptyParam, reply *disco.NmapResponse) error {
-// 	logger.Debug("RequestAllAntries called\n")
-// 	publishAll()
-// 	reply = &disco.NmapResponse{Result: disco.ResponseCode_OK}
-// 	return nil
-// }
