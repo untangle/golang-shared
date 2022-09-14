@@ -1,7 +1,7 @@
 package discovery
 
 import (
-	"sync"
+	"time"
 
 	"github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
@@ -9,8 +9,8 @@ import (
 )
 
 // Indexed list of discovered devices. Index is the MAC address
-var deviceList = make(map[string]discovery.DeviceEntry)
-var deviceListLock sync.RWMutex = sync.RWMutex{}
+// var deviceList = make(map[string]discovery.DeviceEntry)
+// var deviceListLock sync.RWMutex = sync.RWMutex{}
 
 // UpdateDiscoveryEntry updates the discovery list with the new entry and publishes the entry.
 // If existing entry is present we update only fields that are set in the new entry
@@ -47,11 +47,12 @@ func UpdateDiscoveryEntry(mac string, entry *discovery.DeviceEntry) {
 	// 	// Merge the old entry with the new one
 	// 	entry.Merge(&oldEntry)
 	// }
-	// entry.LastUpdate = time.Now().Unix()
+
 	// deviceList[mac] = entry
 	// deviceListLock.Unlock()
 
 	// ZMQ publish the entry
+	entry.LastUpdate = time.Now().Unix()
 	logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.IPv4Address)
 	zmqpublishEntry(entry)
 }
