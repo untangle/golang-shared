@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -8,6 +9,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// DeviceEntry represents a device found via discovery and methods on
+// it.
 type DeviceEntry struct {
 	disco.DiscoveryEntry
 }
@@ -144,4 +147,9 @@ func (n *DeviceEntry) Merge(o *DeviceEntry) {
 	if n.LastUpdate < o.LastUpdate {
 		n.LastUpdate = o.LastUpdate
 	}
+}
+
+// SetMac sets the mac address of the device entry. It 'normalizes' it.
+func (n *DeviceEntry) SetMac(mac string) {
+	n.MacAddress = strings.ToLower(mac)
 }
