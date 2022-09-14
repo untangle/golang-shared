@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/utils"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -72,17 +73,12 @@ func (scanner *arpScanner) buildWANList() error {
 
 }
 
-var ipv4Regex = `(\d+\.\d+\.\d+\.\d+)`
-var macRegex = `((?:[0-9A-Fa-f][0-9A-Fa-f]:){5,5}[0-9A-Fa-f][0-9A-Fa-f])`
-var hexRegex = `(0x\d+)`
-var maskRegex = `(\*)`
-var deviceRegex = `([a-zA-Z]+[a-zA-Z0-9]+)`
-var arpPattern = (ipv4Regex + `\s+` + // ipv4 is capture groups 2-3
-	hexRegex + `\s+` + // HW type is 4-5
-	hexRegex + `\s+` + // Flags is 6-7
-	macRegex + `\s+` + // mac is 8-9
-	maskRegex + `\s+` + // mask is 10-11
-	deviceRegex) // device is 12-13
+var arpPattern = (utils.IPv4Regex + `\s+` + // ipv4 is capture groups 2-3
+	utils.HexRegex + `\s+` + // HW type is 4-5
+	utils.HexRegex + `\s+` + // Flags is 6-7
+	utils.MacRegex + `\s+` + // mac is 8-9
+	utils.MaskRegex + `\s+` + // mask is 10-11
+	utils.DeviceRegex) // device is 12-13
 var arpLineRegex *regexp.Regexp = regexp.MustCompile(arpPattern)
 
 const (
