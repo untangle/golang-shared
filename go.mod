@@ -2,7 +2,6 @@ module github.com/untangle/discoverd
 
 go 1.13
 
-replace github.com/untangle/golang-shared => /home/jphillips/code-projects/golang-shared
 
 require (
 	github.com/pebbe/zmq4 v1.2.9
