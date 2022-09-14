@@ -22,6 +22,13 @@ type DevicesList struct {
 	Lock    sync.RWMutex
 }
 
+// NewDevicesList returns a new DevicesList which is ready for use.
+func NewDevicesList() *DevicesList {
+	return &DevicesList{
+		Devices: map[string]*DeviceEntry{},
+	}
+}
+
 // ListPredicate is a function that when applied to an entry returns
 // true if it 'accepts' the entry.
 type ListPredicate func(entry *DeviceEntry) bool
