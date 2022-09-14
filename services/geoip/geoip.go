@@ -314,14 +314,14 @@ var GeoIPManager *LockingGeoIPManager
 // called with a write lock and LookupCountryCodeOfIP has a read lock.
 type LockingGeoIPManager struct {
 	lock sync.RWMutex
-	ipDB GeoIPDB
+	IpDB GeoIPDB
 }
 
 // NewLockingGeoIPManager creates a new LockingGeoIPManager, which
 // wraps the db object given.
 func NewLockingGeoIPManager(db GeoIPDB) *LockingGeoIPManager {
 	return &LockingGeoIPManager{
-		ipDB: db,
+		IpDB: db,
 	}
 }
 
@@ -331,7 +331,7 @@ func NewLockingGeoIPManager(db GeoIPDB) *LockingGeoIPManager {
 func (db *LockingGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
-	return db.ipDB.LookupCountryCodeOfIP(ip)
+	return db.IpDB.LookupCountryCodeOfIP(ip)
 }
 
 // Refresh calls the underling ipDB's Refresh method after calling
@@ -340,6 +340,6 @@ func (db *LockingGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 func (db *LockingGeoIPManager) Refresh() error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
-	return db.ipDB.Refresh()
+	return db.IpDB.Refresh()
 }
 
