@@ -80,7 +80,7 @@ func (connTrackerDetails *ConnTrackerDetails) GetConnectionsXml() []byte {
 
 // Gets the list of connections on the system. Make sure to run FetchSystemConnections
 // before running GetConnectionList()
-func (connTrackerDetails *ConnTrackerDetails) GetDeviceToConnections() (map[string][]*Discoverd.ConnectionTracking, error) {
+func (connTrackerDetails *ConnTrackerDetails) GetDeviceToConnections() (map[string][]*Discoverd.Connection, error) {
 	if connTrackerDetails.connectionsXml == nil {
 		return nil, errors.New("ConnTrackerDetails requires that FetchSystemConnections is run before GetConnectionList()")
 	}
@@ -94,7 +94,7 @@ func (connTrackerDetails *ConnTrackerDetails) GetDeviceToConnections() (map[stri
 }
 
 // Get the list of connections from the conntrack command
-func (connTrackerDetails *ConnTrackerDetails) getConnections() ([]*Discoverd.ConnectionTracking, error) {
+func (connTrackerDetails *ConnTrackerDetails) getConnections() ([]*Discoverd.Connection, error) {
 	// Unmarshal XML output of conntrack command and get it into a useful data structure
 	connTracker, err := parseConntrackXml(connTrackerDetails.connectionsXml)
 
@@ -104,11 +104,11 @@ func (connTrackerDetails *ConnTrackerDetails) getConnections() ([]*Discoverd.Con
 	}
 
 	//connections := make([]*Discoverd.ConnectionTracking, len(connTracker.Flows))
-	var connections []*Discoverd.ConnectionTracking
+	var connections []*Discoverd.Connection
 
 	// XML structure is pretty awkward, pull out it's data and put it in a more friendly data structure
 	for _, flow := range connTracker.Flows {
-		connectionInfo := new(Discoverd.ConnectionTracking)
+		connectionInfo := new(Discoverd.Connection)
 		for _, meta := range flow.Metas {
 
 			if meta.Direction == "independent" {
@@ -155,8 +155,8 @@ func (connTrackerDetails *ConnTrackerDetails) getConnections() ([]*Discoverd.Con
 }
 
 // From the list of connections, build a map of a device's IPv4 address to it's connections
-func getDeviceToConnections(connections []*Discoverd.ConnectionTracking) map[string][]*Discoverd.ConnectionTracking {
-	deviceToConnections := make(map[string][]*Discoverd.ConnectionTracking)
+func getDeviceToConnections(connections []*Discoverd.Connection) map[string][]*Discoverd.Connection {
+	deviceToConnections := make(map[string][]*Discoverd.Connection)
 
 	for _, connection := range connections {
 		originalIp := connection.Original.LayerThree.Src

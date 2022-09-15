@@ -14,7 +14,7 @@ type ConntrackerDetailsTestSuite struct {
 	Conntracker *ConnTrackerDetails
 
 	// List of connections expected to be read in
-	ExpectedConnectionList []*Discoverd.ConnectionTracking
+	ExpectedConnectionList []*Discoverd.Connection
 }
 
 func TestConntrackerDetailsTestSuite(t *testing.T) {
@@ -93,7 +93,7 @@ func (suite *ConntrackerDetailsTestSuite) SetupTest() {
 
 	suite.Conntracker.SetConnectionsXml(xmlBytes)
 	// Create list of expected connections
-	connectionOne := &Discoverd.ConnectionTracking{
+	connectionOne := &Discoverd.Connection{
 		Independent: &Discoverd.Independent{
 			Id:      4245641327,
 			Mark:    0,
@@ -126,7 +126,7 @@ func (suite *ConntrackerDetailsTestSuite) SetupTest() {
 		},
 	}
 
-	connectionTwo := &Discoverd.ConnectionTracking{
+	connectionTwo := &Discoverd.Connection{
 		Independent: &Discoverd.Independent{
 			Id:      3523745495,
 			Mark:    0,
@@ -163,7 +163,7 @@ func (suite *ConntrackerDetailsTestSuite) SetupTest() {
 		},
 	}
 
-	connectionThree := &Discoverd.ConnectionTracking{
+	connectionThree := &Discoverd.Connection{
 		Independent: &Discoverd.Independent{
 			Id:      2944662851,
 			Mark:    0,
@@ -200,7 +200,7 @@ func (suite *ConntrackerDetailsTestSuite) SetupTest() {
 		},
 	}
 
-	connectionFour := &Discoverd.ConnectionTracking{
+	connectionFour := &Discoverd.Connection{
 		Independent: &Discoverd.Independent{
 			Id:      2978983895,
 			Mark:    0,
@@ -237,7 +237,7 @@ func (suite *ConntrackerDetailsTestSuite) SetupTest() {
 		},
 	}
 
-	connectionFive := &Discoverd.ConnectionTracking{
+	connectionFive := &Discoverd.Connection{
 		Independent: &Discoverd.Independent{
 			Id:      63545631,
 			Mark:    0,
@@ -274,5 +274,5 @@ func (suite *ConntrackerDetailsTestSuite) SetupTest() {
 		},
 	}
 
-	suite.ExpectedConnectionList = []*Discoverd.ConnectionTracking{connectionOne, connectionTwo, connectionThree, connectionFour, connectionFive}
+	suite.ExpectedConnectionList = []*Discoverd.Connection{connectionOne, connectionTwo, connectionThree, connectionFour, connectionFive}
 }

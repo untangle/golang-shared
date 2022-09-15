@@ -37,7 +37,7 @@ func (connectionTracking *ConnnectionTracking) ConnectionTrackingBackHandler(com
 				entry := disc.DeviceEntry{}
 				entry.Init()
 				entry.IPv4Address = device
-				entry.ConnectionTracking = connections
+				entry.Connections = connections
 
 				// Discovery entries can only be linked up by mac/ipv4, but the mac address can't be retrieved here.
 				// UpdateDiscoveryEntry() will add the connections list for a device if it already exists.
