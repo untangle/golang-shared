@@ -71,7 +71,7 @@ type MaxMindGeoIPManager struct {
 }
 
 // It holds GeoIPDB, restd use this for geoip/lookup rest api
-var GeoIPManager *LockingGeoIPManager
+//var GeoIPManager *LockingGeoIPManager
 
 // LockingGeoIPManager is a wrapper object for a GeoIPManager
 // (specifically MaxMindGeoIPManager) that wraps all calls to
