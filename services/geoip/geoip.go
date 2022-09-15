@@ -20,6 +20,10 @@ import (
 	"github.com/untangle/golang-shared/util/cache/cacher"
 )
 
+// The full path of the database filename. We look for it here and
+// also download it to here if it doesn't exist or is out of date.
+const DbFilename = "/usr/share/geoip/" + MaxMindDbFileName
+
 // the name of the database file we look for in tarballs we download.
 const MaxMindDbFileName = "GeoLite2-Country.mmdb"
 
@@ -64,6 +68,18 @@ type MaxMindGeoIPManager struct {
 	geoDatabaseReader *geoip2.Reader
 	databaseCache     cacher.Cacher
 	cacheLocker       sync.RWMutex
+}
+
+// It holds GeoIPDB, restd use this for geoip/lookup rest api
+var GeoIPManager *LockingGeoIPManager
+
+// LockingGeoIPManager is a wrapper object for a GeoIPManager
+// (specifically MaxMindGeoIPManager) that wraps all calls to
+// LookupCountryCodeOfIP and Refresh with an RWLock. Refresh() will be
+// called with a write lock and LookupCountryCodeOfIP has a read lock.
+type LockingGeoIPManager struct {
+	lock sync.RWMutex
+	IpDB GeoIPDB
 }
 
 // NewMaxMindGeoIPManager creates a new NewMaxMindGeoIPManager that
@@ -305,18 +321,6 @@ func (db *MaxMindGeoIPManager) Refresh() error {
 	return nil
 }
 
-// It holds GeoIPDB
-var GeoIPManager *LockingGeoIPManager
-
-// LockingGeoIPManager is a wrapper object for a GeoIPManager
-// (specifically MaxMindGeoIPManager) that wraps all calls to
-// LookupCountryCodeOfIP and Refresh with an RWLock. Refresh() will be
-// called with a write lock and LookupCountryCodeOfIP has a read lock.
-type LockingGeoIPManager struct {
-	lock sync.RWMutex
-	IpDB GeoIPDB
-}
-
 // NewLockingGeoIPManager creates a new LockingGeoIPManager, which
 // wraps the db object given.
 func NewLockingGeoIPManager(db GeoIPDB) *LockingGeoIPManager {
@@ -342,4 +346,3 @@ func (db *LockingGeoIPManager) Refresh() error {
 	defer db.lock.Unlock()
 	return db.IpDB.Refresh()
 }
-
