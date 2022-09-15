@@ -3,18 +3,15 @@ package arp
 import (
 	"bufio"
 	"fmt"
-	"net"
 	"os"
-	"os/exec"
 	"regexp"
-	"strings"
 
 	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/utils"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/interfaces"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	disco_proto "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
@@ -76,17 +73,12 @@ func (scanner *arpScanner) buildWANList() error {
 
 }
 
-var ipv4Regex = `(\d+\.\d+\.\d+\.\d+)`
-var macRegex = `((?:[0-9A-Fa-f][0-9A-Fa-f]:){5,5}[0-9A-Fa-f][0-9A-Fa-f])`
-var hexRegex = `(0x\d+)`
-var maskRegex = `(\*)`
-var deviceRegex = `([a-zA-Z]+[a-zA-Z0-9]+)`
-var arpPattern = (ipv4Regex + `\s+` + // ipv4 is capture groups 2-3
-	hexRegex + `\s+` + // HW type is 4-5
-	hexRegex + `\s+` + // Flags is 6-7
-	macRegex + `\s+` + // mac is 8-9
-	maskRegex + `\s+` + // mask is 10-11
-	deviceRegex) // device is 12-13
+var arpPattern = (utils.IPv4Regex + `\s+` + // ipv4 is capture groups 2-3
+	utils.HexRegex + `\s+` + // HW type is 4-5
+	utils.HexRegex + `\s+` + // Flags is 6-7
+	utils.MacRegex + `\s+` + // mac is 8-9
+	utils.MaskRegex + `\s+` + // mask is 10-11
+	utils.DeviceRegex) // device is 12-13
 var arpLineRegex *regexp.Regexp = regexp.MustCompile(arpPattern)
 
 const (
@@ -95,6 +87,9 @@ const (
 	arpDeviceGroupBegin = 12
 )
 
+// newArpScanner creates an arp scanner that uses the settings
+// SettingsFile to figure out what WAN devices there are, and reads
+// arp entries frorm arpFilename, (use /proc/net/arp).
 func newArpScanner(settings *settings.SettingsFile,
 	arpFileName string) *arpScanner {
 	scanner := &arpScanner{
@@ -106,6 +101,9 @@ func newArpScanner(settings *settings.SettingsFile,
 	return scanner
 }
 
+// scanLineForEntries scans a single line of the arp file for an arp
+// entry and parses it. If it is not on a WAN interface, it's added to
+// the internal device list.
 func (scanner *arpScanner) scanLineForEntries(line []byte) {
 	indices := arpLineRegex.FindSubmatchIndex(line)
 	if len(indices) <= arpDeviceGroupBegin+1 {
@@ -130,9 +128,13 @@ func (scanner *arpScanner) scanLineForEntries(line []byte) {
 		})
 }
 
+// getArpEntriesFromFile gets all arp entries from the file given in
+// the constructor that are not on WAN interfaces. It returns these as
+// device entries, or if an error occurs, nil and an error.
 func (scanner *arpScanner) getArpEntriesFromFile() ([]*disc.DeviceEntry, error) {
 	scanner.entryList = []*disc.DeviceEntry{}
 	arp, err := os.Open(scanner.arpFileName)
+
 	if err != nil {
 		return nil, fmt.Errorf("couldn't open arp file %s: %w", scanner.arpFileName, err)
 	}
@@ -150,40 +152,24 @@ func (scanner *arpScanner) getArpEntriesFromFile() ([]*disc.DeviceEntry, error) 
 	if fileScanner.Err() != nil {
 		return nil, fmt.Errorf("couldn't scan arp file: %w", fileScanner.Err())
 	}
+	if err := arp.Close(); err != nil {
+		logger.Debug("Couldn't close arp file: %s\n", err)
+	}
 	return scanner.entryList, nil
 }
 
 // ArpcallBackHandler is the callback handler for the ARP collector
 func ArpcallBackHandler(commands []discovery.Command) {
 	logger.Debug("Arp Callback handler: Received %d commands\n", len(commands))
-	cmd := exec.Command("cat", "/proc/net/arp")
-	output, _ := cmd.CombinedOutput()
-
-	// Parse each line
-	for _, line := range strings.Split(string(output), "\n") {
-		// Parse each field
-		fields := strings.Fields(line)
-
-		// If empty or mac address is not valid, skip
-		if len(fields) == 0 || fields[3] == "00:00:00:00:00:00" {
-			continue
-		}
-
-		// Initialize the entry
-		entry := disc.DeviceEntry{}
-		entry.Init()
-		entry.Arp = &Discoverd.ARP{}
-
-		// Populate the entry
-		entry.Arp.Ip = fields[0]
-		entry.Arp.Mac = fields[3]
-		entry.MacAddress = entry.Arp.Mac
-
-		// Make sure the IP is valid before updating the entry, this also excludes headings
-		if net.ParseIP(entry.Arp.Ip) != nil {
-			entry.IPv4Address = entry.Arp.Ip
-			entry.MacAddress = entry.Arp.Mac
-			discovery.UpdateDiscoveryEntry(entry.Arp.Mac, entry)
-		}
+	scanner := newArpScanner(
+		settings.GetSettingsFileSingleton(),
+		"/proc/net/arp")
+	entries, err := scanner.getArpEntriesFromFile()
+	if err != nil {
+		logger.Warn("Couldn't scan /proc/net/arp for devices: %s", err)
+		return
+	}
+	for _, entry := range entries {
+		discovery.UpdateDiscoveryEntry(entry.MacAddress, entry)
 	}
 }
