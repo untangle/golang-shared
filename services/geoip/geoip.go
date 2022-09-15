@@ -70,9 +70,6 @@ type MaxMindGeoIPManager struct {
 	cacheLocker       sync.RWMutex
 }
 
-// It holds GeoIPDB, restd use this for geoip/lookup rest api
-//var GeoIPManager *LockingGeoIPManager
-
 // LockingGeoIPManager is a wrapper object for a GeoIPManager
 // (specifically MaxMindGeoIPManager) that wraps all calls to
 // LookupCountryCodeOfIP and Refresh with an RWLock. Refresh() will be
