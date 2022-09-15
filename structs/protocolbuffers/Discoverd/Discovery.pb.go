@@ -218,13 +218,13 @@ type DiscoveryEntry struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MacAddress         string              `protobuf:"bytes,1,opt,name=macAddress,proto3" json:"macAddress,omitempty"`
-	IPv4Address        string              `protobuf:"bytes,2,opt,name=IPv4Address,proto3" json:"IPv4Address,omitempty"`
-	LastUpdate         int64               `protobuf:"varint,3,opt,name=LastUpdate,proto3" json:"LastUpdate,omitempty"`
-	Lldp               *LLDP               `protobuf:"bytes,10,opt,name=lldp,proto3" json:"lldp,omitempty"`
-	Arp                *ARP                `protobuf:"bytes,11,opt,name=arp,proto3" json:"arp,omitempty"`
-	Nmap               *NMAP               `protobuf:"bytes,12,opt,name=nmap,proto3" json:"nmap,omitempty"`
-	ConnectionTracking *ConnectionTracking `protobuf:"bytes,13,opt,name=connectionTracking,proto3" json:"connectionTracking,omitempty"`
+	MacAddress         string                `protobuf:"bytes,1,opt,name=macAddress,proto3" json:"macAddress,omitempty"`
+	IPv4Address        string                `protobuf:"bytes,2,opt,name=IPv4Address,proto3" json:"IPv4Address,omitempty"`
+	LastUpdate         int64                 `protobuf:"varint,3,opt,name=LastUpdate,proto3" json:"LastUpdate,omitempty"`
+	Lldp               *LLDP                 `protobuf:"bytes,10,opt,name=lldp,proto3" json:"lldp,omitempty"`
+	Arp                *ARP                  `protobuf:"bytes,11,opt,name=arp,proto3" json:"arp,omitempty"`
+	Nmap               *NMAP                 `protobuf:"bytes,12,opt,name=nmap,proto3" json:"nmap,omitempty"`
+	ConnectionTracking []*ConnectionTracking `protobuf:"bytes,13,rep,name=connectionTracking,proto3" json:"connectionTracking,omitempty"`
 }
 
 func (x *DiscoveryEntry) Reset() {
@@ -301,7 +301,7 @@ func (x *DiscoveryEntry) GetNmap() *NMAP {
 	return nil
 }
 
-func (x *DiscoveryEntry) GetConnectionTracking() *ConnectionTracking {
+func (x *DiscoveryEntry) GetConnectionTracking() []*ConnectionTracking {
 	if x != nil {
 		return x.ConnectionTracking
 	}
@@ -1112,7 +1112,7 @@ var file_Discovery_proto_rawDesc = []byte{
 	0x6e, 0x6d, 0x61, 0x70, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x64, 0x69, 0x73,
 	0x63, 0x6f, 0x76, 0x65, 0x72, 0x64, 0x2e, 0x4e, 0x4d, 0x41, 0x50, 0x52, 0x04, 0x6e, 0x6d, 0x61,
 	0x70, 0x12, 0x4d, 0x0a, 0x12, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x54,
-	0x72, 0x61, 0x63, 0x6b, 0x69, 0x6e, 0x67, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e,
+	0x72, 0x61, 0x63, 0x6b, 0x69, 0x6e, 0x67, 0x18, 0x0d, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e,
 	0x64, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x64, 0x2e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
 	0x74, 0x69, 0x6f, 0x6e, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x69, 0x6e, 0x67, 0x52, 0x12, 0x63, 0x6f,
 	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x69, 0x6e, 0x67,
