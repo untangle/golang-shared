@@ -56,6 +56,10 @@ func UpdateDiscoveryEntry(mac string, entry discovery.DeviceEntry) {
 	// ZMQ publish the entry
 	logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.IPv4Address)
 
+	if entry.ConnectionTracking != nil {
+		logger.Err(entry.ConnectionTracking[0].Original.LayerThree.Src)
+	}
+
 	zmqpublishEntry(entry)
 }
 

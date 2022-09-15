@@ -32,36 +32,19 @@ func (connectionTracking *ConnnectionTracking) ConnectionTrackingBackHandler(com
 	logger.Debug("ConnectionTracking callback handler: Received %d commands\n", len(commands))
 
 	if fetchErr := connectionTracking.connectionDetails.FetchSystemConnections(); fetchErr == nil {
-		if connections, getErr := connectionTracking.connectionDetails.GetConnectionList(); getErr == nil {
-			for _, connection := range connections {
+		if deviceToConnections, getErr := connectionTracking.connectionDetails.GetDeviceToConnections(); getErr == nil {
+			for device, connections := range deviceToConnections {
+				entry := disc.DeviceEntry{}
+				entry.Init()
+				entry.IPv4Address = device
+				entry.ConnectionTracking = connections
 
-				// Discovery entries can only be linked up by mac/ipv4, but the mac address can't be retrieved here
-				// Attach connection details to both reply and original device entries
-				if connection.Original.LayerThree.Protoname == "ipv4" {
-					entry := disc.DeviceEntry{}
-					entry.Init()
-					entry.Data.ConnectionTracking = connection
+				// Discovery entries can only be linked up by mac/ipv4, but the mac address can't be retrieved here.
+				// UpdateDiscoveryEntry() will add the connections list for a device if it already exists.
+				// The device's pre-existing connection list will be overwritten, since dead connections should be removed
+				discovery.UpdateDiscoveryEntry("", entry)
 
-					logger.Debug("Created original connection for %d\n", entry.Data.ConnectionTracking.Independent.Id)
-
-					// No mac address can be provided, so hope UpdateDiscoveryEntry can update an entry with just
-					// the ipv4 address
-					entry.Data.IPv4Address = connection.Reply.LayerThree.Src
-					discovery.UpdateDiscoveryEntry("", entry)
-				}
-
-				if connection.Reply.LayerThree.Protoname == "ipv4" {
-					entry := disc.DeviceEntry{}
-					entry.Init()
-					entry.Data.ConnectionTracking = connection
-
-					logger.Debug("Created reply connection for %d\n", entry.Data.ConnectionTracking.Independent.Id)
-
-					// No mac address can be provided, so hope UpdateDiscoveryEntry can update an entry with just
-					// the ipv4 address
-					entry.Data.IPv4Address = connection.Original.LayerThree.Src
-					discovery.UpdateDiscoveryEntry("", entry)
-				}
+				logger.Debug("Created connection details for device with IPv4 address: %d\n", device)
 			}
 		} else {
 			logger.Err("Couldn't get the connection list: %s", getErr.Error())

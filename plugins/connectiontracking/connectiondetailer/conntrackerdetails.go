@@ -80,12 +80,21 @@ func (connTrackerDetails *ConnTrackerDetails) GetConnectionsXml() []byte {
 
 // Gets the list of connections on the system. Make sure to run FetchSystemConnections
 // before running GetConnectionList()
-func (connTrackerDetails *ConnTrackerDetails) GetConnectionList() ([]*Discoverd.ConnectionTracking, error) {
-
+func (connTrackerDetails *ConnTrackerDetails) GetDeviceToConnections() (map[string][]*Discoverd.ConnectionTracking, error) {
 	if connTrackerDetails.connectionsXml == nil {
 		return nil, errors.New("ConnTrackerDetails requires that FetchSystemConnections is run before GetConnectionList()")
 	}
 
+	if connections, err := connTrackerDetails.getConnections(); err == nil {
+		return getDeviceToConnections(connections), nil
+	} else {
+		return nil, err
+	}
+
+}
+
+// Get the list of connections from the conntrack command
+func (connTrackerDetails *ConnTrackerDetails) getConnections() ([]*Discoverd.ConnectionTracking, error) {
 	// Unmarshal XML output of conntrack command and get it into a useful data structure
 	connTracker, err := parseConntrackXml(connTrackerDetails.connectionsXml)
 
@@ -143,6 +152,27 @@ func (connTrackerDetails *ConnTrackerDetails) GetConnectionList() ([]*Discoverd.
 	}
 
 	return connections, nil
+}
+
+// From the list of connections, build a map of a device's IPv4 address to it's connections
+func getDeviceToConnections(connections []*Discoverd.ConnectionTracking) map[string][]*Discoverd.ConnectionTracking {
+	deviceToConnections := make(map[string][]*Discoverd.ConnectionTracking)
+
+	for _, connection := range connections {
+		originalIp := connection.Original.LayerThree.Src
+		replyIp := connection.Reply.LayerThree.Src
+
+		// Check that the connection has IPv4s to be used as a key
+		if originalIp != "" {
+			deviceToConnections[originalIp] = append(deviceToConnections[originalIp], connection)
+		}
+
+		if replyIp != "" {
+			deviceToConnections[replyIp] = append(deviceToConnections[replyIp], connection)
+		}
+	}
+
+	return deviceToConnections
 }
 
 // Parses XML provided by the conntrackXml byte slice
