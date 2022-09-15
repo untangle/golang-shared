@@ -87,6 +87,9 @@ const (
 	arpDeviceGroupBegin = 12
 )
 
+// newArpScanner creates an arp scanner that uses the settings
+// SettingsFile to figure out what WAN devices there are, and reads
+// arp entries frorm arpFilename, (use /proc/net/arp).
 func newArpScanner(settings *settings.SettingsFile,
 	arpFileName string) *arpScanner {
 	scanner := &arpScanner{
@@ -98,6 +101,9 @@ func newArpScanner(settings *settings.SettingsFile,
 	return scanner
 }
 
+// scanLineForEntries scans a single line of the arp file for an arp
+// entry and parses it. If it is not on a WAN interface, it's added to
+// the internal device list.
 func (scanner *arpScanner) scanLineForEntries(line []byte) {
 	indices := arpLineRegex.FindSubmatchIndex(line)
 	if len(indices) <= arpDeviceGroupBegin+1 {
@@ -122,6 +128,9 @@ func (scanner *arpScanner) scanLineForEntries(line []byte) {
 		})
 }
 
+// getArpEntriesFromFile gets all arp entries from the file given in
+// the constructor that are not on WAN interfaces. It returns these as
+// device entries, or if an error occurs, nil and an error.
 func (scanner *arpScanner) getArpEntriesFromFile() ([]*disc.DeviceEntry, error) {
 	scanner.entryList = []*disc.DeviceEntry{}
 	arp, err := os.Open(scanner.arpFileName)
