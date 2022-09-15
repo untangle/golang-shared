@@ -31,7 +31,7 @@ message DiscoveryEntry {
     LLDP lldp = 10;
     ARP arp = 11;
     NMAP nmap = 12;
-    repeated ConnectionTracking connectionTracking = 13;
+    repeated Connection connections = 13;
 }
 
 message LLDP {
@@ -76,7 +76,7 @@ message NMAPPorts {
      string state = 3; 
 }
 
-message ConnectionTracking {
+message Connection {
     Independent independent = 1;
     Reply reply = 2;
     Original original = 3; 
