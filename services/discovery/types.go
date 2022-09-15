@@ -93,6 +93,7 @@ func (n *DeviceEntry) Init() {
 	n.Lldp = nil
 	n.Arp = nil
 	n.Nmap = nil
+	n.ConnectionTracking = nil
 }
 
 func (n *DeviceEntry) Merge(o *DeviceEntry) {
@@ -108,7 +109,10 @@ func (n *DeviceEntry) Merge(o *DeviceEntry) {
 	if n.Nmap == nil {
 		n.Nmap = o.Nmap
 	}
-	if n.ConnectionTracking == nil {
+
+	// Since connections change on a device over time, overwrite the original ConnectionTracking entry
+	// If one was sent in for the merge
+	if o.ConnectionTracking != nil {
 		n.ConnectionTracking = o.ConnectionTracking
 	}
 }
