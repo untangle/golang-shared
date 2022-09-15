@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Test basic settings -- we do not need to go in depth here since
+// this object just wraps the PathUnmarshaller object.
 func TestSettings(t *testing.T) {
 	type settingsObject struct {
 		Foo string `json:"foo"`

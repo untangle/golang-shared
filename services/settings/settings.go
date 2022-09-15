@@ -59,6 +59,19 @@ func SetSighupProperties(shouldRunSighup bool, sighupExecutable string) {
 	SighupExecutable = sighupExecutable
 }
 
+var settingsFileSingleton *SettingsFile
+
+// GetSettingsFileSingleton returns a SettingsFile object that is a
+// singleton. Prefer using this if you can.
+func GetSettingsFileSingleton() *SettingsFile {
+	if settingsFileSingleton == nil {
+		settingsFileSingleton = NewSettingsFile(
+			settingsFile,
+			WithLock(&saveLocker))
+	}
+	return settingsFileSingleton
+}
+
 // GetCurrentSettings returns the current settings from the specified path
 // the current settings are the settings after being synced
 func GetCurrentSettings(segments []string) (interface{}, error) {
