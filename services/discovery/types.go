@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/untangle/golang-shared/services/logger"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -152,11 +151,6 @@ func (n *DeviceEntry) Merge(o *DeviceEntry) {
 	}
 	if n.Nmap == nil {
 		n.Nmap = o.Nmap
-	}
-
-	logger.Err("Merging something")
-	if o.Connections != nil {
-		logger.Err("Merging something with connections")
 	}
 
 	// Since connections change on a device over time, overwrite the original ConnectionTracking entry
