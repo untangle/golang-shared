@@ -27,10 +27,6 @@ func UpdateDiscoveryEntry(mac string, entry *discovery.DeviceEntry) {
 	// If the IPv4 is invalid and MAC valid, publish message anyway
 	// since the layer 4 protocol used might be IPv6
 	if utils.IsMacAddress(mac) || utils.IsIpv4Address(entry.IPv4Address) {
-		if entry.Connections != nil {
-			logger.Err("This should have been published\n")
-		}
-
 		// ZMQ publish the entry
 		entry.LastUpdate = time.Now().Unix()
 		logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.IPv4Address)
