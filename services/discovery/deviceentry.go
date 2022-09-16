@@ -14,13 +14,11 @@ import (
 func UpdateDiscoveryEntry(mac string, entry *discovery.DeviceEntry) {
 	// Check if an invalid mac was provided, not just an empty one
 	// Fail if the MAC in invalid since IPv6 may be used
-	if mac != "" {
-		if utils.IsMacAddress(mac) {
-			entry.MacAddress = mac
-		} else {
-			logger.Warn("UpdateDiscoveryEntry called with invalid mac: %s\n", mac)
-			return
-		}
+	if utils.IsMacAddress(mac) {
+		entry.SetMac(mac)
+	} else if mac != "" {
+		logger.Warn("UpdateDiscoveryEntry called with invalid mac: %s\n", mac)
+		return
 	}
 
 	// Check if either the IPv4 or MAC address was valid

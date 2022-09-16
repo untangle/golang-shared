@@ -3,6 +3,7 @@ package connectiondetailer
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"os/exec"
 
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
@@ -100,7 +101,7 @@ func (connTrackerDetails *ConnTrackerDetails) getConnections() ([]*Discoverd.Con
 
 	// Fail early if the XML provided by the conntrack command could not be read
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("conntracker: failed to run conntrack command: %w", err)
 	}
 
 	//connections := make([]*Discoverd.ConnectionTracking, len(connTracker.Flows))

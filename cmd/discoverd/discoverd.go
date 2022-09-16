@@ -14,7 +14,6 @@ import (
 
 	"github.com/untangle/discoverd/plugins/arp"
 	"github.com/untangle/discoverd/plugins/connectiontracking"
-	"github.com/untangle/discoverd/plugins/connectiontracking/connectiondetailer"
 	"github.com/untangle/discoverd/plugins/lldp"
 	"github.com/untangle/discoverd/plugins/nmap"
 	"github.com/untangle/discoverd/services/discovery"
@@ -27,8 +26,6 @@ var shutdownFlag uint32
 var shutdownChannel = make(chan bool)
 var cpuProfileFilename = ""
 var cpuProfiler *profiler.CPUProfiler
-
-var connectionTracking *connectiontracking.ConnnectionTracking
 
 /* main function for discoverd */
 func main() {
@@ -64,7 +61,6 @@ func main() {
 	// Start services
 	startServices()
 
-	initializePlugins()
 	startPlugins()
 
 	// Handle the stop signals
@@ -102,22 +98,17 @@ func stopServices() {
 	example.Shutdown()
 }
 
-func initializePlugins() {
-	connectionTracking = connectiontracking.NewConnectionTracking(new(connectiondetailer.ConnTrackerDetails))
-}
-
 func startPlugins() {
 	arp.Start()
 	lldp.Start()
 	nmap.Start()
-	connectionTracking.Start()
+	connectiontracking.Start()
 }
 
 func stopPlugins() {
 	arp.Stop()
 	lldp.Stop()
 	nmap.Stop()
-	connectionTracking.Stop()
 }
 
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */

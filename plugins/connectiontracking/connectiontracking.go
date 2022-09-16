@@ -17,19 +17,25 @@ func NewConnectionTracking(connectionDetailer connectiondetailer.ConnectionDetai
 }
 
 // Starts the Conntrack collector
-func (connectionTracking *ConnnectionTracking) Start() {
+func Start() {
 	logger.Info("Starting Conntrack collector plugin\n")
-	discovery.RegisterCollector(connectionTracking.ConnectionTrackingBackHandler)
+	discovery.RegisterCollector(ConnectionTrackingBackHandler)
 
 	// initial run
-	connectionTracking.ConnectionTrackingBackHandler(nil)
+	ConnectionTrackingBackHandler(nil)
 }
 
-// Stops Conntrack collector
-func (connectionTracking *ConnnectionTracking) Stop() {
+var connectionTracking *ConnnectionTracking
+
+// Used to swap which detailer will be used to gather connection info depending on which
+// OS is being used. There is only one detailer created at the moment. Update when more
+// are added to differentiate between EOS and openWRT
+func init() {
+	connectionTracking = NewConnectionTracking(new(connectiondetailer.ConnTrackerDetails))
 }
 
-func (connectionTracking *ConnnectionTracking) ConnectionTrackingBackHandler(commands []discovery.Command) {
+// ConnectionTrackingBackHandler is the callback handler for the connection tracker collector.
+func ConnectionTrackingBackHandler(commands []discovery.Command) {
 	logger.Debug("ConnectionTracking callback handler: Received %d commands\n", len(commands))
 
 	if fetchErr := connectionTracking.connectionDetails.FetchSystemConnections(); fetchErr == nil {
