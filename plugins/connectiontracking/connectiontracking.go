@@ -39,10 +39,7 @@ func (connectionTracking *ConnnectionTracking) ConnectionTrackingBackHandler(com
 				entry.IPv4Address = device
 				entry.Connections = connections
 
-				// Discovery entries can only be linked up by mac/ipv4, but the mac address can't be retrieved here.
-				// UpdateDiscoveryEntry() will add the connections list for a device if it already exists.
-				// The device's pre-existing connection list will be overwritten, since dead connections should be removed
-				discovery.UpdateDiscoveryEntry("", entry)
+				discovery.UpdateDiscoveryEntry("", &entry)
 
 				logger.Debug("Created connection details for device with IPv4 address: %d\n", device)
 			}
