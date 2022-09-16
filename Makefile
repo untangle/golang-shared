@@ -20,8 +20,8 @@ endif
 LOG_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(GREEN)$(1)$(NC)
 WARN_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(YELLOW)$(1)$(NC)
 
-all: lint build
-build: modules
+all: build lint
+build:
 	$(call LOG_FUNCTION,"Compiling protocol buffers...")
 	rm -rf structs/protocolbuffers/*
 	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*

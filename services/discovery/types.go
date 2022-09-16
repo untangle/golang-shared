@@ -133,6 +133,7 @@ func (n *DeviceEntry) Init() {
 	n.Lldp = nil
 	n.Arp = nil
 	n.Nmap = nil
+	n.Connections = nil
 }
 
 // Merge fills the relevant fields of n that are not present with ones
@@ -156,9 +157,16 @@ func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 	if n.LastUpdate < newEntry.LastUpdate {
 		n.LastUpdate = newEntry.LastUpdate
 	}
+
+	// Since connections change on a device over time, overwrite the original ConnectionTracking entry
+	// If one was sent in for the merge
+	if newEntry.Connections != nil {
+		n.Connections = newEntry.Connections
+	}
 }
 
 // SetMac sets the mac address of the device entry. It 'normalizes' it.
 func (n *DeviceEntry) SetMac(mac string) {
 	n.MacAddress = strings.ToLower(mac)
+
 }
