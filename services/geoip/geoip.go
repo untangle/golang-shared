@@ -261,7 +261,7 @@ func (db *MaxMindGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 		if countryFromCache, ok := db.databaseCache.Get(ip.String()); ok {
 			retCountryCode = countryFromCache.(*geoip2.Country).Country.IsoCode
 			retOk = true
-
+			logger.Info(" Entrt found in cache, IP: %s, country code %v,\n",ip.String(),retCountryCode )
 			// Lookup country code in the database if a cache miss occurs. Update cache
 			// with the retrieved value
 		} else if countryFromDb, err := db.geoDatabaseReader.Country(ip); err == nil {
@@ -269,6 +269,7 @@ func (db *MaxMindGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 				db.databaseCache.Put(ip.String(), countryFromDb)
 
 				retCountryCode = countryFromDb.Country.IsoCode
+				logger.Info("Fresh lookup, IP: %s, country code %v,\n",ip.String(),retCountryCode )
 				retOk = true
 			}
 		}
