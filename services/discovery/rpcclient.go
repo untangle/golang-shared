@@ -40,20 +40,3 @@ func RequestHostScan(args disco.NmapRequest) {
 		logger.Err("Failed to call DiscoveryRPCService.ScanHost %s\n", err.Error())
 	}
 }
-
-// RequestAllEntries is a stub for the RPC call
-func RequestAllEntries() {
-	logger.Info("Requesting all entries\n")
-	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
-	if err != nil {
-		logger.Err("Failed to connect to discovery service: %s\n", err.Error())
-		return
-	}
-	defer client.Close()
-
-	var reply disco.NmapResponse
-	err = client.Call("DiscoveryRPCService.RequestAllEntries", 0, &reply)
-	if err != nil {
-		logger.Err("Failed to call DiscoveryRPCService.RequestAllEntries %s\n", err.Error())
-	}
-}

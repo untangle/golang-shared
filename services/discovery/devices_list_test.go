@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -98,7 +99,6 @@ func (suite *DeviceListTestSuite) TestListing() {
 			description:      "There are no devices in the list that have an update time within 20 minutes and are not local.",
 		},
 	}
-
 	// duplicate the tests for concurrent testing.
 	testsDuplicated := append(tests, tests...)
 	testsDuplicated = append(testsDuplicated, tests...)
@@ -138,6 +138,78 @@ func (suite *DeviceListTestSuite) TestListing() {
 		}()
 	}
 	wg.Wait()
+}
+
+// TestMerge tests the merge and add funcionality. We test that
+// concurrent merges are okay and that we actually do merge undefined
+// or newer fields.
+func (suite *DeviceListTestSuite) TestMerge() {
+	type newAndOldPair struct {
+		old         *DeviceEntry
+		new         *DeviceEntry
+		expectedMac string
+		expectedIP  string
+	}
+	deviceTests := []newAndOldPair{}
+	i := 0
+	for _, v := range suite.devicesTable.Devices {
+		newEntry := &DeviceEntry{
+			DiscoveryEntry: disco.DiscoveryEntry{
+				IPv4Address: v.IPv4Address,
+				MacAddress:  v.MacAddress,
+				LastUpdate:  v.LastUpdate + 1,
+			},
+		}
+		testSpec := newAndOldPair{
+			old:         v,
+			new:         newEntry,
+			expectedMac: v.MacAddress,
+			expectedIP:  v.IPv4Address,
+		}
+
+		if i%2 == 0 {
+			suite.createEmptyFieldsForMerge(v, newEntry)
+		}
+		i++
+		deviceTests = append(deviceTests, testSpec)
+	}
+
+	// Do the merge multiple times for each device. The invariants should stay the
+	// same.
+	deviceTests = append(deviceTests, deviceTests...)
+	wg := sync.WaitGroup{}
+	var count uint32
+	for _, devTest := range deviceTests {
+		wg.Add(1)
+		go func(pair newAndOldPair) {
+			defer wg.Done()
+			suite.devicesTable.MergeOrAddDeviceEntry(pair.new,
+				func() {
+					// assert that we put this entry in the table.
+					mapEntry := suite.devicesTable.Devices[pair.expectedMac]
+					suite.Same(mapEntry, pair.new)
+					suite.Equal(mapEntry.LastUpdate, pair.new.LastUpdate)
+					suite.Equal(mapEntry.IPv4Address, pair.expectedIP)
+					suite.Equal(mapEntry.MacAddress, pair.expectedMac)
+					atomic.AddUint32(&count, 1)
+				})
+
+		}(devTest)
+	}
+	wg.Wait()
+	suite.Equal(count, uint32(len(deviceTests)))
+
+}
+
+// Here we make sure the merge logic is tested by deleting some fields
+// to make sure that they get filled in after the merge.
+func (suite *DeviceListTestSuite) createEmptyFieldsForMerge(oldDevice *DeviceEntry, newDevice *DeviceEntry) {
+	if newDevice.MacAddress != "" {
+		newDevice.IPv4Address = ""
+	} else if newDevice.IPv4Address != "" {
+		oldDevice.IPv4Address = ""
+		newDevice.MacAddress = ""
+	}
 }
 
 // TestMarshallingList tests that we can marshal a list of devices

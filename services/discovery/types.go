@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -8,6 +9,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// DeviceEntry represents a device found via discovery and methods on
+// it. Mostly used as a key of DevicesList.
 type DeviceEntry struct {
 	disco.DiscoveryEntry
 }
@@ -17,6 +20,13 @@ type DeviceEntry struct {
 type DevicesList struct {
 	Devices map[string]*DeviceEntry
 	Lock    sync.RWMutex
+}
+
+// NewDevicesList returns a new DevicesList which is ready for use.
+func NewDevicesList() *DevicesList {
+	return &DevicesList{
+		Devices: map[string]*DeviceEntry{},
+	}
 }
 
 // ListPredicate is a function that when applied to an entry returns
@@ -71,19 +81,49 @@ func (list *DevicesList) ApplyToDeviceList(
 	return doToList(listOfDevs)
 }
 
-// GetDeviceEntryFromIP returns a device entry in the list with IP
+// getDeviceFromIPUnsafe gets a device in the table by IP address.
+func (list *DevicesList) getDeviceFromIPUnsafe(ip string) *DeviceEntry {
+	for _, entry := range list.Devices {
+		if entry.IPv4Address == ip {
+			return entry
+		}
+	}
+	return nil
+}
+
+// GetDeviceEntryFromIP returns a copy of a device entry in the list with IP
 // address ip. *Currently only works with ipv4*.
 func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	list.Lock.RLock()
 	defer list.Lock.RUnlock()
-
-	for _, entry := range list.Devices {
-		if entry.IPv4Address == ip {
-			cloned := proto.Clone(&entry.DiscoveryEntry)
-			return cloned.(*disco.DiscoveryEntry)
-		}
+	if entry := list.getDeviceFromIPUnsafe(ip); entry != nil {
+		cloned := proto.Clone(&entry.DiscoveryEntry)
+		return cloned.(*disco.DiscoveryEntry)
 	}
 	return nil
+}
+
+// MergeOrAddDeviceEntry merges the new entry if an entry can be found
+// that corresponds to the same MAC or IP. If none can be found, we
+// put the new entry in the table. The provided callback function is
+// called after everything is merged but before the lock is
+// released. This can allow you to clone/copy the merged device.
+func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
+	list.Lock.Lock()
+	defer list.Lock.Unlock()
+	if entry.MacAddress == "" && entry.IPv4Address != "" {
+		if found := list.getDeviceFromIPUnsafe(entry.IPv4Address); found != nil {
+			entry.Merge(found)
+		} else {
+			return
+		}
+	} else if entry.MacAddress == "" {
+		return
+	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
+		entry.Merge(oldEntry)
+	}
+	list.Devices[entry.MacAddress] = entry
+	callback()
 }
 
 // Init initialize a new DeviceEntry
@@ -95,17 +135,30 @@ func (n *DeviceEntry) Init() {
 	n.Nmap = nil
 }
 
-func (n *DeviceEntry) Merge(o *DeviceEntry) {
+// Merge fills the relevant fields of n that are not present with ones
+// of newEntry that are.
+func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 	if n.IPv4Address == "" {
-		n.IPv4Address = o.IPv4Address
+		n.IPv4Address = newEntry.IPv4Address
+	}
+	if n.MacAddress == "" {
+		n.MacAddress = newEntry.MacAddress
 	}
 	if n.Lldp == nil {
-		n.Lldp = o.Lldp
+		n.Lldp = newEntry.Lldp
 	}
 	if n.Arp == nil {
-		n.Arp = o.Arp
+		n.Arp = newEntry.Arp
 	}
 	if n.Nmap == nil {
-		n.Nmap = o.Nmap
+		n.Nmap = newEntry.Nmap
 	}
+	if n.LastUpdate < newEntry.LastUpdate {
+		n.LastUpdate = newEntry.LastUpdate
+	}
+}
+
+// SetMac sets the mac address of the device entry. It 'normalizes' it.
+func (n *DeviceEntry) SetMac(mac string) {
+	n.MacAddress = strings.ToLower(mac)
 }
