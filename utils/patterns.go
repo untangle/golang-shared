@@ -25,3 +25,9 @@ func IsMacAddress(addr string) bool {
 	didMatch, err := regexp.MatchString(fullRegex, addr)
 	return didMatch && err == nil
 }
+
+func IsIpv4Address(addr string) bool {
+	fullRegex := `^` + IPv4Regex + `$`
+	didMatch, err := regexp.MatchString(fullRegex, addr)
+	return didMatch && err == nil
+}

@@ -11,6 +11,7 @@ type ConnnectionTracking struct {
 	connectionDetails connectiondetailer.ConnectionDetailer
 }
 
+// Returns a new ConnectionTracking struct
 func NewConnectionTracking(connectionDetailer connectiondetailer.ConnectionDetailer) *ConnnectionTracking {
 	return &ConnnectionTracking{connectionDetails: connectionDetailer}
 }
@@ -41,7 +42,7 @@ func (connectionTracking *ConnnectionTracking) ConnectionTrackingBackHandler(com
 
 				discovery.UpdateDiscoveryEntry("", &entry)
 
-				logger.Debug("Created connection details for device with IPv4 address: %d\n", device)
+				logger.Debug("Created connection details for device with IPv4 address: %s\n", device)
 			}
 		} else {
 			logger.Err("Couldn't get the connection list: %s", getErr.Error())
