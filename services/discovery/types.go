@@ -135,24 +135,26 @@ func (n *DeviceEntry) Init() {
 	n.Nmap = nil
 }
 
-func (n *DeviceEntry) Merge(o *DeviceEntry) {
+// Merge fills the relevant fields of n that are not present with ones
+// of newEntry that are.
+func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 	if n.IPv4Address == "" {
-		n.IPv4Address = o.IPv4Address
+		n.IPv4Address = newEntry.IPv4Address
 	}
 	if n.MacAddress == "" {
-		n.MacAddress = o.MacAddress
+		n.MacAddress = newEntry.MacAddress
 	}
 	if n.Lldp == nil {
-		n.Lldp = o.Lldp
+		n.Lldp = newEntry.Lldp
 	}
 	if n.Arp == nil {
-		n.Arp = o.Arp
+		n.Arp = newEntry.Arp
 	}
 	if n.Nmap == nil {
-		n.Nmap = o.Nmap
+		n.Nmap = newEntry.Nmap
 	}
-	if n.LastUpdate < o.LastUpdate {
-		n.LastUpdate = o.LastUpdate
+	if n.LastUpdate < newEntry.LastUpdate {
+		n.LastUpdate = newEntry.LastUpdate
 	}
 }
 
