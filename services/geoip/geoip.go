@@ -271,6 +271,8 @@ func (db *MaxMindGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 				retCountryCode = countryFromDb.Country.IsoCode
 				logger.Info("Fresh lookup, IP: %s, country code %v,\n",ip.String(),retCountryCode )
 				retOk = true
+			}else {
+				logger.Info("country code is empty err %v,\n",err )
 			}
 		}
 	} else {
