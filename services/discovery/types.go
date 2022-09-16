@@ -145,9 +145,6 @@ func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 	if n.MacAddress == "" {
 		n.MacAddress = newEntry.MacAddress
 	}
-	if n.MacAddress == "" {
-		n.MacAddress = o.MacAddress
-	}
 	if n.Lldp == nil {
 		n.Lldp = newEntry.Lldp
 	}
@@ -163,12 +160,8 @@ func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 
 	// Since connections change on a device over time, overwrite the original ConnectionTracking entry
 	// If one was sent in for the merge
-	if o.Connections != nil {
-		n.Connections = o.Connections
-	}
-
-	if n.LastUpdate < o.LastUpdate {
-		n.LastUpdate = o.LastUpdate
+	if newEntry.Connections != nil {
+		n.Connections = newEntry.Connections
 	}
 }
 
@@ -176,9 +169,4 @@ func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 func (n *DeviceEntry) SetMac(mac string) {
 	n.MacAddress = strings.ToLower(mac)
 
-}
-
-// SetMac sets the mac address of the device entry. It 'normalizes' it.
-func (n *DeviceEntry) SetMac(mac string) {
-	n.MacAddress = strings.ToLower(mac)
 }
