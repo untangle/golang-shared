@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/golang/protobuf v1.5.2
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pebbe/zmq4 v1.2.9
 	github.com/r3labs/diff/v2 v2.15.1
 	github.com/stretchr/testify v1.5.1
