@@ -31,6 +31,7 @@ message DiscoveryEntry {
     LLDP lldp = 10;
     ARP arp = 11;
     NMAP nmap = 12;
+    repeated Connection connections = 13;
 }
 
 message LLDP {
@@ -73,4 +74,41 @@ message NMAPPorts {
      int32 port = 1;
      string protocol = 2;
      string state = 3; 
+}
+
+message Connection {
+    Independent independent = 1;
+    Reply reply = 2;
+    Original original = 3; 
+}
+
+message Independent {
+    int32 timeout = 1;
+    int64 mark = 2;
+    int32 use = 3;
+    int64 id = 4;
+}
+
+message Reply {
+    LayerThree layerThree = 1;
+    LayerFour layerFour = 2;
+}
+
+message Original {
+    LayerThree layerThree = 1;
+    LayerFour layerFour = 2;
+}
+
+message LayerThree {
+    int32 protonum = 1;
+    string protoname = 2;
+    string src = 3;
+    string dst = 4;
+}
+
+message LayerFour {
+    int32 protonum = 1;
+    string protoname = 2;
+    int32 sPort = 3;
+    int32 dPort = 4;
 }
