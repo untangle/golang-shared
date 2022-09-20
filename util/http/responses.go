@@ -95,6 +95,7 @@ func (okay *OkayResponse) UnmarshalResult(result interface{}) error {
 		TagName:     "json",
 		Result:      result,
 		ErrorUnused: true,
+		Squash:      true,
 	}
 	decoder, err := mapstructure.NewDecoder(&decoderConfig)
 	if err != nil {
