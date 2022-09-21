@@ -3,7 +3,9 @@ module github.com/untangle/golang-shared
 go 1.12
 
 require (
-	github.com/golang/protobuf v1.5.2 // indirect
+
+	github.com/golang/protobuf v1.5.2
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oschwald/geoip2-golang v1.8.0
 	github.com/pebbe/zmq4 v1.2.9
 	github.com/r3labs/diff/v2 v2.15.1
