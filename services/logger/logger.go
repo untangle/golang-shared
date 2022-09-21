@@ -26,6 +26,12 @@ type Config struct {
 	OutputWriter io.Writer
 }
 
+// Ocname struct retains information about the counter name and limit
+type Ocname struct {
+	name  string
+	limit int64
+}
+
 var config Config
 
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
@@ -91,7 +97,7 @@ func Shutdown() {
 
 // Emerg is called for log level EMERG messages
 func Emerg(format string, args ...interface{}) {
-	logMessage(LogLevelEmerg, format, args...)
+	logMessage(LogLevelEmerg, format, Ocname{"", 0}, args...)
 }
 
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
@@ -101,7 +107,7 @@ func IsEmergEnabled() bool {
 
 // Alert is called for log level ALERT messages
 func Alert(format string, args ...interface{}) {
-	logMessage(LogLevelAlert, format, args...)
+	logMessage(LogLevelAlert, format, Ocname{"", 0}, args...)
 }
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
@@ -111,7 +117,7 @@ func IsAlertEnabled() bool {
 
 // Crit is called for log level CRIT messages
 func Crit(format string, args ...interface{}) {
-	logMessage(LogLevelCrit, format, args...)
+	logMessage(LogLevelCrit, format, Ocname{"", 0}, args...)
 }
 
 // IsCritEnabled returns true if CRIT logging is enable for the caller
@@ -121,7 +127,7 @@ func IsCritEnabled() bool {
 
 // Err is called for log level ERR messages
 func Err(format string, args ...interface{}) {
-	logMessage(LogLevelErr, format, args...)
+	logMessage(LogLevelErr, format, Ocname{"", 0}, args...)
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
@@ -131,7 +137,7 @@ func IsErrEnabled() bool {
 
 // Warn is called for log level WARNING messages
 func Warn(format string, args ...interface{}) {
-	logMessage(LogLevelWarn, format, args...)
+	logMessage(LogLevelWarn, format, Ocname{"", 0}, args...)
 }
 
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
@@ -141,7 +147,7 @@ func IsWarnEnabled() bool {
 
 // Notice is called for log level NOTICE messages
 func Notice(format string, args ...interface{}) {
-	logMessage(LogLevelNotice, format, args...)
+	logMessage(LogLevelNotice, format, Ocname{"", 0}, args...)
 }
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
@@ -151,7 +157,7 @@ func IsNoticeEnabled() bool {
 
 // Info is called for log level INFO messages
 func Info(format string, args ...interface{}) {
-	logMessage(LogLevelInfo, format, args...)
+	logMessage(LogLevelInfo, format, Ocname{"", 0}, args...)
 }
 
 // IsInfoEnabled returns true if INFO logging is enable for the caller
@@ -161,7 +167,7 @@ func IsInfoEnabled() bool {
 
 // Debug is called for log level DEBUG messages
 func Debug(format string, args ...interface{}) {
-	logMessage(LogLevelDebug, format, args...)
+	logMessage(LogLevelDebug, format, Ocname{"", 0}, args...)
 }
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
@@ -171,7 +177,12 @@ func IsDebugEnabled() bool {
 
 // Trace is called for log level TRACE messages
 func Trace(format string, args ...interface{}) {
-	logMessage(LogLevelTrace, format, args...)
+	logMessage(LogLevelTrace, format, Ocname{"", 0}, args...)
+}
+
+// OCTrace is called for overseer messages
+func OCTrace(format string, newOcname Ocname, args ...interface{}) {
+	logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
@@ -191,7 +202,7 @@ func LogMessageSource(level int32, source string, format string, args ...interfa
 	if len(args) == 0 {
 		fmt.Printf("%s%-6s %18s: %s", getPrefix(), logLevelName[level], source, format)
 	} else {
-		buffer := logFormatter(format, args...)
+		buffer := logFormatter(format, Ocname{"", 0}, args...)
 		if len(buffer) == 0 {
 			return
 		}
@@ -270,54 +281,21 @@ func getLogLevel(packageName string, functionName string) int32 {
 
 // logFormatter creats a log message using the format and arguments provided
 // We look for and handle special format verbs that trigger additional processing
-func logFormatter(format string, args ...interface{}) string {
-	// if we find the overseer counter verb the first argument is the counter name
-	// the second is the log repeat limit value and the rest go to the formatter
-	if strings.HasPrefix(format, "%OC|") {
-		var ocname string
-		var limit int64
+func logFormatter(format string, newOcname Ocname, args ...interface{}) string {
 
-		// make sure we have at least two arguments
-		if len(args) < 2 {
-			return fmt.Sprintf("ERROR: logFormatter OC verb missing arguments:%s", format)
-		}
+	total := overseer.AddCounter(newOcname.name, 1)
 
-		// make sure the first argument is string
-		switch args[0].(type) {
-		case string:
-			ocname = args[0].(string)
-		default:
-			return fmt.Sprintf("ERROR: logFormatter OC verb args[0] not string:%s", format)
-		}
+	// only format the message on the first and every nnn messages thereafter
+	// or if limit is zero which means no limit on logging
+	if total == 1 || newOcname.limit == 0 || (total%newOcname.limit) == 0 {
+		// if there are only two arguments everything after the verb is the message
 
-		// make sure the second argument is int
-		switch args[1].(type) {
-		case int:
-			limit = int64(args[1].(int))
-		default:
-			return fmt.Sprintf("ERROR: logFormatter OC verb args[1] not int:%s", format)
-		}
-
-		total := overseer.AddCounter(ocname, 1)
-
-		// only format the message on the first and every nnn messages thereafter
-		// or if limit is zero which means no limit on logging
-		if total == 1 || limit == 0 || (total%limit) == 0 {
-			// if there are only two arguments everything after the verb is the message
-			if len(args) == 2 {
-				return format[4:]
-			}
-
-			// more than two arguments so use the remaining format and arguments
-			return fmt.Sprintf(format[4:], args[2:]...)
-		}
-
-		// return empty string when a repeat is limited
-		return ""
+		// more than two arguments so use the remaining format and arguments
+		buffer := fmt.Sprintf(format, args...)
+		return buffer
 	}
-
-	buffer := fmt.Sprintf(format, args...)
-	return buffer
+	// return empty string when a repeat is limited
+	return ""
 }
 
 // isLogEnabled returns true if logging is enabled for the caller at the specified level, false otherwise
@@ -333,17 +311,29 @@ func isLogEnabled(level int32) bool {
 }
 
 // logMessage is called to write messages to the system log
-func logMessage(level int32, format string, args ...interface{}) {
+func logMessage(level int32, format string, newOcname Ocname, args ...interface{}) {
 	_, _, packageName, functionName := findCallingFunction()
 
 	if level > getLogLevel(packageName, functionName) {
 		return
 	}
 
+	// Make sure we have struct variables populated
+	if (newOcname == Ocname{}) {
+		fmt.Printf("ERROR: logFormatter OC verb missing arguments:%s", format)
+		return
+	} else { //Handle %OC
+		buffer := logFormatter(format, newOcname, args...)
+		if len(buffer) == 0 {
+			return
+		}
+		fmt.Printf("%s%-6s %18s: %s", getPrefix(), logLevelName[level], packageName, buffer)
+	}
+
 	if len(args) == 0 {
 		fmt.Printf("%s%-6s %18s: %s", getPrefix(), logLevelName[level], packageName, format)
 	} else {
-		buffer := logFormatter(format, args...)
+		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
