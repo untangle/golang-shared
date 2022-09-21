@@ -35,6 +35,8 @@ func (e *ErrorResponse) Error() string {
 	return fmt.Sprintf("http response error, type: %s, messages: %+v", e.Type, msgString)
 }
 
+// ToApiError given error will return the ErrorResponse that
+// implements err if it is an ErrorResponse, nil otherwise.
 func ToApiError(err error) *ErrorResponse {
 	switch e := err.(type) {
 	case *ErrorResponse:
@@ -44,6 +46,7 @@ func ToApiError(err error) *ErrorResponse {
 	}
 }
 
+// IsApiError -- return true if err is/has an *ErrorResponse.
 func IsApiError(err error) bool {
 	return ToApiError(err) != nil
 }
