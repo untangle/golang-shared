@@ -79,7 +79,8 @@ message NMAPPorts {
 message Connection {
     Independent independent = 1;
     Reply reply = 2;
-    Original original = 3; 
+    Original original = 3;
+    int64 LastUpdate = 4; 
 }
 
 message Independent {
