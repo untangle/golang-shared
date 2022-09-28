@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/discoverd/utils"
@@ -121,8 +122,9 @@ func (scanner *arpScanner) scanLineForEntries(line []byte) {
 				MacAddress:  mac,
 				IPv4Address: ip,
 				Arp: &disco_proto.ARP{
-					Ip:  ip,
-					Mac: mac,
+					Ip:         ip,
+					Mac:        mac,
+					LastUpdate: time.Now().Unix(),
 				},
 			},
 		})

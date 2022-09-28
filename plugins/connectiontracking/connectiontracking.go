@@ -1,10 +1,13 @@
 package connectiontracking
 
 import (
+	"time"
+
 	"github.com/untangle/discoverd/plugins/connectiontracking/connectiondetailer"
 	"github.com/untangle/discoverd/services/discovery"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
 type ConnnectionTracking struct {
@@ -44,10 +47,11 @@ func ConnectionTrackingBackHandler(commands []discovery.Command) {
 				entry := disc.DeviceEntry{}
 				entry.Init()
 				entry.IPv4Address = device
-				entry.Connections = connections
-
+				Conn := &Discoverd.Connections{}
+				Conn.Connections = connections
+				Conn.LastUpdate = time.Now().Unix()
+				entry.Connections = Conn
 				discovery.UpdateDiscoveryEntry("", &entry)
-
 				logger.Debug("Created connection details for device with IPv4 address: %s\n", device)
 			}
 		} else {
