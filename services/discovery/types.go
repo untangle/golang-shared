@@ -4,7 +4,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-
+	
+	"github.com/untangle/golang-shared/services/logger"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -50,6 +51,29 @@ func (list *DevicesList) PutDevice(entry *DeviceEntry) {
 	defer list.Lock.Unlock()
 	list.Devices[entry.MacAddress] = entry
 }
+
+func (list *DevicesList) CleanOldDeviceEntry(preds ...ListPredicate) {
+	list.Lock.Lock()
+	defer list.Lock.Unlock()
+	listOfDevs := list.listDevices(preds...)
+	list.CleanDevices(listOfDevs)
+}
+func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
+
+	for _, device := range devices {
+		delete(list.Devices, device.MacAddress)
+		logger.Info("Deleted entry %s\n", device.MacAddress)
+	}
+
+}
+func LastUpdatesWithinDuration(period time.Duration) ListPredicate {
+	return func(entry *DeviceEntry) bool {
+		lastUpdated := time.Unix(entry.Connections.LastUpdate, 0)
+		now := time.Now()
+		return (now.Sub(lastUpdated) <= period)
+	}
+}
+
 
 // listDevices returns a list of devices matching all predicates. It
 // doesn't do anything with locks so without the outer function
