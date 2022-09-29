@@ -31,7 +31,7 @@ message DiscoveryEntry {
     LLDP lldp = 10;
     ARP arp = 11;
     NMAP nmap = 12;
-    repeated Connection connections = 13;
+    Connections connections = 13;
 }
 
 message LLDP {
@@ -49,6 +49,7 @@ message LLDP {
         string inventoryAssetTag = 9;
         string inventoryModel = 10;
         string inventoryVendor = 11;
+    	int64 LastUpdate = 12; 
 }
 
 message LLDPCapabilities {
@@ -59,6 +60,7 @@ message LLDPCapabilities {
 message ARP {
      string ip = 1;
      string mac = 2;
+     int64 LastUpdate = 3; 
 }
 
 message NMAP {
@@ -68,6 +70,7 @@ message NMAP {
     string lastBoot = 4;
     string os = 5;
     repeated NMAPPorts openPorts = 6;
+    int64 LastUpdate = 7; 
 }
 
 message NMAPPorts {
@@ -76,11 +79,17 @@ message NMAPPorts {
      string state = 3; 
 }
 
+message Connections {
+    repeated Connection connections = 1;
+    int64 LastUpdate = 2; 
+}
+
 message Connection {
     Independent independent = 1;
     Reply reply = 2;
-    Original original = 3; 
+    Original original = 3;
 }
+
 
 message Independent {
     int32 timeout = 1;
