@@ -289,6 +289,7 @@ func processScan(output []byte) {
 			logger.Debug("> Open Ports: n/a\n")
 		}
 		entry.MacAddress = mac
+		entry.Nmap.LastUpdate = time.Now().Unix()
 		discovery.UpdateDiscoveryEntry(mac, entry)
 	}
 }

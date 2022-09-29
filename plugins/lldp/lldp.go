@@ -3,6 +3,7 @@ package lldp
 import (
 	"encoding/json"
 	"os/exec"
+	"time"
 
 	"github.com/untangle/discoverd/services/discovery"
 	disc "github.com/untangle/golang-shared/services/discovery"
@@ -169,6 +170,7 @@ func LldpcallBackHandler(commands []discovery.Command) {
 				}
 			}
 		}
+		entry.Lldp.LastUpdate = time.Now().Unix()
 
 		if mac != "" {
 			entry.MacAddress = mac
