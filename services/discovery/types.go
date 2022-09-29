@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-	
+
 	"github.com/untangle/golang-shared/services/logger"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
@@ -58,6 +58,7 @@ func (list *DevicesList) CleanOldDeviceEntry(preds ...ListPredicate) {
 	listOfDevs := list.listDevices(preds...)
 	list.CleanDevices(listOfDevs)
 }
+
 func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 
 	for _, device := range devices {
@@ -66,14 +67,27 @@ func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 	}
 
 }
+
 func LastUpdatesWithinDuration(period time.Duration) ListPredicate {
 	return func(entry *DeviceEntry) bool {
-		lastUpdated := time.Unix(entry.Connections.LastUpdate, 0)
+		//lastUpdated := time.Unix(entry.Connections.LastUpdate, 0)
+		if entry.Connections != nil {
+			logger.Info("entry.Connections.LastUpdate %s\n", entry.Connections.LastUpdate)
+		}
+		if entry.Arp != nil {
+			logger.Info("entry.Arp.LastUpdate %s\n", entry.Arp.LastUpdate)
+		}
+		if entry.Nmap != nil {
+			logger.Info("entry.Nmap.LastUpdate %s\n", entry.Nmap.LastUpdate)
+		}
+		if entry.Lldp != nil {
+			logger.Info("entry.Lldp.LastUpdate %s\n", entry.Lldp.LastUpdate)
+		}
+		lastUpdated := time.Unix(entry.LastUpdate, 0)
 		now := time.Now()
 		return (now.Sub(lastUpdated) <= period)
 	}
 }
-
 
 // listDevices returns a list of devices matching all predicates. It
 // doesn't do anything with locks so without the outer function
