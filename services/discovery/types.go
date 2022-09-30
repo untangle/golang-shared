@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
-
 	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
