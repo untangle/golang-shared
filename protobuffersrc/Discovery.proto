@@ -6,7 +6,7 @@ option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/D
 
 enum ResponseCode {
     UNKNOWN = 0;
-    OK = 1;
+   OK = 1;
     ERROR = 2;
     INVALID_REQUEST = 3;
 };
@@ -31,7 +31,6 @@ message DiscoveryEntry {
     LLDP lldp = 10;
     ARP arp = 11;
     NMAP nmap = 12;
-    repeated Connection connections = 13;
 }
 
 message LLDP {
@@ -76,11 +75,6 @@ message NMAPPorts {
      string state = 3; 
 }
 
-message Connection {
-    Independent independent = 1;
-    Reply reply = 2;
-    Original original = 3; 
-}
 
 message Independent {
     int32 timeout = 1;
