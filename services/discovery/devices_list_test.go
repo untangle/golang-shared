@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -21,11 +23,13 @@ type DeviceListTestSuite struct {
 	mac2         string
 	mac3         string
 	mac4         string
-	devicesTable *DevicesList
+	devicesTable map[string]*DeviceEntry
 	now          time.Time
 	oneHourAgo   time.Time
 	halfHourAgo  time.Time
 	aDayago      time.Time
+
+	deviceList *DevicesList
 }
 
 // SetupTest just populates the device table.
@@ -38,28 +42,30 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	suite.mac2 = "00:11:22:33:44:66"
 	suite.mac3 = "00:11:33:44:55:66"
 	suite.mac4 = "00:aa:bb:cc:dd:ee"
-	suite.devicesTable = &DevicesList{
-		Devices: map[string]*DeviceEntry{
-			suite.mac1: {disco.DiscoveryEntry{
-				MacAddress:  suite.mac1,
-				LastUpdate:  suite.oneHourAgo.Unix(),
-				IPv4Address: "192.168.56.1",
-			}},
-			suite.mac2: {disco.DiscoveryEntry{
-				MacAddress:  suite.mac2,
-				LastUpdate:  suite.halfHourAgo.Unix(),
-				IPv4Address: "192.168.56.2",
-			}},
-			suite.mac3: {disco.DiscoveryEntry{
-				MacAddress:  suite.mac3,
-				LastUpdate:  suite.halfHourAgo.Unix(),
-				IPv4Address: "192.168.56.3",
-			}},
-			suite.mac4: {disco.DiscoveryEntry{
-				MacAddress: suite.mac4,
-				LastUpdate: suite.aDayago.Unix(),
-			}},
-		},
+	suite.devicesTable = map[string]*DeviceEntry{
+		suite.mac1: {DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress:  suite.mac1,
+			LastUpdate:  suite.oneHourAgo.Unix(),
+			IPv4Address: "192.168.56.1",
+		}},
+		suite.mac2: {DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress:  suite.mac2,
+			LastUpdate:  suite.halfHourAgo.Unix(),
+			IPv4Address: "192.168.56.2",
+		}},
+		suite.mac3: {DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress:  suite.mac3,
+			LastUpdate:  suite.halfHourAgo.Unix(),
+			IPv4Address: "192.168.56.3",
+		}},
+		suite.mac4: {DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress: suite.mac4,
+			LastUpdate: suite.aDayago.Unix(),
+		}},
+	}
+	suite.deviceList = NewDevicesList()
+	for _, entry := range suite.devicesTable {
+		suite.deviceList.PutDevice(entry)
 	}
 }
 
@@ -126,13 +132,13 @@ func (suite *DeviceListTestSuite) TestListing() {
 		// in an outer scope and repeatedly overwritten.
 		localTest := &testsDuplicated[i]
 		go func() {
-			theListIface, err := suite.devicesTable.ApplyToDeviceList(cloneDevs, localTest.predicates...)
+			theListIface, err := suite.deviceList.ApplyToDeviceList(cloneDevs, localTest.predicates...)
 			suite.Nil(err)
 			theList := theListIface.([]*DeviceEntry)
 			assert.ElementsMatch(suite.T(), localTest.expectedListMacs, getMacs(theList), localTest.description)
 			// then re-put all devices for more assurance that this works, creating race conditions.
 			for _, entry := range theList {
-				suite.devicesTable.PutDevice(entry)
+				suite.deviceList.PutDevice(entry)
 			}
 			wg.Done()
 		}()
@@ -152,7 +158,7 @@ func (suite *DeviceListTestSuite) TestMerge() {
 	}
 	deviceTests := []newAndOldPair{}
 	i := 0
-	for _, v := range suite.devicesTable.Devices {
+	for _, v := range suite.devicesTable {
 		newEntry := &DeviceEntry{
 			DiscoveryEntry: disco.DiscoveryEntry{
 				IPv4Address: v.IPv4Address,
@@ -183,10 +189,10 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		wg.Add(1)
 		go func(pair newAndOldPair) {
 			defer wg.Done()
-			suite.devicesTable.MergeOrAddDeviceEntry(pair.new,
+			suite.deviceList.MergeOrAddDeviceEntry(pair.new,
 				func() {
 					// assert that we put this entry in the table.
-					mapEntry := suite.devicesTable.Devices[pair.expectedMac]
+					mapEntry := suite.deviceList.Devices[pair.expectedMac]
 					suite.Same(mapEntry, pair.new)
 					suite.Equal(mapEntry.LastUpdate, pair.new.LastUpdate)
 					suite.Equal(mapEntry.IPv4Address, pair.expectedIP)
@@ -216,7 +222,7 @@ func (suite *DeviceListTestSuite) createEmptyFieldsForMerge(oldDevice *DeviceEnt
 // obtained via the ApplyToDeviceList function to JSON without getting
 // an exception.
 func (suite *DeviceListTestSuite) TestMarshallingList() {
-	output, err := suite.devicesTable.ApplyToDeviceList(
+	output, err := suite.deviceList.ApplyToDeviceList(
 		func(list []*DeviceEntry) (interface{}, error) {
 			return json.Marshal(list)
 		})
@@ -225,11 +231,81 @@ func (suite *DeviceListTestSuite) TestMarshallingList() {
 	fmt.Printf("JSON string output: %s\n", string(bytes))
 }
 
+func (suite *DeviceListTestSuite) TestMergeSessions() {
+	sessions := []*ActiveSessions.Session{
+		{
+			Bytes:         10,
+			ClientBytes:   0,
+			ServerBytes:   10,
+			ClientAddress: suite.getDevIP(suite.mac1),
+		},
+		{
+			Bytes:         10,
+			ClientBytes:   0,
+			ServerBytes:   10,
+			ClientAddress: suite.getDevIP(suite.mac2),
+		},
+		{
+			Bytes:       10,
+			ClientBytes: 0,
+			ServerBytes: 10,
+		},
+	}
+	suite.deviceList.MergeSessions(sessions)
+	dev := suite.deviceList.Devices[suite.mac1]
+	suite.Equal(len(dev.sessions), 1)
+
+	suite.Equal(len(suite.deviceList.Devices[suite.mac2].sessions), 1)
+}
+
+func (suite *DeviceListTestSuite) TestDeviceMarshal() {
+	macaddr := "00:11:22:33:44:55:66"
+	ipaddr := "192.168.55.22"
+	update := 123456
+	dev := DeviceEntry{
+		DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress:  macaddr,
+			IPv4Address: ipaddr,
+			LastUpdate:  int64(update),
+		},
+		sessions: []*ActiveSessions.Session{
+			{
+				ByteRate: 11,
+				Bytes:    22,
+			},
+			{
+				ByteRate: 13,
+				Bytes:    33,
+			},
+		},
+	}
+	output, err := json.Marshal(&dev)
+	suite.Nil(err)
+	dictMarshal := map[string]interface{}{
+		"macAddress":  macaddr,
+		"IPv4Address": ipaddr,
+		"LastUpdate":  json.Number(fmt.Sprintf("%d", update)),
+		"sessionDetail": map[string]interface{}{
+			"byteTransferRate": json.Number("24"),
+			"numSessions":      json.Number("2"),
+		},
+	}
+	testDict := map[string]interface{}{}
+	decoder := json.NewDecoder(bytes.NewBuffer(output))
+	decoder.UseNumber()
+	suite.Nil(decoder.Decode(&testDict))
+	suite.Equal(dictMarshal, testDict)
+}
+
+func (suite *DeviceListTestSuite) getDevIP(mac string) string {
+	return suite.deviceList.Devices[mac].IPv4Address
+}
+
 // TestGetDevFromIP just tests that GetDeviceEntryFromIP functions as
 // indended.
 func (suite *DeviceListTestSuite) TestGetDevFromIP() {
-	dev := suite.devicesTable.Devices[suite.mac1]
-	foundDev := suite.devicesTable.GetDeviceEntryFromIP(dev.IPv4Address)
+	dev := suite.devicesTable[suite.mac1]
+	foundDev := suite.deviceList.GetDeviceEntryFromIP(dev.IPv4Address)
 	suite.True(proto.Equal(dev, foundDev))
 }
 

@@ -1,10 +1,12 @@
 package discovery
 
 import (
+	"encoding/json"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -13,19 +15,24 @@ import (
 // it. Mostly used as a key of DevicesList.
 type DeviceEntry struct {
 	disco.DiscoveryEntry
+	sessions []*ActiveSessions.Session
 }
 
 // DevicesList is an in-memory 'list' of all known devices (stored as
 // a map from mac address string to device).
 type DevicesList struct {
 	Devices map[string]*DeviceEntry
-	Lock    sync.RWMutex
+
+	// an index of the devices by IP.
+	devicesByIP map[string]*DeviceEntry
+	Lock        sync.RWMutex
 }
 
 // NewDevicesList returns a new DevicesList which is ready for use.
 func NewDevicesList() *DevicesList {
 	return &DevicesList{
-		Devices: map[string]*DeviceEntry{},
+		Devices:     map[string]*DeviceEntry{},
+		devicesByIP: map[string]*DeviceEntry{},
 	}
 }
 
@@ -45,10 +52,18 @@ func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 	}
 }
 
+// putDeviceUnsafe puts the device in the list without locking it.
+func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
+	list.Devices[entry.MacAddress] = entry
+	if entry.IPv4Address != "" {
+		list.devicesByIP[entry.IPv4Address] = entry
+	}
+}
+
 func (list *DevicesList) PutDevice(entry *DeviceEntry) {
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
-	list.Devices[entry.MacAddress] = entry
+	list.putDeviceUnsafe(entry)
 }
 
 // listDevices returns a list of devices matching all predicates. It
@@ -83,12 +98,7 @@ func (list *DevicesList) ApplyToDeviceList(
 
 // getDeviceFromIPUnsafe gets a device in the table by IP address.
 func (list *DevicesList) getDeviceFromIPUnsafe(ip string) *DeviceEntry {
-	for _, entry := range list.Devices {
-		if entry.IPv4Address == ip {
-			return entry
-		}
-	}
-	return nil
+	return list.devicesByIP[ip]
 }
 
 // GetDeviceEntryFromIP returns a copy of a device entry in the list with IP
@@ -122,8 +132,20 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
 		entry.Merge(oldEntry)
 	}
-	list.Devices[entry.MacAddress] = entry
+	list.putDeviceUnsafe(entry)
 	callback()
+}
+
+// MergeSessions merges the sessions into the devices.
+func (list *DevicesList) MergeSessions(sessions []*ActiveSessions.Session) {
+	for _, device := range list.Devices {
+		device.sessions = nil
+	}
+	for _, session := range sessions {
+		if entry, ok := list.devicesByIP[session.ClientAddress]; ok {
+			entry.sessions = append(entry.sessions, session)
+		}
+	}
 }
 
 // Init initialize a new DeviceEntry
@@ -158,11 +180,29 @@ func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 		n.LastUpdate = newEntry.LastUpdate
 	}
 
-	// Since connections change on a device over time, overwrite the original ConnectionTracking entry
-	// If one was sent in for the merge
-	if newEntry.Connections != nil {
-		n.Connections = newEntry.Connections
+}
+
+type SessionDetail struct {
+	ByteTransferRate int64 `json:"byteTransferRate"`
+	NumSessions      int64 `json:"numSessions"`
+}
+
+func (n *DeviceEntry) calcSessionDetails() (output SessionDetail) {
+	for _, session := range n.sessions {
+		output.ByteTransferRate += int64(session.ByteRate)
+		output.NumSessions++
 	}
+	return
+}
+
+func (n *DeviceEntry) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		*disco.DiscoveryEntry
+		SessionDetail SessionDetail `json:"sessionDetail"`
+	}{
+		DiscoveryEntry: &n.DiscoveryEntry,
+		SessionDetail:  n.calcSessionDetails(),
+	})
 }
 
 // SetMac sets the mac address of the device entry. It 'normalizes' it.
