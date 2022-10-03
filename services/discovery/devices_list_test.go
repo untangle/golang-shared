@@ -200,7 +200,18 @@ func (suite *DeviceListTestSuite) TestMerge() {
 	suite.Equal(count, uint32(len(deviceTests)))
 }
 
-// TestBroadcast tests that we do not add in a broadcast entry.
+// Here we make sure the merge logic is tested by deleting some fields
+// to make sure that they get filled in after the merge.
+func (suite *DeviceListTestSuite) createEmptyFieldsForMerge(oldDevice *DeviceEntry, newDevice *DeviceEntry) {
+	if newDevice.MacAddress != "" {
+		newDevice.IPv4Address = ""
+	} else if newDevice.IPv4Address != "" {
+		oldDevice.IPv4Address = ""
+		newDevice.MacAddress = ""
+	}
+}
+
+// TestBroadcastInsertion tests that we do not add in a broadcast entry.
 func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 
 	var deviceList DevicesList
@@ -232,17 +243,6 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 
 	// Asssert that broadcast entry was not added.
 	suite.NotEqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
-}
-
-// Here we make sure the merge logic is tested by deleting some fields
-// to make sure that they get filled in after the merge.
-func (suite *DeviceListTestSuite) createEmptyFieldsForMerge(oldDevice *DeviceEntry, newDevice *DeviceEntry) {
-	if newDevice.MacAddress != "" {
-		newDevice.IPv4Address = ""
-	} else if newDevice.IPv4Address != "" {
-		oldDevice.IPv4Address = ""
-		newDevice.MacAddress = ""
-	}
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
