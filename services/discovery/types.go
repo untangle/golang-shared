@@ -155,7 +155,6 @@ func (n *DeviceEntry) Init() {
 	n.Lldp = nil
 	n.Arp = nil
 	n.Nmap = nil
-	n.Connections = nil
 }
 
 // Merge fills the relevant fields of n that are not present with ones
