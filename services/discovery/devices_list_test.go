@@ -242,7 +242,7 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 		})
 
 	// Asssert that broadcast entry was not added.
-	suite.NotEqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
+	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
