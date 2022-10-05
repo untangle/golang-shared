@@ -80,7 +80,7 @@ func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 
 	for _, device := range devices {
 		delete(list.Devices, device.MacAddress)
-		logger.Info("Deleted entry %s:%s\n", device.MacAddress, device.IPv4Address)
+		logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.IPv4Address)
 	}
 }
 
