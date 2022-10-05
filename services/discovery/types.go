@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -79,8 +79,10 @@ func (list *DevicesList) CleanOldDeviceEntry(preds ...ListPredicate) {
 func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 
 	for _, device := range devices {
-		delete(list.Devices, device.MacAddress)
-		logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.IPv4Address)
+		if device.IPv4Address != "" {
+			delete(list.Devices, device.MacAddress)
+			logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.IPv4Address)
+		}
 	}
 }
 
