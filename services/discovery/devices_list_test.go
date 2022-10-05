@@ -224,7 +224,7 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 	var count uint32
 	deviceList.Devices = map[string]*DeviceEntry{}
 
-	for _, entry := range suite.devicesTable.Devices {
+	for _, entry := range suite.devicesTable {
 		deviceList.Devices[entry.MacAddress] = &DeviceEntry{
 			DiscoveryEntry: disco.DiscoveryEntry{
 				IPv4Address: entry.IPv4Address,
@@ -249,7 +249,7 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 
 	// Asssert that broadcast entry was not added.
 	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
-	suite.Equal(suite.devicesTable.Devices, deviceList.Devices, "Adding broadcast discovery entry.")
+	suite.Equal(suite.devicesTable, deviceList.Devices, "Adding broadcast discovery entry.")
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
