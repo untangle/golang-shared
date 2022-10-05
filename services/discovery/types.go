@@ -79,10 +79,11 @@ func (list *DevicesList) CleanOldDeviceEntry(preds ...ListPredicate) {
 func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 
 	for _, device := range devices {
+		delete(list.Devices, device.MacAddress)
 		if device.IPv4Address != "" {
-			delete(list.Devices, device.MacAddress)
-			logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.IPv4Address)
+			delete(list.devicesByIP, device.IPv4Address)
 		}
+		logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.IPv4Address)
 	}
 }
 
