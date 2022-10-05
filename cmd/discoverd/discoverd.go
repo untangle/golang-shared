@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/arp"
-	"github.com/untangle/discoverd/plugins/connectiontracking"
 	"github.com/untangle/discoverd/plugins/lldp"
 	"github.com/untangle/discoverd/plugins/nmap"
 	"github.com/untangle/discoverd/services/discovery"
@@ -102,7 +101,6 @@ func startPlugins() {
 	arp.Start()
 	lldp.Start()
 	nmap.Start()
-	connectiontracking.Start()
 }
 
 func stopPlugins() {
@@ -200,11 +198,10 @@ func createLoggerConfig() logger.Config {
 func getLogLevels() map[string]string {
 	return map[string]string{
 		// services
-		"example":            "INFO",
-		"discovery":          "INFO",
-		"arp":                "INFO",
-		"lldp":               "INFO",
-		"nmap":               "INFO",
-		"connectiontracking": "INFO",
+		"example":   "INFO",
+		"discovery": "INFO",
+		"arp":       "INFO",
+		"lldp":      "INFO",
+		"nmap":      "INFO",
 	}
 }
