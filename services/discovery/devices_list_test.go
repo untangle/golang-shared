@@ -204,7 +204,6 @@ func (suite *DeviceListTestSuite) TestMerge() {
 	}
 	wg.Wait()
 	suite.Equal(count, uint32(len(deviceTests)))
-
 }
 
 // Here we make sure the merge logic is tested by deleting some fields
@@ -216,6 +215,41 @@ func (suite *DeviceListTestSuite) createEmptyFieldsForMerge(oldDevice *DeviceEnt
 		oldDevice.IPv4Address = ""
 		newDevice.MacAddress = ""
 	}
+}
+
+// TestBroadcastInsertion tests that we do not add in a broadcast entry.
+func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
+
+	var deviceList DevicesList
+	var count uint32
+	deviceList.Devices = map[string]*DeviceEntry{}
+
+	for _, entry := range suite.devicesTable.Devices {
+		deviceList.Devices[entry.MacAddress] = &DeviceEntry{
+			DiscoveryEntry: disco.DiscoveryEntry{
+				IPv4Address: entry.IPv4Address,
+				MacAddress:  entry.MacAddress,
+				LastUpdate:  entry.LastUpdate,
+			},
+		}
+		count++
+	}
+
+	newBroadcastDiscovery := DeviceEntry{
+		DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress:  "00:00:00:00:00:00",
+			LastUpdate:  suite.halfHourAgo.Unix(),
+			IPv4Address: "192.168.56.4",
+		},
+	}
+
+	deviceList.MergeOrAddDeviceEntry(&newBroadcastDiscovery,
+		func() {
+		})
+
+	// Asssert that broadcast entry was not added.
+	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
+	suite.Equal(suite.devicesTable.Devices, deviceList.Devices, "Adding broadcast discovery entry.")
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
