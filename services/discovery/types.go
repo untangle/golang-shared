@@ -181,9 +181,12 @@ func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 
 }
 
+// SessionDetail is a summary of active session details for a device.
 type SessionDetail struct {
+	// Total byte transfer rate of all sessions.
 	ByteTransferRate int64 `json:"byteTransferRate"`
-	NumSessions      int64 `json:"numSessions"`
+	// Total number of active sessions on this device.
+	NumSessions int64 `json:"numSessions"`
 }
 
 func (n *DeviceEntry) calcSessionDetails() (output SessionDetail) {
