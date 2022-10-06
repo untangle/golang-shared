@@ -69,7 +69,7 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	}
 }
 
-//TestListing tests that applying various predicates to the list
+// TestListing tests that applying various predicates to the list
 // works.
 func (suite *DeviceListTestSuite) TestListing() {
 
@@ -103,6 +103,13 @@ func (suite *DeviceListTestSuite) TestListing() {
 			},
 			expectedListMacs: []string{},
 			description:      "There are no devices in the list that have an update time within 20 minutes and are not local.",
+		},
+		{
+			predicates: []ListPredicate{
+				LastUpdateOlderThanDuration(time.Hour * 24),
+			},
+			expectedListMacs: []string{suite.mac4},
+			description:      "List of macs with an update time older than 24 hours should be mac4",
 		},
 	}
 	// duplicate the tests for concurrent testing.
@@ -142,6 +149,7 @@ func (suite *DeviceListTestSuite) TestListing() {
 			}
 			wg.Done()
 		}()
+
 	}
 	wg.Wait()
 }
@@ -250,6 +258,40 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 	// Asssert that broadcast entry was not added.
 	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
 	suite.Equal(suite.devicesTable, deviceList.Devices, "Adding broadcast discovery entry.")
+}
+
+// Test clean device entry
+func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
+
+	var deviceList DevicesList
+	var count uint32
+	deviceList.Devices = map[string]*DeviceEntry{}
+
+	for _, entry := range suite.devicesTable {
+		deviceList.Devices[entry.MacAddress] = &DeviceEntry{
+			DiscoveryEntry: disco.DiscoveryEntry{
+				IPv4Address: entry.IPv4Address,
+				MacAddress:  entry.MacAddress,
+				LastUpdate:  entry.LastUpdate,
+			},
+		}
+		count++
+	}
+	//Clean entries which are 48 hours older
+	predicates1 := []ListPredicate{
+		LastUpdateOlderThanDuration(time.Hour * 48),
+	}
+	deviceList.CleanOldDeviceEntry(predicates1...)
+	//No entries should be deleted from the list, because no entries with LastUpdate older than 48 hours
+	suite.EqualValues(count, len(deviceList.Devices), "Cleaned 48 hours older entry")
+
+	//Clean entries which are 24 hours older
+	predicates2 := []ListPredicate{
+		LastUpdateOlderThanDuration(time.Hour * 24),
+	}
+	deviceList.CleanOldDeviceEntry(predicates2...)
+	//One device entry should be deleted from the device list which entry has LastUpdate with >24 hours
+	suite.EqualValues(count-1, len(deviceList.Devices), "Cleaned 24 hours older entry")
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
