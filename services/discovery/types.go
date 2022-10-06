@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
@@ -64,6 +65,35 @@ func (list *DevicesList) PutDevice(entry *DeviceEntry) {
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
 	list.putDeviceUnsafe(entry)
+}
+
+// Get 24hours older device discovery entry from device list and delete the entry from device list
+func (list *DevicesList) CleanOldDeviceEntry(preds ...ListPredicate) {
+	list.Lock.Lock()
+	defer list.Lock.Unlock()
+	listOfDevs := list.listDevices(preds...)
+	list.CleanDevices(listOfDevs)
+}
+
+// Clean device discovery entry from devices list if the entry lastUpdate is 24 hours older
+func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
+
+	for _, device := range devices {
+		delete(list.Devices, device.MacAddress)
+		if device.IPv4Address != "" {
+			delete(list.devicesByIP, device.IPv4Address)
+		}
+		logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.IPv4Address)
+	}
+}
+
+// Get the device discovery entries lastUpdate time is older than the duration(24 hours)
+func LastUpdateOlderThanDuration(period time.Duration) ListPredicate {
+	return func(entry *DeviceEntry) bool {
+		lastUpdated := time.Unix(entry.LastUpdate, 0)
+		now := time.Now()
+		return (now.Sub(lastUpdated) >= period)
+	}
 }
 
 // listDevices returns a list of devices matching all predicates. It
