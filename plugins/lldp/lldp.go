@@ -91,6 +91,7 @@ func LldpcallBackHandler(commands []discovery.Command) {
 	var result jsonData
 	if err := json.Unmarshal([]byte(output), &result); err != nil {
 		logger.Err("Unable to unmarshal json: %s\n", err)
+		return
 	}
 
 	// return on empty data
