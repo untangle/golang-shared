@@ -20,6 +20,10 @@ type Plugin interface {
 // PluginConstructor is a function that generates a plugin.
 type PluginConstructor interface{}
 
+// PluginConsumer is a function that consumes a particular interface
+// that a plugin may fulfill that it is interested in.
+type PluginConsumer interface{}
+
 type consumer struct {
 	consumedType reflect.Type
 	consumerFunc reflect.Value
@@ -130,7 +134,7 @@ func (control *PluginControl) findConsumers(plugin interface{}) {
 // wants the plugin to satisfy. Then after plugin startup, the
 // consumer will be passed the started plugin. This allows you to
 // define your own plugin interface and consume it.
-func (control *PluginControl) RegisterConsumer(theConsumer interface{}) {
+func (control *PluginControl) RegisterConsumer(theConsumer PluginConsumer) {
 	consumerFunc := reflect.TypeOf(theConsumer)
 	expectedType := consumerFunc.In(0)
 	control.consumers = append(control.consumers,

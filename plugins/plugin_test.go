@@ -136,6 +136,8 @@ func GetMultiInterfaceConstructor() (*GoodbyeWorldPlugin, *mock.Mock, func() *Go
 func TestPluginConsumer(t *testing.T) {
 	helloConsumerPluginRegistry := []HelloType{}
 	helloConsumer := func(thePlugin HelloType) {
+		_, ok := thePlugin.(Plugin)
+		assert.True(t, ok)
 		helloConsumerPluginRegistry = append(helloConsumerPluginRegistry, thePlugin)
 	}
 
