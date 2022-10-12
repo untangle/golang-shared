@@ -23,6 +23,7 @@ type DeviceListTestSuite struct {
 	mac2         string
 	mac3         string
 	mac4         string
+	mac5         string
 	devicesTable map[string]*DeviceEntry
 	now          time.Time
 	oneHourAgo   time.Time
@@ -42,6 +43,8 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	suite.mac2 = "00:11:22:33:44:66"
 	suite.mac3 = "00:11:33:44:55:66"
 	suite.mac4 = "00:aa:bb:cc:dd:ee"
+	suite.mac5 = "00:aa:bb:cc:dd:ef"
+
 	suite.devicesTable = map[string]*DeviceEntry{
 		suite.mac1: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress:  suite.mac1,
@@ -62,6 +65,11 @@ func (suite *DeviceListTestSuite) SetupTest() {
 			MacAddress: suite.mac4,
 			LastUpdate: suite.aDayago.Unix(),
 		}},
+		suite.mac5: {DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress:  suite.mac5,
+			LastUpdate:  suite.aDayago.Unix(),
+			IPv4Address: "192.168.56.4",
+		}},
 	}
 	suite.deviceList = NewDevicesList()
 	for _, entry := range suite.devicesTable {
@@ -69,7 +77,7 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	}
 }
 
-//TestListing tests that applying various predicates to the list
+// TestListing tests that applying various predicates to the list
 // works.
 func (suite *DeviceListTestSuite) TestListing() {
 
@@ -89,7 +97,7 @@ func (suite *DeviceListTestSuite) TestListing() {
 	tests := []testSpec{
 		{
 			predicates:       []ListPredicate{},
-			expectedListMacs: []string{suite.mac1, suite.mac2, suite.mac3, suite.mac4},
+			expectedListMacs: []string{suite.mac1, suite.mac2, suite.mac3, suite.mac4, suite.mac5},
 			description:      "Empty predicate list should return all MACs.",
 		},
 		{
@@ -103,6 +111,13 @@ func (suite *DeviceListTestSuite) TestListing() {
 			},
 			expectedListMacs: []string{},
 			description:      "There are no devices in the list that have an update time within 20 minutes and are not local.",
+		},
+		{
+			predicates: []ListPredicate{
+				LastUpdateOlderThanDuration(time.Hour * 24),
+			},
+			expectedListMacs: []string{suite.mac4, suite.mac5},
+			description:      "List of macs with an update time older than 24 hours should be mac4",
 		},
 	}
 	// duplicate the tests for concurrent testing.
@@ -142,8 +157,10 @@ func (suite *DeviceListTestSuite) TestListing() {
 			}
 			wg.Done()
 		}()
+
 	}
 	wg.Wait()
+
 }
 
 // TestMerge tests the merge and add funcionality. We test that
@@ -250,6 +267,45 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 	// Asssert that broadcast entry was not added.
 	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
 	suite.Equal(suite.devicesTable, deviceList.Devices, "Adding broadcast discovery entry.")
+
+}
+
+// Test clean device entry
+func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
+
+	var deviceList DevicesList
+	var device_count, device_ip_count uint32
+	deviceList.Devices = map[string]*DeviceEntry{}
+	deviceList.devicesByIP = map[string]*DeviceEntry{}
+
+	for _, entry := range suite.devicesTable {
+		deviceList.PutDevice(entry)
+
+		device_count++
+
+	}
+	//device_ip_count = device_count - 1, because one device entry didn't have IPV4address.
+	//So it should not be added to devicesByIP map
+	device_ip_count = device_count - 1
+
+	//Clean entries which are 48 hours older
+	predicates1 := []ListPredicate{
+		LastUpdateOlderThanDuration(time.Hour * 48),
+	}
+	deviceList.CleanOldDeviceEntry(predicates1...)
+	//No entries should be deleted from the list, because no entries with LastUpdate older than 48 hours
+	suite.EqualValues(device_count, len(deviceList.Devices), "Cleaned 48 hours older entry")
+	suite.EqualValues(device_ip_count, len(deviceList.devicesByIP), "Cleaned 48 hours older entry")
+
+	//Clean entries which are 24 hours older
+	predicates2 := []ListPredicate{
+		LastUpdateOlderThanDuration(time.Hour * 24),
+	}
+	deviceList.CleanOldDeviceEntry(predicates2...)
+	//One device entry should be deleted from the device list which entry has LastUpdate with >24 hours
+	suite.EqualValues(device_count-2, len(deviceList.Devices), "Cleaned 24 hours older entry")
+	suite.EqualValues(device_ip_count-1, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
+
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
