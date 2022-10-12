@@ -76,6 +76,12 @@ func TestPlugin(t *testing.T) {
 	pluginSave.AssertNumberOfCalls(t, "Shutdown", 1)
 }
 
+/*
+   Type declarations so we can test plugin consumers and test that we
+   consume when something implements an interface and also test that
+   when multiple interfaces are implemented, it is registered with all
+   applicable consumers.
+*/
 type HelloType interface {
 	SayHello()
 }
@@ -124,6 +130,9 @@ func GetMultiInterfaceConstructor() (*GoodbyeWorldPlugin, *mock.Mock, func() *Go
 	return multiInterfacePluginSave, &multiInterfacePluginSave.Mock, NewMultiInterfacePlugin
 }
 
+// TestPluginConsumer tests that we can 'consume' plugins. That is, we
+// can call RegisterPluginConsumer() to show we are interested in a
+// particular consumer, and have the function provided called.
 func TestPluginConsumer(t *testing.T) {
 	helloConsumerPluginRegistry := []HelloType{}
 	helloConsumer := func(thePlugin HelloType) {
@@ -171,6 +180,15 @@ func TestPluginConsumer(t *testing.T) {
 			},
 		},
 		{
+			plugins: []constructorPluginPair{},
+			assertions: func() {
+				require.Equal(t, 0, len(helloConsumerPluginRegistry))
+			},
+			consumers: []interface{}{
+				helloConsumer,
+			},
+		},
+		{
 			plugins: []constructorPluginPair{makeConstructorPluginPair(GetMockPluginConstructor())},
 			assertions: func() {
 				require.Equal(t, 0, len(helloConsumerPluginRegistry))
@@ -209,7 +227,6 @@ func TestPluginConsumer(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		fmt.Printf("test: %v\n", test)
 		controller := NewPluginControl()
 		for _, consumer := range test.consumers {
 			controller.RegisterConsumer(consumer)
@@ -217,24 +234,13 @@ func TestPluginConsumer(t *testing.T) {
 
 		for _, plugin := range test.plugins {
 			plugin.pluginMock.On("Startup").Return(nil)
+			plugin.pluginMock.On("Shutdown").Return(nil)
 			controller.RegisterPlugin(plugin.constructor)
 		}
 		assert.Nil(t, controller.Provide(func() *Config { return config }))
 		controller.Startup()
-		test.assertions()
-	}
 
-	consumedPlugin, _, consumedConstructor := GetConsumedPluginConstructor()
-	consumedPlugin.On("Startup").Return(nil)
-	basicPlugin, _, basicConstructor := GetMockPluginConstructor()
-	basicPlugin.On("Startup").Return(nil)
-	controller := NewPluginControl()
-	controller.RegisterConsumer(helloConsumer)
-	controller.RegisterPlugin(consumedConstructor)
-	controller.RegisterPlugin(basicConstructor)
-	controller.Provide(func() *Config { return config })
-	controller.Startup()
-	require.Equal(t, 1, len(helloConsumerPluginRegistry))
-	_, ok := helloConsumerPluginRegistry[0].(HelloType)
-	assert.True(t, ok)
+		test.assertions()
+		controller.Shutdown()
+	}
 }
