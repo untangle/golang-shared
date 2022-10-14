@@ -44,6 +44,7 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	suite.mac3 = "00:11:33:44:55:66"
 	suite.mac4 = "00:aa:bb:cc:dd:ee"
 	suite.mac5 = "00:aa:bb:cc:dd:ef"
+
 	suite.devicesTable = map[string]*DeviceEntry{
 		suite.mac1: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress:  suite.mac1,
@@ -266,6 +267,7 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 	// Asssert that broadcast entry was not added.
 	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
 	suite.Equal(suite.devicesTable, deviceList.Devices, "Adding broadcast discovery entry.")
+
 }
 
 // Test clean device entry
@@ -303,6 +305,7 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 	//One device entry should be deleted from the device list which entry has LastUpdate with >24 hours
 	suite.EqualValues(device_count-2, len(deviceList.Devices), "Cleaned 24 hours older entry")
 	suite.EqualValues(device_ip_count-1, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
+
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
