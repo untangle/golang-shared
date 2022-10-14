@@ -30,6 +30,7 @@ func NewPlugin(config *Config) *MockPlugin {
 
 func GetMockPluginConstructor() (*MockPlugin, *mock.Mock, func(config *Config) *MockPlugin) {
 	pluginSave = &MockPlugin{}
+	fmt.Printf("plugin save: %v (intf: %v)\n", pluginSave, (interface{}(pluginSave)).(Plugin))
 	return pluginSave, &pluginSave.Mock, NewPlugin
 }
 
@@ -59,7 +60,6 @@ func TestPlugin(t *testing.T) {
 	configName := "Hello Config"
 	pluginSave.On("Startup").Return(nil)
 	pluginSave.On("Shutdown").Return(nil)
-	pluginSave.On("Signal", syscall.SIGINT).Return(nil)
 	pluginController := NewPluginControl()
 	pluginController.RegisterPlugin(
 		NewPlugin)
@@ -69,8 +69,6 @@ func TestPlugin(t *testing.T) {
 		}))
 	pluginController.Startup()
 	pluginSave.AssertNumberOfCalls(t, "Startup", 1)
-	pluginController.Signal(syscall.SIGINT)
-	pluginSave.AssertNumberOfCalls(t, "Signal", 1)
 	assert.Equal(t, pluginSave.config.Name, configName)
 	pluginController.Shutdown()
 	pluginSave.AssertNumberOfCalls(t, "Shutdown", 1)
@@ -130,6 +128,40 @@ func GetMultiInterfaceConstructor() (*GoodbyeWorldPlugin, *mock.Mock, func() *Go
 	return multiInterfacePluginSave, &multiInterfacePluginSave.Mock, NewMultiInterfacePlugin
 }
 
+type ConsumerPlugin struct {
+	mock.Mock
+	dependency *MockPlugin
+	config     *Config
+}
+
+var consumerPluginSave *ConsumerPlugin
+
+func (plugin *ConsumerPlugin) Startup() error {
+	rvals := plugin.Called()
+	return rvals.Error(0)
+}
+
+func (plugin *ConsumerPlugin) Shutdown() error {
+	rvals := plugin.Called()
+	return rvals.Error(0)
+
+}
+
+func (plugin *ConsumerPlugin) Name() string {
+	return "Dependant plugin"
+}
+
+func NewConsumerPlugin(config *Config, otherPlugin *MockPlugin) *ConsumerPlugin {
+	consumerPluginSave.config = config
+	consumerPluginSave.dependency = otherPlugin
+	return consumerPluginSave
+}
+
+func GetConsumerPluginConstructor() (*ConsumerPlugin, *mock.Mock, func(*Config, *MockPlugin) *ConsumerPlugin) {
+	consumerPluginSave = &ConsumerPlugin{}
+	return consumerPluginSave, &consumerPluginSave.Mock, NewConsumerPlugin
+}
+
 // TestPluginConsumer tests that we can 'consume' plugins. That is, we
 // can call RegisterPluginConsumer() to show we are interested in a
 // particular consumer, and have the function provided called.
@@ -153,9 +185,10 @@ func TestPluginConsumer(t *testing.T) {
 		pluginMock  *mock.Mock
 		plugin      interface{}
 		constructor interface{}
+		isProvider  bool
 	}
 	type testConfig struct {
-		plugins    []constructorPluginPair
+		plugins    []func() constructorPluginPair
 		assertions func()
 		consumers  []interface{}
 	}
@@ -165,11 +198,17 @@ func TestPluginConsumer(t *testing.T) {
 		constructor interface{}) constructorPluginPair {
 		return constructorPluginPair{pluginMock: mockValue, plugin: mockPlugin, constructor: constructor}
 	}
+	makeConstructorProviderPluginPair := func(
+		mockPlugin interface{},
+		mockValue *mock.Mock,
+		constructor interface{}) constructorPluginPair {
+		return constructorPluginPair{pluginMock: mockValue, plugin: mockPlugin, constructor: constructor, isProvider: true}
+	}
 
 	tests := []testConfig{
 		{
-			plugins: []constructorPluginPair{
-				makeConstructorPluginPair(GetConsumedPluginConstructor()),
+			plugins: []func() constructorPluginPair{
+				func() constructorPluginPair { return makeConstructorPluginPair(GetConsumedPluginConstructor()) },
 			},
 			assertions: func() {
 				require.Equal(t, 1, len(helloConsumerPluginRegistry))
@@ -182,7 +221,7 @@ func TestPluginConsumer(t *testing.T) {
 			},
 		},
 		{
-			plugins: []constructorPluginPair{},
+			plugins: []func() constructorPluginPair{},
 			assertions: func() {
 				require.Equal(t, 0, len(helloConsumerPluginRegistry))
 			},
@@ -191,7 +230,8 @@ func TestPluginConsumer(t *testing.T) {
 			},
 		},
 		{
-			plugins: []constructorPluginPair{makeConstructorPluginPair(GetMockPluginConstructor())},
+			plugins: []func() constructorPluginPair{
+				func() constructorPluginPair { return makeConstructorPluginPair(GetMockPluginConstructor()) }},
 			assertions: func() {
 				require.Equal(t, 0, len(helloConsumerPluginRegistry))
 			},
@@ -200,7 +240,10 @@ func TestPluginConsumer(t *testing.T) {
 			},
 		},
 		{
-			plugins: []constructorPluginPair{makeConstructorPluginPair(GetMultiInterfaceConstructor())},
+			plugins: []func() constructorPluginPair{
+				func() constructorPluginPair {
+					return makeConstructorPluginPair(GetMultiInterfaceConstructor())
+				}},
 			assertions: func() {
 				require.Equal(t, 1, len(helloConsumerPluginRegistry))
 				require.Equal(t, 1, len(goodbyeConsumerPluginRegistry))
@@ -227,6 +270,16 @@ func TestPluginConsumer(t *testing.T) {
 				goodbyeConsumer,
 			},
 		},
+		{
+			plugins: []func() constructorPluginPair{
+				func() constructorPluginPair { return makeConstructorProviderPluginPair(GetMockPluginConstructor()) },
+				func() constructorPluginPair { return makeConstructorPluginPair(GetConsumerPluginConstructor()) },
+			},
+			assertions: func() {
+				require.Same(t, consumerPluginSave.dependency, pluginSave)
+			},
+			consumers: []interface{}{},
+		},
 	}
 	for _, test := range tests {
 		controller := NewPluginControl()
@@ -234,10 +287,15 @@ func TestPluginConsumer(t *testing.T) {
 			controller.RegisterConsumer(consumer)
 		}
 
-		for _, plugin := range test.plugins {
+		for _, pluginFunc := range test.plugins {
+			plugin := pluginFunc()
 			plugin.pluginMock.On("Startup").Return(nil)
 			plugin.pluginMock.On("Shutdown").Return(nil)
-			controller.RegisterPlugin(plugin.constructor)
+			if plugin.isProvider {
+				controller.RegisterAndProvidePlugin(plugin.constructor)
+			} else {
+				controller.RegisterPlugin(plugin.constructor)
+			}
 		}
 		assert.Nil(t, controller.Provide(func() *Config { return config }))
 		controller.Startup()

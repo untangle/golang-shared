@@ -3,7 +3,6 @@ package plugins
 import (
 	"fmt"
 	"reflect"
-	"syscall"
 
 	"github.com/untangle/golang-shared/services/logger"
 	"go.uber.org/dig"
@@ -13,7 +12,6 @@ import (
 type Plugin interface {
 	Startup() error
 	Name() string
-	Signal(syscall.Signal) error
 	Shutdown() error
 }
 
@@ -71,6 +69,30 @@ func GlobalPluginControl() *PluginControl {
 func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 	control.pluginConstructors = append(control.pluginConstructors, constructor)
 	constructorType := reflect.TypeOf(constructor)
+	constructorVal := reflect.ValueOf(constructor)
+	inputs := []reflect.Type{}
+	for i := 0; i < constructorType.NumIn(); i++ {
+		inputs = append(inputs, constructorType.In(i))
+	}
+
+	// create a func at runtime that we can invoke that calls the
+	// constructor and appends the return value to the list of plugins.
+	saverFunc := reflect.MakeFunc(
+		reflect.FuncOf(inputs, []reflect.Type{}, false),
+		func(vals []reflect.Value) []reflect.Value {
+			output := constructorVal.Call(vals)
+			plugin := output[0].Interface()
+			fmt.Printf("***plugin: %v\n:", plugin)
+			pluginIntf := plugin.(Plugin)
+			control.plugins = append(control.plugins, pluginIntf)
+			return []reflect.Value{}
+		})
+	control.saverFuncs = append(control.saverFuncs, saverFunc)
+}
+
+func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor) {
+	control.pluginConstructors = append(control.pluginConstructors, constructor)
+	constructorType := reflect.TypeOf(constructor)
 	outputType := constructorType.Out(0)
 
 	// create a func at runtime that we can invoke that calls the
@@ -85,7 +107,8 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 		})
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
 	if err := control.Provide(constructor); err != nil {
-		panic(fmt.Sprintf("couldn't register plugin constructor: %v, err: %s", constructor, err))
+		panic(fmt.Sprintf(
+			"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
 	}
 }
 
@@ -143,18 +166,6 @@ func (control *PluginControl) RegisterConsumer(theConsumer PluginConsumer) {
 			consumerFunc: reflect.ValueOf(theConsumer),
 		})
 
-}
-
-// Signal calls the Signal() method of all registered plugins with sig.
-func (control *PluginControl) Signal(sig syscall.Signal) {
-	for _, plugin := range control.plugins {
-		if err := plugin.Signal(sig); err != nil {
-			logger.Warn("Plugin %s returned error handling signal %v: %s\n",
-				plugin.Name(),
-				sig,
-				err)
-		}
-	}
 }
 
 // StopAllPlugins stops all registered plugins.
