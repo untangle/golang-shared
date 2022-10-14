@@ -21,17 +21,17 @@ type MockPlugin struct {
 	config *Config
 }
 
-var pluginSave *MockPlugin = &MockPlugin{}
+var baseMockPluginSave *MockPlugin = &MockPlugin{}
 
 func NewPlugin(config *Config) *MockPlugin {
-	pluginSave.config = config
-	return pluginSave
+	baseMockPluginSave.config = config
+	return baseMockPluginSave
 }
 
 func GetMockPluginConstructor() (*MockPlugin, *mock.Mock, func(config *Config) *MockPlugin) {
-	pluginSave = &MockPlugin{}
-	fmt.Printf("plugin save: %v (intf: %v)\n", pluginSave, (interface{}(pluginSave)).(Plugin))
-	return pluginSave, &pluginSave.Mock, NewPlugin
+	baseMockPluginSave = &MockPlugin{}
+	fmt.Printf("plugin save: %v (intf: %v)\n", baseMockPluginSave, (interface{}(baseMockPluginSave)).(Plugin))
+	return baseMockPluginSave, &baseMockPluginSave.Mock, NewPlugin
 }
 
 func (plugin *MockPlugin) Startup() error {
@@ -58,8 +58,8 @@ func (plugin *MockPlugin) Shutdown() error {
 // calls to plugin control to the actual plugin.
 func TestPlugin(t *testing.T) {
 	configName := "Hello Config"
-	pluginSave.On("Startup").Return(nil)
-	pluginSave.On("Shutdown").Return(nil)
+	baseMockPluginSave.On("Startup").Return(nil)
+	baseMockPluginSave.On("Shutdown").Return(nil)
 	pluginController := NewPluginControl()
 	pluginController.RegisterPlugin(
 		NewPlugin)
@@ -68,10 +68,10 @@ func TestPlugin(t *testing.T) {
 			return &Config{Name: configName}
 		}))
 	pluginController.Startup()
-	pluginSave.AssertNumberOfCalls(t, "Startup", 1)
-	assert.Equal(t, pluginSave.config.Name, configName)
+	baseMockPluginSave.AssertNumberOfCalls(t, "Startup", 1)
+	assert.Equal(t, baseMockPluginSave.config.Name, configName)
 	pluginController.Shutdown()
-	pluginSave.AssertNumberOfCalls(t, "Shutdown", 1)
+	baseMockPluginSave.AssertNumberOfCalls(t, "Shutdown", 1)
 }
 
 /*
@@ -242,7 +242,7 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 				func() constructorPluginPair { return makeConstructorPluginPair(GetMockPluginConstructor()) }},
 			assertions: func() {
 				require.Equal(t, 0, len(helloConsumerPluginRegistry))
-				pluginSave.AssertCalled(t, "Startup")
+				baseMockPluginSave.AssertCalled(t, "Startup")
 			},
 			consumers: []interface{}{
 				helloConsumer,
@@ -290,7 +290,7 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			},
 			assertions: func() {
 				// check that the dependant plugin got provided the right object during construction.
-				require.Same(t, dependantPluginSave.dependency, pluginSave)
+				require.Same(t, dependantPluginSave.dependency, baseMockPluginSave)
 			},
 			consumers: []interface{}{},
 		},
