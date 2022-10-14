@@ -21,6 +21,7 @@ type MockPlugin struct {
 	config *Config
 }
 
+// global instance of the MockPlugin, to be returned by NewPlugin.
 var baseMockPluginSave *MockPlugin = &MockPlugin{}
 
 func NewPlugin(config *Config) *MockPlugin {
