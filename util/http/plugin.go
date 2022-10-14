@@ -6,17 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GinEndpointHandler is an interface for an object that can deal with
-// GIN endpoints (i.e. register them with an engine).
-type GinEndpointHandler interface {
-	RegisterEndpoint(path string, handler gin.HandlerFunc)
-}
-
 // HTTPGinPlugin is an interface to allow for GIN HTTP handlers to be
 // used as plugins.
 type HTTPGinPlugin interface {
+	Methods() []string
 	Handle(*gin.Context)
-	Path(path string) string
+	Path() string
+}
+
+// GinEndpointHandler is an interface for an object that can deal with
+// GIN endpoints (i.e. register them with an engine).
+type GinEndpointHandler interface {
+	RegisterEndpoint(plugin HTTPGinPlugin)
 }
 
 // HandlerFuncWrapper wraps a handlerFunc in an HTTPGinPlugin object
@@ -24,6 +25,7 @@ type HTTPGinPlugin interface {
 type HandlerFuncWrapper struct {
 	handlerFunc        gin.HandlerFunc
 	endpoint           string
+	methods            []string
 	ginEndpointHandler GinEndpointHandler
 }
 
@@ -35,8 +37,13 @@ func (wrapper *HandlerFuncWrapper) Name() string {
 // Startup starts the endpoint --and registers it with the
 // GinEndpointHandler.
 func (wrapper *HandlerFuncWrapper) Startup() error {
-	wrapper.ginEndpointHandler.RegisterEndpoint(wrapper.endpoint, wrapper.handlerFunc)
+	wrapper.ginEndpointHandler.RegisterEndpoint(wrapper)
 	return nil
+}
+
+// Methods returns the HTTP methods this endpoint handles (http.MethodGet for example)
+func (wrapper *HandlerFuncWrapper) Methods() []string {
+	return wrapper.methods
 }
 
 // Shutdown shuts the endpoint down (no-op)
@@ -50,7 +57,7 @@ func (wrapper *HandlerFuncWrapper) Handle(ctx *gin.Context) {
 }
 
 // Path returns the path of the endpoint.
-func (wrapper *HandlerFuncWrapper) Path(path string) string {
+func (wrapper *HandlerFuncWrapper) Path() string {
 	return wrapper.endpoint
 }
 
@@ -58,10 +65,12 @@ func (wrapper *HandlerFuncWrapper) Path(path string) string {
 // that delegates gin requests at the path to the given endpoint.
 func NewHTTPGinPlugin(
 	path string,
+	methods []string,
 	handlerFunc gin.HandlerFunc,
 	ginEndpointHandler GinEndpointHandler) *HandlerFuncWrapper {
 	return &HandlerFuncWrapper{
 		endpoint:           path,
+		methods:            methods,
 		handlerFunc:        handlerFunc,
 		ginEndpointHandler: ginEndpointHandler,
 	}
