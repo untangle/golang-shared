@@ -3,8 +3,10 @@ package arp
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"regexp"
+	"syscall"
 	"time"
 
 	"github.com/untangle/discoverd/services/discovery"
@@ -16,16 +18,111 @@ import (
 	disco_proto "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
-// Start starts the ARP collector
+const (
+	pluginName string = "arp"
+)
+
+var autoArpCollectionChan chan bool
+
+type arpSettingType struct {
+	Enabled      bool `json:"enabled"`
+	AutoInterval uint `json:"autoInterval"`
+}
+
+var arpSettings arpSettingType
+
+func init() {
+	autoArpCollectionChan = make(chan bool)
+}
+
+// Start starts the ARP collector IF enabled in the settings file
 func Start() {
 	logger.Info("Starting ARP collector plugin\n")
-	discovery.RegisterCollector(ArpcallBackHandler)
+
+	// Load in settings. Plugin will be started by syncCallbackHandler() if
+	// the plugin is enabled
+	syncCallbackHandler()
+}
+
+func startArp() {
+	discovery.RegisterCollector(pluginName, ArpcallBackHandler)
+
 	// Lets do a first run to get the initial data
 	ArpcallBackHandler(nil)
+
+	startAutoArpCollection()
+}
+
+func autoArpCollection() {
+	for {
+		select {
+		case <-autoArpCollectionChan:
+			autoArpCollectionChan <- true
+			return
+		case <-time.After(time.Duration(arpSettings.AutoInterval)):
+			ArpcallBackHandler(nil)
+		}
+	}
+}
+
+func startAutoArpCollection() {
+	go autoArpCollection()
+}
+
+func stopAutoArpCollection() {
+	autoArpCollectionChan <- true
+
+	select {
+	case <-autoArpCollectionChan:
+		logger.Info("Successful shutdown of the automatic ARP collector\n")
+	case <-time.After(10 * time.Second):
+		logger.Warn("Failed to shutdown automatic ARP collector\n")
+	}
+}
+
+// PluginSignal handles a sighup seen, turning WF on or off
+func PluginSignal(message syscall.Signal) {
+	logger.Info("PluginSignal(%s) has been called\n", pluginName)
+	switch message {
+	case syscall.SIGHUP:
+		syncCallbackHandler()
+	}
+}
+
+func syncCallbackHandler() {
+	logger.Debug("Syncing settings\n")
+	var systemArpsettings interface{}
+	systemArpsettings, _ = settings.GetSettings([]string{pluginName})
+	createSettings(systemArpsettings.(map[string]interface{}))
+
+	if arpSettings.Enabled {
+		startArp()
+	} else {
+		Stop()
+	}
+}
+
+func createSettings(m map[string]interface{}) {
+	arpSettings = arpSettingType{Enabled: false, AutoInterval: math.MaxUint32}
+	if m != nil {
+		if m["autoInterval"] != nil {
+			arpSettings.AutoInterval = m["autoInterval"].(uint)
+		}
+
+		if m["enabled"] != nil {
+			arpSettings.Enabled = m["autoInterval"].(bool)
+		}
+	} else {
+		logger.Warn("Failed to read settings value for %s", pluginName)
+	}
+
 }
 
 // Stop stops QoS
 func Stop() {
+	logger.Info("Stopping ARP collector plugin\n")
+	discovery.UnregisterCollector(pluginName)
+	stopAutoArpCollection()
 }
 
 // StringSet is a set of strings, backed by a map.

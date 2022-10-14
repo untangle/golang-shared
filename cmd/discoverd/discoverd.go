@@ -8,6 +8,7 @@ import (
 	"os/user"
 	"runtime"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -86,6 +87,11 @@ func main() {
 	cpuProfiler.StopCPUProfile()
 }
 
+func getPluginSettings() map[string]interface{} {
+	pluginSettings := make(map[string]interface{})
+
+}
+
 /* startServices starts the gin server and cert manager */
 func startServices() {
 	example.Startup()
@@ -132,6 +138,38 @@ func handleSignals() {
 			go dumpStack()
 		}
 	}()
+
+	// Add SIGHUP handler (call handlers)
+	hupch := make(chan os.Signal, 1)
+	signal.Notify(hupch, syscall.SIGHUP)
+	go func() {
+		for {
+			sig := <-hupch
+			logger.Info("Received signal [%v]. Calling handlers\n", sig)
+			targets := []func(syscall.Signal){
+				stats.PluginSignal, threatprevention.PluginSignal,
+				webfilter.PluginSignal}
+			sig.Signal()
+			plugins.GlobalPluginControl().Signal(syscall.SIGHUP)
+			notifyTargets(syscall.SIGHUP, targets)
+
+		}
+	}()
+}
+
+// notifyTargets signals all plugins with a handler (in parallel)
+func notifyTargets(message syscall.Signal, targets []func(syscall.Signal)) {
+	var wg sync.WaitGroup
+
+	for _, f := range targets {
+		wg.Add(1)
+		go func(f func(syscall.Signal)) {
+			f(message)
+			wg.Done()
+		}(f)
+	}
+
+	wg.Wait()
 }
 
 // dumpStack to /tmp/discoverd.stack and log

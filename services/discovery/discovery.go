@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"sync"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
@@ -18,15 +19,20 @@ type zmqMessage struct {
 var messagePublisherChannel = make(chan *zmqMessage, 1000)
 
 // List of registered collectors
-var collectors []CollectorHandlerFunction = nil
+//var collectors []CollectorHandlerFunction = nil
+var collectors map[string]CollectorHandlerFunction
+var collectorsLock sync.RWMutex
 
 const (
-
 	// CmdScanHost is a command to scan a host, argument is the hostnames
 	CmdScanHost int = 1
 	// CmdScanNet is a command to scan a network, argument is the networks (CIDR notation)
 	CmdScanNet int = 2
 )
+
+func init() {
+	collectors = make(map[string]CollectorHandlerFunction)
+}
 
 // Command is commands that can be send back to the collector
 type Command struct {
@@ -118,12 +124,23 @@ func setupZmqPubSocket() (soc *zmq.Socket, err error) {
 
 func callCollectors(cmds []Command) {
 	logger.Info("Calling collectors\n")
-	for _, handler := range collectors {
+	for label, handler := range collectors {
+		logger.Debug("Calling collector with label %s", label)
 		go handler(cmds)
 	}
 }
 
-// RegisterCollector registers a collector callback function
-func RegisterCollector(handler CollectorHandlerFunction) {
-	collectors = append(collectors, handler)
+// RegisterCollector registers a collector callback function.
+// The collectorLabel is used for quick lookups of the collector function being registered
+func RegisterCollector(collectorLabel string, handler CollectorHandlerFunction) {
+	collectorsLock.Lock()
+	defer collectorsLock.Unlock()
+	collectors[collectorLabel] = handler
+}
+
+// Unregisters a collector function
+func UnregisterCollector(collectorLabel string) {
+	collectorsLock.Lock()
+	defer collectorsLock.Unlock()
+	delete(collectors, collectorLabel)
 }

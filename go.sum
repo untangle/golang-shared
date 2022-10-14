@@ -25,6 +25,8 @@ github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PK
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/untangle/golang-shared v1.4.3 h1:sfe8hgOFkb4Yov/tEgVEfsRxjxBcDQS+ZxsG0L1ZV/o=
 github.com/untangle/golang-shared v1.4.3/go.mod h1:R2PpMo3eCcSo6nUZ2h8TNdVCjb9el0E6MYIf5rdWBHo=
+github.com/untangle/golang-shared v1.5.0 h1:8JPWynuxqFdGpWTuYRnE2Dku8rQhirxEw11WgMU32ro=
+github.com/untangle/golang-shared v1.5.0/go.mod h1:R2PpMo3eCcSo6nUZ2h8TNdVCjb9el0E6MYIf5rdWBHo=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
