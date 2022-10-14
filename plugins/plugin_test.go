@@ -128,44 +128,44 @@ func GetMultiInterfaceConstructor() (*GoodbyeWorldPlugin, *mock.Mock, func() *Go
 	return multiInterfacePluginSave, &multiInterfacePluginSave.Mock, NewMultiInterfacePlugin
 }
 
-type ConsumerPlugin struct {
+// Plugin to check that we can require other plugins.
+type DependantPlugin struct {
 	mock.Mock
 	dependency *MockPlugin
 	config     *Config
 }
 
-var consumerPluginSave *ConsumerPlugin
+var dependantPluginSave *DependantPlugin
 
-func (plugin *ConsumerPlugin) Startup() error {
+func (plugin *DependantPlugin) Startup() error {
 	rvals := plugin.Called()
 	return rvals.Error(0)
 }
 
-func (plugin *ConsumerPlugin) Shutdown() error {
+func (plugin *DependantPlugin) Shutdown() error {
 	rvals := plugin.Called()
 	return rvals.Error(0)
 
 }
 
-func (plugin *ConsumerPlugin) Name() string {
+func (plugin *DependantPlugin) Name() string {
 	return "Dependant plugin"
 }
 
-func NewConsumerPlugin(config *Config, otherPlugin *MockPlugin) *ConsumerPlugin {
-	consumerPluginSave.config = config
-	consumerPluginSave.dependency = otherPlugin
-	return consumerPluginSave
+func NewDependantPlugin(config *Config, otherPlugin *MockPlugin) *DependantPlugin {
+	dependantPluginSave.config = config
+	dependantPluginSave.dependency = otherPlugin
+	return dependantPluginSave
 }
 
-func GetConsumerPluginConstructor() (*ConsumerPlugin, *mock.Mock, func(*Config, *MockPlugin) *ConsumerPlugin) {
-	consumerPluginSave = &ConsumerPlugin{}
-	return consumerPluginSave, &consumerPluginSave.Mock, NewConsumerPlugin
+func GetDependantPluginConstructor() (*DependantPlugin, *mock.Mock, func(*Config, *MockPlugin) *DependantPlugin) {
+	dependantPluginSave = &DependantPlugin{}
+	return dependantPluginSave, &dependantPluginSave.Mock, NewDependantPlugin
 }
 
-// TestPluginConsumer tests that we can 'consume' plugins. That is, we
-// can call RegisterPluginConsumer() to show we are interested in a
-// particular consumer, and have the function provided called.
-func TestPluginConsumer(t *testing.T) {
+// TestPluginDependenciesAndConsumption tests various use-cases for
+// plugins.
+func TestPluginDependenciesAndConsumption(t *testing.T) {
 	helloConsumerPluginRegistry := []HelloType{}
 	helloConsumer := func(thePlugin HelloType) {
 		_, ok := thePlugin.(Plugin)
@@ -182,15 +182,16 @@ func TestPluginConsumer(t *testing.T) {
 	}
 
 	type constructorPluginPair struct {
-		pluginMock  *mock.Mock
-		plugin      interface{}
-		constructor interface{}
-		isProvider  bool
+		pluginMock  *mock.Mock  // the mock contained in the plugin.
+		plugin      interface{} // the actual plugin instance.
+		constructor interface{} // constructor function for the plugin (it will return the plugin instance).
+		isProvider  bool        // is the plugin meant to be provided to others as a dependency?
 	}
+
 	type testConfig struct {
-		plugins    []func() constructorPluginPair
-		assertions func()
-		consumers  []interface{}
+		plugins    []func() constructorPluginPair // list of functions that generate constructorPluginPairs for the test.
+		assertions func()                         // assertions to make after Startup()
+		consumers  []interface{}                  // list of plugin consumers to register as consumers.
 	}
 	makeConstructorPluginPair := func(
 		mockPlugin interface{},
@@ -207,6 +208,11 @@ func TestPluginConsumer(t *testing.T) {
 
 	tests := []testConfig{
 		{
+			// test that a plugin can be 'consumed' that
+			// is, a function can be registered that is
+			// passed all instances of a plugin that
+			// implement the interface taken by that
+			// function.
 			plugins: []func() constructorPluginPair{
 				func() constructorPluginPair { return makeConstructorPluginPair(GetConsumedPluginConstructor()) },
 			},
@@ -221,6 +227,7 @@ func TestPluginConsumer(t *testing.T) {
 			},
 		},
 		{
+			// Test that if we do nothing, nothing happens.
 			plugins: []func() constructorPluginPair{},
 			assertions: func() {
 				require.Equal(t, 0, len(helloConsumerPluginRegistry))
@@ -230,16 +237,21 @@ func TestPluginConsumer(t *testing.T) {
 			},
 		},
 		{
+			// Test that unrelated plugins are not consumed.
 			plugins: []func() constructorPluginPair{
 				func() constructorPluginPair { return makeConstructorPluginPair(GetMockPluginConstructor()) }},
 			assertions: func() {
 				require.Equal(t, 0, len(helloConsumerPluginRegistry))
+				pluginSave.AssertCalled(t, "Startup")
 			},
 			consumers: []interface{}{
 				helloConsumer,
 			},
 		},
 		{
+			// Test that if something implements multiple
+			// interfaces, consumers listening to each are
+			// notified.
 			plugins: []func() constructorPluginPair{
 				func() constructorPluginPair {
 					return makeConstructorPluginPair(GetMultiInterfaceConstructor())
@@ -271,12 +283,14 @@ func TestPluginConsumer(t *testing.T) {
 			},
 		},
 		{
+			// Test that inter-plugin dependencies work.
 			plugins: []func() constructorPluginPair{
 				func() constructorPluginPair { return makeConstructorProviderPluginPair(GetMockPluginConstructor()) },
-				func() constructorPluginPair { return makeConstructorPluginPair(GetConsumerPluginConstructor()) },
+				func() constructorPluginPair { return makeConstructorPluginPair(GetDependantPluginConstructor()) },
 			},
 			assertions: func() {
-				require.Same(t, consumerPluginSave.dependency, pluginSave)
+				// check that the dependant plugin got provided the right object during construction.
+				require.Same(t, dependantPluginSave.dependency, pluginSave)
 			},
 			consumers: []interface{}{},
 		},
@@ -299,7 +313,6 @@ func TestPluginConsumer(t *testing.T) {
 		}
 		assert.Nil(t, controller.Provide(func() *Config { return config }))
 		controller.Startup()
-
 		test.assertions()
 		controller.Shutdown()
 	}
