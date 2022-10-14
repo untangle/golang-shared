@@ -35,10 +35,9 @@ type consumer struct {
 // keeps track of a list of plugins to send method calls to.
 type PluginControl struct {
 	dig.Container
-	plugins            []Plugin
-	pluginConstructors []PluginConstructor
-	saverFuncs         []reflect.Value
-	consumers          []consumer
+	plugins    []Plugin
+	saverFuncs []reflect.Value
+	consumers  []consumer
 }
 
 // NewPluginControl creates an empty PluginControl
@@ -58,16 +57,12 @@ func GlobalPluginControl() *PluginControl {
 	return pluginControl
 }
 
-// RegisterPlugin registers a plugin via its constructor so that when
-// PluginControl.Startup(), Signal(), or Shutdown() are called, the
-// plugin's methods are invoked. The plugin is not actually
-// constructed until the Startup() method is called.  This method also
-// adds the plugin to the container -- it registers that the
-// constructor provides its return value and needs whatever arguments
-// it takes. When PluginControl.Startup() is called, the DI container
-// will will wire up dependencies.
+// RegisterPlugin registers a plugin that will be created during the
+// Startup() method and provided with its dependencies. constructor is
+// a function that takes arbitrary types of arguments to be provided
+// by the DI container and returns a plugin object. This function will
+// not provide the plugin as a potential dependency for other plugins.
 func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
-	control.pluginConstructors = append(control.pluginConstructors, constructor)
 	constructorType := reflect.TypeOf(constructor)
 	constructorVal := reflect.ValueOf(constructor)
 	inputs := []reflect.Type{}
@@ -82,7 +77,6 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 		func(vals []reflect.Value) []reflect.Value {
 			output := constructorVal.Call(vals)
 			plugin := output[0].Interface()
-			fmt.Printf("***plugin: %v\n:", plugin)
 			pluginIntf := plugin.(Plugin)
 			control.plugins = append(control.plugins, pluginIntf)
 			return []reflect.Value{}
@@ -90,13 +84,18 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
 }
 
+// RegisterAndProvidePlugin registers a plugin that may be consumed by
+// other plugins. This constructor function therefore needs a unique
+// type. The constructor will be added to the DI container, and other
+// plugins may require it. It is not instantiated until the Startup()
+// method is called.
 func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor) {
-	control.pluginConstructors = append(control.pluginConstructors, constructor)
 	constructorType := reflect.TypeOf(constructor)
 	outputType := constructorType.Out(0)
 
-	// create a func at runtime that we can invoke that calls the
-	// constructor and appends the return value to the list of plugins.
+	// create a func at runtime that we can invoke that requires
+	// the plugin to ensure it gets instantiated, and also appends
+	// it to the list of registered plugins.
 	saverFunc := reflect.MakeFunc(
 		reflect.FuncOf([]reflect.Type{outputType}, []reflect.Type{}, false),
 		func(vals []reflect.Value) []reflect.Value {
