@@ -92,7 +92,16 @@ func PluginSignal(message syscall.Signal) {
 func syncCallbackHandler() {
 	logger.Debug("Syncing settings\n")
 	var systemArpsettings interface{}
-	systemArpsettings, _ = settings.GetSettings([]string{pluginName})
+	var err error
+	systemArpsettings, err = getPluginSettings("discovery", pluginName)
+	logger.Debug("The autoInt is %.2f\n", systemArpsettings.(map[string]interface{})["autoInterval"].(float64))
+
+	if err != nil {
+		logger.Err("could not retrieve system settings for the %s plugin: %s. Shutting the %s plugin down", pluginName, err.Error(), pluginName)
+		Stop()
+		return
+	}
+
 	createSettings(systemArpsettings.(map[string]interface{}))
 
 	if arpSettings.Enabled {
@@ -100,6 +109,31 @@ func syncCallbackHandler() {
 	} else {
 		Stop()
 	}
+}
+
+// Get a plugin's settings json as a map. Takes daemonName to search for a plugin in
+// in a daemon's list of plugins and pluginType to search for a plugin's settings
+func getPluginSettings(daemonName string, pluginType string) (interface{}, error) {
+	daemonSettings, err := settings.GetSettings([]string{daemonName})
+
+	if err != nil {
+		// Return the JSON error object returned by GetSettings
+		return daemonSettings, err
+	}
+
+	pluginSettings, ok := daemonSettings.(map[string]interface{})["plugins"]
+	if !ok {
+		return nil, fmt.Errorf("no plugin settings found for the %s deamon", daemonName)
+	}
+
+	for _, pluginSetting := range pluginSettings.([]interface{}) {
+		plugType, ok := pluginSetting.(map[string]interface{})["type"]
+		if ok && (plugType == pluginType) {
+			return pluginSetting, nil
+		}
+	}
+
+	return nil, fmt.Errorf("he plugin settings for %s could not be found for the %s daemon", pluginType, daemonName)
 }
 
 func createSettings(m map[string]interface{}) {

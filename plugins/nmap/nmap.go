@@ -97,6 +97,10 @@ type nmapProcess struct {
 	pid         int
 }
 
+const (
+	pluginName string = "nmap"
+)
+
 var defaultNetwork string
 var serviceShutdown = make(chan bool)
 
@@ -106,7 +110,7 @@ var nmapProcessesMutex sync.RWMutex = sync.RWMutex{}
 // Start starts the NMAP collector
 func Start() {
 	logger.Info("Starting NMAP collector plugin\n")
-	discovery.RegisterCollector(NmapcallBackHandler)
+	discovery.RegisterCollector(pluginName, NmapcallBackHandler)
 
 	// Do an initial scan
 	NmapcallBackHandler(nil)

@@ -123,6 +123,8 @@ func setupZmqPubSocket() (soc *zmq.Socket, err error) {
 }
 
 func callCollectors(cmds []Command) {
+	collectorsLock.Lock()
+	defer collectorsLock.Unlock()
 	logger.Info("Calling collectors\n")
 	for label, handler := range collectors {
 		logger.Debug("Calling collector with label %s", label)

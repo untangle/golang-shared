@@ -64,10 +64,14 @@ type value struct {
 	Value string `json:"value,omitempty"`
 }
 
+const (
+	pluginName string = "lldp"
+)
+
 // Start starts the LLDP collector
 func Start() {
 	logger.Info("Starting LLDP collector plugin\n")
-	discovery.RegisterCollector(LldpcallBackHandler)
+	discovery.RegisterCollector(pluginName, LldpcallBackHandler)
 
 	// initial run
 	LldpcallBackHandler(nil)

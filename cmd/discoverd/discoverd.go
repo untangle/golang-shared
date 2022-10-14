@@ -87,11 +87,6 @@ func main() {
 	cpuProfiler.StopCPUProfile()
 }
 
-func getPluginSettings() map[string]interface{} {
-	pluginSettings := make(map[string]interface{})
-
-}
-
 /* startServices starts the gin server and cert manager */
 func startServices() {
 	example.Startup()
@@ -147,10 +142,8 @@ func handleSignals() {
 			sig := <-hupch
 			logger.Info("Received signal [%v]. Calling handlers\n", sig)
 			targets := []func(syscall.Signal){
-				stats.PluginSignal, threatprevention.PluginSignal,
-				webfilter.PluginSignal}
+				arp.PluginSignal}
 			sig.Signal()
-			plugins.GlobalPluginControl().Signal(syscall.SIGHUP)
 			notifyTargets(syscall.SIGHUP, targets)
 
 		}
