@@ -19,8 +19,8 @@ import (
 	"github.com/untangle/golang-shared/util"
 )
 
-// Config struct retains information about the where the log level map is stored, default log levels and writer that should be used
-type Config struct {
+// LoggerConfig struct retains information about the where the log level map is stored, default log levels and writer that should be used
+type LoggerConfig struct {
 	FileLocation string
 	LogLevelMap  map[string]string
 	OutputWriter io.Writer
@@ -34,7 +34,7 @@ type Ocname struct {
 
 // Add description [Nikki]
 type Logger struct {
-	config           Config
+	config           LoggerConfig
 	logLevelMap      map[string]*int32
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
