@@ -45,40 +45,33 @@ type Logger struct {
 	// data             []byte
 }
 
-// Add description [Nikki]
-type Service interface {
-	Startup()
-	Register()
-	Shutdown()
-}
-
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
 
-//LogLevelEmerg = syslog.h/LOG_EMERG
+// LogLevelEmerg = syslog.h/LOG_EMERG
 const LogLevelEmerg int32 = 0
 
-//LogLevelAlert = syslog.h/LOG_ALERT
+// LogLevelAlert = syslog.h/LOG_ALERT
 const LogLevelAlert int32 = 1
 
-//LogLevelCrit = syslog.h/LOG_CRIT
+// LogLevelCrit = syslog.h/LOG_CRIT
 const LogLevelCrit int32 = 2
 
-//LogLevelErr = syslog.h/LOG_ERR
+// LogLevelErr = syslog.h/LOG_ERR
 const LogLevelErr int32 = 3
 
-//LogLevelWarn = syslog.h/LOG_WARNING
+// LogLevelWarn = syslog.h/LOG_WARNING
 const LogLevelWarn int32 = 4
 
-//LogLevelNotice = syslog.h/LOG_NOTICE
+// LogLevelNotice = syslog.h/LOG_NOTICE
 const LogLevelNotice int32 = 5
 
-//LogLevelInfo = syslog.h/LOG_INFO
+// LogLevelInfo = syslog.h/LOG_INFO
 const LogLevelInfo int32 = 6
 
-//LogLevelDebug = syslog.h/LOG_DEBUG
+// LogLevelDebug = syslog.h/LOG_DEBUG
 const LogLevelDebug int32 = 7
 
-//LogLevelTrace = custom value
+// LogLevelTrace = custom value
 const LogLevelTrace int32 = 8
 
 // Startup starts the logging service
@@ -264,7 +257,7 @@ func (writer *LogWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-//Couldn't find the function being called anywhere
+// Couldn't find the function being called anywhere
 // EnableTimestamp enables the elapsed time in output
 func (logger *Logger) EnableTimestamp() {
 	logger.timestampEnabled = true
