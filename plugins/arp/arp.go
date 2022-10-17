@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	pluginName string = "arp"
+	pluginName          string = "arp"
+	enabledDefault      bool   = false
+	autoIntervalDefault uint   = math.MaxUint32
 )
 
 var autoArpCollectionChan chan bool
@@ -29,7 +31,7 @@ type arpSettingType struct {
 	AutoInterval uint `json:"autoInterval"`
 }
 
-var arpSettings arpSettingType
+var arpSettings *arpSettingType
 
 func init() {
 	autoArpCollectionChan = make(chan bool)
@@ -54,12 +56,14 @@ func startArp() {
 }
 
 func autoArpCollection() {
+	logger.Debug("Starting automatic collection from ARP plugin with an interval of %d seconds\n", arpSettings.AutoInterval)
 	for {
 		select {
 		case <-autoArpCollectionChan:
+			logger.Debug("Stopping automatic collection from ARP plugin\n")
 			autoArpCollectionChan <- true
 			return
-		case <-time.After(time.Duration(arpSettings.AutoInterval)):
+		case <-time.After(time.Duration(arpSettings.AutoInterval) * time.Second):
 			ArpcallBackHandler(nil)
 		}
 	}
@@ -90,23 +94,33 @@ func PluginSignal(message syscall.Signal) {
 }
 
 func syncCallbackHandler() {
-	logger.Debug("Syncing settings\n")
+	logger.Debug("Syncing %s settings\n", pluginName)
 	var systemArpsettings interface{}
-	var err error
-	systemArpsettings, err = getPluginSettings("discovery", pluginName)
-	logger.Debug("The autoInt is %.2f\n", systemArpsettings.(map[string]interface{})["autoInterval"].(float64))
 
-	if err != nil {
-		logger.Err("could not retrieve system settings for the %s plugin: %s. Shutting the %s plugin down", pluginName, err.Error(), pluginName)
-		Stop()
-		return
+	// Get current state of plugin so the automatic running of
+	// the arp plugin can be restarted if necessary. The plugin should only
+	// be restarted if it was running previously and the settings were altered.
+	restartPlugin := false
+	if (arpSettings != nil) && (arpSettings.Enabled) {
+		if arpSettings.Enabled {
+			restartPlugin = true
+		}
 	}
 
+	// Avoid failing on errors if the plugin settings weren't read in correctly, just use the defaults.
+	// All the logging for a bad settings file is done in createSettings()
+	systemArpsettings, _ = getPluginSettings("discovery", pluginName)
 	createSettings(systemArpsettings.(map[string]interface{}))
 
 	if arpSettings.Enabled {
+		if restartPlugin {
+			Stop()
+		}
+
+		logger.Debug("Starting %s Plugin", pluginName)
 		startArp()
 	} else {
+		logger.Debug("Stopping %s Plugin", pluginName)
 		Stop()
 	}
 }
@@ -136,20 +150,25 @@ func getPluginSettings(daemonName string, pluginType string) (interface{}, error
 	return nil, fmt.Errorf("he plugin settings for %s could not be found for the %s daemon", pluginType, daemonName)
 }
 
+// Sets settings for the ARP Plugin. If no settings json was present, just uses defaults
 func createSettings(m map[string]interface{}) {
-	arpSettings = arpSettingType{Enabled: false, AutoInterval: math.MaxUint32}
-	if m != nil {
-		if m["autoInterval"] != nil {
-			arpSettings.AutoInterval = m["autoInterval"].(uint)
-		}
+	arpSettings = &arpSettingType{Enabled: enabledDefault, AutoInterval: autoIntervalDefault}
 
-		if m["enabled"] != nil {
-			arpSettings.Enabled = m["autoInterval"].(bool)
-		}
-	} else {
-		logger.Warn("Failed to read settings value for %s", pluginName)
+	if m == nil {
+		logger.Warn("No enabled setting for ARP provided, using the defaults\n")
 	}
 
+	if m["autoInterval"] != nil {
+		arpSettings.AutoInterval = uint(m["autoInterval"].(float64))
+	} else {
+		logger.Warn("No autointerval setting for ARP provided, using the default of %d sec\n", autoIntervalDefault)
+	}
+
+	if m["enabled"] != nil {
+		arpSettings.Enabled = m["enabled"].(bool)
+	} else {
+		logger.Warn("No enabled setting for ARP provided, using the default of %t sec\n", enabledDefault)
+	}
 }
 
 // Stop stops QoS
