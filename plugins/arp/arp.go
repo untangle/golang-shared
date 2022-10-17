@@ -31,7 +31,7 @@ type arpSettingType struct {
 	AutoInterval uint `json:"autoInterval"`
 }
 
-var arpSettings *arpSettingType
+var arpSettings arpSettingType
 
 func init() {
 	autoArpCollectionChan = make(chan bool)
@@ -97,31 +97,29 @@ func syncCallbackHandler() {
 	logger.Debug("Syncing %s settings\n", pluginName)
 	var systemArpsettings interface{}
 
-	// Get current state of plugin so the automatic running of
-	// the arp plugin can be restarted if necessary. The plugin should only
-	// be restarted if it was running previously and the settings were altered.
-	restartPlugin := false
-	if (arpSettings != nil) && (arpSettings.Enabled) {
-		if arpSettings.Enabled {
-			restartPlugin = true
-		}
-	}
+	// Capture settings before a possible update to check if the plugin should be restarted
+	originalSettings := arpSettings
 
 	// Avoid failing on errors if the plugin settings weren't read in correctly, just use the defaults.
 	// All the logging for a bad settings file is done in createSettings()
 	systemArpsettings, _ = getPluginSettings("discovery", pluginName)
-	createSettings(systemArpsettings.(map[string]interface{}))
+	setSettings(systemArpsettings.(map[string]interface{}))
 
-	if arpSettings.Enabled {
-		if restartPlugin {
+	// Update only if settings changed
+	if originalSettings != arpSettings {
+		// If settings changed but the plugin was previously enabled, restart the plugin
+		// for changes to take effect
+		if originalSettings.Enabled && arpSettings.Enabled {
 			Stop()
 		}
 
-		logger.Debug("Starting %s Plugin", pluginName)
-		startArp()
-	} else {
-		logger.Debug("Stopping %s Plugin", pluginName)
-		Stop()
+		if arpSettings.Enabled {
+			logger.Debug("Starting %s Plugin", pluginName)
+			startArp()
+		} else {
+			logger.Debug("Stopping %s Plugin", pluginName)
+			Stop()
+		}
 	}
 }
 
@@ -151,8 +149,8 @@ func getPluginSettings(daemonName string, pluginType string) (interface{}, error
 }
 
 // Sets settings for the ARP Plugin. If no settings json was present, just uses defaults
-func createSettings(m map[string]interface{}) {
-	arpSettings = &arpSettingType{Enabled: enabledDefault, AutoInterval: autoIntervalDefault}
+func setSettings(m map[string]interface{}) {
+	arpSettings = arpSettingType{Enabled: enabledDefault, AutoInterval: autoIntervalDefault}
 
 	if m == nil {
 		logger.Warn("No enabled setting for ARP provided, using the defaults\n")
