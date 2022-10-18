@@ -5,13 +5,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/untangle/golang-shared/services/logger"
+	logService "github.com/untangle/golang-shared/services/logger"
 )
 
 var routineInfoWatcher = make(chan *RoutineInfo)
 var activeRoutines = make(map[string]bool)
 var activeRoutinesMutex = &sync.RWMutex{}
 var monitorRelation = RoutineContextGroup{}
+var logger = logService.GetLoggerInstance()
 
 // RoutineInfo is a struct used to signal routine events
 type RoutineInfo struct {
