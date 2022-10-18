@@ -2,12 +2,8 @@ package logger
 
 import (
 	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"log"
-	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -16,15 +12,9 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/overseer"
-	"github.com/untangle/golang-shared/util"
 )
 
-// LoggerConfig struct retains information about the where the log level map is stored, default log levels and writer that should be used
-type LoggerConfig struct {
-	FileLocation string
-	LogLevelMap  map[string]string
-	OutputWriter io.Writer
-}
+const serviceName = "logger"
 
 // Ocname struct retains information about the counter name and limit
 type Ocname struct {
@@ -39,10 +29,7 @@ type Logger struct {
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool //[Nikki] default value = true
-	file             *os.File
-	info             os.FileInfo
 	logLevelName     [9]string
-	// data             []byte
 }
 
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
@@ -74,9 +61,26 @@ const LogLevelDebug int32 = 7
 // LogLevelTrace = custom value
 const LogLevelTrace int32 = 8
 
+var loggerSingleton *Logger
+
+// GetLoggerInstance returns a logger object that is a
+// singleton. Prefer using this if you can.
+func GetLoggerInstance() *Logger {
+	if loggerSingleton == nil {
+		loggerSingleton = NewLogger()
+	}
+	return loggerSingleton
+}
+
+// NewLogger creates an new instance of the logger struct
+func NewLogger() *Logger {
+
+	return &Logger{}
+}
+
 // Startup starts the logging service
 func (logger *Logger) Startup() {
-	err := logger.ValidateConfig()
+	err := logger.config.Validate()
 	fmt.Print("Step 1\n")
 	fmt.Print(err)
 	if err != nil {
@@ -90,9 +94,9 @@ func (logger *Logger) Startup() {
 	logger.launchTime = time.Now()
 
 	// create the map and load the Log configuration
-	data := logger.LoadConfigFromFile()
+	data := logger.config.LoadConfigFromFile()
 	if data != nil {
-		logger.LoadConfigFromJSON(data)
+		logger.config.LoadConfigFromJSON(data)
 	}
 
 	// Set system logger to use our logger
@@ -101,6 +105,11 @@ func (logger *Logger) Startup() {
 	} else {
 		log.SetOutput(DefaultLogWriter("system"))
 	}
+}
+
+// Name returns the service name
+func (logger *Logger) Name() string {
+	return serviceName
 }
 
 // Shutdown stops the logging service
@@ -327,116 +336,6 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 		}
 		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
 	}
-}
-
-// validateConfig ensures all the log levels set in config.LogLevelMap are valid
-func (logger *Logger) ValidateConfig() error {
-	if logger.config.FileLocation == "" {
-		return errors.New("FileLocation must be set")
-	}
-	for key, value := range logger.config.LogLevelMap {
-		if !util.ContainsString(logLevelName[:], value) {
-			return fmt.Errorf("%s is using an incorrect log level: %s", key, value)
-		}
-	}
-	return nil
-}
-
-// loadLoggerConfig loads the logger configuration file
-func (logger *Logger) LoadConfigFromFile() []byte {
-
-	var err error
-
-	// open the logger configuration file
-	logger.file, err = os.Open(logger.config.FileLocation)
-
-	// if there was an error create the config and try the open again
-	if err != nil {
-		logger.writeLoggerConfigToJSON()
-		logger.file, err = os.Open(logger.config.FileLocation)
-
-		// if there is still an error we are out of options
-		if err != nil {
-			logger.Err("Unable to load Log configuration file: %s\n", logger.config.FileLocation)
-			return nil
-		}
-	}
-
-	// make sure the file gets closed
-	defer logger.file.Close()
-
-	// get the file status
-	logger.info, err = logger.file.Stat()
-	if err != nil {
-		logger.Err("Unable to query file information\n")
-		return nil
-	}
-	data := make([]byte, logger.info.Size())
-	len, err := logger.file.Read(data)
-
-	if (err != nil) || (len < 1) {
-		logger.Err("Unable to read Log configuration\n")
-		return nil
-	}
-
-	return data
-}
-
-// split -> Mock Json pass to the function below
-// read the raw configuration json from the file
-func (logger *Logger) LoadConfigFromJSON(data []byte) {
-	serviceMap := make(map[string]string)
-	logger.logLevelMap = make(map[string]*int32)
-
-	// unmarshal the configuration into a map
-	err := json.Unmarshal(data, &serviceMap)
-	if err != nil {
-		logger.Err("Unable to parse Log configuration\n")
-		return
-	}
-
-	// put the name/string pairs from the file into the name/int lookup map we us in the Log function
-	for cfgname, cfglevel := range serviceMap {
-		// ignore any comment strings that start and end with underscore
-		if strings.HasPrefix(cfgname, "_") && strings.HasSuffix(cfgname, "_") {
-			continue
-		}
-
-		// find the index of the logLevelName that matches the configured level
-		found := false
-		for levelvalue, levelname := range logLevelName {
-			// if the string matches the level will be the index of the matched name
-			if strings.Compare(levelname, strings.ToUpper(cfglevel)) == 0 {
-				logger.logLevelMap[cfgname] = new(int32)
-				atomic.StoreInt32(logger.logLevelMap[cfgname], int32(levelvalue))
-				found = true
-			}
-		}
-		if !found {
-			logger.Warn("Invalid Log configuration entry: %s=%s\n", cfgname, cfglevel)
-		}
-	}
-}
-
-func (logger *Logger) writeLoggerConfigToJSON() {
-	logger.Alert("Log configuration not found. Creating default File: %s\n", logger.config.FileLocation)
-
-	// convert the config map to a json object
-	jstr, err := json.MarshalIndent(logger.config.LogLevelMap, "", "")
-	if err != nil {
-		logger.Alert("Log failure creating default configuration: %s\n", err.Error())
-		return
-	}
-
-	// create the logger configuration file
-	file, err := os.Create(logger.config.FileLocation)
-	if err != nil {
-		return
-	}
-
-	// write the default configuration and close the file
-	file.Write(jstr)
-	file.Close()
 }
 
 // This function uses runtime.Callers to get the call stack to determine the calling function
