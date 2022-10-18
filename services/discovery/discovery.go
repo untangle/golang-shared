@@ -24,7 +24,7 @@ var collectors map[string]CollectorHandlerFunction
 var collectorsLock sync.RWMutex
 
 const (
-	// CmdScanHost is a command to scan a host, argument is the hostnames
+	// CmdScanHost is a  command to scan a host, argument is the hostnames
 	CmdScanHost int = 1
 	// CmdScanNet is a command to scan a network, argument is the networks (CIDR notation)
 	CmdScanNet int = 2
