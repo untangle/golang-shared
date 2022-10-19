@@ -5,7 +5,7 @@ images:
 
   discoverd:
     units:
-    - floor: code.arista.io/mfw/build%toolchain
+    - floor: code.arista.io/mfw/build%golang
       sources:
         - code.arista.io/mfw/build
         - github.com/untangle/openwrt
