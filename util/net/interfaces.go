@@ -11,8 +11,10 @@ type Interface struct {
 	DHCPRangeStart    string
 	DHCPRangeEnd      string
 	DownloadKbps      int
-	Enabled           bool   `json:"enabled"`
-	Name              string `json:"name"`
-	Type              string `json:"type"`
-	IsWAN             bool   `json:"wan"`
+	Enabled           bool    `json:"enabled"`
+	Name              string  `json:"name"`
+	Type              string  `json:"type"`
+	V4StaticAddress   string  `json:"v4StaticAddress"`
+	V4StaticPrefix    float64 `json:"v4StaticPrefix"`
+	IsWAN             bool    `json:"wan"`
 }
