@@ -19,6 +19,7 @@ func GetInterfaces(filter func(Interface) bool) []Interface {
 		return nil
 	}
 
+	logger.Info("uggggggggggggggggggggggggggggggggggggggggggggggggggghhhhhhhhhhhhh\n")
 	for _, str := range interfaces {
 		logger.Err("yoooo %s", str)
 	}
