@@ -14,14 +14,8 @@ import (
 func GetInterfaces(filter func(Interface) bool) []Interface {
 	var interfaces []Interface
 	if err := settings.UnmarshalSettingsAtPath(&interfaces, "network", "interfaces"); err != nil {
-		logger.Err("chap chap\n\n\n")
 		logger.Warn("Unable to read network settings: %s\n", err.Error())
 		return nil
-	}
-
-	logger.Info("uggggggggggggggggggggggggggggggggggggggggggggggggggghhhhhhhhhhhhh\n")
-	for _, str := range interfaces {
-		logger.Err("yoooo %s", str)
 	}
 
 	if filter != nil {
@@ -38,7 +32,8 @@ func GetInterfaces(filter func(Interface) bool) []Interface {
 	}
 }
 
-func GetLocalNetworks(localIntfs []Interface) []string {
+// From a list of network interfaces, return the list of local network in CIDR notation
+func GetLocalNetworksCidrNotation(localIntfs []Interface) []string {
 	var localNetworks []string = nil
 
 	for _, intf := range localIntfs {
