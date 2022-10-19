@@ -1,9 +1,6 @@
 package interfaces
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -30,18 +27,4 @@ func GetInterfaces(filter func(Interface) bool) []Interface {
 	} else {
 		return interfaces
 	}
-}
-
-// From a list of network interfaces, return the list of local network in CIDR notation
-func GetLocalNetworksCidrNotation(localIntfs []Interface) []string {
-	var localNetworks []string = nil
-
-	for _, intf := range localIntfs {
-		prefix := strconv.FormatFloat(intf.V4StaticPrefix, 'f', -1, 64)
-		localNetwork := fmt.Sprintf("%s/%s", intf.V4StaticAddress, prefix)
-		logger.Debug("Found local network %s\n", localNetwork)
-		localNetworks = append(localNetworks, localNetwork)
-	}
-
-	return localNetworks
 }
