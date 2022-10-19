@@ -1,13 +1,27 @@
 package discovery
 
 import (
+	"math/rand"
 	"net"
 	"net/http"
 	"net/rpc"
 	"sync"
+	"time"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
+	interfaces "github.com/untangle/golang-shared/util/net"
+)
+
+const (
+	// CmdScanHost is a command to scan a host, argument is the hostnames
+	CmdScanHost int = 1
+	// CmdScanNet is a command to scan a network, argument is the networks (CIDR notation)
+	CmdScanNet int = 2
+
+	networkScanTime time.Duration = time.Second * 10
+	randStartMin    int           = 5
+	randStartMax    int           = 10
 )
 
 type zmqMessage struct {
@@ -18,17 +32,13 @@ type zmqMessage struct {
 // Messages to be published to the ZMQ socket
 var messagePublisherChannel = make(chan *zmqMessage, 1000)
 
+// Channel to shutdown the goroutine that automatically runs the collectors
+var shutdownCollectorRunner = make(chan bool)
+
 // List of registered collectors
 //var collectors []CollectorHandlerFunction = nil
 var collectors map[string]CollectorHandlerFunction
 var collectorsLock sync.RWMutex
-
-const (
-	// CmdScanHost is a  command to scan a host, argument is the hostnames
-	CmdScanHost int = 1
-	// CmdScanNet is a command to scan a network, argument is the networks (CIDR notation)
-	CmdScanNet int = 2
-)
 
 func init() {
 	collectors = make(map[string]CollectorHandlerFunction)
@@ -63,11 +73,55 @@ func Startup() {
 
 	go http.Serve(lis, nil)
 
+	runCollectorsOnTimer()
 }
 
 // Shutdown the discovery service.
 func Shutdown() {
 	logger.Info("Shutting down discovery service\n")
+	shutdownCollectorRunner <- true
+}
+
+// Function that starts running Collectors on a timer.NOT meant to be used a goroutine
+func runCollectorsOnTimer() {
+	logger.Err("Started Running Collectors every %s\n", networkScanTime.String())
+
+	// Start the collector timer. Will request a LAN network scan periodically.
+	ScanNetTimer := time.NewTicker(networkScanTime)
+
+	localInts := interfaces.GetInterfaces(func(intf interfaces.Interface) bool {
+		return !intf.IsWAN && intf.Enabled && intf.V4StaticAddress != ""
+	})
+
+	var localNetworksCidr []string
+	for _, intf := range localInts {
+		localNetworksCidr = append(localNetworksCidr, intf.GetCidrNotation())
+	}
+
+	//Start network scan at random interval between randStartMin to randStartMax to avoid network load during packetd startup
+	randStartTime := rand.Intn(randStartMax-randStartMin) + randStartMin
+	RandStartScanNetTimer := time.NewTicker(time.Duration(randStartTime) * time.Minute)
+
+	collectionCommands := []Command{{Command: CmdScanNet, Arguments: localNetworksCidr}}
+	logger.Err("The local networks are %v", localNetworksCidr)
+
+	go func() {
+		for {
+			select {
+			case <-RandStartScanNetTimer.C:
+				logger.Debug("Scanning LAN networks: %v\n", localNetworksCidr)
+
+				callCollectors(collectionCommands)
+				RandStartScanNetTimer.Stop()
+			case <-ScanNetTimer.C:
+				logger.Debug("Scanning LAN networks: %v\n", localNetworksCidr)
+				callCollectors(collectionCommands)
+			case <-shutdownCollectorRunner:
+				ScanNetTimer.Stop()
+				return
+			}
+		}
+	}()
 }
 
 // zmqPublisher reads from the messageChannel and sends the events to the associated topic

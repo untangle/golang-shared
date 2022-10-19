@@ -18,6 +18,7 @@ import (
 	"github.com/untangle/discoverd/plugins/nmap"
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/discoverd/services/example"
+	"github.com/untangle/golang-shared/plugins"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/profiler"
 )
@@ -60,6 +61,10 @@ func main() {
 
 	// Start services
 	startServices()
+
+	sigHandler := plugins.NewSignalHandler()
+	plugins.GlobalPluginControl().RegisterAndProvidePlugin(sigHandler.RegisterPlugin)
+	handleSignals(sigHandler)
 
 	startPlugins()
 
@@ -111,7 +116,7 @@ func stopPlugins() {
 }
 
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */
-func handleSignals() {
+func handleSignals(handler *plugins.SignalHandler) {
 	// Add SIGINT & SIGTERM handler (exit)
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)

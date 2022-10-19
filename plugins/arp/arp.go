@@ -123,6 +123,7 @@ func syncCallbackHandler() {
 	}
 }
 
+// TODO: Just use unmarshall at path
 // Get a plugin's settings json as a map. Takes daemonName to search for a plugin in
 // in a daemon's list of plugins and pluginType to search for a plugin's settings
 func getPluginSettings(daemonName string, pluginType string) (interface{}, error) {
