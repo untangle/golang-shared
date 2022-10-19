@@ -5,9 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
-	"os/user"
 	"runtime"
-	"strconv"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -28,20 +26,6 @@ var cpuProfiler *profiler.CPUProfiler
 
 /* main function for discoverd */
 func main() {
-	// Check we are root user
-	userinfo, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-
-	userid, err := strconv.Atoi(userinfo.Uid)
-	if err != nil {
-		panic(err)
-	}
-
-	if userid != 0 {
-		panic("This application must be run as root\n")
-	}
 
 	// Start up logger
 	loggerConfig := createLoggerConfig()
@@ -52,7 +36,7 @@ func main() {
 
 	// setup CPU profiling
 	cpuProfiler = profiler.CreateCPUProfiler(cpuProfileFilename)
-	err = cpuProfiler.StartCPUProfile()
+	err := cpuProfiler.StartCPUProfile()
 	if err != nil {
 		logger.Warn("CPU Profiler could not start: %s\n", err.Error())
 	}
