@@ -16,8 +16,10 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/plugins/util"
-	"github.com/untangle/golang-shared/services/logger"
+	logService "github.com/untangle/golang-shared/services/logger"
 )
+
+var logger = logService.GetLoggerInstance()
 
 const settingsFile = "/etc/config/settings.json"
 const defaultsFile = "/etc/config/defaults.json"

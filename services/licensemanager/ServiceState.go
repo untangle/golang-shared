@@ -3,8 +3,6 @@ package licensemanager
 import (
 	"encoding/json"
 	"io/ioutil"
-
-	"github.com/untangle/golang-shared/services/logger"
 )
 
 const (
