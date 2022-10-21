@@ -1,22 +1,13 @@
 package settingsync
 
 import (
-	"syscall"
-
 	"github.com/untangle/golang-shared/services/logger"
-	"github.com/untangle/golang-shared/services/settings"
-)
-
-const (
-	pluginName string = "SettingsSync"
 )
 
 type SettingsSyncer interface {
 	InSync(interface{}) bool
 
-	GetSettingsPath() string
-
-	GetSettingsStruct() interface{}
+	GetSettingsStruct() (interface{}, error)
 
 	SyncSettings(interface{}) error
 }
@@ -25,47 +16,33 @@ type SettingsSync struct {
 	syncers []SettingsSyncer
 }
 
-func NewSettingsSync() *SettingsSync {
-	return &SettingsSync{syncers: make([]SettingsSyncer, 0)}
+func NewSettingsSyncHandler() *SettingsSync {
+	return &SettingsSync{}
 }
 
-func (settingsSync *SettingsSync) RegisterManager(manager SettingsSyncer) {
-	settingsSync.syncers = append(settingsSync.syncers, manager)
+func (settingsSync *SettingsSync) RegisterPlugin(plug SettingsSyncer) {
+	// Have to strip the type off of plugin to check if it implements an interface
+	// Ignore the golang linter complaining about this, it has to happen
+	settingsSync.syncers = append(settingsSync.syncers, plug)
 }
 
-func (settingsSync *SettingsSync) Signal(signal syscall.Signal) error {
-	switch signal {
-	case syscall.SIGHUP:
-		for _, syncer := range settingsSync.syncers {
-			settingsPath := syncer.GetSettingsPath()
+func (settingsSync *SettingsSync) SyncSettings() {
+	logger.Info("Syncing Plugin Settings\n")
 
-			var updatedSettings interface{}
-			if err := settings.UnmarshalSettingsAtPath(updatedSettings, settingsPath); err != nil {
+	for _, syncer := range settingsSync.syncers {
+
+		updatedSettings, err := syncer.GetSettingsStruct()
+		if err != nil {
+			logger.Err("An error occurred and could not sync settings: %s", err.Error())
+			continue
+		}
+
+		if !syncer.InSync(updatedSettings) {
+
+			if err := syncer.SyncSettings(updatedSettings); err != nil {
 				logger.Err("SettingsSync: %s", err.Error())
 				continue
 			}
-
-			if !syncer.InSync(updatedSettings) {
-
-				if err := syncer.SyncSettings(settingsPath); err != nil {
-					logger.Err("SettingsSync: %s", err.Error())
-					continue
-				}
-			}
 		}
 	}
-
-	return nil
-}
-
-func (settingsSync *SettingsSync) Startup() error {
-	return nil
-}
-
-func (settingsSync *SettingsSync) Shutdown() error {
-	return nil
-}
-
-func (settingsSync *SettingsSync) Name() string {
-	return pluginName
 }

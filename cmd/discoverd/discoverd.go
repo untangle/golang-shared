@@ -2,13 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"os/user"
 	"runtime"
 	"strconv"
-	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -16,6 +16,7 @@ import (
 	"github.com/untangle/discoverd/plugins/arp"
 	"github.com/untangle/discoverd/plugins/lldp"
 	"github.com/untangle/discoverd/plugins/nmap"
+	settingsync "github.com/untangle/discoverd/plugins/settingssync"
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/discoverd/services/example"
 	"github.com/untangle/golang-shared/plugins"
@@ -23,10 +24,12 @@ import (
 	"github.com/untangle/golang-shared/services/profiler"
 )
 
-var shutdownFlag uint32
-var shutdownChannel = make(chan bool)
-var cpuProfileFilename = ""
-var cpuProfiler *profiler.CPUProfiler
+var (
+	shutdownFlag       uint32
+	shutdownChannel    = make(chan bool)
+	cpuProfileFilename = ""
+	cpuProfiler        *profiler.CPUProfiler
+)
 
 /* main function for discoverd */
 func main() {
@@ -62,14 +65,16 @@ func main() {
 	// Start services
 	startServices()
 
-	sigHandler := plugins.NewSignalHandler()
-	plugins.GlobalPluginControl().RegisterAndProvidePlugin(sigHandler.RegisterPlugin)
-	handleSignals(sigHandler)
+	arp := arp.NewArp()
+	fmt.Print(arp.Name())
 
-	startPlugins()
+	syncHandler := settingsync.NewSettingsSyncHandler()
+	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 
 	// Handle the stop signals
-	handleSignals()
+	handleSignals(syncHandler)
+
+	startPlugins()
 
 	// Keep discoverd running while the shutdown flag is false
 	// shutdown once flag is true or the shutdownChannel indicates a shutdown
@@ -104,19 +109,19 @@ func stopServices() {
 }
 
 func startPlugins() {
-	arp.Start()
 	lldp.Start()
 	nmap.Start()
+	plugins.GlobalPluginControl().Startup()
 }
 
 func stopPlugins() {
-	arp.Stop()
 	lldp.Stop()
 	nmap.Stop()
+	plugins.GlobalPluginControl().Shutdown()
 }
 
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */
-func handleSignals(handler *plugins.SignalHandler) {
+func handleSignals(syncHandler *settingsync.SettingsSync) {
 	// Add SIGINT & SIGTERM handler (exit)
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)
@@ -146,29 +151,27 @@ func handleSignals(handler *plugins.SignalHandler) {
 		for {
 			sig := <-hupch
 			logger.Info("Received signal [%v]. Calling handlers\n", sig)
-			targets := []func(syscall.Signal){
-				arp.PluginSignal}
+			syncHandler.SyncSettings()
 			sig.Signal()
-			notifyTargets(syscall.SIGHUP, targets)
 
 		}
 	}()
 }
 
 // notifyTargets signals all plugins with a handler (in parallel)
-func notifyTargets(message syscall.Signal, targets []func(syscall.Signal)) {
-	var wg sync.WaitGroup
+// func notifyTargets(message syscall.Signal, targets []func(syscall.Signal)) {
+// 	var wg sync.WaitGroup
 
-	for _, f := range targets {
-		wg.Add(1)
-		go func(f func(syscall.Signal)) {
-			f(message)
-			wg.Done()
-		}(f)
-	}
+// 	for _, f := range targets {
+// 		wg.Add(1)
+// 		go func(f func(syscall.Signal)) {
+// 			f(message)
+// 			wg.Done()
+// 		}(f)
+// 	}
 
-	wg.Wait()
-}
+// 	wg.Wait()
+// }
 
 // dumpStack to /tmp/discoverd.stack and log
 func dumpStack() {
