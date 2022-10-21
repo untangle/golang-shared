@@ -2,46 +2,63 @@ package logger
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
-	"strings"
-	"sync/atomic"
-
-	"github.com/untangle/golang-shared/util"
 )
 
 // LoggerConfig struct retains information about the where the log level map is stored, default log levels and writer that should be used
 type LoggerConfig struct {
 	FileLocation string
-	LogLevelMap  map[string]string
+	LogLevelMap  map[string]LogLevel
 	OutputWriter io.Writer
 	// I think these can be removed? they are only accessible from a single function
 	file *os.File
 	info os.FileInfo
 }
 
-// validateConfig ensures all the log levels set in config.LogLevelMap are valid
-func (conf *LoggerConfig) Validate() error {
-	if conf.FileLocation == "" {
-		return errors.New("FileLocation must be set")
+type LogLevel struct {
+	Name string `json:logname`
+	Id   uint8
+}
+
+func (conf *LoggerConfig) GetLogID(name string) uint8 {
+	switch name {
+	case "EMERG":
+		return 0
+	case "ALERT":
+		return 1
+	case "CRIT":
+		return 2
+	case "ERROR":
+		return 3
+	case "WARN":
+		return 4
+	case "NOTICE":
+		return 5
+	case "INFO":
+		return 6
+	case "DEBUG":
+		return 7
+	case "TRACE":
+		return 8
+	default:
+		return 9
 	}
-	for key, value := range conf.LogLevelMap {
-		if !util.ContainsString(logLevelName[:], value) {
-			return fmt.Errorf("%s is using an incorrect log level: %s", key, value)
-		}
-	}
-	return nil
 }
 
 // loadLoggerConfig loads the logger configuration file
 func (conf *LoggerConfig) LoadConfigFromFile() []byte {
+	if conf.FileLocation == "" {
+		GetLoggerInstance().Err("FileLocation must be set\n")
+		return nil
+	}
 
 	var err error
 
 	// open the logger configuration file
 	conf.file, err = os.Open(conf.FileLocation)
+	fmt.Print(err)
 
 	// if there was an error create the default config and try the open again
 	if err != nil {
@@ -78,8 +95,8 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 // split -> Mock Json pass to the function below
 // read the raw configuration json from the file
 func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
-	serviceMap := make(map[string]string)
-	conf.LogLevelMap = make(map[string]*int32)
+	serviceMap := make(map[string]LogLevel)
+	conf.LogLevelMap = make(map[string]LogLevel)
 
 	// unmarshal the configuration into a map
 	err := json.Unmarshal(data, &serviceMap)
@@ -87,32 +104,10 @@ func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
 		GetLoggerInstance().Err("Unable to parse Log configuration\n")
 		return
 	}
-
-	// put the name/string pairs from the file into the name/int lookup map we us in the Log function
-	for cfgname, cfglevel := range serviceMap {
-		// ignore any comment strings that start and end with underscore
-		if strings.HasPrefix(cfgname, "_") && strings.HasSuffix(cfgname, "_") {
-			continue
-		}
-
-		// find the index of the logLevelName that matches the configured level
-		found := false
-		for levelvalue, levelname := range logLevelName {
-			// if the string matches the level will be the index of the matched name
-			if strings.Compare(levelname, strings.ToUpper(cfglevel)) == 0 {
-				conf.LogLevelMap[cfgname] = new(int32)
-				atomic.StoreInt32(conf.LogLevelMap[cfgname], int32(levelvalue))
-				found = true
-			}
-		}
-		if !found {
-			GetLoggerInstance().Warn("Invalid Log configuration entry: %s=%s\n", cfgname, cfglevel)
-		}
-	}
 }
 
 func (conf *LoggerConfig) writeLoggerConfigToJSON() {
-	GetLoggerInstance().Alert("Log configuration not found. Creating default File: %s\n", logger.config.FileLocation)
+	GetLoggerInstance().Alert("Log configuration not found. Creating default File: %s\n", conf.FileLocation)
 
 	// convert the config map to a json object
 	jstr, err := json.MarshalIndent(conf.LogLevelMap, "", "")

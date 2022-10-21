@@ -18,67 +18,40 @@ type MockConfigFile struct {
 	logger *Logger
 }
 
-var configSave *MockConfigFile = &MockConfigFile{}
-
 type TestLogger struct {
 	suite.Suite
-	logger         Logger
-	write          LogWriter
-	mockConfigFile MockConfigFile
+	logger Logger
+	write  LogWriter
 }
 
-// type MockConfig struct {
-// 	FileLocation string
-// 	LogLevelMap  map[string]string
-// 	// OutputWriter MockOutputWriter
-// 	config Config
-// }
-
-var MockLogLevelEmerg int32 = 0
-var MockLogLevelAlert int32 = 1
-var MockLogLevelCrit int32 = 2
-var MockLogLevelErr int32 = 3
-var MockLogLevelWarn int32 = 4
-var MockLogLevelNotice int32 = 5
-var MockLogLevelInfo int32 = 6
-var MockLogLevelDebug int32 = 7
-var MockLogLevelTrace int32 = 8
-
 func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
-	logger.logLevelMap = map[string]*int32{
-		"Emergtest":  &MockLogLevelEmerg,
-		"Alerttest":  &MockLogLevelAlert,
-		"Crittest":   &MockLogLevelCrit,
-		"Errtest":    &MockLogLevelErr,
-		"Warntest":   &MockLogLevelWarn,
-		"Noticetest": &MockLogLevelNotice,
-		"Infotest":   &MockLogLevelInfo,
-		"Debugtest":  &MockLogLevelDebug,
-		"Tracetest":  &MockLogLevelTrace,
+	logger.config.LogLevelMap = map[string]LogLevel{
+		"Emergtest":  {"EMERG", 0},
+		"Alerttest":  {"ALERT", 1},
+		"Crittest":   {"CRIT", 2},
+		"Errtest":    {"ERROR", 3},
+		"Warntest":   {"WARN", 4},
+		"Noticetest": {"NOTICE", 5},
+		"Infotest":   {"INFO", 6},
+		"Debugtest":  {"DEBUG", 7},
+		"Tracetest":  {"TRACE", 8},
 	}
 }
 
-type MockConfig interface {
-	LoadConfigFromFile()
-	ValidateConfig()
-}
-
-func (m *MockConfigFile) LoadConfigFromFile() []byte {
-	data := []byte{102, 97, 108, 99, 111, 110}
-	return data
-}
-func (m *MockConfigFile) ValidateConfig() error {
-	returns := m.Mock.Called()
-	return returns.Error(0)
-}
 func (suite *TestLogger) TestStartup() {
-	testObj := new(MockConfigFile)
-	// configSave.On("ValidateConfig").Return(0)
-	testObj.On("logger.LoadConfigFromFile", mock.Anything)
+	suite.logger.Startup()
+	assert.Equal(suite.T(), nil, suite.logger.config.OutputWriter)
+	suite.logger.config.FileLocation = "LoggerConfig.json"
+	suite.logger.Startup()
+	var MockWriter bytes.Buffer
+	suite.logger.config.OutputWriter = &MockWriter
 	suite.logger.Startup()
 }
 
-//Include the case where functionname != 0
+func (suite *TestLogger) TestName() {
+	assert.Equal(suite.T(), "logger", suite.logger.Name())
+}
+
 func (suite *TestLogger) TestIsLogEnabledSourceTrue() {
 	testObj := new(MockConfigFile)
 	testObj.MockLoadConfigFromFile(&suite.logger)
@@ -129,15 +102,6 @@ func (suite *TestLogger) TestEnabled() {
 	suite.logger.Shutdown()
 }
 
-func (suite *TestLogger) TestGenerateReport() {
-	testObj := new(MockConfigFile)
-	testObj.MockLoadConfigFromFile(&suite.logger)
-	Mockbuffer := bytes.Buffer{}
-	assert.Equal(suite.T(), 0, Mockbuffer.Len())
-	suite.logger.GenerateReport(&Mockbuffer)
-	assert.Equal(suite.T(), 715, Mockbuffer.Len())
-}
-
 func (suite *TestLogger) TestFindLogLevelName() {
 	testObj := new(MockConfigFile)
 	testObj.MockLoadConfigFromFile(&suite.logger)
@@ -154,23 +118,6 @@ func (suite *TestLogger) TestFindLogLevelValue() {
 	assert.Equal(suite.T(), int32(6), FindLogLevelValue("INFO"))
 }
 
-func (suite *TestLogger) TestAdjustSource() {
-	testObj := new(MockConfigFile)
-	testObj.MockLoadConfigFromFile(&suite.logger)
-	assert.Equal(suite.T(), int32(-1), suite.logger.AdjustSourceLogLevel("INFO", 7))
-	assert.Equal(suite.T(), int32(0), suite.logger.AdjustSourceLogLevel("Emergtest", 2))
-	assert.Equal(suite.T(), int32(2), suite.logger.AdjustSourceLogLevel("Crittest", 4))
-
-}
-
-func (suite *TestLogger) TestSearchSourceLogLevel() {
-	testObj := new(MockConfigFile)
-	testObj.MockLoadConfigFromFile(&suite.logger)
-	assert.Equal(suite.T(), int32(-1), suite.logger.SearchSourceLogLevel("INFO"))
-	assert.Equal(suite.T(), int32(2), suite.logger.SearchSourceLogLevel("Emergtest"))
-	assert.Equal(suite.T(), int32(4), suite.logger.SearchSourceLogLevel("Crittest"))
-}
-
 func (suite *TestLogger) TestWrite() {
 	int_result, error_result := suite.write.Write([]byte("test\n"))
 	assert.Equal(suite.T(), 5, int_result)
@@ -181,20 +128,68 @@ func (suite *TestLogger) TestDefaultLogWriter() {
 	assert.Equal(suite.T(), &LogWriter{buffer: []uint8{}, source: "System"}, DefaultLogWriter("System"))
 }
 
-func (suite *TestLogger) TestEnableTimestamp() {
-	suite.logger.timestampEnabled = false
-	suite.logger.EnableTimestamp()
-	assert.Equal(suite.T(), true, suite.logger.timestampEnabled)
-	suite.logger.timestampEnabled = true
-	suite.logger.EnableTimestamp()
-	assert.Equal(suite.T(), true, suite.logger.timestampEnabled)
+func (suite *TestLogger) TestLoadConfigFromFile() {
+	assert.Equal(suite.T(), []uint8([]byte(nil)), suite.logger.config.LoadConfigFromFile())
+	suite.logger.config.FileLocation = "LoggerConfig.json"
+	assert.Equal(suite.T(), 791, len(suite.logger.config.LoadConfigFromFile()))
+	suite.logger.config.FileLocation = "/LoggerConfig.json"
+	assert.Equal(suite.T(), 0, len(suite.logger.config.LoadConfigFromFile()))
 }
 
-func (suite *TestLogger) TestDisableTimestamp() {
-	suite.logger.timestampEnabled = false
-	suite.logger.DisableTimestamp()
-	assert.Equal(suite.T(), false, suite.logger.timestampEnabled)
-	suite.logger.timestampEnabled = true
-	suite.logger.DisableTimestamp()
-	assert.Equal(suite.T(), false, suite.logger.timestampEnabled)
+func (suite *TestLogger) TestLoadConfigFromJSON() {
+	Mockdata := []byte{0x7b, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x63, 0x65, 0x72, 0x74, 0x63, 0x61, 0x63, 0x68, 0x65, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x63, 0x65, 0x72, 0x74, 0x66, 0x65, 0x74, 0x63, 0x68, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x63, 0x65, 0x72, 0x74, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x63, 0x65, 0x72, 0x74, 0x73, 0x6e, 0x69, 0x66, 0x66, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x63, 0x6c, 0x61, 0x73, 0x73, 0x69, 0x66, 0x79, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x63, 0x6f, 0x6e, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x6b, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x64, 0x69, 0x63, 0x74, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x64, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x64, 0x69, 0x73, 0x70, 0x61, 0x74, 0x63, 0x68, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x64, 0x6e, 0x73, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x67, 0x65, 0x6f, 0x69, 0x70, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x67, 0x69, 0x6e, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x6b, 0x65, 0x72, 0x6e, 0x65, 0x6c, 0x22, 0x3a, 0x20, 0x22, 0x49, 0x4e, 0x46, 0x4f, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x22, 0x6c, 0x6f}
+	suite.logger.config.LoadConfigFromJSON(Mockdata)
+}
+
+func (suite *TestLogger) TestGetLogID() {
+	testObj := new(MockConfigFile)
+	testObj.MockLoadConfigFromFile(&suite.logger)
+	tests := []struct {
+		name   string
+		output uint8
+	}{
+		{
+			name:   "EMERG",
+			output: 0,
+		},
+		{
+			name:   "ALERT",
+			output: 1,
+		},
+		{
+			name:   "CRIT",
+			output: 2,
+		},
+		{
+			name:   "ERROR",
+			output: 3,
+		},
+		{
+			name:   "WARN",
+			output: 4,
+		},
+		{
+			name:   "NOTICE",
+			output: 5,
+		},
+		{
+			name:   "INFO",
+			output: 6,
+		},
+		{
+			name:   "DEBUG",
+			output: 7,
+		},
+		{
+			name:   "TRACE",
+			output: 8,
+		},
+		{
+			name:   "None",
+			output: 9,
+		},
+	}
+	for _, tt := range tests {
+		assert.Equal(suite.T(), tt.output, suite.logger.config.GetLogID(tt.name))
+	}
 }

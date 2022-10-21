@@ -1,14 +1,11 @@
 package logger
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"runtime"
-	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/untangle/golang-shared/services/overseer"
@@ -22,14 +19,25 @@ type Ocname struct {
 	limit int64
 }
 
-// Add description [Nikki]
+//Logger struct retains information about the logger related information
 type Logger struct {
 	config           LoggerConfig
-	logLevelMap      map[string]*int32
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
-	timestampEnabled bool //[Nikki] default value = true
+	timestampEnabled bool
 	logLevelName     [9]string
+}
+
+type LoggerLevels interface {
+	Emerg(format string, args ...interface{})
+	Alert(format string, args ...interface{})
+	Crit(format string, args ...interface{})
+	Err(format string, args ...interface{})
+	Warn(format string, args ...interface{})
+	Notice(format string, args ...interface{})
+	Info(format string, args ...interface{})
+	Debug(format string, args ...interface{})
+	Trace(format string, args ...interface{})
 }
 
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
@@ -80,15 +88,6 @@ func NewLogger() *Logger {
 
 // Startup starts the logging service
 func (logger *Logger) Startup() {
-	err := logger.config.Validate()
-	fmt.Print("Step 1\n")
-	fmt.Print(err)
-	if err != nil {
-		fmt.Print("Step 3\n")
-		logger.Err("Logger Configuration is invalid: %s\n", err.Error())
-		return
-	}
-	fmt.Print("Step 2\n")
 
 	// capture startup time
 	logger.launchTime = time.Now()
@@ -98,7 +97,7 @@ func (logger *Logger) Startup() {
 	if data != nil {
 		logger.config.LoadConfigFromJSON(data)
 	}
-
+	fmt.Print(logger.config.OutputWriter)
 	// Set system logger to use our logger
 	if logger.config.OutputWriter != nil {
 		log.SetOutput(logger.config.OutputWriter)
@@ -238,17 +237,6 @@ func (logger *Logger) IsLogEnabledSource(level int32, source string) bool {
 	return (lvl >= level)
 }
 
-// Couldn't find the function being called anywhere
-// EnableTimestamp enables the elapsed time in output
-func (logger *Logger) EnableTimestamp() {
-	logger.timestampEnabled = true
-}
-
-// DisableTimestamp disable the elapsed time in output
-func (logger *Logger) DisableTimestamp() {
-	logger.timestampEnabled = false
-}
-
 // getLogLevel returns the log level for the specified package or function
 // It checks function first allowing individual functions to be configured
 // for a higher level of logging than the package that owns them.
@@ -256,19 +244,19 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(functionName) != 0 {
 		logger.logLevelLocker.RLock()
-		ptr, stat := logger.logLevelMap[functionName]
+		stat := logger.config.LogLevelMap[functionName] != LogLevel{}
 		logger.logLevelLocker.RUnlock()
 		if stat {
-			return atomic.LoadInt32(ptr)
+			return int32(logger.config.LogLevelMap[functionName].Id)
 		}
 	}
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		ptr, stat := logger.logLevelMap[packageName]
+		stat := logger.config.LogLevelMap[functionName] != LogLevel{}
 		logger.logLevelLocker.RUnlock()
 		if stat {
-			return atomic.LoadInt32(ptr)
+			return int32(logger.config.LogLevelMap[functionName].Id)
 		}
 	}
 
@@ -398,39 +386,6 @@ func (logger *Logger) getPrefix() string {
 	return fmt.Sprintf("[%11.5f] ", elapsed.Seconds())
 }
 
-// SearchSourceLogLevel returns the log level for the specified source
-// or a negative value if the source does not exist
-func (logger *Logger) SearchSourceLogLevel(source string) int32 {
-	logger.logLevelLocker.RLock()
-	ptr, stat := logger.logLevelMap[source]
-	logger.logLevelLocker.RUnlock()
-	if !stat {
-		return -1
-	}
-
-	return atomic.LoadInt32(ptr)
-}
-
-// AdjustSourceLogLevel sets the log level for the specified source and returns
-// the previous level or a negative value if the source does not exist
-func (logger *Logger) AdjustSourceLogLevel(source string, level int32) int32 {
-	logger.logLevelLocker.RLock()
-	ptr, stat := logger.logLevelMap[source]
-	logger.logLevelLocker.RUnlock()
-	if !stat {
-		logger.Notice("Adding log level source NAME:%s LEVEL:%d\n", source, level)
-		ptr = new(int32)
-		atomic.StoreInt32(ptr, -1)
-		logger.logLevelLocker.Lock()
-		logger.logLevelMap[source] = ptr
-		logger.logLevelLocker.Unlock()
-	}
-
-	prelvl := atomic.LoadInt32(ptr)
-	atomic.StoreInt32(ptr, level)
-	return prelvl
-}
-
 // FindLogLevelValue returns the numeric log level for the arugmented name
 // or a negative value if the level is not valid
 func FindLogLevelValue(source string) int32 {
@@ -452,32 +407,4 @@ func FindLogLevelName(level int32) string {
 		return fmt.Sprintf("%d", level)
 	}
 	return logLevelName[level]
-}
-
-// GenerateReport is called to create a dynamic HTTP page that shows all debug sources
-func (logger *Logger) GenerateReport(buffer *bytes.Buffer) {
-	logger.logLevelLocker.RLock()
-	defer logger.logLevelLocker.RUnlock()
-
-	// create a sorted list of the log level names
-	namelist := make([]string, 0, len(logger.logLevelMap))
-	for name := range logger.logLevelMap {
-		namelist = append(namelist, name)
-	}
-	sort.Strings(namelist)
-
-	buffer.WriteString("<TABLE BORDER=2 CELLPADDING=4 BGCOLOR=#EEEEEE>\r\n")
-	buffer.WriteString("<TR><TH COLSPAN=2>Logger Source Levels</TH></TR>\r\n")
-	buffer.WriteString("<TR><TD><B>Logger Source</B></TD><TD><B>Log Level</B></TD></TR>\r\n")
-
-	for _, name := range namelist {
-		ptr := logger.logLevelMap[name]
-		buffer.WriteString("<TR><TD><TT>")
-		buffer.WriteString(name)
-		buffer.WriteString("</TT></TD><TD><TT>")
-		buffer.WriteString(FindLogLevelName(atomic.LoadInt32(ptr)))
-		buffer.WriteString("</TT></TD></TR>\n\n")
-	}
-
-	buffer.WriteString("</TABLE>\r\n")
 }
