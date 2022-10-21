@@ -12,13 +12,10 @@ type LoggerConfig struct {
 	FileLocation string
 	LogLevelMap  map[string]LogLevel
 	OutputWriter io.Writer
-	// I think these can be removed? they are only accessible from a single function
-	file *os.File
-	info os.FileInfo
 }
 
 type LogLevel struct {
-	Name string `json:logname`
+	Name string `json:"logname"`
 	Id   uint8
 }
 
@@ -55,15 +52,17 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	}
 
 	var err error
+	var file *os.File
+	var info os.FileInfo
 
 	// open the logger configuration file
-	conf.file, err = os.Open(conf.FileLocation)
+	file, err = os.Open(conf.FileLocation)
 	fmt.Print(err)
 
 	// if there was an error create the default config and try the open again
 	if err != nil {
 		conf.writeLoggerConfigToJSON()
-		conf.file, err = os.Open(conf.FileLocation)
+		file, err = os.Open(conf.FileLocation)
 
 		// if there is still an error we are out of options
 		if err != nil {
@@ -73,16 +72,16 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	}
 
 	// make sure the file gets closed
-	defer conf.file.Close()
+	defer file.Close()
 
 	// get the file status
-	conf.info, err = conf.file.Stat()
+	info, err = file.Stat()
 	if err != nil {
 		GetLoggerInstance().Err("Unable to query file information\n")
 		return nil
 	}
-	data := make([]byte, conf.info.Size())
-	len, err := conf.file.Read(data)
+	data := make([]byte, info.Size())
+	len, err := file.Read(data)
 
 	if (err != nil) || (len < 1) {
 		GetLoggerInstance().Err("Unable to read Log configuration\n")
