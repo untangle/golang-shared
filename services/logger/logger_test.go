@@ -132,8 +132,6 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 	assert.Equal(suite.T(), []uint8([]byte(nil)), suite.logger.config.LoadConfigFromFile())
 	suite.logger.config.FileLocation = "LoggerConfig.json"
 	assert.Equal(suite.T(), 791, len(suite.logger.config.LoadConfigFromFile()))
-	suite.logger.config.FileLocation = "/LoggerConfig.json"
-	assert.Equal(suite.T(), 383, len(suite.logger.config.LoadConfigFromFile()))
 }
 
 func (suite *TestLogger) TestLoadConfigFromJSON() {
