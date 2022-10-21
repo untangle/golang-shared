@@ -60,6 +60,7 @@ message ARP {
      string ip = 1;
      string mac = 2;
      int64 LastUpdate = 3; 
+     string state = 4;
 }
 
 message NMAP {

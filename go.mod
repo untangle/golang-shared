@@ -10,8 +10,10 @@ require (
 	github.com/pebbe/zmq4 v1.2.9
 	github.com/r3labs/diff/v2 v2.15.1
 	github.com/stretchr/testify v1.8.0
-	go.uber.org/dig v1.15.0 // indirect
+	go.uber.org/dig v1.15.0
 	golang.org/x/net v0.0.0-20220728211354-c7608f3a8462 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
+	gopkg.in/go-playground/validator.v9 v9.29.1 // indirect
 )
