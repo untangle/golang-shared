@@ -88,7 +88,7 @@ func (arp *Arp) GetSettingsStruct() (interface{}, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("no settings could be found for %s", pluginName)
+	return nil, fmt.Errorf("no settings could be found for %s plugin", pluginName)
 }
 
 // Returns name of the plugin.
