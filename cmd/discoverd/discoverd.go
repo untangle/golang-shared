@@ -159,6 +159,10 @@ func handleSignals(syncHandler *settingsync.SettingsSync) {
 		for {
 			sig := <-hupch
 			logger.Info("Received signal [%v]. Calling handlers\n", sig)
+
+			// TODO: Once Consumers in the GlobalPluginControl are treated
+			// as plugins, register SyncSettings with the signal_handler controller
+			// and use that o kickoff a settings sync
 			syncHandler.SyncSettings()
 			sig.Signal()
 
