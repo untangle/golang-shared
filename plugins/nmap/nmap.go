@@ -2,8 +2,11 @@ package nmap
 
 import (
 	"encoding/xml"
+	"fmt"
+	"math/rand"
 	"net"
 	"os/exec"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -13,7 +16,9 @@ import (
 	"github.com/untangle/discoverd/services/discovery"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
+	interfaces "github.com/untangle/golang-shared/util/net"
 )
 
 type nmap struct {
@@ -98,31 +103,212 @@ type nmapProcess struct {
 }
 
 const (
-	pluginName string = "nmap"
+	pluginName   string = "nmap"
+	randStartMin int    = 5
+	randStartMax int    = 10
 )
 
-var defaultNetwork string
-var serviceShutdown = make(chan bool)
+var (
+	nmapSingleton         *Nmap
+	once                  sync.Once
+	RandStartScanNetTimer *time.Ticker
 
-var nmapProcesses = make(map[string]nmapProcess)
-var nmapProcessesMutex sync.RWMutex = sync.RWMutex{}
+	defaultNetwork     string
+	nmapProcesses                   = make(map[string]nmapProcess)
+	nmapProcessesMutex sync.RWMutex = sync.RWMutex{}
+
+	settingsPath []string = []string{"discovery", "plugins"}
+)
+
+func init() {
+	// Start network scan at random interval between randStartMin to randStartMax
+	// to avoid network load during packetd startup
+	randStartTime := rand.Intn(randStartMax-randStartMin) + randStartMin
+	RandStartScanNetTimer = time.NewTicker(time.Duration(randStartTime) * time.Minute)
+}
+
+type nmapPluginType struct {
+	Type         string `json:"type"`
+	Enabled      bool   `json:"enabled"`
+	AutoInterval uint   `json:"autoInterval"`
+}
+
+// Setup the Nmap struct as a singleton
+type Nmap struct {
+	autoNmapCollectionChan chan bool
+	nmapSettings           nmapPluginType
+}
+
+// Gets a singleton instance of the Nmap plugin
+func NewNmap() *Nmap {
+	once.Do(func() {
+		nmapSingleton = &Nmap{autoNmapCollectionChan: make(chan bool)}
+	})
+
+	return nmapSingleton
+}
+
+func (nmap *Nmap) InSync(settings interface{}) bool {
+	newSettings, ok := settings.(nmapPluginType)
+	if !ok {
+		logger.Warn("NMAP: Could not compare the settings file provided to the current plugin settings. The settings cannot be updated.")
+		return false
+	}
+
+	if newSettings == nmap.nmapSettings {
+		logger.Debug("Settings remain unchanged for the NMAP plugin\n")
+		return true
+	}
+
+	logger.Info("Updating NMAP plugin settings\n")
+	return false
+}
+
+func (nmap *Nmap) GetSettingsStruct() (interface{}, error) {
+	var fileSettings []nmapPluginType
+	if err := settings.UnmarshalSettingsAtPath(&fileSettings, settingsPath...); err != nil {
+		return nil, fmt.Errorf("NMAP: %s", err.Error())
+	}
+
+	// Plugins are in an array in the settings.json. Have to go through all of them
+	// to find the desired settings struct
+	for _, pluginSetting := range fileSettings {
+		if pluginSetting.Type == pluginName {
+			return pluginSetting, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no settings could be found for %s plugin", pluginName)
+}
+
+func (nmap *Nmap) Name() string {
+	return pluginName
+}
+
+func (nmap *Nmap) SyncSettings(settings interface{}) error {
+	originalSettings := nmap.nmapSettings
+	newSettings, ok := settings.(nmapPluginType)
+	if !ok {
+		return fmt.Errorf("NMAP: Settings provided were %s but expected %s",
+			reflect.TypeOf(settings).String(), reflect.TypeOf(nmap.nmapSettings).String())
+	}
+
+	nmap.nmapSettings = newSettings
+
+	// If settings changed but the plugin was previously enabled, restart the plugin
+	// for changes to take effect
+	var shutdownError error
+	if originalSettings.Enabled && nmap.nmapSettings.Enabled {
+		shutdownError = nmap.Shutdown()
+	}
+
+	if nmap.nmapSettings.Enabled {
+		nmap.startNmap()
+	} else {
+		shutdownError = nmap.Shutdown()
+	}
+
+	return shutdownError
+}
 
 // Start starts the NMAP collector
-func Start() {
+func (nmap *Nmap) Startup() error {
 	logger.Info("Starting NMAP collector plugin\n")
-	discovery.RegisterCollector(pluginName, NmapcallBackHandler)
 
-	// Do an initial scan
-	NmapcallBackHandler(nil)
+	// Grab the initial settings on startup
+	settings, err := nmap.GetSettingsStruct()
+	if err != nil {
+		return err
+	}
+
+	// SyncSettings will start the plugin if it's enabled
+	err = nmap.SyncSettings(settings)
+	if err != nil {
+		logger.Err("The error is: %s \n", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 // Stop stops NMAP collector
-func Stop() {
+func (nmap *Nmap) Shutdown() error {
+	logger.Info("Stopping NMAP collector plugin\n")
+
+	nmap.stopAutoNmapCollection()
+
+	return nil
+}
+
+func (nmap *Nmap) startNmap() {
+	discovery.RegisterCollector(pluginName, NmapcallBackHandler)
+
+	// Lets do a first run to get the initial data
+	NmapcallBackHandler(nil)
+
+	nmap.startAutoNmapCollection()
+}
+
+func (nmap *Nmap) autoNmapCollection() {
+	logger.Debug("Starting automatic collection from NMAP plugin with an interval of %d seconds\n", nmap.nmapSettings.AutoInterval)
+	for {
+		select {
+		case <-nmap.autoNmapCollectionChan:
+			logger.Debug("Stopping automatic collection from NMAP plugin\n")
+			nmap.autoNmapCollectionChan <- true
+			return
+		case <-time.After(time.Duration(nmap.nmapSettings.AutoInterval) * time.Second):
+			scanLanNetworks()
+
+		case <-RandStartScanNetTimer.C:
+			scanLanNetworks()
+
+			RandStartScanNetTimer.Stop()
+		}
+	}
+}
+
+func scanLanNetworks() {
+	// Get list of interfaces from settings file
+	localIntfs := interfaces.GetInterfaces(func(intf interfaces.Interface) bool {
+		return !intf.IsWAN && intf.Enabled && intf.V4StaticAddress != ""
+	})
+
+	var localNetworksCidr []string
+	for _, intf := range localIntfs {
+		localNetworksCidr = append(localNetworksCidr, intf.GetCidrNotation())
+	}
+
+	logger.Debug("Scanning LAN networks: %v\n", localNetworksCidr)
+	NmapcallBackHandler([]discovery.Command{{Command: discovery.CmdScanHost, Arguments: localNetworksCidr}})
+}
+
+func (nmap *Nmap) startAutoNmapCollection() {
+	go nmap.autoNmapCollection()
+}
+
+func (nmap *Nmap) stopAutoNmapCollection() {
+	// The send to kill the AutoNmapCollection goroutine must be non-blocking for
+	// the case where the goroutine wasn't started in the first place.
+	// The goroutine never starting occurs when the plugin is disabled
+	select {
+	case nmap.autoNmapCollectionChan <- true:
+		// Send message
+	default:
+		// Do nothing if the message couldn't be sent
+	}
+
+	select {
+	case <-nmap.autoNmapCollectionChan:
+		logger.Info("Successful shutdown of the automatic NMAP collector\n")
+	case <-time.After(1 * time.Second):
+		logger.Warn("Failed to shutdown automatic NMAP collector. It may never have been started\n")
+	}
 }
 
 // NmapcallBackHandler is the callback handler for the NMAP collector
 func NmapcallBackHandler(commands []discovery.Command) {
-	logger.Debug("NMap scan handler: Received %d commands\n", len(commands))
+	logger.Debug("NMAP scan handler: Received %d commands\n", len(commands))
 
 	// run nmap subnet scan
 	// -sT scan ports

@@ -3,7 +3,6 @@ package arp
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"reflect"
 	"regexp"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/discoverd/utils"
-	"github.com/untangle/golang-shared/plugins"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -21,9 +19,7 @@ import (
 )
 
 const (
-	pluginName          string = "arp"
-	enabledDefault      bool   = false
-	autoIntervalDefault uint   = math.MaxUint32
+	pluginName string = "arp"
 )
 
 var (
@@ -32,10 +28,6 @@ var (
 
 	settingsPath []string = []string{"discovery", "plugins"}
 )
-
-func init() {
-	plugins.GlobalPluginControl().RegisterPlugin(NewArp)
-}
 
 type arpPluginType struct {
 	Type         string `json:"type"`
@@ -66,11 +58,11 @@ func (arp *Arp) InSync(settings interface{}) bool {
 	}
 
 	if newSettings == arp.arpSettings {
-		logger.Info("Updating ARP plugin settings")
+		logger.Debug("Settings remain unchanged for the ARP plugin\n")
 		return true
 	}
 
-	logger.Debug("Settings remain unchanged for the ARP plugin\n")
+	logger.Info("Updating ARP plugin settings\n")
 	return false
 }
 
@@ -97,8 +89,6 @@ func (arp *Arp) Name() string {
 	return pluginName
 }
 
-// Returns name of the plugin.
-// The function is not static to satisfy the SettingsSyncer interface requirements
 func (arp *Arp) SyncSettings(settings interface{}) error {
 
 	originalSettings := arp.arpSettings
@@ -136,19 +126,27 @@ func (arp *Arp) Startup() error {
 		return err
 	}
 
+	// SyncSettings will start the plugin if it's enabled
 	err = arp.SyncSettings(settings)
 	if err != nil {
 		return err
 	}
 
-	discovery.RegisterCollector(pluginName, ArpcallBackHandler)
+	return nil
+}
 
-	arp.startArp()
+// Shutdown stops QoS
+func (arp *Arp) Shutdown() error {
+	logger.Info("Stopping ARP collector plugin\n")
+	discovery.UnregisterCollector(pluginName)
+	arp.stopAutoArpCollection()
 
 	return nil
 }
 
 func (arp *Arp) startArp() {
+	discovery.RegisterCollector(pluginName, ArpcallBackHandler)
+
 	// Lets do a first run to get the initial data
 	ArpcallBackHandler(nil)
 
@@ -174,23 +172,22 @@ func (arp *Arp) startAutoArpCollection() {
 }
 
 func (arp *Arp) stopAutoArpCollection() {
-	arp.autoArpCollectionChan <- true
+	// The send to kill the AutoNmapCollection goroutine must be non-blocking for
+	// the case where the goroutine wasn't started in the first place.
+	// The goroutine never starting occurs when the plugin is disabled
+	select {
+	case arp.autoArpCollectionChan <- true:
+		// Send message
+	default:
+		// Do nothing if the message couldn't be sent
+	}
 
 	select {
 	case <-arp.autoArpCollectionChan:
 		logger.Info("Successful shutdown of the automatic ARP collector\n")
-	case <-time.After(10 * time.Second):
-		logger.Warn("Failed to shutdown automatic ARP collector\n")
+	case <-time.After(1 * time.Second):
+		logger.Warn("Failed to shutdown automatic ARP collector. It may never have been started\n")
 	}
-}
-
-// Shutdown stops QoS
-func (arp *Arp) Shutdown() error {
-	logger.Info("Stopping ARP collector plugin\n")
-	discovery.UnregisterCollector(pluginName)
-	arp.stopAutoArpCollection()
-
-	return nil
 }
 
 // StringSet is a set of strings, backed by a map.

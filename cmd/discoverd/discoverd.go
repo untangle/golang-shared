@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -62,16 +61,14 @@ func main() {
 		logger.Warn("CPU Profiler could not start: %s\n", err.Error())
 	}
 
-	// Start services
 	startServices()
 
-	arp := arp.NewArp()
-	fmt.Print(arp.Name())
-
+	// Configure consumers
 	syncHandler := settingsync.NewSettingsSyncHandler()
 	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 
-	// Handle the stop signals
+	configurePlugins()
+
 	handleSignals(syncHandler)
 
 	startPlugins()
@@ -97,26 +94,37 @@ func main() {
 	cpuProfiler.StopCPUProfile()
 }
 
+// Configures plugins used by discoverd
+// This is not simply done in the init() functions of each plugin
+// since most of the plugins don't get imported anywhere in the code.
+// Without getting imported, init() never runs and the plugins never
+// get added to the GlobalPluginManager
+func configurePlugins() {
+	plugins.GlobalPluginControl().RegisterPlugin(nmap.NewNmap)
+	plugins.GlobalPluginControl().RegisterPlugin(lldp.NewLldp)
+	plugins.GlobalPluginControl().RegisterPlugin(arp.NewArp)
+
+	syncHandler := settingsync.NewSettingsSyncHandler()
+	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
+}
+
 /* startServices starts the gin server and cert manager */
 func startServices() {
 	example.Startup()
 	discovery.Startup()
 }
 
-/* stopServices stops the gin server, cert manager, and logger*/
+/* stopServices stops the gin server, cert manager
+, and logger*/
 func stopServices() {
 	example.Shutdown()
 }
 
 func startPlugins() {
-	lldp.Start()
-	nmap.Start()
 	plugins.GlobalPluginControl().Startup()
 }
 
 func stopPlugins() {
-	lldp.Stop()
-	nmap.Stop()
 	plugins.GlobalPluginControl().Shutdown()
 }
 

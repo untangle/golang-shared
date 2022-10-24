@@ -3,7 +3,6 @@ package lldp
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os/exec"
 	"reflect"
 	"sync"
@@ -70,9 +69,7 @@ type value struct {
 }
 
 const (
-	pluginName          string = "lldp"
-	enabledDefault      bool   = false
-	autoIntervalDefault uint   = math.MaxUint32
+	pluginName string = "lldp"
 )
 
 var (
@@ -88,13 +85,13 @@ type lldpPluginType struct {
 	AutoInterval uint   `json:"autoInterval"`
 }
 
-// Setup the Arp struct as a singleton
+// Setup the Lldp struct as a singleton
 type Lldp struct {
 	autoLldpCollectionChan chan bool
 	lldpSettings           lldpPluginType
 }
 
-// Gets a singleton instance of the Arp plugin
+// Gets a singleton instance of the Lldp plugin
 func NewLldp() *Lldp {
 	once.Do(func() {
 		lldpSingleton = &Lldp{autoLldpCollectionChan: make(chan bool)}
@@ -111,11 +108,11 @@ func (lldp *Lldp) InSync(settings interface{}) bool {
 	}
 
 	if newSettings == lldp.lldpSettings {
-		logger.Info("Updating LLDP plugin settings")
+		logger.Debug("Settings remain unchanged for the LLDP plugin\n")
 		return true
 	}
 
-	logger.Debug("Settings remain unchanged for the LLDP plugin\n")
+	logger.Info("Updating LLDP plugin settings")
 	return false
 }
 
@@ -133,7 +130,7 @@ func (lldp *Lldp) GetSettingsStruct() (interface{}, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("no settings could be found for %s", pluginName)
+	return nil, fmt.Errorf("no settings could be found for %s plugin", pluginName)
 }
 
 // Returns name of the plugin.
@@ -190,19 +187,18 @@ func (lldp *Lldp) Startup() error {
 		return err
 	}
 
+	// SyncSettings will start the plugin if it's enabled
 	err = lldp.SyncSettings(settings)
 	if err != nil {
 		return err
 	}
 
-	discovery.RegisterCollector(pluginName, LldpcallBackHandler)
-
-	lldp.startLldp()
-
 	return nil
 }
 
 func (lldp *Lldp) startLldp() {
+	discovery.RegisterCollector(pluginName, LldpcallBackHandler)
+
 	LldpcallBackHandler(nil)
 
 	lldp.startAutoLldpCollection()
@@ -213,13 +209,21 @@ func (lldp *Lldp) startAutoLldpCollection() {
 }
 
 func (lldp *Lldp) stopAutoLldpCollection() {
-	lldp.autoLldpCollectionChan <- true
+	// The send to kill the AutoLldpCollection goroutine must be non-blocking for
+	// the case where the goroutine wasn't started in the first place.
+	// The goroutine never starting occurs when the plugin is disabled
+	select {
+	case lldp.autoLldpCollectionChan <- true:
+		// Send message
+	default:
+		// Do nothing if the message couldn't be sent
+	}
 
 	select {
 	case <-lldp.autoLldpCollectionChan:
 		logger.Info("Successful shutdown of the automatic LLDP collector\n")
-	case <-time.After(10 * time.Second):
-		logger.Warn("Failed to shutdown automatic LLDP collector\n")
+	case <-time.After(1 * time.Second):
+		logger.Warn("Failed to shutdown automatic LLDP collector. It may never have been started\n")
 	}
 }
 

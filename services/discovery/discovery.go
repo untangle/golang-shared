@@ -1,16 +1,21 @@
 package discovery
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"net/rpc"
+	"reflect"
 	"sync"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 )
 
 const (
+	pluginName string = "discovery"
+
 	// CmdScanHost is a command to scan a host, argument is the hostnames
 	CmdScanHost int = 1
 	// CmdScanNet is a command to scan a network, argument is the networks (CIDR notation)
@@ -22,19 +27,94 @@ type zmqMessage struct {
 	Message []byte
 }
 
-// Messages to be published to the ZMQ socket
-var messagePublisherChannel = make(chan *zmqMessage, 1000)
+var (
+	discoverySingleton *Discovery
+	once               sync.Once
 
-// Channel to shutdown the goroutine that automatically runs the collectors
-var shutdownCollectorRunner = make(chan bool)
+	// Messages to be published to the ZMQ socket
+	messagePublisherChannel = make(chan *zmqMessage, 1000)
 
-// List of registered collectors
-//var collectors []CollectorHandlerFunction = nil
-var collectors map[string]CollectorHandlerFunction
-var collectorsLock sync.RWMutex
+	// List of registered collectors
+	//var collectors []CollectorHandlerFunction = nil
+	collectors     map[string]CollectorHandlerFunction
+	collectorsLock sync.RWMutex
+
+	settingsPath []string = []string{"discovery"}
+)
 
 func init() {
 	collectors = make(map[string]CollectorHandlerFunction)
+}
+
+type discoveryPluginType struct {
+	Enabled bool `json:"enabled"`
+}
+
+type Discovery struct {
+	discoverySettings discoveryPluginType
+}
+
+func NewDiscovery() *Discovery {
+	once.Do(func() {
+		discoverySingleton = &Discovery{}
+	})
+
+	return discoverySingleton
+}
+
+func (discovery *Discovery) InSync(settings interface{}) bool {
+	newSettings, ok := settings.(discoveryPluginType)
+	if !ok {
+		logger.Warn("Discovery: Could not compare the settings file provided to the current plugin settings. The settings cannot be updated.")
+		return false
+	}
+
+	if newSettings == discovery.discoverySettings {
+		logger.Debug("Settings remain unchanged for the NMAP plugin\n")
+		return true
+	}
+
+	logger.Info("Updating Discovery plugin settings\n")
+	return false
+}
+
+func (discovery *Discovery) GetSettingsStruct() (interface{}, error) {
+	var newSettings discoveryPluginType
+	if err := settings.UnmarshalSettingsAtPath(&newSettings, settingsPath...); err != nil {
+		return nil, fmt.Errorf("Discovery: %s", err.Error())
+	}
+
+	return newSettings, nil
+}
+
+func (discovery *Discovery) Name() string {
+	return pluginName
+}
+
+func (discovery *Discovery) SyncSettings(settings interface{}) error {
+	originalSettings := discovery.discoverySettings
+	newSettings, ok := settings.(discoveryPluginType)
+	if !ok {
+		return fmt.Errorf("Discovery: Settings provided were %s but expected %s",
+			reflect.TypeOf(settings).String(), reflect.TypeOf(discovery.discoverySettings).String())
+	}
+
+	discovery.discoverySettings = newSettings
+
+	// If settings changed but the plugin was previously enabled, restart the plugin
+	// for changes to take effect
+	var shutdownError error
+	if originalSettings.Enabled && discovery.discoverySettings.Enabled {
+		shutdownError = discovery.Shutdown()
+	}
+
+	if discovery.discoverySettings.Enabled {
+		discovery.Startup()
+	} else {
+		shutdownError = discovery.Shutdown()
+	}
+
+	return shutdownError
 }
 
 // Command is commands that can be send back to the collector
@@ -48,8 +128,8 @@ type Command struct {
 type CollectorHandlerFunction func([]Command)
 
 // Startup the discovery service.
-func Startup() {
-	logger.Info("Starting discovery service\n")
+func (discovery *Discovery) Startup() error {
+	logger.Info("Starting Discovery service\n")
 
 	// Start the ZMQ publisher
 	go zmqPublisher()
@@ -60,19 +140,15 @@ func Startup() {
 
 	lis, err := net.Listen("tcp", "127.0.0.1:5563")
 	if err != nil {
-		logger.Err("Failed to listen: %v\n", err)
-		return
+		return fmt.Errorf("failed to listen: %v\n", err)
 	}
 
 	go http.Serve(lis, nil)
-
-	//runCollectorsOnTimer()
 }
 
 // Shutdown the discovery service.
-func Shutdown() {
+func (discovery *Discovery) Shutdown() error {
 	logger.Info("Shutting down discovery service\n")
-	shutdownCollectorRunner <- true
 }
 
 // zmqPublisher reads from the messageChannel and sends the events to the associated topic
