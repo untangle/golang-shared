@@ -124,6 +124,9 @@ func (control *PluginControl) Startup() {
 			panic(fmt.Sprintf("couldn't instantiate plugin: %s", err))
 		}
 	}
+
+	logger.Err("The number of plugins is %d \n", len(control.plugins))
+
 	for _, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
