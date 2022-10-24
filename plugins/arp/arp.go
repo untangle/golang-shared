@@ -22,7 +22,7 @@ var (
 	settingsPath []string = []string{"discovery", "plugins"}
 )
 
-type arpPluginType struct {
+type arpPluginSettings struct {
 	Type         string `json:"type"`
 	Enabled      bool   `json:"enabled"`
 	AutoInterval uint   `json:"autoInterval"`
@@ -31,7 +31,7 @@ type arpPluginType struct {
 // Setup the Arp struct as a singleton
 type Arp struct {
 	autoArpCollectionChan chan bool
-	arpSettings           arpPluginType
+	arpSettings           arpPluginSettings
 }
 
 // Gets a singleton instance of the Arp plugin
@@ -43,8 +43,9 @@ func NewArp() *Arp {
 	return arpSingleton
 }
 
+// Returns true if the current settings match the 'new' settings Provided, otherwise false
 func (arp *Arp) InSync(settings interface{}) bool {
-	newSettings, ok := settings.(arpPluginType)
+	newSettings, ok := settings.(arpPluginSettings)
 	if !ok {
 		logger.Warn("Arp: Could not compare the settings file provided to the current plugin settings. The settings cannot be updated.")
 		return false
@@ -59,8 +60,9 @@ func (arp *Arp) InSync(settings interface{}) bool {
 	return false
 }
 
-func (arp *Arp) GetSettingsStruct() (interface{}, error) {
-	var fileSettings []arpPluginType
+// Returns a struct containing the plugins settings of type arpPluginSettings
+func (arp *Arp) GetCurrentSettingsStruct() (interface{}, error) {
+	var fileSettings []arpPluginSettings
 	if err := settings.UnmarshalSettingsAtPath(&fileSettings, settingsPath...); err != nil {
 		return nil, fmt.Errorf("ARP: %s", err.Error())
 	}
@@ -82,10 +84,13 @@ func (arp *Arp) Name() string {
 	return pluginName
 }
 
+// Updates the current settings with the settings passed in. If the plugin was already running
+// but the settings changed, the plugin is restarted.
+// An error is returned if the settings can't be synced
 func (arp *Arp) SyncSettings(settings interface{}) error {
 
 	originalSettings := arp.arpSettings
-	newSettings, ok := settings.(arpPluginType)
+	newSettings, ok := settings.(arpPluginSettings)
 	if !ok {
 		return fmt.Errorf("ARP: Settings provided were %s but expected %s",
 			reflect.TypeOf(settings).String(), reflect.TypeOf(arp.arpSettings).String())
@@ -114,7 +119,7 @@ func (arp *Arp) Startup() error {
 	logger.Info("Starting ARP collector plugin\n")
 
 	// Grab the initial settings on startup
-	settings, err := arp.GetSettingsStruct()
+	settings, err := arp.GetCurrentSettingsStruct()
 	if err != nil {
 		return err
 	}

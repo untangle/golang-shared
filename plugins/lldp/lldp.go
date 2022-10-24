@@ -79,16 +79,15 @@ var (
 	settingsPath []string = []string{"discovery", "plugins"}
 )
 
-type lldpPluginType struct {
+type lldpPluginSettings struct {
 	Type         string `json:"type"`
 	Enabled      bool   `json:"enabled"`
 	AutoInterval uint   `json:"autoInterval"`
 }
 
-// Setup the Lldp struct as a singleton
 type Lldp struct {
 	autoLldpCollectionChan chan bool
-	lldpSettings           lldpPluginType
+	lldpSettings           lldpPluginSettings
 }
 
 // Gets a singleton instance of the Lldp plugin
@@ -100,8 +99,9 @@ func NewLldp() *Lldp {
 	return lldpSingleton
 }
 
+// Returns true if the current settings match the 'new' settings Provided, otherwise false
 func (lldp *Lldp) InSync(settings interface{}) bool {
-	newSettings, ok := settings.(lldpPluginType)
+	newSettings, ok := settings.(lldpPluginSettings)
 	if !ok {
 		logger.Warn("LLDP: Could not compare the settings file provided to the current plugin settings. The settings cannot be updated.")
 		return false
@@ -116,8 +116,9 @@ func (lldp *Lldp) InSync(settings interface{}) bool {
 	return false
 }
 
-func (lldp *Lldp) GetSettingsStruct() (interface{}, error) {
-	var fileSettings []lldpPluginType
+// Returns a struct containing the plugins settings of type lldpPluginSettings
+func (lldp *Lldp) GetCurrentSettingsStruct() (interface{}, error) {
+	var fileSettings []lldpPluginSettings
 	if err := settings.UnmarshalSettingsAtPath(&fileSettings, settingsPath...); err != nil {
 		return nil, fmt.Errorf("LLDP: %s", err.Error())
 	}
@@ -139,12 +140,13 @@ func (lldp *Lldp) Name() string {
 	return pluginName
 }
 
-// Returns name of the plugin.
-// The function is not static to satisfy the SettingsSyncer interface requirements
+// Updates the current settings with the settings passed in. If the plugin was already running
+// but the settings changed, the plugin is restarted.
+// An error is returned if the settings can't be synced
 func (lldp *Lldp) SyncSettings(settings interface{}) error {
 
 	originalSettings := lldp.lldpSettings
-	newSettings, ok := settings.(lldpPluginType)
+	newSettings, ok := settings.(lldpPluginSettings)
 	if !ok {
 		return fmt.Errorf("LLDP: Settings provided were %s but expected %s",
 			reflect.TypeOf(settings).String(), reflect.TypeOf(lldp.lldpSettings).String())
@@ -182,7 +184,7 @@ func (lldp *Lldp) Startup() error {
 	logger.Info("Starting LLDP collector plugin\n")
 
 	// Grab the initial settings on startup
-	settings, err := lldp.GetSettingsStruct()
+	settings, err := lldp.GetCurrentSettingsStruct()
 	if err != nil {
 		return err
 	}

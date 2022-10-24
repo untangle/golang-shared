@@ -37,12 +37,12 @@ var (
 	settingsPath []string = []string{"discovery"}
 )
 
-type discoveryPluginType struct {
+type discoveryPluginSettings struct {
 	Enabled bool `json:"enabled"`
 }
 
 type Discovery struct {
-	discoverySettings discoveryPluginType
+	discoverySettings discoveryPluginSettings
 
 	collectors              map[string]CollectorHandlerFunction
 	collectorsLock          sync.RWMutex
@@ -50,6 +50,7 @@ type Discovery struct {
 	messagePublisherChannel chan *zmqMessage
 }
 
+// Gets the singleton instance of Discovery
 func NewDiscovery() *Discovery {
 	once.Do(func() {
 		discoverySingleton = &Discovery{collectors: make(map[string]CollectorHandlerFunction),
@@ -59,15 +60,16 @@ func NewDiscovery() *Discovery {
 	return discoverySingleton
 }
 
+// Returns true if the current settings match the 'new' settings Provided, otherwise false
 func (discovery *Discovery) InSync(settings interface{}) bool {
-	newSettings, ok := settings.(discoveryPluginType)
+	newSettings, ok := settings.(discoveryPluginSettings)
 	if !ok {
 		logger.Warn("Discovery: Could not compare the settings file provided to the current plugin settings. The settings cannot be updated.")
 		return false
 	}
 
 	if newSettings == discovery.discoverySettings {
-		logger.Debug("Settings remain unchanged for the NMAP plugin\n")
+		logger.Debug("Settings remain unchanged for the Discovery plugin\n")
 		return true
 	}
 
@@ -75,8 +77,9 @@ func (discovery *Discovery) InSync(settings interface{}) bool {
 	return false
 }
 
-func (discovery *Discovery) GetSettingsStruct() (interface{}, error) {
-	var newSettings discoveryPluginType
+// Returns a struct containing the plugins settings of type discoveryPluginSettings
+func (discovery *Discovery) GetCurrentSettingsStruct() (interface{}, error) {
+	var newSettings discoveryPluginSettings
 	if err := settings.UnmarshalSettingsAtPath(&newSettings, settingsPath...); err != nil {
 		return nil, fmt.Errorf("Discovery: %s", err.Error())
 	}
@@ -84,13 +87,18 @@ func (discovery *Discovery) GetSettingsStruct() (interface{}, error) {
 	return newSettings, nil
 }
 
+// Returns name of the plugin.
+// The function is not static to satisfy the SettingsSyncer interface requirements
 func (discovery *Discovery) Name() string {
 	return pluginName
 }
 
+// Updates the current settings with the settings passed in. If the plugin was already running
+// but the settings changed, the plugin is restarted.
+// An error is returned if the settings can't be synced
 func (discovery *Discovery) SyncSettings(settings interface{}) error {
 	originalSettings := discovery.discoverySettings
-	newSettings, ok := settings.(discoveryPluginType)
+	newSettings, ok := settings.(discoveryPluginSettings)
 	if !ok {
 		return fmt.Errorf("Discovery: Settings provided were %s but expected %s",
 			reflect.TypeOf(settings).String(), reflect.TypeOf(discovery.discoverySettings).String())
@@ -142,7 +150,7 @@ func (discovery *Discovery) Startup() error {
 
 	// Setup resources that can be turned on/off via settings
 	// Grab the initial settings on startup
-	settings, err := discovery.GetSettingsStruct()
+	settings, err := discovery.GetCurrentSettingsStruct()
 	if err != nil {
 		return err
 	}

@@ -111,7 +111,7 @@ const (
 var (
 	nmapSingleton         *Nmap
 	once                  sync.Once
-	RandStartScanNetTimer *time.Ticker
+	randStartScanNetTimer *time.Ticker
 
 	defaultNetwork     string
 	nmapProcesses                   = make(map[string]nmapProcess)
@@ -124,10 +124,10 @@ func init() {
 	// Start network scan at random interval between randStartMin to randStartMax
 	// to avoid network load during packetd startup
 	randStartTime := rand.Intn(randStartMax-randStartMin) + randStartMin
-	RandStartScanNetTimer = time.NewTicker(time.Duration(randStartTime) * time.Minute)
+	randStartScanNetTimer = time.NewTicker(time.Duration(randStartTime) * time.Minute)
 }
 
-type nmapPluginType struct {
+type nmapPluginSettings struct {
 	Type         string `json:"type"`
 	Enabled      bool   `json:"enabled"`
 	AutoInterval uint   `json:"autoInterval"`
@@ -136,7 +136,7 @@ type nmapPluginType struct {
 // Setup the Nmap struct as a singleton
 type Nmap struct {
 	autoNmapCollectionChan chan bool
-	nmapSettings           nmapPluginType
+	nmapSettings           nmapPluginSettings
 }
 
 // Gets a singleton instance of the Nmap plugin
@@ -148,8 +148,9 @@ func NewNmap() *Nmap {
 	return nmapSingleton
 }
 
+// Returns true if the current settings match the 'new' settings Provided, otherwise false
 func (nmap *Nmap) InSync(settings interface{}) bool {
-	newSettings, ok := settings.(nmapPluginType)
+	newSettings, ok := settings.(nmapPluginSettings)
 	if !ok {
 		logger.Warn("NMAP: Could not compare the settings file provided to the current plugin settings. The settings cannot be updated.")
 		return false
@@ -164,8 +165,9 @@ func (nmap *Nmap) InSync(settings interface{}) bool {
 	return false
 }
 
-func (nmap *Nmap) GetSettingsStruct() (interface{}, error) {
-	var fileSettings []nmapPluginType
+// Returns a struct containing the plugins settings of type nmapPluginSettings
+func (nmap *Nmap) GetCurrentSettingsStruct() (interface{}, error) {
+	var fileSettings []nmapPluginSettings
 	if err := settings.UnmarshalSettingsAtPath(&fileSettings, settingsPath...); err != nil {
 		return nil, fmt.Errorf("NMAP: %s", err.Error())
 	}
@@ -181,13 +183,18 @@ func (nmap *Nmap) GetSettingsStruct() (interface{}, error) {
 	return nil, fmt.Errorf("no settings could be found for %s plugin", pluginName)
 }
 
+// Returns name of the plugin.
+// The function is not static to satisfy the SettingsSyncer interface requirements
 func (nmap *Nmap) Name() string {
 	return pluginName
 }
 
+// Updates the current settings with the settings passed in. If the plugin was already running
+// but the settings changed, the plugin is restarted.
+// An error is returned if the settings can't be synced
 func (nmap *Nmap) SyncSettings(settings interface{}) error {
 	originalSettings := nmap.nmapSettings
-	newSettings, ok := settings.(nmapPluginType)
+	newSettings, ok := settings.(nmapPluginSettings)
 	if !ok {
 		return fmt.Errorf("NMAP: Settings provided were %s but expected %s",
 			reflect.TypeOf(settings).String(), reflect.TypeOf(nmap.nmapSettings).String())
@@ -216,7 +223,7 @@ func (nmap *Nmap) Startup() error {
 	logger.Info("Starting NMAP collector plugin\n")
 
 	// Grab the initial settings on startup
-	settings, err := nmap.GetSettingsStruct()
+	settings, err := nmap.GetCurrentSettingsStruct()
 	if err != nil {
 		return err
 	}
@@ -261,10 +268,10 @@ func (nmap *Nmap) autoNmapCollection() {
 		case <-time.After(time.Duration(nmap.nmapSettings.AutoInterval) * time.Second):
 			scanLanNetworks()
 
-		case <-RandStartScanNetTimer.C:
+		case <-randStartScanNetTimer.C:
 			scanLanNetworks()
 
-			RandStartScanNetTimer.Stop()
+			randStartScanNetTimer.Stop()
 		}
 	}
 }
