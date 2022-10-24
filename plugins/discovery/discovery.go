@@ -14,6 +14,8 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
+//TODO: Figure out if the publishing channel should have a buffer
+
 const (
 	pluginName string = "discovery"
 
