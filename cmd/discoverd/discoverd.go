@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/arp"
+	"github.com/untangle/discoverd/plugins/discovery"
 	"github.com/untangle/discoverd/plugins/lldp"
 	"github.com/untangle/discoverd/plugins/nmap"
 	settingsync "github.com/untangle/discoverd/plugins/settingssync"
-	"github.com/untangle/discoverd/services/discovery"
 	"github.com/untangle/discoverd/services/example"
 	"github.com/untangle/golang-shared/plugins"
 	"github.com/untangle/golang-shared/services/logger"
@@ -100,6 +100,7 @@ func main() {
 // Without getting imported, init() never runs and the plugins never
 // get added to the GlobalPluginManager
 func configurePlugins() {
+	plugins.GlobalPluginControl().RegisterPlugin(discovery.NewDiscovery)
 	plugins.GlobalPluginControl().RegisterPlugin(nmap.NewNmap)
 	plugins.GlobalPluginControl().RegisterPlugin(lldp.NewLldp)
 	plugins.GlobalPluginControl().RegisterPlugin(arp.NewArp)
@@ -111,7 +112,6 @@ func configurePlugins() {
 /* startServices starts the gin server and cert manager */
 func startServices() {
 	example.Startup()
-	discovery.Startup()
 }
 
 /* stopServices stops the gin server, cert manager

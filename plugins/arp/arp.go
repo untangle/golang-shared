@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/plugins/discovery"
 	"github.com/untangle/discoverd/utils"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
@@ -138,14 +138,16 @@ func (arp *Arp) Startup() error {
 // Shutdown stops QoS
 func (arp *Arp) Shutdown() error {
 	logger.Info("Stopping ARP collector plugin\n")
-	discovery.UnregisterCollector(pluginName)
+
 	arp.stopAutoArpCollection()
+
+	discovery.NewDiscovery().UnregisterCollector(pluginName)
 
 	return nil
 }
 
 func (arp *Arp) startArp() {
-	discovery.RegisterCollector(pluginName, ArpcallBackHandler)
+	discovery.NewDiscovery().RegisterCollector(pluginName, ArpcallBackHandler)
 
 	// Lets do a first run to get the initial data
 	ArpcallBackHandler(nil)

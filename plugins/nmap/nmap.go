@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/plugins/discovery"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -224,7 +224,6 @@ func (nmap *Nmap) Startup() error {
 	// SyncSettings will start the plugin if it's enabled
 	err = nmap.SyncSettings(settings)
 	if err != nil {
-		logger.Err("The error is: %s \n", err.Error())
 		return err
 	}
 
@@ -237,11 +236,13 @@ func (nmap *Nmap) Shutdown() error {
 
 	nmap.stopAutoNmapCollection()
 
+	discovery.NewDiscovery().UnregisterCollector(pluginName)
+
 	return nil
 }
 
 func (nmap *Nmap) startNmap() {
-	discovery.RegisterCollector(pluginName, NmapcallBackHandler)
+	discovery.NewDiscovery().RegisterCollector(pluginName, NmapcallBackHandler)
 
 	// Lets do a first run to get the initial data
 	NmapcallBackHandler(nil)

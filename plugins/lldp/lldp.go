@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/plugins/discovery"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -171,7 +171,7 @@ func (lldp *Lldp) SyncSettings(settings interface{}) error {
 // Stop stops LLDP collector
 func (lldp *Lldp) Shutdown() error {
 	logger.Info("Stopping LLDP collector plugin\n")
-	discovery.UnregisterCollector(pluginName)
+	discovery.NewDiscovery().UnregisterCollector(pluginName)
 	lldp.stopAutoLldpCollection()
 
 	return nil
@@ -197,7 +197,7 @@ func (lldp *Lldp) Startup() error {
 }
 
 func (lldp *Lldp) startLldp() {
-	discovery.RegisterCollector(pluginName, LldpcallBackHandler)
+	discovery.NewDiscovery().RegisterCollector(pluginName, LldpcallBackHandler)
 
 	LldpcallBackHandler(nil)
 
