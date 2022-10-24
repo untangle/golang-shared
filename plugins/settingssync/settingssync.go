@@ -23,8 +23,6 @@ func NewSettingsSyncHandler() *SettingsSync {
 
 // Register's a plugin as being managed by Settings Sync
 func (settingsSync *SettingsSync) RegisterPlugin(plug SettingsSyncer) {
-	// Have to strip the type off of plugin to check if it implements an interface
-	// Ignore the golang linter complaining about this, it has to happen
 	settingsSync.syncers = append(settingsSync.syncers, plug)
 }
 
