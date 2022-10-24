@@ -18,7 +18,7 @@
             "id": "mfw_address",
             "type":"promptString",
             "description": "IP of your MFW Instance",
-            "default": "192.168.57.2"
+            "default": "192.168.1.1"
         }
     ]
 }
