@@ -151,8 +151,6 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
-	saveLocker.Lock()
-	defer saveLocker.Unlock()
 
 	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
 	if err != nil {
@@ -164,7 +162,9 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 		return createJSONErrorObject(err), err
 	}
 
+	saveLocker.Lock()
 	output, err := syncAndSave(jsonSettings, filename, force)
+	saveLocker.Unlock()
 	if err != nil {
 		var errJSON map[string]interface{}
 		marshalErr := json.Unmarshal([]byte(err.Error()), &errJSON)
