@@ -1,4 +1,4 @@
-package settingsync
+package settingssync
 
 import (
 	"github.com/untangle/golang-shared/services/logger"
