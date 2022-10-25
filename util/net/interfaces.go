@@ -24,6 +24,5 @@ type Interface struct {
 }
 
 func (intf *Interface) GetCidrNotation() string {
-	//prefix := strconv.FormatFloat(intf.V4StaticPrefix, 'f', -1, 64)
 	return fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix)
 }
