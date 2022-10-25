@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"fmt"
-	"strconv"
 )
 
 // Interface corresponds to the interface JSON structure in the settings.json
@@ -16,15 +15,15 @@ type Interface struct {
 	DHCPRangeStart    string
 	DHCPRangeEnd      string
 	DownloadKbps      int
-	Enabled           bool    `json:"enabled"`
-	Name              string  `json:"name"`
-	Type              string  `json:"type"`
-	V4StaticAddress   string  `json:"v4StaticAddress"`
-	V4StaticPrefix    float64 `json:"v4StaticPrefix"`
-	IsWAN             bool    `json:"wan"`
+	Enabled           bool   `json:"enabled"`
+	Name              string `json:"name"`
+	Type              string `json:"type"`
+	V4StaticAddress   string `json:"v4StaticAddress"`
+	V4StaticPrefix    uint8  `json:"v4StaticPrefix"`
+	IsWAN             bool   `json:"wan"`
 }
 
 func (intf *Interface) GetCidrNotation() string {
-	prefix := strconv.FormatFloat(intf.V4StaticPrefix, 'f', -1, 64)
-	return fmt.Sprintf("%s/%s", intf.V4StaticAddress, prefix)
+	//prefix := strconv.FormatFloat(intf.V4StaticPrefix, 'f', -1, 64)
+	return fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix)
 }
