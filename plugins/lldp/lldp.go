@@ -86,14 +86,17 @@ type lldpPluginSettings struct {
 }
 
 type Lldp struct {
-	autoLldpCollectionChan chan bool
-	lldpSettings           lldpPluginSettings
+	autoLldpCollectionShutdown    chan bool
+	autoLldpCollectionShutdownAck chan bool
+
+	lldpSettings lldpPluginSettings
 }
 
 // Gets a singleton instance of the Lldp plugin
 func NewLldp() *Lldp {
 	once.Do(func() {
-		lldpSingleton = &Lldp{autoLldpCollectionChan: make(chan bool)}
+		lldpSingleton = &Lldp{autoLldpCollectionShutdown: make(chan bool),
+			autoLldpCollectionShutdownAck: make(chan bool)}
 	})
 
 	return lldpSingleton
@@ -173,13 +176,14 @@ func (lldp *Lldp) SyncSettings(settings interface{}) error {
 // Stop stops LLDP collector
 func (lldp *Lldp) Shutdown() error {
 	logger.Info("Stopping LLDP collector plugin\n")
-	discovery.NewDiscovery().UnregisterCollector(pluginName)
+	discovery.NewDiscovery().DeregisterCollector(pluginName)
 	lldp.stopAutoLldpCollection()
 
 	return nil
 }
 
 // Start starts the LLDP collector
+// Meant to only be run once
 func (lldp *Lldp) Startup() error {
 	logger.Info("Starting LLDP collector plugin\n")
 
@@ -198,15 +202,12 @@ func (lldp *Lldp) Startup() error {
 	return nil
 }
 
+// Start method of the plugin. Meant to be used in a restart of the plugin
 func (lldp *Lldp) startLldp() {
 	discovery.NewDiscovery().RegisterCollector(pluginName, LldpcallBackHandler)
 
 	LldpcallBackHandler(nil)
 
-	lldp.startAutoLldpCollection()
-}
-
-func (lldp *Lldp) startAutoLldpCollection() {
 	go lldp.autoLldpCollection()
 }
 
@@ -215,27 +216,28 @@ func (lldp *Lldp) stopAutoLldpCollection() {
 	// the case where the goroutine wasn't started in the first place.
 	// The goroutine never starting occurs when the plugin is disabled
 	select {
-	case lldp.autoLldpCollectionChan <- true:
+	case lldp.autoLldpCollectionShutdown <- true:
 		// Send message
 	default:
 		// Do nothing if the message couldn't be sent
 	}
 
 	select {
-	case <-lldp.autoLldpCollectionChan:
+	case <-lldp.autoLldpCollectionShutdownAck:
 		logger.Info("Successful shutdown of the automatic LLDP collector\n")
 	case <-time.After(1 * time.Second):
 		logger.Warn("Failed to shutdown automatic LLDP collector. It may never have been started\n")
 	}
 }
 
+// Runs the plugin's handler on a timer. Meant to be run as a goroutine
 func (lldp *Lldp) autoLldpCollection() {
 	logger.Debug("Starting automatic collection from LLDP plugin with an interval of %d seconds\n", lldp.lldpSettings.AutoInterval)
 	for {
 		select {
-		case <-lldp.autoLldpCollectionChan:
+		case <-lldp.autoLldpCollectionShutdown:
 			logger.Debug("Stopping automatic collection from LLDP plugin\n")
-			lldp.autoLldpCollectionChan <- true
+			lldp.autoLldpCollectionShutdownAck <- true
 			return
 		case <-time.After(time.Duration(lldp.lldpSettings.AutoInterval) * time.Second):
 			LldpcallBackHandler(nil)

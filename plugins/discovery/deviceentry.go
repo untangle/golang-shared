@@ -44,7 +44,11 @@ func zmqpublishEntry(entry *discovery.DeviceEntry) {
 	}
 
 	// Do not block if message can't be sent. Just log that it was dropped
-	NewDiscovery().messagePublisherChannel <- &zmqMessage{"arista:discovery:device", message}
-	logger.Debug("Sent discovery entry to ZMQ publisher %s, %s\n", entry.IPv4Address, entry.MacAddress)
+	select {
+	case NewDiscovery().messagePublisherChannel <- &zmqMessage{"arista:discovery:device", message}:
+		logger.Debug("Sent discovery entry to ZMQ publisher %s, %s\n", entry.IPv4Address, entry.MacAddress)
+	default:
+		logger.Debug("Dropped discovery entry meant for the ZMQ publisher %s, %s\n", entry.IPv4Address, entry.MacAddress)
+	}
 
 }

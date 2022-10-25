@@ -14,8 +14,6 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-//TODO: Figure out if the publishing channel should have a buffer
-
 const (
 	pluginName string = "discovery"
 
@@ -277,7 +275,7 @@ func (discovery *Discovery) RegisterCollector(collectorLabel string, handler Col
 
 // Unregisters a collector function
 // Will only run if the discovery plugin is enabled
-func (discovery *Discovery) UnregisterCollector(collectorLabel string) {
+func (discovery *Discovery) DeregisterCollector(collectorLabel string) {
 	if discovery.discoverySettings.Enabled {
 		discovery.collectorsLock.Lock()
 		defer discovery.collectorsLock.Unlock()

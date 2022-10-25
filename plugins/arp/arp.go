@@ -30,14 +30,20 @@ type arpPluginSettings struct {
 
 // Setup the Arp struct as a singleton
 type Arp struct {
-	autoArpCollectionChan chan bool
-	arpSettings           arpPluginSettings
+	// During shutdown, goroutines are stopped. If they are already
+	// stopped, and shutdown gets called again the process could block.
+	// Use two channels for a non-blocking shutdown and ack
+	autoArpCollectionShutdown    chan bool
+	autoArpCollectionShutdownAck chan bool
+
+	arpSettings arpPluginSettings
 }
 
 // Gets a singleton instance of the Arp plugin
 func NewArp() *Arp {
 	once.Do(func() {
-		arpSingleton = &Arp{autoArpCollectionChan: make(chan bool)}
+		arpSingleton = &Arp{autoArpCollectionShutdown: make(chan bool),
+			autoArpCollectionShutdownAck: make(chan bool)}
 	})
 
 	return arpSingleton
@@ -115,6 +121,7 @@ func (arp *Arp) SyncSettings(settings interface{}) error {
 }
 
 // Startup starts the ARP collector IF enabled in the settings file
+// Meant to only be run once
 func (arp *Arp) Startup() error {
 	logger.Info("Starting ARP collector plugin\n")
 
@@ -139,27 +146,29 @@ func (arp *Arp) Shutdown() error {
 
 	arp.stopAutoArpCollection()
 
-	discovery.NewDiscovery().UnregisterCollector(pluginName)
+	discovery.NewDiscovery().DeregisterCollector(pluginName)
 
 	return nil
 }
 
+// Start method of the plugin. Meant to be used in a restart of the plugin
 func (arp *Arp) startArp() {
 	discovery.NewDiscovery().RegisterCollector(pluginName, NetlinkNeighbourCallbackController)
 
 	// Lets do a first run to get the initial data
 	NetlinkNeighbourCallbackController(nil)
 
-	arp.startAutoArpCollection()
+	go arp.autoArpCollection()
 }
 
+// Runs the plugin's handler on a timer. Meant to be run as a goroutine
 func (arp *Arp) autoArpCollection() {
 	logger.Debug("Starting automatic collection from ARP plugin with an interval of %d seconds\n", arp.arpSettings.AutoInterval)
 	for {
 		select {
-		case <-arp.autoArpCollectionChan:
+		case <-arp.autoArpCollectionShutdown:
 			logger.Debug("Stopping automatic collection from ARP plugin\n")
-			arp.autoArpCollectionChan <- true
+			arp.autoArpCollectionShutdownAck <- true
 			return
 		case <-time.After(time.Duration(arp.arpSettings.AutoInterval) * time.Second):
 			NetlinkNeighbourCallbackController(nil)
@@ -167,27 +176,20 @@ func (arp *Arp) autoArpCollection() {
 	}
 }
 
-func (arp *Arp) startAutoArpCollection() {
-	go arp.autoArpCollection()
-
-	discovery.NewDiscovery().RegisterCollector(pluginName, NetlinkNeighbourCallbackController)
-	// Lets do a first run to get the initial data
-	NetlinkNeighbourCallbackController(nil)
-}
-
+// Stops automatically running the ARP callback handler on a timer
 func (arp *Arp) stopAutoArpCollection() {
 	// The send to kill the AutoNmapCollection goroutine must be non-blocking for
 	// the case where the goroutine wasn't started in the first place.
 	// The goroutine never starting occurs when the plugin is disabled
 	select {
-	case arp.autoArpCollectionChan <- true:
+	case arp.autoArpCollectionShutdown <- true:
 		// Send message
 	default:
 		// Do nothing if the message couldn't be sent
 	}
 
 	select {
-	case <-arp.autoArpCollectionChan:
+	case <-arp.autoArpCollectionShutdownAck:
 		logger.Info("Successful shutdown of the automatic ARP collector\n")
 	case <-time.After(1 * time.Second):
 		logger.Warn("Failed to shutdown automatic ARP collector. It may never have been started\n")

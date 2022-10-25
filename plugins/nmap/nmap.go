@@ -135,14 +135,20 @@ type nmapPluginSettings struct {
 
 // Setup the Nmap struct as a singleton
 type Nmap struct {
-	autoNmapCollectionChan chan bool
-	nmapSettings           nmapPluginSettings
+	// During shutdown, goroutines are stopped. If they are already
+	// stopped, and shutdown gets called again the process could block.
+	// Use two channels for a non-blocking shutdown and ack
+	autoNmapCollectionShutdown    chan bool
+	autoNmapCollectionShutdownAck chan bool
+
+	nmapSettings nmapPluginSettings
 }
 
 // Gets a singleton instance of the Nmap plugin
 func NewNmap() *Nmap {
 	once.Do(func() {
-		nmapSingleton = &Nmap{autoNmapCollectionChan: make(chan bool)}
+		nmapSingleton = &Nmap{autoNmapCollectionShutdown: make(chan bool),
+			autoNmapCollectionShutdownAck: make(chan bool)}
 	})
 
 	return nmapSingleton
@@ -219,6 +225,7 @@ func (nmap *Nmap) SyncSettings(settings interface{}) error {
 }
 
 // Start starts the NMAP collector
+// Meant to only be run once
 func (nmap *Nmap) Startup() error {
 	logger.Info("Starting NMAP collector plugin\n")
 
@@ -243,27 +250,28 @@ func (nmap *Nmap) Shutdown() error {
 
 	nmap.stopAutoNmapCollection()
 
-	discovery.NewDiscovery().UnregisterCollector(pluginName)
+	discovery.NewDiscovery().DeregisterCollector(pluginName)
 
 	return nil
 }
 
+// Start method of the plugin. Meant to be used in a restart of the plugin
 func (nmap *Nmap) startNmap() {
 	discovery.NewDiscovery().RegisterCollector(pluginName, NmapcallBackHandler)
 
 	// Lets do a first run to get the initial data
 	NmapcallBackHandler(nil)
 
-	nmap.startAutoNmapCollection()
+	go nmap.autoNmapCollection()
 }
 
 func (nmap *Nmap) autoNmapCollection() {
 	logger.Debug("Starting automatic collection from NMAP plugin with an interval of %d seconds\n", nmap.nmapSettings.AutoInterval)
 	for {
 		select {
-		case <-nmap.autoNmapCollectionChan:
+		case <-nmap.autoNmapCollectionShutdown:
 			logger.Debug("Stopping automatic collection from NMAP plugin\n")
-			nmap.autoNmapCollectionChan <- true
+			nmap.autoNmapCollectionShutdownAck <- true
 			return
 		case <-time.After(time.Duration(nmap.nmapSettings.AutoInterval) * time.Second):
 			scanLanNetworks()
@@ -276,6 +284,7 @@ func (nmap *Nmap) autoNmapCollection() {
 	}
 }
 
+// Calls the Nmap callback handler after getting a list of LANs from the settings file
 func scanLanNetworks() {
 	// Get list of interfaces from settings file
 	localIntfs := interfaces.GetInterfaces(func(intf interfaces.Interface) bool {
@@ -291,23 +300,20 @@ func scanLanNetworks() {
 	NmapcallBackHandler([]discovery.Command{{Command: discovery.CmdScanHost, Arguments: localNetworksCidr}})
 }
 
-func (nmap *Nmap) startAutoNmapCollection() {
-	go nmap.autoNmapCollection()
-}
-
+// Stops running the back handler automatically
 func (nmap *Nmap) stopAutoNmapCollection() {
 	// The send to kill the AutoNmapCollection goroutine must be non-blocking for
 	// the case where the goroutine wasn't started in the first place.
 	// The goroutine never starting occurs when the plugin is disabled
 	select {
-	case nmap.autoNmapCollectionChan <- true:
+	case nmap.autoNmapCollectionShutdown <- true:
 		// Send message
 	default:
 		// Do nothing if the message couldn't be sent
 	}
 
 	select {
-	case <-nmap.autoNmapCollectionChan:
+	case <-nmap.autoNmapCollectionShutdownAck:
 		logger.Info("Successful shutdown of the automatic NMAP collector\n")
 	case <-time.After(1 * time.Second):
 		logger.Warn("Failed to shutdown automatic NMAP collector. It may never have been started\n")

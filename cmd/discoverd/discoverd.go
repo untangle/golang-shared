@@ -16,9 +16,8 @@ import (
 	"github.com/untangle/discoverd/plugins/discovery"
 	"github.com/untangle/discoverd/plugins/lldp"
 	"github.com/untangle/discoverd/plugins/nmap"
-	settingsync "github.com/untangle/discoverd/plugins/settingssync"
-	"github.com/untangle/discoverd/services/example"
 	"github.com/untangle/golang-shared/plugins"
+	"github.com/untangle/golang-shared/plugins/settingssync"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/profiler"
 )
@@ -61,17 +60,15 @@ func main() {
 		logger.Warn("CPU Profiler could not start: %s\n", err.Error())
 	}
 
-	startServices()
-
 	// Configure consumers
-	syncHandler := settingsync.NewSettingsSyncHandler()
+	syncHandler := settingssync.NewSettingsSyncHandler()
 	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 
 	configurePlugins()
 
 	handleSignals(syncHandler)
 
-	startPlugins()
+	plugins.GlobalPluginControl().Startup()
 
 	// Keep discoverd running while the shutdown flag is false
 	// shutdown once flag is true or the shutdownChannel indicates a shutdown
@@ -87,9 +84,7 @@ func main() {
 	}
 
 	logger.Info("Shutdown discoverd...\n")
-
-	stopServices()
-	stopPlugins()
+	plugins.GlobalPluginControl().Shutdown()
 
 	cpuProfiler.StopCPUProfile()
 }
@@ -105,31 +100,12 @@ func configurePlugins() {
 	plugins.GlobalPluginControl().RegisterPlugin(lldp.NewLldp)
 	plugins.GlobalPluginControl().RegisterPlugin(arp.NewArp)
 
-	syncHandler := settingsync.NewSettingsSyncHandler()
+	syncHandler := settingssync.NewSettingsSyncHandler()
 	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 }
 
-/* startServices starts the gin server and cert manager */
-func startServices() {
-	example.Startup()
-}
-
-/* stopServices stops the gin server, cert manager
-, and logger*/
-func stopServices() {
-	example.Shutdown()
-}
-
-func startPlugins() {
-	plugins.GlobalPluginControl().Startup()
-}
-
-func stopPlugins() {
-	plugins.GlobalPluginControl().Shutdown()
-}
-
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */
-func handleSignals(syncHandler *settingsync.SettingsSync) {
+func handleSignals(syncHandler *settingssync.SettingsSync) {
 	// Add SIGINT & SIGTERM handler (exit)
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)
@@ -169,21 +145,6 @@ func handleSignals(syncHandler *settingsync.SettingsSync) {
 		}
 	}()
 }
-
-// notifyTargets signals all plugins with a handler (in parallel)
-// func notifyTargets(message syscall.Signal, targets []func(syscall.Signal)) {
-// 	var wg sync.WaitGroup
-
-// 	for _, f := range targets {
-// 		wg.Add(1)
-// 		go func(f func(syscall.Signal)) {
-// 			f(message)
-// 			wg.Done()
-// 		}(f)
-// 	}
-
-// 	wg.Wait()
-// }
 
 // dumpStack to /tmp/discoverd.stack and log
 func dumpStack() {
