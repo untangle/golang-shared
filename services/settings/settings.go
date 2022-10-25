@@ -84,6 +84,7 @@ func GetCurrentSettings(segments []string) (interface{}, error) {
 	return GetSettingsFile(segments, currentFile)
 }
 
+// Deprecated, use UnmarshallSettingsAtPath!
 // GetSettings returns the settings from the specified path
 func GetSettings(segments []string) (interface{}, error) {
 	return GetSettingsFile(segments, settingsFile)
