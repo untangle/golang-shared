@@ -28,7 +28,9 @@ func NetlinkNeighbourCallbackController(commands []discovery.Command) {
 		return
 	}
 
-	for _, entry := range entries {
+	logger.Debug("Discovered entries:")
+	for i, entry := range entries {
+		logger.Debug("Entry nr: %d. Data: %+v", i, entry)
 		discovery.UpdateDiscoveryEntry(entry.MacAddress, entry)
 	}
 }
