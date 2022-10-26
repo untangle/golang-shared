@@ -12,14 +12,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/untangle/discoverd/plugins/arp"
-	"github.com/untangle/discoverd/plugins/discovery"
-	"github.com/untangle/discoverd/plugins/lldp"
 	"github.com/untangle/discoverd/plugins/nmap"
 	"github.com/untangle/golang-shared/plugins"
 	"github.com/untangle/golang-shared/plugins/settingssync"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/profiler"
+
+	_ "github.com/untangle/discoverd/plugins/pluginloads"
 )
 
 var (
@@ -64,8 +63,6 @@ func main() {
 	syncHandler := settingssync.NewSettingsSyncHandler()
 	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 
-	configurePlugins()
-
 	handleSignals(syncHandler)
 
 	plugins.GlobalPluginControl().Startup()
@@ -87,21 +84,6 @@ func main() {
 	plugins.GlobalPluginControl().Shutdown()
 
 	cpuProfiler.StopCPUProfile()
-}
-
-// Configures plugins used by discoverd
-// This is not simply done in the init() functions of each plugin
-// since most of the plugins don't get imported anywhere in the code.
-// Without getting imported, init() never runs and the plugins never
-// get added to the GlobalPluginManager
-func configurePlugins() {
-	plugins.GlobalPluginControl().RegisterPlugin(discovery.NewDiscovery)
-	plugins.GlobalPluginControl().RegisterPlugin(nmap.NewNmap)
-	plugins.GlobalPluginControl().RegisterPlugin(lldp.NewLldp)
-	plugins.GlobalPluginControl().RegisterPlugin(arp.NewArp)
-
-	syncHandler := settingssync.NewSettingsSyncHandler()
-	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 }
 
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */

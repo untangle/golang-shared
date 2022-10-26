@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/discovery"
+	"github.com/untangle/golang-shared/plugins"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -78,6 +79,10 @@ var (
 
 	settingsPath []string = []string{"discovery", "plugins"}
 )
+
+func init() {
+	plugins.GlobalPluginControl().RegisterPlugin(NewLldp)
+}
 
 type lldpPluginSettings struct {
 	Type         string `json:"type"`

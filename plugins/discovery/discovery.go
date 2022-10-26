@@ -10,6 +10,7 @@ import (
 	"time"
 
 	zmq "github.com/pebbe/zmq4"
+	"github.com/untangle/golang-shared/plugins"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -34,6 +35,10 @@ var (
 
 	settingsPath []string = []string{"discovery"}
 )
+
+func init() {
+	plugins.GlobalPluginControl().RegisterPlugin(NewDiscovery)
+}
 
 type discoveryPluginSettings struct {
 	Enabled bool `json:"enabled"`
