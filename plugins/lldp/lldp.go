@@ -2,12 +2,16 @@ package lldp
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
+	"reflect"
+	"sync"
 	"time"
 
-	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/plugins/discovery"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
@@ -64,17 +68,181 @@ type value struct {
 	Value string `json:"value,omitempty"`
 }
 
-// Start starts the LLDP collector
-func Start() {
-	logger.Info("Starting LLDP collector plugin\n")
-	discovery.RegisterCollector(LldpcallBackHandler)
+const (
+	pluginName string = "lldp"
+)
 
-	// initial run
-	LldpcallBackHandler(nil)
+var (
+	lldpSingleton *Lldp
+	once          sync.Once
+
+	settingsPath []string = []string{"discovery", "plugins"}
+)
+
+type lldpPluginSettings struct {
+	Type         string `json:"type"`
+	Enabled      bool   `json:"enabled"`
+	AutoInterval uint   `json:"autoInterval"`
+}
+
+type Lldp struct {
+	autoLldpCollectionShutdown    chan bool
+	autoLldpCollectionShutdownAck chan bool
+
+	lldpSettings lldpPluginSettings
+}
+
+// Gets a singleton instance of the Lldp plugin
+func NewLldp() *Lldp {
+	once.Do(func() {
+		lldpSingleton = &Lldp{autoLldpCollectionShutdown: make(chan bool),
+			autoLldpCollectionShutdownAck: make(chan bool)}
+	})
+
+	return lldpSingleton
+}
+
+// Returns true if the current settings match the 'new' settings Provided, otherwise false
+func (lldp *Lldp) InSync(settings interface{}) bool {
+	newSettings, ok := settings.(lldpPluginSettings)
+	if !ok {
+		logger.Warn("LLDP: Could not compare the settings file provided to the current plugin settings. The settings cannot be updated.")
+		return false
+	}
+
+	if newSettings == lldp.lldpSettings {
+		logger.Debug("Settings remain unchanged for the LLDP plugin\n")
+		return true
+	}
+
+	logger.Info("Updating LLDP plugin settings")
+	return false
+}
+
+// Returns a struct containing the plugins settings of type lldpPluginSettings
+func (lldp *Lldp) GetCurrentSettingsStruct() (interface{}, error) {
+	var fileSettings []lldpPluginSettings
+	if err := settings.UnmarshalSettingsAtPath(&fileSettings, settingsPath...); err != nil {
+		return nil, fmt.Errorf("LLDP: %s", err.Error())
+	}
+
+	// Plugins are in an array in the settings.json. Have to go through all of them
+	// to find the desired settings struct
+	for _, pluginSetting := range fileSettings {
+		if pluginSetting.Type == pluginName {
+			return pluginSetting, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no settings could be found for %s plugin", pluginName)
+}
+
+// Returns name of the plugin.
+// The function is not static to satisfy the SettingsSyncer interface requirements
+func (lldp *Lldp) Name() string {
+	return pluginName
+}
+
+// Updates the current settings with the settings passed in. If the plugin was already running
+// but the settings changed, the plugin is restarted.
+// An error is returned if the settings can't be synced
+func (lldp *Lldp) SyncSettings(settings interface{}) error {
+
+	originalSettings := lldp.lldpSettings
+	newSettings, ok := settings.(lldpPluginSettings)
+	if !ok {
+		return fmt.Errorf("LLDP: Settings provided were %s but expected %s",
+			reflect.TypeOf(settings).String(), reflect.TypeOf(lldp.lldpSettings).String())
+	}
+
+	lldp.lldpSettings = newSettings
+
+	// If settings changed but the plugin was previously enabled, restart the plugin
+	// for changes to take effect
+	var shutdownError error
+	if originalSettings.Enabled && lldp.lldpSettings.Enabled {
+		shutdownError = lldp.Shutdown()
+	}
+
+	if lldp.lldpSettings.Enabled {
+		lldp.startLldp()
+	} else {
+		shutdownError = lldp.Shutdown()
+	}
+
+	return shutdownError
 }
 
 // Stop stops LLDP collector
-func Stop() {
+func (lldp *Lldp) Shutdown() error {
+	logger.Info("Stopping LLDP collector plugin\n")
+	discovery.NewDiscovery().DeregisterCollector(pluginName)
+	lldp.stopAutoLldpCollection()
+
+	return nil
+}
+
+// Start starts the LLDP collector
+// Meant to only be run once
+func (lldp *Lldp) Startup() error {
+	logger.Info("Starting LLDP collector plugin\n")
+
+	// Grab the initial settings on startup
+	settings, err := lldp.GetCurrentSettingsStruct()
+	if err != nil {
+		return err
+	}
+
+	// SyncSettings will start the plugin if it's enabled
+	err = lldp.SyncSettings(settings)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Start method of the plugin. Meant to be used in a restart of the plugin
+func (lldp *Lldp) startLldp() {
+	discovery.NewDiscovery().RegisterCollector(pluginName, LldpcallBackHandler)
+
+	LldpcallBackHandler(nil)
+
+	go lldp.autoLldpCollection()
+}
+
+func (lldp *Lldp) stopAutoLldpCollection() {
+	// The send to kill the AutoLldpCollection goroutine must be non-blocking for
+	// the case where the goroutine wasn't started in the first place.
+	// The goroutine never starting occurs when the plugin is disabled
+	select {
+	case lldp.autoLldpCollectionShutdown <- true:
+		// Send message
+	default:
+		// Do nothing if the message couldn't be sent
+	}
+
+	select {
+	case <-lldp.autoLldpCollectionShutdownAck:
+		logger.Info("Successful shutdown of the automatic LLDP collector\n")
+	case <-time.After(1 * time.Second):
+		logger.Warn("Failed to shutdown automatic LLDP collector. It may never have been started\n")
+	}
+}
+
+// Runs the plugin's handler on a timer. Meant to be run as a goroutine
+func (lldp *Lldp) autoLldpCollection() {
+	logger.Debug("Starting automatic collection from LLDP plugin with an interval of %d seconds\n", lldp.lldpSettings.AutoInterval)
+	for {
+		select {
+		case <-lldp.autoLldpCollectionShutdown:
+			logger.Debug("Stopping automatic collection from LLDP plugin\n")
+			lldp.autoLldpCollectionShutdownAck <- true
+			return
+		case <-time.After(time.Duration(lldp.lldpSettings.AutoInterval) * time.Second):
+			LldpcallBackHandler(nil)
+		}
+	}
 }
 
 // LldpcallBackHandler is the callback handler for the LLDP collector

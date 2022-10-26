@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/untangle/discoverd/services/discovery"
+	"github.com/untangle/discoverd/plugins/discovery"
 	"github.com/untangle/discoverd/utils"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"

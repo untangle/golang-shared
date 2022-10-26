@@ -11,18 +11,21 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/arp"
+	"github.com/untangle/discoverd/plugins/discovery"
 	"github.com/untangle/discoverd/plugins/lldp"
 	"github.com/untangle/discoverd/plugins/nmap"
-	"github.com/untangle/discoverd/services/discovery"
-	"github.com/untangle/discoverd/services/example"
+	"github.com/untangle/golang-shared/plugins"
+	"github.com/untangle/golang-shared/plugins/settingssync"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/profiler"
 )
 
-var shutdownFlag uint32
-var shutdownChannel = make(chan bool)
-var cpuProfileFilename = ""
-var cpuProfiler *profiler.CPUProfiler
+var (
+	shutdownFlag       uint32
+	shutdownChannel    = make(chan bool)
+	cpuProfileFilename = ""
+	cpuProfiler        *profiler.CPUProfiler
+)
 
 /* main function for discoverd */
 func main() {
@@ -41,13 +44,15 @@ func main() {
 		logger.Warn("CPU Profiler could not start: %s\n", err.Error())
 	}
 
-	// Start services
-	startServices()
+	// Configure consumers
+	syncHandler := settingssync.NewSettingsSyncHandler()
+	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 
-	startPlugins()
+	configurePlugins()
 
-	// Handle the stop signals
-	handleSignals()
+	handleSignals(syncHandler)
+
+	plugins.GlobalPluginControl().Startup()
 
 	// Keep discoverd running while the shutdown flag is false
 	// shutdown once flag is true or the shutdownChannel indicates a shutdown
@@ -63,38 +68,28 @@ func main() {
 	}
 
 	logger.Info("Shutdown discoverd...\n")
-
-	stopServices()
-	stopPlugins()
+	plugins.GlobalPluginControl().Shutdown()
 
 	cpuProfiler.StopCPUProfile()
 }
 
-/* startServices starts the gin server and cert manager */
-func startServices() {
-	example.Startup()
-	discovery.Startup()
-}
+// Configures plugins used by discoverd
+// This is not simply done in the init() functions of each plugin
+// since most of the plugins don't get imported anywhere in the code.
+// Without getting imported, init() never runs and the plugins never
+// get added to the GlobalPluginManager
+func configurePlugins() {
+	plugins.GlobalPluginControl().RegisterPlugin(discovery.NewDiscovery)
+	plugins.GlobalPluginControl().RegisterPlugin(nmap.NewNmap)
+	plugins.GlobalPluginControl().RegisterPlugin(lldp.NewLldp)
+	plugins.GlobalPluginControl().RegisterPlugin(arp.NewArp)
 
-/* stopServices stops the gin server, cert manager, and logger*/
-func stopServices() {
-	example.Shutdown()
-}
-
-func startPlugins() {
-	arp.Start()
-	lldp.Start()
-	nmap.Start()
-}
-
-func stopPlugins() {
-	arp.Stop()
-	lldp.Stop()
-	nmap.Stop()
+	syncHandler := settingssync.NewSettingsSyncHandler()
+	plugins.GlobalPluginControl().RegisterConsumer(syncHandler.RegisterPlugin)
 }
 
 /* handleSignals handles SIGINT, SIGTERM, and SIGQUIT signals */
-func handleSignals() {
+func handleSignals(syncHandler *settingssync.SettingsSync) {
 	// Add SIGINT & SIGTERM handler (exit)
 	termch := make(chan os.Signal, 1)
 	signal.Notify(termch, syscall.SIGINT, syscall.SIGTERM)
@@ -114,6 +109,23 @@ func handleSignals() {
 			sig := <-quitch
 			logger.Info("Received signal [%v]. Calling dumpStack()\n", sig)
 			go dumpStack()
+		}
+	}()
+
+	// Add SIGHUP handler (call handlers)
+	hupch := make(chan os.Signal, 1)
+	signal.Notify(hupch, syscall.SIGHUP)
+	go func() {
+		for {
+			sig := <-hupch
+			logger.Info("Received signal [%v]. Calling handlers\n", sig)
+
+			// TODO: Once Consumers in the GlobalPluginControl are treated
+			// as plugins, register SyncSettings with the signal_handler controller
+			// and use that o kickoff a settings sync
+			syncHandler.SyncSettings()
+			sig.Signal()
+
 		}
 	}()
 }

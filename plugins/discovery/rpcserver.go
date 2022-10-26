@@ -11,7 +11,7 @@ type DiscoveryRPCService disco.NmapRequest
 // ScanNet is a command to scan a network, argument is the networks (CIDR notation)
 func (s *DiscoveryRPCService) ScanNet(args *disco.NmapRequest, reply *disco.NmapResponse) error {
 	logger.Debug("ScanNet called\n")
-	callCollectors([]Command{{Command: CmdScanNet, Arguments: args.Net}})
+	NewDiscovery().callCollectors([]Command{{Command: CmdScanNet, Arguments: args.Net}})
 	reply = &disco.NmapResponse{Result: disco.ResponseCode_OK}
 	return nil
 }
@@ -19,7 +19,7 @@ func (s *DiscoveryRPCService) ScanNet(args *disco.NmapRequest, reply *disco.Nmap
 // ScanHost is a command to scan a host, argument is the hostnames
 func (s *DiscoveryRPCService) ScanHost(args *disco.NmapRequest, reply *disco.NmapResponse) error {
 	logger.Debug("ScanHost called\n")
-	callCollectors([]Command{{Command: CmdScanHost, Arguments: args.Host}})
+	NewDiscovery().callCollectors([]Command{{Command: CmdScanHost, Arguments: args.Host}})
 	reply = &disco.NmapResponse{Result: disco.ResponseCode_OK}
 	return nil
 }

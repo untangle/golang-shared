@@ -27,7 +27,7 @@ func UpdateDiscoveryEntry(mac string, entry *discovery.DeviceEntry) {
 	if utils.IsMacAddress(mac) || utils.IsIpv4Address(entry.IPv4Address) {
 		// ZMQ publish the entry
 		entry.LastUpdate = time.Now().Unix()
-		logger.Debug("Publishing discovery entry for %s, %s\n", mac, entry.IPv4Address)
+		logger.Debug("Attempting to send discovery entry for %s, %s to the ZMQ publisher\n", mac, entry.IPv4Address)
 
 		zmqpublishEntry(entry)
 
@@ -42,5 +42,13 @@ func zmqpublishEntry(entry *discovery.DeviceEntry) {
 		logger.Err("Unable to marshal discovery entry: %s\n", err)
 		return
 	}
-	messagePublisherChannel <- &zmqMessage{"arista:discovery:device", message}
+
+	// Do not block if message can't be sent. Just log that it was dropped
+	select {
+	case NewDiscovery().messagePublisherChannel <- &zmqMessage{"arista:discovery:device", message}:
+		logger.Debug("Sent discovery entry to ZMQ publisher %s, %s\n", entry.IPv4Address, entry.MacAddress)
+	default:
+		logger.Debug("Dropped discovery entry meant for the ZMQ publisher %s, %s\n", entry.IPv4Address, entry.MacAddress)
+	}
+
 }
