@@ -165,6 +165,10 @@ func (m *mockNetlinkHandler) NeighList(linkIndex, family int) ([]netlink.Neigh, 
 	return m.devices, nil
 }
 
+// Delete releases the used netlink sockets
+func (m *mockNetlinkHandler) Delete() {
+}
+
 var timestampCallback = func() int64 {
 	return 123456
 }

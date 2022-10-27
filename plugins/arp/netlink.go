@@ -17,6 +17,8 @@ import (
 func NetlinkNeighbourCallbackController(commands []discovery.Command) {
 	logger.Debug("Arp Callback handler: Received %d commands\n", len(commands))
 	scanner, err := newNetlinkScanner(settings.GetSettingsFileSingleton())
+	defer scanner.Close()
+
 	if err != nil {
 		logger.Warn("Couldn't initiate netlink scanner: %s", err)
 		return
@@ -38,6 +40,7 @@ func NetlinkNeighbourCallbackController(commands []discovery.Command) {
 type NetlinkHandler interface {
 	LinkByName(name string) (netlink.Link, error)
 	NeighList(linkIndex, family int) ([]netlink.Neigh, error)
+	Delete()
 }
 
 // netlinkScanner scans linux host devices related information using the netlink package.
@@ -71,6 +74,13 @@ func newNetlinkScanner(settings *settings.SettingsFile) (*netlinkScanner, error)
 	}
 
 	return scanner, nil
+}
+
+func (s *netlinkScanner) Close() error {
+	s.deviceEntries = nil
+	s.handler.Delete()
+
+	return nil
 }
 
 // getIpNeighbourEntries returns the list of hosts connected to network devices using the netlink package
