@@ -71,8 +71,17 @@ const LogLevelTrace int32 = 8
 
 var loggerSingleton *Logger
 
-// GetLoggerInstance returns a logger object that is a
-// singleton. Prefer using this if you can.
+// GetLoggerInstancewithConfig returns a logger object that is a
+// singleton. It populates the default loglevelmap.
+func GetLoggerInstancewithConfig(conf *Logger.config) *Logger {
+	if loggerSingleton == nil {
+		loggerSingleton = NewLoggerwithConfig(conf)
+	}
+	return loggerSingleton
+}
+
+// GetLoggerInstance returns a logger object that is singleton
+// with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLogger()
@@ -80,10 +89,14 @@ func GetLoggerInstance() *Logger {
 	return loggerSingleton
 }
 
-// NewLogger creates an new instance of the logger struct
-func NewLogger() *Logger {
+// NewLoggerwithConfig creates an new instance of the logger struct with default config
+func NewLoggerwithConfig(conf *Logger.config) *Logger {
+	return &Logger{config: conf}
+}
 
-	return &Logger{}
+// NewLogger creates an new instance of the logger struct with winldcard config
+func NewLogger() *Logger {
+	return &Logger{config.LogLevelMap: {'*': INFO}}
 }
 
 // Startup starts the logging service
@@ -253,13 +266,16 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		stat := logger.config.LogLevelMap[functionName] != LogLevel{}
+		stat := logger.config.LogLevelMap[packageName] != LogLevel{}
 		logger.logLevelLocker.RUnlock()
 		if stat {
-			return int32(logger.config.LogLevelMap[functionName].Id)
+			return int32(logger.config.LogLevelMap[packageName].Id)
+		} else {
+			if val, ok := logger.config.LogLevelMap["*"]; ok {
+				return int32(val.Id)
+			}
 		}
 	}
-
 	// nothing found so return default level
 	return LogLevelInfo
 }
