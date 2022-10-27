@@ -57,10 +57,8 @@ github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PK
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/ugorji/go v1.2.7/go.mod h1:nF9osbDWLy6bDVv/Rtoh6QgnvNDpmCalQV5urGCCS6M=
 github.com/ugorji/go/codec v1.2.7/go.mod h1:WGN1fab3R1fzQlVQTkfxVtIBhWDRqOviHU95kRgeqEY=
-github.com/untangle/golang-shared v1.5.4-0.20221025191521-818bab939021 h1:+35CkjUImq/J5Wy9h1ZopsxaqJ0FuNbO0kDHMKN4cFI=
-github.com/untangle/golang-shared v1.5.4-0.20221025191521-818bab939021/go.mod h1:6MDvvDJRgDwB2ZYnYFvGvJWiUUBc3+x4+3BVw/WGWwI=
-github.com/untangle/golang-shared v1.5.4-0.20221025192357-7988002bbf49 h1:yFK4TooeinbD+SBW5/rlazAU+0nL4mc9qyTv7T4GzHM=
-github.com/untangle/golang-shared v1.5.4-0.20221025192357-7988002bbf49/go.mod h1:6MDvvDJRgDwB2ZYnYFvGvJWiUUBc3+x4+3BVw/WGWwI=
+github.com/untangle/golang-shared v1.5.6 h1:Rbo6KRtQ0bdVuOII5C5NxuMii++hmkBbyJlYbfiC98U=
+github.com/untangle/golang-shared v1.5.6/go.mod h1:6MDvvDJRgDwB2ZYnYFvGvJWiUUBc3+x4+3BVw/WGWwI=
 github.com/vishvananda/netlink v1.1.0 h1:1iyaYNBLmP6L0220aDnYQpo1QEV4t4hJ+xEEhhJH8j0=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df h1:OviZH7qLw/7ZovXvuNyL3XQl8UFofeikI1NW1Gypu7k=

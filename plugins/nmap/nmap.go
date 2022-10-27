@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/discovery"
+	"github.com/untangle/golang-shared/plugins"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -125,6 +126,8 @@ func init() {
 	// to avoid network load during packetd startup
 	randStartTime := rand.Intn(randStartMax-randStartMin) + randStartMin
 	randStartScanNetTimer = time.NewTicker(time.Duration(randStartTime) * time.Minute)
+
+	plugins.GlobalPluginControl().RegisterPlugin(NewNmap)
 }
 
 type nmapPluginSettings struct {
