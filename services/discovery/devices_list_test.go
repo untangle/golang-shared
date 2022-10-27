@@ -377,6 +377,7 @@ func (suite *DeviceListTestSuite) TestDeviceMarshal() {
 		"LastUpdate":  json.Number(fmt.Sprintf("%d", update)),
 		"sessionDetail": map[string]interface{}{
 			"byteTransferRate": json.Number("24"),
+			"dataUsage":        json.Number("55"),
 			"numSessions":      json.Number("2"),
 		},
 	}
