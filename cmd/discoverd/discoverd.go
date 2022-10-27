@@ -5,9 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
-	"os/user"
 	"runtime"
-	"strconv"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -17,8 +15,6 @@ import (
 	"github.com/untangle/golang-shared/plugins/settingssync"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/profiler"
-
-	_ "github.com/untangle/discoverd/plugins/pluginloads"
 )
 
 var (
@@ -30,20 +26,6 @@ var (
 
 /* main function for discoverd */
 func main() {
-	// Check we are root user
-	userinfo, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-
-	userid, err := strconv.Atoi(userinfo.Uid)
-	if err != nil {
-		panic(err)
-	}
-
-	if userid != 0 {
-		panic("This application must be run as root\n")
-	}
 
 	// Start up logger
 	loggerConfig := createLoggerConfig()
@@ -54,7 +36,7 @@ func main() {
 
 	// setup CPU profiling
 	cpuProfiler = profiler.CreateCPUProfiler(cpuProfileFilename)
-	err = cpuProfiler.StartCPUProfile()
+	err := cpuProfiler.StartCPUProfile()
 	if err != nil {
 		logger.Warn("CPU Profiler could not start: %s\n", err.Error())
 	}

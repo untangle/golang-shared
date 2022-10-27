@@ -1,0 +1,32 @@
+sudo: required
+env:
+  global:
+  # DOCKER_PASSWORD
+  - secure: "uBTvGhyyo8JwxrdwsRsfvjaVUi+qcb465lSpnoMUDbW7BcKkG2ya4Gvhx3pAnqgabdP4PHE1BCcFjErNzps1GQdDRXIo2e1FW0Xyn540qk9qVRUF7vYvOmE7AEAUEl4SYN9EeUNNfbHo945tFdvMK5wx87glyVrr0k45iT8EGdTX2KUOW0pfrsRMWUo3rmvpvjrNuAmvltEAxCWxP8bk7H6SiCp+QhtLMZPLHM6jxVTnl9ppFlgxSBmZV7jxbk7WrSNuK4UU0btKuJc8+sqF43vY5YrgVswN7nUgLN3GenlaZbYjKZ+j9GEr/w/niVzhVdh91Ev/Ozi1nDLfmcNqYpP6WQ/oDQbcbmUf6BJofV2TqPda71qTn6piEAD/i697KJW70VGBv80nbIxLEj2kaUAUzZ66YuOYHqJcEL7k+P/U2EAWOosdLAIar5JpUlHaXiJq3zcnlA6uroOZBfrk5QmgYWCIzta8WxkmYAonwCaZ0BxIBZAoU6jpQfJFSYrBt6OmXfREa/TSxGfBAC0fuZj+lQls7s41HfBKmDAYn5TPbY8H2eDkDckCCghrSf9Zt6SehSAn/MbRh8CRG+wfuDe93IfRaVa0Tct9xi7Be3qjRUuZRY+LXEZCGPs/BStwB5tjMSdLDGH/tk/vJRdSlnbP9F1wK40faP9p8aiz6NA="
+  - DOCKER_USERNAME: untangleengineering
+  - GOPATH="${HOME}/go"
+  - DIR="${GOPATH}/src/github.com/untangle"
+  - SSH_KEY: /tmp/travis-buildbot.rsa
+  matrix:
+  - TARGET=glibc TEST="grep -q GNU/Linux"
+  - TARGET=musl TEST="grep -q -v GNU/Linux"
+services:
+- docker
+before_install:
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- mkdir -p "$DIR"
+- mv "$TRAVIS_BUILD_DIR" "${DIR}/discoverd"
+- cd "${DIR}/discoverd"
+- openssl aes-256-cbc -K $encrypted_c3a944c0ebdd_key -iv $encrypted_c3a944c0ebdd_iv -in .travis/travis-buildbot.rsa.enc -out ${SSH_KEY} -d
+- chmod 600 ${SSH_KEY}
+- ssh-add ${SSH_KEY}
+script:
+- docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
+- test -f ./cmd/discoverd/discoverd && file ./cmd/discoverd/discoverd | $TEST
+notifications:
+  email: false
+  slack:
+    rooms:
+      secure: "pMK6gf5fkRR3pFgCWTjnAW/ow69aKj8eF9tsaqKtubYH0va6xTunI7zlX1OVHp/DAZiEH7oRdZ4i4yTP9WS2lLhAtdeyUjG0vuEfF0GQ0yjas2HiYl68qVCMzrm8g3cqTqjnPfShsNAHMjmigAFbusPFbvxRHmd7+Mwa/NYSshMSWnBdYhRYHiyk2aKLitdY0KvwyI1pXI2IFLnUEWAZXQvjIkL9PSNTqd2uAYF81te2uP0U3IyE84PF6ui/44wPFQHLdg1Q+V6LhT7XGF6uiuGME97YInC0bpnJwHtK9aIIAA0Ih6HehNaDP7xU9wcBpyMUXYQnVYLkdsCtvOkfuKs5Jzf3pU5CZlhzTMQAzD74Tq4vamjFjLY5s/mtzmVXX7C5vsyipgo2U8oab85LnNbig+juVXfmUX5s/O3bglXbZo1RROnT0LQkdNRsK6acpMyCDJUHhEhpsyhuCcbnUwNeJR/jdKDXLArbAY6gPnyt+aerhCBQJQLpILMDMtvFBfw1bN8Q3zso/hN0OF0Ng1zFQg/+WpoG8RJpPdXfunpiWkOT0Uk1uLQbR2XbxQSIc6+fOgHpcdVl2eycpvHoJG3qcFGyd04kRLvQnjxzrRP/el5Wocf2j/fOvN34ULAlOAcQf3QBeSZOCMEDu3j8xXxkhS+8Of2PyWuCSThFO4k="
+    on_success: change
+    on_failure: always
