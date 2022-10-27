@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.80 scan initiated Wed Oct 26 22:50:43 2022 as: nmap -sT -O -F -oX - -sT -O -F -oX - 192.168.35.20/24:{1666824559 0 0} nmap 192.168.56.50 -->
+<nmaprun scanner="nmap" args="nmap -sT -O -F -oX - -sT -O -F -oX - 192.168.35.20/24:{1666824559 0 0} nmap 192.168.56.50" start="1666824643" startstr="Wed Oct 26 22:50:43 2022" version="7.80" xmloutputversion="1.04">
+<scaninfo type="connect" protocol="tcp" numservices="100" services="7,9,13,21-23,25-26,37,53,79-81,88,106,110-111,113,119,135,139,143-144,179,199,389,427,443-445,465,513-515,543-544,548,554,587,631,646,873,990,993,995,1025-1029,1110,1433,1720,1723,1755,1900,2000-2001,2049,2121,2717,3000,3128,3306,3389,3986,4899,5000,5009,5051,5060,5101,5190,5357,5432,5631,5666,5800,5900,6000-6001,6646,7070,8000,8008-8009,8080-8081,8443,8888,9100,9999-10000,32768,49152-49157"/>
+<verbose level="0"/>
+<debugging level="0"/>
+Unable to split netmask from target expression: "192.168.35.20/24:{1666824559"
+<target specification="192.168.35.20/24:{1666824559" status="skipped" reason="invalid"/>
+Failed to resolve "0}".
+Failed to resolve "nmap".
+<host starttime="1666824643" endtime="1666824647"><status state="up" reason="localhost-response" reason_ttl="0"/>
+<address addr="0.0.0.0" addrtype="ipv4"/>
+<hostnames>
+<hostname name="0" type="user"/>
+</hostnames>
+<ports><extraports state="closed" count="96">
+<extrareasons reason="conn-refused" count="96"/>
+</extraports>
+<port protocol="tcp" portid="22"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="ssh" method="table" conf="3"/></port>
+<port protocol="tcp" portid="53"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="domain" method="table" conf="3"/></port>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="http" method="table" conf="3"/></port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="https" method="table" conf="3"/></port>
+</ports>
+<os><portused state="open" proto="tcp" portid="22"/>
+<portused state="closed" proto="tcp" portid="7"/>
+<osmatch name="Linux 2.6.32" accuracy="93" line="55688">
+<osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="2.6.X" accuracy="93"><cpe>cpe:/o:linux:linux_kernel:2.6.32</cpe></osclass>
+</osmatch>
+</os>
+<uptime seconds="224519" lastboot="Mon Oct 24 08:28:48 2022"/>
+<distance value="0"/>
+<tcpsequence index="262" difficulty="Good luck!" values="3E5389C8,97D51620,F03DB682,41DCFCCB,457C021E,B920A612"/>
+<ipidsequence class="All zeros" values="0,0,0,0,0,0"/>
+<tcptssequence class="1000HZ" values="D61DCFA,D61DD5A,D61DDDA,D61DE3A,D61DE9A,D61DEFA"/>
+<times srtt="670" rttvar="898" to="100000"/>
+</host>
+<host starttime="1666824643" endtime="1666824653"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.56.50" addrtype="ipv4"/>
+<address addr="08:00:27:E6:E5:59" addrtype="mac" vendor="Oracle VirtualBox virtual NIC"/>
+<hostnames>
+</hostnames>
+<ports><extraports state="filtered" count="100">
+<extrareasons reason="no-responses" count="100"/>
+</extraports>
+</ports>
+<os></os>
+<distance value="1"/>
+<times srtt="269" rttvar="5000" to="100000"/>
+</host>
+<runstats><finished time="1666824653" timestr="Wed Oct 26 22:50:53 2022" elapsed="10.73" summary="Nmap done at Wed Oct 26 22:50:53 2022; 2 IP addresses (2 hosts up) scanned in 10.73 seconds" exit="success"/><hosts up="2" down="0" total="2"/>
+</runstats>
+</nmaprun>

@@ -1,6 +1,7 @@
 package nmap
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"math/rand"
@@ -10,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/untangle/discoverd/plugins/discovery"
@@ -101,12 +101,18 @@ type uptime struct {
 type nmapProcess struct {
 	timeStarted int64
 	pid         int
+	retry       int
 }
 
 const (
-	pluginName   string = "nmap"
-	randStartMin int    = 5
-	randStartMax int    = 10
+	pluginName      string = "nmap"
+	randStartMin    int    = 5
+	randStartMax    int    = 10
+	NmapScanTimeout        = 30 * time.Second
+	NmapScanRetry          = 3
+	Ipv4Str                = "IPV4"
+	Ipv6Str                = "IPV6"
+	InvalidIPStr           = "Invalid IP"
 )
 
 var (
@@ -119,6 +125,9 @@ var (
 	nmapProcessesMutex sync.RWMutex = sync.RWMutex{}
 
 	settingsPath []string = []string{"discovery", "plugins"}
+	// Nmap requests published to NmapScan routine
+	nmapPublisherChannel = make(chan map[string]nmapProcess, 1000)
+	serviceShutdown      = make(chan bool)
 )
 
 func init() {
@@ -262,10 +271,16 @@ func (nmap *Nmap) Shutdown() error {
 func (nmap *Nmap) startNmap() {
 	discovery.NewDiscovery().RegisterCollector(pluginName, NmapcallBackHandler)
 
+	go NmapScan()
 	// Lets do a first run to get the initial data
 	NmapcallBackHandler(nil)
 
 	go nmap.autoNmapCollection()
+}
+
+// Stop stops NMAP collector
+func Stop() {
+	serviceShutdown <- true
 }
 
 func (nmap *Nmap) autoNmapCollection() {
@@ -285,6 +300,42 @@ func (nmap *Nmap) autoNmapCollection() {
 			randStartScanNetTimer.Stop()
 		}
 	}
+}
+
+// It process nmapProcess map and run nmap scan one by one
+func NmapScan() {
+	for {
+		select {
+		case nmapScanReqs := <-nmapPublisherChannel:
+			for k, v := range nmapScanReqs {
+				if v.retry <= NmapScanRetry {
+					output, err := runNampScan(k)
+					if err != nil {
+						updateRetry(k, v)
+						continue
+					}
+					removeProcess(k)
+					processScan(output)
+				} else {
+					logger.Debug("Nmap scan retry limit exceeded for %v so remove the processing the request  retry count is %v\n", k, v.retry-1)
+					removeProcess(k)
+				}
+			}
+		case <-serviceShutdown:
+			return
+		}
+	}
+}
+
+// Update the retry value in nmap scan key
+func updateRetry(key string, value nmapProcess) {
+	nmapProcessesMutex.Lock()
+	defer nmapProcessesMutex.Unlock()
+	_, exists := nmapProcesses[key]
+	if exists {
+		nmapProcesses[key] = nmapProcess{value.timeStarted, value.pid, value.retry + 1}
+	}
+
 }
 
 // Calls the Nmap callback handler after getting a list of LANs from the settings file
@@ -323,6 +374,38 @@ func (nmap *Nmap) stopAutoNmapCollection() {
 	}
 }
 
+// Run Nmap scan for host/network
+func runNampScan(args string) ([]byte, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), NmapScanTimeout)
+	defer cancel()
+	argSlice := strings.Split(args, " ")
+	cmd := exec.CommandContext(ctx, "nmap", argSlice...)
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
+
+// Check host and network addresstype and return address type
+func CheckIPAddressType(ip string) (string, error) {
+	var IP string = ip
+	if strings.Contains(ip, "/") {
+		addr, _, err := net.ParseCIDR(ip)
+		if err != nil {
+			logger.Warn("Invalid network %v\n", ip)
+			return "", fmt.Errorf("InvalidIPStr err:%w", err)
+		}
+		IP = addr.String()
+	}
+	if net.ParseIP(IP).To4() != nil {
+		return Ipv4Str, nil
+	} else if net.ParseIP(IP).To16() != nil {
+		return Ipv6Str, nil
+	} else {
+		return "", fmt.Errorf("InvalidIPStr")
+	}
+
+}
+
 // NmapcallBackHandler is the callback handler for the NMAP collector
 func NmapcallBackHandler(commands []discovery.Command) {
 	logger.Debug("NMAP scan handler: Received %d commands\n", len(commands))
@@ -344,60 +427,51 @@ func NmapcallBackHandler(commands []discovery.Command) {
 	}
 
 	for _, command := range commands {
-		// Network Scan
-		if command.Command == discovery.CmdScanNet {
+		var args []string
+		if command.Command != discovery.CmdScanNet && command.Command != discovery.CmdScanHost {
+			logger.Debug("It is not a namp request %v\n", command.Command)
+			continue
+		} else {
 			for _, network := range command.Arguments {
-				args := []string{"nmap", "-sT", "-O", "-F", "-oX", "-", network}
-				go runNMAPcmd(args)
-			}
-		}
-		// Host Scan
-		if command.Command == discovery.CmdScanHost {
-			for _, host := range command.Arguments {
-				args := []string{"nmap", "-sT", "-O", "-F", "-oX", "-", host}
-				go runNMAPcmd(args)
+				addressType, err := CheckIPAddressType(network)
+				if err != nil {
+					continue
+				}
+				logger.Debug("network:%v addressType=%v \n", network, addressType)
+				if addressType == Ipv4Str {
+					args = []string{"nmap", "-sT", "-O", "-F", "-oX", "-", network}
+				} else if addressType == Ipv6Str {
+					args = []string{"nmap", "-sT", "-O", "-F", "-6", "-oX", "-", network}
+				}
+				if isNewNmapReq(args) {
+					nmapPublisherChannel <- nmapProcesses
+				}
 			}
 		}
 	}
 }
 
-func runNMAPcmd(args []string) {
-	if cmdAllreadyRunning(args) {
-		logger.Warn("NMap scan already running for %v, running since %s\n", args, time.Unix(nmapProcesses[strings.Join(args, " ")].timeStarted, 0))
-		return
-	}
-
-	cmd := createCmd(args)
-	output, _ := cmd.CombinedOutput()
-	removeProcess(args)
-	processScan(output)
-}
-
-func createCmd(args []string) *exec.Cmd {
-	cmd := exec.Command("nmap", args...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	return cmd
-}
-
-func cmdAllreadyRunning(args []string) bool {
+// Check and update Nmap request in the map table with nmap command as a key
+func isNewNmapReq(args []string) bool {
 	argsStr := strings.Join(args, " ")
 	nmapProcessesMutex.Lock()
 	defer nmapProcessesMutex.Unlock()
 	if _, ok := nmapProcesses[argsStr]; ok {
-		return true
-	} else {
-		nmapProcesses[argsStr] = nmapProcess{time.Now().Unix(), 0}
 		return false
+	} else {
+		nmapProcesses[argsStr] = nmapProcess{time.Now().Unix(), 0, 0}
+		return true
 	}
 }
 
-func removeProcess(args []string) {
-	argsStr := strings.Join(args, " ")
+// Remove Nmap scan command from map table if it is compelted
+func removeProcess(args string) {
 	nmapProcessesMutex.Lock()
-	delete(nmapProcesses, argsStr)
+	delete(nmapProcesses, args)
 	nmapProcessesMutex.Unlock()
 }
 
+// Process the nmap scan output and update device discovery entry
 func processScan(output []byte) {
 	// parse xml output data
 	var nmap nmap
