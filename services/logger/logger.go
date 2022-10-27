@@ -73,7 +73,7 @@ var loggerSingleton *Logger
 
 // GetLoggerInstancewithConfig returns a logger object that is a
 // singleton. It populates the default loglevelmap.
-func GetLoggerInstancewithConfig(conf *Logger.config) *Logger {
+func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLoggerwithConfig(conf)
 	}
@@ -90,13 +90,22 @@ func GetLoggerInstance() *Logger {
 }
 
 // NewLoggerwithConfig creates an new instance of the logger struct with default config
-func NewLoggerwithConfig(conf *Logger.config) *Logger {
-	return &Logger{config: conf}
+func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
+	return &Logger{config: *conf}
 }
 
 // NewLogger creates an new instance of the logger struct with winldcard config
 func NewLogger() *Logger {
-	return &Logger{config.LogLevelMap: {'*': INFO}}
+	return &Logger{
+		config: LoggerConfig{FileLocation: "", LogLevelMap: map[string]LogLevel{"*": struct {
+			Name string `json:"logname"`
+			Id   uint8
+		}{Name: "INFO", Id: 6}}, OutputWriter: nil},
+		logLevelLocker:   sync.RWMutex{},
+		launchTime:       time.Time{},
+		timestampEnabled: false,
+		logLevelName:     logLevelName,
+	}
 }
 
 // Startup starts the logging service
@@ -292,7 +301,7 @@ func logFormatter(format string, newOcname Ocname, args ...interface{}) string {
 		// if there are only two arguments everything after the verb is the message
 
 		// more than two arguments so use the remaining format and arguments
-		buffer := fmt.Sprintf(format, args...)
+		buffer := fmt.Sprintf(format)
 		return buffer
 	}
 	// return empty string when a repeat is limited
