@@ -61,6 +61,8 @@ message ARP {
      string mac = 2;
      int64 LastUpdate = 3; 
      string state = 4;
+     string linkByNameParams = 5;
+
 }
 
 message NMAP {
