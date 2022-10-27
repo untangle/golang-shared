@@ -15,6 +15,8 @@ import (
 	"github.com/untangle/golang-shared/plugins/settingssync"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/profiler"
+
+	_ "github.com/untangle/discoverd/plugins/pluginloads"
 )
 
 var (
