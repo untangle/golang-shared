@@ -73,7 +73,7 @@ var loggerSingleton *Logger
 
 // GetLoggerInstancewithConfig returns a logger object that is a
 // singleton. It populates the default loglevelmap.
-func (logger *Logger) GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
+func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLoggerwithConfig(conf)
 	}
@@ -82,7 +82,7 @@ func (logger *Logger) GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
-func (logger *Logger) GetLoggerInstance() *Logger {
+func GetLoggerInstance() *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLogger()
 	}
@@ -90,12 +90,12 @@ func (logger *Logger) GetLoggerInstance() *Logger {
 }
 
 // NewLoggerwithConfig creates an new instance of the logger struct with default config
-func (logger *Logger) NewLoggerwithConfig(conf *LoggerConfig) *LoggerConfig {
+func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
 	return &Logger{config: *conf}
 }
 
 // NewLogger creates an new instance of the logger struct with winldcard config
-func (logger *Logger) NewLogger() *Logger {
+func NewLogger() *Logger {
 	return &Logger{
 		config: LoggerConfig{FileLocation: "", LogLevelMap: map[string]LogLevel{"*": struct {
 			Name string `json:"logname"`
