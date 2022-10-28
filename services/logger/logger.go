@@ -73,7 +73,7 @@ var loggerSingleton *Logger
 
 // GetLoggerInstancewithConfig returns a logger object that is a
 // singleton. It populates the default loglevelmap.
-func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
+func (logger *Logger) GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLoggerwithConfig(conf)
 	}
@@ -82,7 +82,7 @@ func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
-func GetLoggerInstance() *Logger {
+func (logger *Logger) GetLoggerInstance() *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLogger()
 	}
@@ -90,12 +90,12 @@ func GetLoggerInstance() *Logger {
 }
 
 // NewLoggerwithConfig creates an new instance of the logger struct with default config
-func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
+func (logger *Logger) NewLoggerwithConfig(conf *LoggerConfig) *LoggerConfig {
 	return &Logger{config: *conf}
 }
 
 // NewLogger creates an new instance of the logger struct with winldcard config
-func NewLogger() *Logger {
+func (logger *Logger) NewLogger() *Logger {
 	return &Logger{
 		config: LoggerConfig{FileLocation: "", LogLevelMap: map[string]LogLevel{"*": struct {
 			Name string `json:"logname"`
@@ -307,6 +307,10 @@ func (logger *Logger) LogMessageSource(level int32, source string, format string
 func (logger *Logger) IsLogEnabledSource(level int32, source string) bool {
 	lvl := logger.getLogLevel(source, "")
 	return (lvl >= level)
+}
+
+func (logger *Logger) DisableTimestamp() {
+	logger.timestampEnabled = false
 }
 
 // getLogLevel returns the log level for the specified package or function
