@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/r3labs/diff/v2"
-	"github.com/untangle/golang-shared/services/logger"
 )
 
 /*

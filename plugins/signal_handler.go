@@ -2,8 +2,6 @@ package plugins
 
 import (
 	"syscall"
-
-	"github.com/untangle/golang-shared/services/logger"
 )
 
 type SignalHandlingPlugin interface {

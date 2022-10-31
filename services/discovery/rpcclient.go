@@ -3,7 +3,6 @@ package discovery
 import (
 	"net/rpc"
 
-	"github.com/untangle/golang-shared/services/logger"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
