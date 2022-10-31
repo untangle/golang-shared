@@ -20,32 +20,6 @@ type LogLevel struct {
 	Id   uint8
 }
 
-// GetLogID gives the int log level for the corresponding string type.
-func (conf *LoggerConfig) GetLogID(name string) uint8 {
-	switch name {
-	case "EMERG":
-		return 0
-	case "ALERT":
-		return 1
-	case "CRIT":
-		return 2
-	case "ERROR":
-		return 3
-	case "WARN":
-		return 4
-	case "NOTICE":
-		return 5
-	case "INFO":
-		return 6
-	case "DEBUG":
-		return 7
-	case "TRACE":
-		return 8
-	default:
-		return 9
-	}
-}
-
 // loadLoggerConfig loads the logger configuration file
 func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	if conf.FileLocation == "" {
