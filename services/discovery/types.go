@@ -221,14 +221,19 @@ func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
 type SessionDetail struct {
 	// Total byte transfer rate of all sessions.
 	ByteTransferRate int64 `json:"byteTransferRate"`
+
 	// Total number of active sessions on this device.
 	NumSessions int64 `json:"numSessions"`
+
+	// Total number of bytes used by a device
+	DataUsage int64 `json:"dataUsage"`
 }
 
 func (n *DeviceEntry) calcSessionDetails() (output SessionDetail) {
 	for _, session := range n.sessions {
 		output.ByteTransferRate += int64(session.ByteRate)
 		output.NumSessions++
+		output.DataUsage += int64(session.Bytes)
 	}
 	return
 }
