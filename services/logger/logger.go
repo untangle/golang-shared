@@ -19,7 +19,7 @@ type Ocname struct {
 	limit int64
 }
 
-//Logger struct retains information about the logger related information
+// Logger struct retains information about the logger related information
 type Logger struct {
 	config           LoggerConfig
 	logLevelLocker   sync.RWMutex
@@ -28,6 +28,7 @@ type Logger struct {
 	logLevelName     [9]string
 }
 
+// Interface to the logger API.
 type LoggerLevels interface {
 	Emerg(format string, args ...interface{})
 	Alert(format string, args ...interface{})
@@ -72,7 +73,7 @@ const LogLevelTrace int32 = 8
 var loggerSingleton *Logger
 
 // GetLoggerInstancewithConfig returns a logger object that is a
-// singleton. It populates the default loglevelmap.
+// singleton. It populates the loglevelmap.
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLoggerwithConfig(conf)
@@ -94,7 +95,7 @@ func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
 	return &Logger{config: *conf}
 }
 
-// NewLogger creates an new instance of the logger struct with winldcard config
+// NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	return &Logger{
 		config: LoggerConfig{FileLocation: "", LogLevelMap: map[string]LogLevel{"*": struct {
@@ -143,6 +144,7 @@ func (logger *Logger) Emerg(format string, args ...interface{}) {
 	logger.logMessage(LogLevelEmerg, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Emerg(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Emerg(format, args)
@@ -158,6 +160,7 @@ func (logger *Logger) Alert(format string, args ...interface{}) {
 	logger.logMessage(LogLevelAlert, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Alert(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Alert(format, args)
@@ -173,6 +176,7 @@ func (logger *Logger) Crit(format string, args ...interface{}) {
 	logger.logMessage(LogLevelCrit, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Crit(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Crit(format, args)
@@ -188,6 +192,7 @@ func (logger *Logger) Err(format string, args ...interface{}) {
 	logger.logMessage(LogLevelErr, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Err(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Err(format, args)
@@ -203,6 +208,7 @@ func (logger *Logger) Warn(format string, args ...interface{}) {
 	logger.logMessage(LogLevelWarn, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Warn(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Warn(format, args)
@@ -218,6 +224,7 @@ func (logger *Logger) Notice(format string, args ...interface{}) {
 	logger.logMessage(LogLevelNotice, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Notice(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Notice(format, args)
@@ -233,6 +240,7 @@ func (logger *Logger) Info(format string, args ...interface{}) {
 	logger.logMessage(LogLevelInfo, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Info(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Info(format, args)
@@ -248,6 +256,7 @@ func (logger *Logger) Debug(format string, args ...interface{}) {
 	logger.logMessage(LogLevelDebug, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Debug(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Debug(format, args)
@@ -263,6 +272,7 @@ func (logger *Logger) Trace(format string, args ...interface{}) {
 	logger.logMessage(LogLevelTrace, format, Ocname{"", 0}, args...)
 }
 
+// For backward compatibility
 func Trace(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.Trace(format, args)
@@ -309,6 +319,7 @@ func (logger *Logger) IsLogEnabledSource(level int32, source string) bool {
 	return (lvl >= level)
 }
 
+// DisableTimestamp disable the elapsed time in output
 func (logger *Logger) DisableTimestamp() {
 	logger.timestampEnabled = false
 }

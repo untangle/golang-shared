@@ -14,11 +14,13 @@ type LoggerConfig struct {
 	OutputWriter io.Writer
 }
 
+// LogLevel struct retains the loglevel information in a string and int.
 type LogLevel struct {
 	Name string `json:"logname"`
 	Id   uint8
 }
 
+// GetLogID gives the int log level for the corresponding string type.
 func (conf *LoggerConfig) GetLogID(name string) uint8 {
 	switch name {
 	case "EMERG":
@@ -105,6 +107,7 @@ func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
 	}
 }
 
+// writeLoggerConfigToJSON will load the default config
 func (conf *LoggerConfig) writeLoggerConfigToJSON() {
 	GetLoggerInstance().Alert("Log configuration not found. Creating default File: %s\n", conf.FileLocation)
 
