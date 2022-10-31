@@ -7,7 +7,7 @@ EXTRA_TEST_FLAGS ?=
 GOTEST_COVERAGE ?= yes
 GO_COVERPROFILE ?= /tmp/packetd_coverage.out
 COVERAGE_HTML ?= /tmp/packetd_coverage.html
-BROWSER ?= open 
+BROWSER ?= x-www-browser
 
 # logging
 NC := "\033[0m" # no color
@@ -55,10 +55,5 @@ test: build
 racetest: EXTRA_TEST_FLAGS=-race
 racetest: test
 
-browsecoverage: test
-	go tool cover -html=$(GO_COVERPROFILE) -o $(COVERAGE_HTML)
-	$(BROWSER) $(COVERAGE_HTML)
 
-funccoverage: test
-	go tool cover -func $(GO_COVERPROFILE)
 .PHONY: build lint environment

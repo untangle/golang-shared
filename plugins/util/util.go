@@ -7,10 +7,8 @@ import (
 	"strings"
 	"syscall"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // PluginStartup is placeholder for starting util
 func PluginStartup() {

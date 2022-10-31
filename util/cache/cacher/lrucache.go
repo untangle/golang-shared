@@ -4,10 +4,8 @@ import (
 	"container/list"
 	"sync"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // Attach the key, used to look up a value in the cache, to its value.
 type KeyPair struct {

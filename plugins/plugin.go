@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 	"go.uber.org/dig"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // Plugin is an interface for (right now only nfqueue) plugins.
 type Plugin interface {

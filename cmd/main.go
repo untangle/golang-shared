@@ -1,16 +1,15 @@
 package main
 
 import (
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/overseer"
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-var logger = logService.GetLoggerInstance()
-
 func main() {
+	var config logger.Config
 
-	logger.Startup()
+	logger.Startup(config)
 	overseer.Startup()
 	settings.Startup()
 

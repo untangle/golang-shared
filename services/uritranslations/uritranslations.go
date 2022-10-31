@@ -8,27 +8,23 @@ import (
 	"strings"
 	"sync"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-var logger = logService.GetLoggerInstance()
-
 // URITranslation settings fields
 type URITranslation struct {
-	URI    string `json:"uri"`
-	Scheme string `json:"scheme"`
-	Host   string `json:"host"`
-	Path   string `json:"path"`
-	Port   int    `json:"port"`
+	URI	    string `json:"uri"`
+	Scheme  string `json:"scheme"`
+	Host    string `json:"host"`
+	Path    string `json:"path"`
+	Port    int    `json:"port"`
 }
 
 // Map of full uri key net/url/URL value
 var uriMap map[string]*url.URL
-
 // Map of host key net/url/URL value
 var hostMap map[string]*url.URL
-
 // Read/write lock for maps.
 var mapMutex sync.RWMutex
 
@@ -51,11 +47,11 @@ func buildMaps() {
 	// Read settings into list of uriTranslations variables.
 	jsonResult, err := settings.GetSettings(path)
 	if err != nil {
-		logger.Info("Failed to read settings for path %v, %v\n", path, err.Error())
+		logger.Info("Failed to read settings for path %v, %v\n", path, err.Error());
 		return
 	}
-	if jsonResult == nil {
-		logger.Info("Failed to read settings for path %v, %v\n", strings.Join(path, "/"), jsonResult)
+	if jsonResult == nil{
+		logger.Info("Failed to read settings for path %v, %v\n", strings.Join(path,"/"), jsonResult);
 		return
 	}
 
@@ -76,7 +72,7 @@ func buildMaps() {
 			logger.Info("Error unmarshalling entry=%v with error=%v\n", b, err.Error())
 			continue
 		}
-		if entry.URI == "" {
+		if entry.URI == ""{
 			logger.Info("URI key field empty for entry=%v\n", b)
 			continue
 		}
@@ -84,7 +80,7 @@ func buildMaps() {
 		// Parse URITranslation fields into URL
 		uri, err := url.Parse(entry.URI)
 		hostKey = ""
-		if err != nil {
+		if err != nil{
 			logger.Info("Unable to parse URI=%s with error=%v\n", entry.URI, err.Error())
 			continue
 		}
@@ -117,7 +113,7 @@ func buildMaps() {
 
 // getUriTranslation parses the URI (ignoring the query) and looks for the translated URL and returns the string of the found URL.
 // If the path boolean is true, the lookup is performed on only the host instead of the full URL and
-// the incoming path is used to build the returned URL.  This is useful for cases where the path is
+// the incoming path is used to build the returned URL.  This is useful for cases where the path is 
 // possibly variable and dedicating a translation to the URL would require additional housekeeping
 // than just changing a path.  For example, shop description links like:
 // https://www.untangle.com/shop/virus-blocker
@@ -140,15 +136,15 @@ func getURITranslation(uri string, path bool) (string, error) {
 		// Unable to parse uri.
 		logger.Info("Unable to parse uri=%s with error=%v\n", uri, err.Error())
 		err = fmt.Errorf("Unable to parse uri=%v", uri)
-	} else {
+	}else{
 		// Get and clear query from parsed
 		rawQuery := parsedURL.RawQuery
 		parsedURL.RawQuery = ""
-
+	
 		mapMutex.RLock()
-		if path == true {
+		if path == true{
 			translatedURL, ok = hostMap[parsedURL.Host]
-		} else {
+		}else{
 			translatedURL, ok = uriMap[parsedURL.String()]
 		}
 		mapMutex.RUnlock()
@@ -157,7 +153,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 			// Translation not found
 			logger.Err("Unable to find url=%v\n", uri)
 			err = fmt.Errorf("Unable to find url=%v", uri)
-		} else {
+		}else{
 			// Update the parsedURL based URL with translated values.
 			if translatedURL.Scheme != "" {
 				parsedURL.Scheme = translatedURL.Scheme
@@ -181,12 +177,12 @@ func getURITranslation(uri string, path bool) (string, error) {
 // GetURI looks up the specified URI (ignoring query) and returns the appropriate match.
 // If returns an error if not found.
 func GetURI(uri string) (string, error) {
-	return getURITranslation(uri, false)
+	return getURITranslation(uri, false);
 }
 
-// GetURIWithPath looks up the host from the specified URI (ignoring query) and returns the appropriate match with the lookup URI's
+// GetURIWithPath looks up the host from the specified URI (ignoring query) and returns the appropriate match with the lookup URI's 
 // path substituted for the translated value.
 // It returns an error if not found.
 func GetURIWithPath(uri string) (string, error) {
-	return getURITranslation(uri, true)
+	return getURITranslation(uri, true);
 }

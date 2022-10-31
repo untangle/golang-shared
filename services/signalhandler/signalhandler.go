@@ -8,10 +8,8 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // SignalHandler is the type that holds the channel and flag for a shutdown
 type SignalHandler struct {

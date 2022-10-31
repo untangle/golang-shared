@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
+
+	"github.com/untangle/golang-shared/services/logger"
 )
 
 // SyncSettings is the struct holding sync-settings information

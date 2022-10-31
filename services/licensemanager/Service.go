@@ -2,6 +2,7 @@ package licensemanager
 
 import (
 	"github.com/untangle/golang-shared/plugins/util"
+	"github.com/untangle/golang-shared/services/logger"
 )
 
 // Service struct is used to store state/hook of each service

@@ -9,10 +9,8 @@ import (
 	"os"
 	"strconv"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // ApplicationInfo stores the details for each know application
 type ApplicationInfo struct {

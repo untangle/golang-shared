@@ -5,10 +5,8 @@ import (
 	"os"
 	"runtime/pprof"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 )
-
-var logger = logService.GetLoggerInstance()
 
 /**
 Usage:

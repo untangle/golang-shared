@@ -1,11 +1,9 @@
 package discovery
 
 import (
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 	"google.golang.org/protobuf/proto"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // ZmqMessage is a message sent over a zmq bus for us to consume.
 type ZmqMessage struct {
