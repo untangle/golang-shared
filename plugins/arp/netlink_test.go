@@ -73,33 +73,33 @@ var ipNeighDevicesTestcases = []ipNeighProviderParam{
 		devices:      devices,
 		entries: []*disc.DeviceEntry{
 			{DiscoveryEntry: disc_pb.DiscoveryEntry{
-				MacAddress:  "00:11:22:33:44:55",
-				IPv4Address: "192.168.68.1",
-				Arp: &disc_pb.ARP{
+				MacAddress: "00:11:22:33:44:55",
+				//IPv4Address: "192.168.68.1",
+				Arp: []*disc_pb.ARP{{
 					Ip:  "192.168.68.1",
 					Mac: "00:11:22:33:44:55", LastUpdate: timestampCallback(),
-					State: "REACHABLE",
+					State: "REACHABLE"},
 				}}},
 			{DiscoveryEntry: disc_pb.DiscoveryEntry{
 				MacAddress: "00:11:22:33:44:55",
 				// We do not have an IPV4 ip.
-				IPv4Address: "",
-				Arp: &disc_pb.ARP{
+				//IPv4Address: "",
+				Arp: []*disc_pb.ARP{{
 					Ip:         "f0e:d0c:b0a:908:706:504:302:101",
 					Mac:        "00:11:22:33:44:55",
 					LastUpdate: timestampCallback(),
 					State:      "STALE",
-				}}},
+				}}}},
 			{DiscoveryEntry: disc_pb.DiscoveryEntry{
 				MacAddress: "11:11:11:33:44:55",
 				// We do not have an IPV4 ip.
-				IPv4Address: "192.168.56.3",
-				Arp: &disc_pb.ARP{
+				//IPv4Address: "192.168.56.3",
+				Arp: []*disc_pb.ARP{{
 					Ip:         "192.168.56.3",
 					Mac:        "11:11:11:33:44:55",
 					LastUpdate: timestampCallback(),
 					State:      "NOARP",
-				}}},
+				}}}},
 		},
 		linkByNameParams: ",eth1",
 		neighListParams:  ",2-0",
@@ -111,13 +111,13 @@ var ipNeighDevicesTestcases = []ipNeighProviderParam{
 		devices:      devices,
 		entries: []*disc.DeviceEntry{
 			{DiscoveryEntry: disc_pb.DiscoveryEntry{
-				MacAddress:  "00:11:22:33:44:55",
-				IPv4Address: "192.168.68.1",
-				Arp: &disc_pb.ARP{
+				MacAddress: "00:11:22:33:44:55",
+				//IPv4Address: "192.168.68.1",
+				Arp: []*disc_pb.ARP{&disc_pb.ARP{
 					Ip:  "192.168.68.1",
 					Mac: "00:11:22:33:44:55", LastUpdate: timestampCallback(),
 					State: "REACHABLE",
-				}}},
+				}}}},
 		},
 		linkByNameParams: ",eth1",
 		neighListParams:  ",2-0",

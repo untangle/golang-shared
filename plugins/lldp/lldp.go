@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/discovery"
+	"github.com/untangle/discoverd/utils"
 	"github.com/untangle/golang-shared/plugins"
+	"github.com/untangle/golang-shared/plugins/zmqmsg"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -34,6 +36,7 @@ type chassis struct {
 	Name       []value             `json:"name"`
 	Desc       []value             `json:"descr"`
 	Capability []chassisCapability `json:"capability"`
+	MgmtIp     []value             `json:"mgmt-ip"`
 }
 
 type identity struct {
@@ -278,25 +281,30 @@ func LldpcallBackHandler(commands []discovery.Command) {
 		// initialize the discovery entry
 		entry := &disc.DeviceEntry{}
 		entry.Init()
-		entry.Lldp = &Discoverd.LLDP{}
-
-		// mac is used as id for discovery entry update
-		var mac = ""
+		entry.Lldp = []*Discoverd.LLDP{}
+		lldp := &Discoverd.LLDP{}
 
 		if len(intf.Chassis) > 0 {
 			chassis := intf.Chassis[0]
 			// mac discovery
 			if len(chassis.ID) > 0 {
 				if chassis.ID[0].Type == "mac" {
-					mac = chassis.ID[0].Value
+
+					if !utils.IsMacAddress(chassis.ID[0].Value) {
+						continue
+					}
+					lldp.Mac = chassis.ID[0].Value
 				}
 			}
 
 			if len(chassis.Name) > 0 {
-				entry.Lldp.SysName = chassis.Name[0].Value
+				lldp.SysName = chassis.Name[0].Value
 			}
 			if len(chassis.Desc) > 0 {
-				entry.Lldp.SysDesc = chassis.Desc[0].Value
+				lldp.SysDesc = chassis.Desc[0].Value
+			}
+			if len(chassis.MgmtIp) > 0 {
+				lldp.Ip = chassis.MgmtIp[0].Value
 			}
 
 			// chasis capabilities
@@ -305,7 +313,7 @@ func LldpcallBackHandler(commands []discovery.Command) {
 					cap := &Discoverd.LLDPCapabilities{}
 					cap.Capability = val.Type
 					cap.Enabled = val.Enabled
-					entry.Lldp.ChassisCapabilities = append(entry.Lldp.ChassisCapabilities, cap)
+					lldp.ChassisCapabilities = append(lldp.ChassisCapabilities, cap)
 				}
 			}
 		}
@@ -318,19 +326,19 @@ func LldpcallBackHandler(commands []discovery.Command) {
 				inv := lldpmed.Inventory[0]
 
 				if len(inv.Hardware) > 0 {
-					entry.Lldp.InventoryHWRev = inv.Hardware[0].Value
+					lldp.InventoryHWRev = inv.Hardware[0].Value
 				}
 				if len(inv.Software) > 0 {
-					entry.Lldp.InventorySoftRev = inv.Software[0].Value
+					lldp.InventorySoftRev = inv.Software[0].Value
 				}
 				if len(inv.Serial) > 0 {
-					entry.Lldp.InventorySerial = inv.Serial[0].Value
+					lldp.InventorySerial = inv.Serial[0].Value
 				}
 				if len(inv.Model) > 0 {
-					entry.Lldp.InventoryModel = inv.Model[0].Value
+					lldp.InventoryModel = inv.Model[0].Value
 				}
 				if len(inv.Manufacturer) > 0 {
-					entry.Lldp.InventoryVendor = inv.Manufacturer[0].Value
+					lldp.InventoryVendor = inv.Manufacturer[0].Value
 				}
 			}
 
@@ -340,15 +348,19 @@ func LldpcallBackHandler(commands []discovery.Command) {
 					cap := &Discoverd.LLDPCapabilities{}
 					cap.Capability = val.Type
 					cap.Enabled = val.Available
-					entry.Lldp.MedCapabilities = append(entry.Lldp.MedCapabilities, cap)
+					lldp.MedCapabilities = append(lldp.MedCapabilities, cap)
 				}
 			}
 		}
-		entry.Lldp.LastUpdate = time.Now().Unix()
+		lldp.LastUpdate = time.Now().Unix()
+		logger.Info("lldp %v\n", lldp)
+		entry.Lldp = append(entry.Lldp, lldp)
 
-		if mac != "" {
-			entry.MacAddress = mac
-			discovery.UpdateDiscoveryEntry(mac, entry)
-		}
+		entry.MacAddress = lldp.Mac
+		entry.LastUpdate = time.Now().Unix()
+		discovery.ZmqpublishEntry(entry, zmqmsg.NMAPDeviceZMQTopic)
+		logger.Info("lldp entry%v\n", entry)
+		//discovery.UpdateDiscoveryEntry(mac, entry)
+
 	}
 }

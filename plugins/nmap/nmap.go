@@ -14,7 +14,9 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/discovery"
+	"github.com/untangle/discoverd/utils"
 	"github.com/untangle/golang-shared/plugins"
+	"github.com/untangle/golang-shared/plugins/zmqmsg"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -481,9 +483,6 @@ func processScan(output []byte) {
 
 	// iterate hosts
 	for _, host := range nmap.Host {
-		var mac string
-		var macVendor string
-		var ip string
 
 		// skip if host is not up
 		if host.Status.State != "up" {
@@ -493,85 +492,92 @@ func processScan(output []byte) {
 		// initialize the discovery entry
 		entry := &disc.DeviceEntry{}
 		entry.Init()
-		entry.Nmap = &Discoverd.NMAP{}
+		entry.Nmap = []*Discoverd.NMAP{}
+		nmap := &Discoverd.NMAP{}
 
 		// iterate addresses to find mac
 		for _, address := range host.Address {
 			if address.AddrType == "mac" {
-				mac = address.Addr
-				macVendor = address.Vendor
-			}
-			if address.AddrType == "ipv4" {
-				ip = address.Addr
-			}
-		}
-
-		logger.Debug("--- nmap discovery ---\n")
-
-		if mac != "" {
-			logger.Debug("--- nmap discovery ---\n")
-			logger.Debug("> MAC: %s, Vendor: %s\n", mac, macVendor)
-			entry.Nmap.MacVendor = macVendor
-		} else {
-			logger.Debug("> MAC: n/a\n")
-		}
-
-		logger.Debug("> IPv4: %s\n", ip)
-
-		// hostname
-		if len(host.Hostnames.Hostname) > 0 {
-			var hostname = host.Hostnames.Hostname[0].Name
-			logger.Debug("> Hostname: %s\n", hostname)
-			entry.Nmap.Hostname = hostname
-		} else {
-			logger.Debug("> Hostname: n/a\n")
-		}
-
-		// os
-		if len(host.Os.OsMatch) > 0 {
-			var osname = host.Os.OsMatch[0].Name
-			logger.Debug("> OS: %s\n", osname)
-			entry.Nmap.Os = osname
-		} else {
-			logger.Debug("> OS: n/a\n")
-		}
-
-		// uptime
-		if host.Uptime.Seconds != "" {
-			logger.Debug("> Uptime: %s seconds\n", host.Uptime.Seconds)
-			logger.Debug("> Last boot: %s\n", host.Uptime.LastBoot)
-			entry.Nmap.Uptime = host.Uptime.Seconds
-			entry.Nmap.LastBoot = host.Uptime.LastBoot
-		} else {
-			logger.Debug("> Uptime: n/a\n")
-			logger.Debug("> Last boot: n/a\n")
-		}
-
-		// ports
-		if len(host.Ports.Port) > 0 {
-			var portInfo string
-			for _, port := range host.Ports.Port {
-				// lookup only open ports
-				if port.State.State == "open" {
-					portNo, _ := strconv.Atoi(port.PortID)
-					if portNo > 0 {
-						nmapPort := &Discoverd.NMAPPorts{}
-						nmapPort.Port = int32(portNo)
-						nmapPort.Protocol = port.Service.Name
-
-						entry.Nmap.OpenPorts = append(entry.Nmap.OpenPorts, nmapPort)
-
-						portInfo += port.PortID + "(" + port.Service.Name + ") "
+				if address.Addr != "" {
+					if !utils.IsMacAddress(address.Addr) {
+						continue
 					}
+					logger.Debug("--- nmap discovery ---\n")
+					nmap.Mac = address.Addr
+					nmap.MacVendor = address.Vendor
+					logger.Debug("> MAC: %s, Vendor: %s\n", nmap.Mac, nmap.MacVendor)
 				}
 			}
-			logger.Debug("> Open Ports: %s\n", portInfo)
-		} else {
-			logger.Debug("> Open Ports: n/a\n")
+			if address.AddrType == "ipv4" || address.AddrType == "ipv6" {
+				if address.Addr == "" {
+					continue
+				}
+				nmap.Ip = address.Addr
+				logger.Debug("> IPv4: %s\n", nmap.Ip)
+
+			}
+
+			// hostname
+			if len(host.Hostnames.Hostname) > 0 {
+				var hostname = host.Hostnames.Hostname[0].Name
+				logger.Debug("> Hostname: %s\n", hostname)
+				nmap.Hostname = hostname
+			} else {
+				logger.Debug("> Hostname: n/a\n")
+			}
+
+			// os
+			if len(host.Os.OsMatch) > 0 {
+				var osname = host.Os.OsMatch[0].Name
+				logger.Debug("> OS: %s\n", osname)
+				nmap.Os = osname
+			} else {
+				logger.Debug("> OS: n/a\n")
+			}
+
+			// uptime
+			if host.Uptime.Seconds != "" {
+				logger.Debug("> Uptime: %s seconds\n", host.Uptime.Seconds)
+				logger.Debug("> Last boot: %s\n", host.Uptime.LastBoot)
+				nmap.Uptime = host.Uptime.Seconds
+				nmap.LastBoot = host.Uptime.LastBoot
+			} else {
+				logger.Debug("> Uptime: n/a\n")
+				logger.Debug("> Last boot: n/a\n")
+			}
+
+			// ports
+			if len(host.Ports.Port) > 0 {
+				var portInfo string
+				for _, port := range host.Ports.Port {
+					// lookup only open ports
+					if port.State.State == "open" {
+						portNo, _ := strconv.Atoi(port.PortID)
+						if portNo > 0 {
+							nmapPort := &Discoverd.NMAPPorts{}
+							nmapPort.Port = int32(portNo)
+							nmapPort.Protocol = port.Service.Name
+
+							nmap.OpenPorts = append(nmap.OpenPorts, nmapPort)
+
+							portInfo += port.PortID + "(" + port.Service.Name + ") "
+						}
+					}
+				}
+				logger.Debug("> Open Ports: %s\n", portInfo)
+			} else {
+				logger.Debug("> Open Ports: n/a\n")
+			}
+			entry.MacAddress = nmap.Mac
+			nmap.LastUpdate = time.Now().Unix()
+			entry.Nmap = append(entry.Nmap, nmap)
+			entry.LastUpdate = time.Now().Unix()
+			logger.Info("nmap - %v \n", nmap)
+
+			logger.Info("NMAP entry - %v \n", entry)
+			discovery.ZmqpublishEntry(entry, zmqmsg.NMAPDeviceZMQTopic)
+			//discovery.UpdateDiscoveryEntry(mac, entry)
 		}
-		entry.MacAddress = mac
-		entry.Nmap.LastUpdate = time.Now().Unix()
-		discovery.UpdateDiscoveryEntry(mac, entry)
 	}
 }
 
