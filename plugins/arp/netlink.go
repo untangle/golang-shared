@@ -5,35 +5,37 @@ import (
 	"time"
 
 	"github.com/untangle/discoverd/plugins/discovery"
+	"github.com/untangle/discoverd/utils"
+	"github.com/untangle/golang-shared/plugins/zmqmsg"
 	disc "github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/interfaces"
 	disc_pb "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"github.com/vishvananda/netlink"
-	"golang.org/x/sys/unix"
 )
 
 func NetlinkNeighbourCallbackController(commands []discovery.Command) {
 	logger.Debug("Arp Callback handler: Received %d commands\n", len(commands))
 	scanner, err := newNetlinkScanner(settings.GetSettingsFileSingleton())
-	defer scanner.Close()
 
 	if err != nil {
-		logger.Warn("Couldn't initiate netlink scanner: %s", err)
+		logger.Warn("Couldn't initiate netlink scanner: %s\n", err)
 		return
 	}
-
+	defer scanner.Close()
 	entries, err := scanner.getIpNeighbourEntries()
 	if err != nil {
-		logger.Warn("Couldn't scan ip neigh for devices: %s", err)
+		logger.Warn("Couldn't scan ip neigh for devices: %s\n", err)
 		return
 	}
 
-	logger.Debug("Discovered entries:")
+	logger.Debug("Discovered entries:\n")
 	for i, entry := range entries {
-		logger.Debug("Entry nr: %d. Data: %+v", i, entry)
-		discovery.UpdateDiscoveryEntry(entry.MacAddress, entry)
+		logger.Debug("Entry nr: %d. Data: %+v\n", i, entry)
+		entry.LastUpdate = time.Now().Unix()
+		discovery.ZmqpublishEntry(entry, zmqmsg.ARPDeviceZMQTopic)
+		//discovery.UpdateDiscoveryEntry(entry.MacAddress, entry)
 	}
 }
 
@@ -133,22 +135,26 @@ func (s *netlinkScanner) addNeighbour(neighbour netlink.Neigh) {
 		return
 	}
 
-	ipv4 := ""
+	/*ipv4 := ""
 	if neighbour.Family == unix.AF_INET {
 		ipv4 = neighbour.IP.String()
+	}*/
+	if !utils.IsMacAddress(neighbour.HardwareAddr.String()) {
+		logger.Warn("Invalid Mac\n", neighbour.HardwareAddr.String())
+		return
 	}
 
 	s.deviceEntries = append(s.deviceEntries, &disc.DeviceEntry{
 		DiscoveryEntry: disc_pb.DiscoveryEntry{
-			MacAddress:  neighbour.HardwareAddr.String(),
-			IPv4Address: ipv4,
-			Arp: &disc_pb.ARP{
+			MacAddress: neighbour.HardwareAddr.String(),
+			//IPv4Address: ipv4,
+			Arp: []*disc_pb.ARP{{
 				Ip:         neighbour.IP.String(),
 				Mac:        neighbour.HardwareAddr.String(),
 				LastUpdate: s.timestamp(),
 				State:      translateHostState(neighbour.State),
 			},
-		},
+			}},
 	})
 }
 
