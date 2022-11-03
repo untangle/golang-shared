@@ -29,8 +29,7 @@ message ScanResponse {
 
 // param: net is a string in CIDR notation
 message ScanRequest {
-    repeated string net = 1;
-    repeated string host = 2;
+    repeated string args = 3;
     repeated Collector collectors = 10;
 }
 
