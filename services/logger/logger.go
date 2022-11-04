@@ -411,19 +411,8 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// Make sure we have struct variables populated
 	if (newOcname == Ocname{}) {
-		// fmt.Printf("ERROR: logFormatter OC verb missing arguments:%s", format)
-		return
-	} else { //Handle %OC
-		buffer := logFormatter(format, newOcname, args...)
-		if len(buffer) == 0 {
-			return
-		}
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
-	}
-
-	if len(args) == 0 {
 		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, format)
-	} else {
+	} else { //Handle %OC
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
