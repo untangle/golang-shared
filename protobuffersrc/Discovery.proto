@@ -20,8 +20,8 @@ message ScanResponse {
 
 // param: net is a string in CIDR notation
 message ScanRequest {
-    repeated string collectors = 3;
-    repeated string args = 4;
+    repeated string collectors = 1;
+    repeated string args = 2;
 }
 
 message DiscoveryEntry {
