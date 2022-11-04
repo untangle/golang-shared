@@ -347,22 +347,22 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(functionName) != 0 {
 		logger.logLevelLocker.RLock()
-		stat := logger.config.LogLevelMap[functionName] != LogLevel{}
+		level, ok := logger.config.LogLevelMap[functionName]
 		logger.logLevelLocker.RUnlock()
-		if stat {
-			return int32(logger.config.LogLevelMap[functionName].Id)
+		if ok {
+			return int32(level.GetId())
 		}
 	}
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		stat := logger.config.LogLevelMap[packageName] != LogLevel{}
+		level, ok := logger.config.LogLevelMap[functionName]
 		logger.logLevelLocker.RUnlock()
-		if stat {
-			return int32(logger.config.LogLevelMap[packageName].Id)
+		if ok {
+			return int32(level.GetId())
 		} else {
 			if val, ok := logger.config.LogLevelMap["*"]; ok {
-				return int32(val.Id)
+				return int32(val.GetId())
 			}
 		}
 	}
