@@ -158,12 +158,6 @@ func (logger *Logger) Emerg(format string, args ...interface{}) {
 	logger.logMessage(LogLevelEmerg, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Emerg(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Emerg(format, args)
-}
-
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
 func (logger *Logger) IsEmergEnabled() bool {
 	return logger.isLogEnabled(LogLevelEmerg)
@@ -172,12 +166,6 @@ func (logger *Logger) IsEmergEnabled() bool {
 // Alert is called for log level ALERT messages
 func (logger *Logger) Alert(format string, args ...interface{}) {
 	logger.logMessage(LogLevelAlert, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Alert(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Alert(format, args)
 }
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
@@ -190,12 +178,6 @@ func (logger *Logger) Crit(format string, args ...interface{}) {
 	logger.logMessage(LogLevelCrit, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Crit(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Crit(format, args)
-}
-
 // IsCritEnabled returns true if CRIT logging is enable for the caller
 func (logger *Logger) IsCritEnabled() bool {
 	return logger.isLogEnabled(LogLevelCrit)
@@ -204,12 +186,6 @@ func (logger *Logger) IsCritEnabled() bool {
 // Err is called for log level ERR messages
 func (logger *Logger) Err(format string, args ...interface{}) {
 	logger.logMessage(LogLevelErr, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Err(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Err(format, args)
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
@@ -222,12 +198,6 @@ func (logger *Logger) Warn(format string, args ...interface{}) {
 	logger.logMessage(LogLevelWarn, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Warn(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Warn(format, args)
-}
-
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
 func (logger *Logger) IsWarnEnabled() bool {
 	return logger.isLogEnabled(LogLevelWarn)
@@ -236,12 +206,6 @@ func (logger *Logger) IsWarnEnabled() bool {
 // Notice is called for log level NOTICE messages
 func (logger *Logger) Notice(format string, args ...interface{}) {
 	logger.logMessage(LogLevelNotice, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Notice(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Notice(format, args)
 }
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
@@ -254,12 +218,6 @@ func (logger *Logger) Info(format string, args ...interface{}) {
 	logger.logMessage(LogLevelInfo, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Info(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Info(format, args)
-}
-
 // IsInfoEnabled returns true if INFO logging is enable for the caller
 func (logger *Logger) IsInfoEnabled() bool {
 	return logger.isLogEnabled(LogLevelInfo)
@@ -270,12 +228,6 @@ func (logger *Logger) Debug(format string, args ...interface{}) {
 	logger.logMessage(LogLevelDebug, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Debug(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Debug(format, args)
-}
-
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
 func (logger *Logger) IsDebugEnabled() bool {
 	return logger.isLogEnabled(LogLevelDebug)
@@ -284,12 +236,6 @@ func (logger *Logger) IsDebugEnabled() bool {
 // Trace is called for log level TRACE messages
 func (logger *Logger) Trace(format string, args ...interface{}) {
 	logger.logMessage(LogLevelTrace, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Trace(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Trace(format, args)
 }
 
 // OCTrace is called for overseer messages
