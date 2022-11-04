@@ -311,7 +311,9 @@ func (logger *Logger) IsTraceEnabled() bool {
 // and our LogWriter type that can be created and passed to anything that
 // expects an object with output stream support. The logging source is passed
 // directly rather than determined from the call stack.
-func (logger *Logger) LogMessageSource(level int32, source string, format string, args ...interface{}) {
+func LogMessageSource(level int32, source string, format string, args ...interface{}) {
+	logger := GetLoggerInstance()
+
 	if level > logger.getLogLevel(source, "") {
 		return
 	}
