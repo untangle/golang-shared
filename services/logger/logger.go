@@ -422,7 +422,8 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 // Frame 1 = findCallingFunction
 // Frame 2 = logMessage / isLogEnabled
 // Frame 3 = Warn, Info / IsWarnEnabled, IsInfoEnabled (etc...)
-// Frame 4 = the function that actually called logger.Warn, logger.Info, logger.IsWarnEnabled, logger.IsInfoEnabled, etc...
+// Frame 4 = the logger struct details
+// Frame 5 = the function that actually called logger.Warn, logger.Info, logger.IsWarnEnabled, logger.IsInfoEnabled, etc...
 
 // Here is an example of what we expect to see in the calling function frame:
 // FILE: /home/username/golang/src/github.com/untangle/packetd/services/dict/dict.go
@@ -434,7 +435,7 @@ func findCallingFunction() (string, int, string, string) {
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single stack frame we need
 	stack := make([]uintptr, 1)
-	count := runtime.Callers(4, stack)
+	count := runtime.Callers(5, stack)
 	if count != 1 {
 		return "unknown", 0, "unknown", "unknown"
 	}
