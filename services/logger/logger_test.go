@@ -110,12 +110,16 @@ func (suite *TestLogger) TestFindLogLevelName() {
 	assert.Equal(suite.T(), "TRACE", FindLogLevelName(8))
 }
 
-func (suite *TestLogger) TestFindLogLevelValue() {
+func (suite *TestLogger) TestFindLogLevelID() {
 	testObj := new(MockConfigFile)
 	testObj.MockLoadConfigFromFile(&suite.logger)
-	assert.Equal(suite.T(), int32(8), FindLogLevelValue("TRACE"))
-	assert.Equal(suite.T(), int32(-1), FindLogLevelValue("test"))
-	assert.Equal(suite.T(), int32(6), FindLogLevelValue("INFO"))
+	traceLevel := LogLevel{Name: "TRACE"}
+	badLevel := LogLevel{Name: "test"}
+	infoLevel := LogLevel{Name: "INFO"}
+
+	assert.Equal(suite.T(), int32(8), traceLevel.GetId())
+	assert.Equal(suite.T(), int32(-1), badLevel.GetId())
+	assert.Equal(suite.T(), int32(6), infoLevel.GetId())
 }
 
 func (suite *TestLogger) TestWrite() {
