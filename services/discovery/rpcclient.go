@@ -7,6 +7,11 @@ import (
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
+const (
+	network = "tcp"
+	address = "127.0.0.1:5563"
+)
+
 // RequestCallCollectors is a stub for the RPC call
 func RequestCallCollectors(args disco.ScanRequest) {
 	logger.Info("RequestCallCollectors called\n")
@@ -14,7 +19,7 @@ func RequestCallCollectors(args disco.ScanRequest) {
 		logger.Warn("RequestHostScan called but no collector specified!")
 	}
 
-	client, err := rpc.DialHTTP("tcp", "127.0.0.1:5563")
+	client, err := rpc.DialHTTP(network, address)
 	if err != nil {
 		logger.Err("Failed to connect to discovery service: %s\n", err.Error())
 		return

@@ -4,15 +4,6 @@ package discoverd;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd";
 
-enum Collector {
-    all = 0;
-
-    discovery = 1;
-    arp = 2;
-    lldp = 3;
-    nmap = 4;
-}
-
 enum ResponseCode {
     UNKNOWN = 0;
     OK = 1;
@@ -29,8 +20,8 @@ message ScanResponse {
 
 // param: net is a string in CIDR notation
 message ScanRequest {
-    repeated string args = 3;
-    repeated Collector collectors = 10;
+    repeated string collectors = 3;
+    repeated string args = 4;
 }
 
 message DiscoveryEntry {
