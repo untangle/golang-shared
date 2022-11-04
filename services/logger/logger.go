@@ -357,7 +357,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// Make sure we have struct variables populated
 	if (newOcname == Ocname{}) {
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, format)
+		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
