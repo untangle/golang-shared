@@ -74,10 +74,11 @@ var loggerSingleton *Logger
 
 // GetLoggerInstancewithConfig returns a logger object that is a
 // singleton. It populates the loglevelmap.
+// This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-	if loggerSingleton == nil {
-		loggerSingleton = NewLoggerwithConfig(conf)
-	}
+
+	loggerSingleton = NewLoggerwithConfig(conf)
+
 	return loggerSingleton
 }
 
@@ -86,7 +87,12 @@ func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 func GetLoggerInstance() *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLogger()
+		loggerSingleton.Startup()
+
 	}
+
+	//fmt.Printf("singleton map: %v\n", loggerSingleton.config.LogLevelMap)
+
 	return loggerSingleton
 }
 
@@ -98,14 +104,20 @@ func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	return &Logger{
-		config: LoggerConfig{FileLocation: "", LogLevelMap: map[string]LogLevel{"*": struct {
-			Name string `json:"logname"`
-			Id   uint8
-		}{Name: "INFO", Id: 6}}, OutputWriter: nil},
+		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 		logLevelName:     logLevelName,
+	}
+}
+
+// DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
+func DefaultLoggerConfig() LoggerConfig {
+	return LoggerConfig{
+		FileLocation: "",
+		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
+		OutputWriter: DefaultLogWriter("system"),
 	}
 }
 
@@ -119,8 +131,10 @@ func (logger *Logger) Startup() {
 	data := logger.config.LoadConfigFromFile()
 	if data != nil {
 		logger.config.LoadConfigFromJSON(data)
+	} else {
+		logger.config = DefaultLoggerConfig()
 	}
-	fmt.Print(logger.config.OutputWriter)
+
 	// Set system logger to use our logger
 	if logger.config.OutputWriter != nil {
 		log.SetOutput(logger.config.OutputWriter)
