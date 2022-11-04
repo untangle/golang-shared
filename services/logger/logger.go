@@ -491,18 +491,6 @@ func (logger *Logger) getPrefix() string {
 	return fmt.Sprintf("[%11.5f] ", elapsed.Seconds())
 }
 
-// FindLogLevelValue returns the numeric log level for the arugmented name
-// or a negative value if the level is not valid
-func FindLogLevelValue(source string) int32 {
-	for levelvalue, levelname := range logLevelName {
-		if strings.Compare(strings.ToUpper(levelname), strings.ToUpper(source)) == 0 {
-			return (int32(levelvalue))
-		}
-	}
-
-	return -1
-}
-
 // FindLogLevelName returns the log level name for the argumented value
 func FindLogLevelName(level int32) string {
 	if level < 0 {

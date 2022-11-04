@@ -14,12 +14,6 @@ type LoggerConfig struct {
 	OutputWriter io.Writer
 }
 
-// LogLevel struct retains the loglevel information in a string and int.
-type LogLevel struct {
-	Name string `json:"logname"`
-	Id   uint8
-}
-
 // loadLoggerConfig loads the logger configuration file
 func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	if conf.FileLocation == "" {
