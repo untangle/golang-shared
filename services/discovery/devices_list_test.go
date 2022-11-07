@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -47,26 +49,27 @@ func (suite *DeviceListTestSuite) SetupTest() {
 		suite.mac1: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac1,
 			LastUpdate: suite.oneHourAgo.Unix(),
-			//IPv4Address: "192.168.56.1",
+			Neigh:      []*disco.NEIGH{{Ip: "192.168.50.4"}, {Ip: "192.168.50.5"}},
 		}},
 		suite.mac2: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac2,
 			LastUpdate: suite.halfHourAgo.Unix(),
-			//IPv4Address: "192.168.56.2",
+			Nmap:       []*disco.NMAP{{Hostname: "TestHostname0"}, {Hostname: "TestHostname1"}},
 		}},
 		suite.mac3: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac3,
 			LastUpdate: suite.halfHourAgo.Unix(),
-			//IPv4Address: "192.168.56.3",
+			Neigh:      []*disco.NEIGH{{Ip: "192.168.53.4"}, {Ip: "192.168.53.5"}},
 		}},
 		suite.mac4: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac4,
 			LastUpdate: suite.aDayago.Unix(),
+			Lldp:       []*disco.LLDP{{SysName: "Sysname0"}, {SysName: "Sysname1"}},
 		}},
 		suite.mac5: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac5,
 			LastUpdate: suite.aDayago.Unix(),
-			//IPv4Address: "192.168.56.4",
+			Neigh:      []*disco.NEIGH{{Ip: "192.168.55.4"}, {Ip: "192.168.55.5"}},
 		}},
 	}
 	suite.deviceList = NewDevicesList()
@@ -169,28 +172,28 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		old         *DeviceEntry
 		new         *DeviceEntry
 		expectedMac string
-		expectedIP  string
+		expectedIps []string
 	}
 	deviceTests := []newAndOldPair{}
 	i := 0
 	for _, v := range suite.devicesTable {
+		newIp := fmt.Sprintf("192.168.1.%d", i)
 		newEntry := &DeviceEntry{
 			DiscoveryEntry: disco.DiscoveryEntry{
-				//IPv4Address: v.IPv4Address,
 				MacAddress: v.MacAddress,
 				LastUpdate: v.LastUpdate + 1,
+				Lldp:       v.Lldp,
+				Neigh:      []*disco.NEIGH{{Ip: newIp}},
+				Nmap:       v.Nmap,
 			},
 		}
 		testSpec := newAndOldPair{
 			old:         v,
 			new:         newEntry,
 			expectedMac: v.MacAddress,
-			//expectedIP:  v.IPv4Address,
+			expectedIps: append(v.getDeviceIps(), newIp),
 		}
 
-		/*if i%2 == 0 {
-			suite.createEmptyFieldsForMerge(v, newEntry)
-		}*/
 		i++
 		deviceTests = append(deviceTests, testSpec)
 	}
@@ -210,7 +213,7 @@ func (suite *DeviceListTestSuite) TestMerge() {
 					mapEntry := suite.deviceList.Devices[pair.expectedMac]
 					suite.Same(mapEntry, pair.new)
 					suite.Equal(mapEntry.LastUpdate, pair.new.LastUpdate)
-					//suite.Equal(mapEntry.IPv4Address, pair.expectedIP)
+					suite.ElementsMatch(mapEntry.getDeviceIps(), pair.expectedIps)
 					suite.Equal(mapEntry.MacAddress, pair.expectedMac)
 					atomic.AddUint32(&count, 1)
 				})
@@ -221,17 +224,6 @@ func (suite *DeviceListTestSuite) TestMerge() {
 	suite.Equal(count, uint32(len(deviceTests)))
 }
 
-// Here we make sure the merge logic is tested by deleting some fields
-// to make sure that they get filled in after the merge.
-/*func (suite *DeviceListTestSuite) createEmptyFieldsForMerge(oldDevice *DeviceEntry, newDevice *DeviceEntry) {
-	if newDevice.MacAddress != "" {
-		newDevice.IPv4Address = ""
-	} else if newDevice.IPv4Address != "" {
-		oldDevice.IPv4Address = ""
-		newDevice.MacAddress = ""
-	}
-}*/
-
 // TestBroadcastInsertion tests that we do not add in a broadcast entry.
 func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 
@@ -239,14 +231,8 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 	var count uint32
 	deviceList.Devices = map[string]*DeviceEntry{}
 
-	for _, entry := range suite.devicesTable {
-		deviceList.Devices[entry.MacAddress] = &DeviceEntry{
-			DiscoveryEntry: disco.DiscoveryEntry{
-				//IPv4Address: entry.IPv4Address,
-				MacAddress: entry.MacAddress,
-				LastUpdate: entry.LastUpdate,
-			},
-		}
+	for mac, device := range suite.devicesTable {
+		deviceList.Devices[mac] = device
 		count++
 	}
 
@@ -254,7 +240,6 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 		DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: "00:00:00:00:00:00",
 			LastUpdate: suite.halfHourAgo.Unix(),
-			//IPv4Address: "192.168.56.4",
 		},
 	}
 
@@ -265,11 +250,10 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 	// Asssert that broadcast entry was not added.
 	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
 	suite.Equal(suite.devicesTable, deviceList.Devices, "Adding broadcast discovery entry.")
-
 }
 
 // Test clean device entry
-/*func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
+func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 
 	var deviceList DevicesList
 	var device_count, device_ip_count uint32
@@ -304,7 +288,7 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 	suite.EqualValues(device_count-2, len(deviceList.Devices), "Cleaned 24 hours older entry")
 	suite.EqualValues(device_ip_count-1, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
 
-}*/
+}
 
 // TestMarshallingList tests that we can marshal a list of devices
 // obtained via the ApplyToDeviceList function to JSON without getting
@@ -319,19 +303,19 @@ func (suite *DeviceListTestSuite) TestMarshallingList() {
 	fmt.Printf("JSON string output: %s\n", string(bytes))
 }
 
-/*func (suite *DeviceListTestSuite) TestMergeSessions() {
+func (suite *DeviceListTestSuite) TestMergeSessions() {
 	sessions := []*ActiveSessions.Session{
 		{
 			Bytes:         10,
 			ClientBytes:   0,
 			ServerBytes:   10,
-			ClientAddress: suite.getDevIP(suite.mac1),
+			ClientAddress: suite.devicesTable[suite.mac1].getDeviceIps()[0],
 		},
 		{
 			Bytes:         10,
 			ClientBytes:   0,
 			ServerBytes:   10,
-			ClientAddress: suite.getDevIP(suite.mac2),
+			ClientAddress: suite.devicesTable[suite.mac3].getDeviceIps()[1],
 		},
 		{
 			Bytes:       10,
@@ -339,21 +323,20 @@ func (suite *DeviceListTestSuite) TestMarshallingList() {
 			ServerBytes: 10,
 		},
 	}
+
 	suite.deviceList.MergeSessions(sessions)
 	dev := suite.deviceList.Devices[suite.mac1]
 	suite.Equal(len(dev.sessions), 1)
 
-	suite.Equal(len(suite.deviceList.Devices[suite.mac2].sessions), 1)
-}*/
-/*
+	suite.Equal(1, len(suite.deviceList.Devices[suite.mac3].sessions))
+}
+
 func (suite *DeviceListTestSuite) TestDeviceMarshal() {
 	macaddr := "00:11:22:33:44:55:66"
-	ipaddr := "192.168.55.22"
 	update := 123456
 	dev := DeviceEntry{
 		DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: macaddr,
-			//	IPv4Address: ipaddr,
 			LastUpdate: int64(update),
 		},
 		sessions: []*ActiveSessions.Session{
@@ -371,7 +354,6 @@ func (suite *DeviceListTestSuite) TestDeviceMarshal() {
 	suite.Nil(err)
 	dictMarshal := map[string]interface{}{
 		"macAddress": macaddr,
-		//"IPv4Address": ipaddr,
 		"LastUpdate": json.Number(fmt.Sprintf("%d", update)),
 		"sessionDetail": map[string]interface{}{
 			"byteTransferRate": json.Number("24"),
@@ -384,19 +366,18 @@ func (suite *DeviceListTestSuite) TestDeviceMarshal() {
 	decoder.UseNumber()
 	suite.Nil(decoder.Decode(&testDict))
 	suite.Equal(dictMarshal, testDict)
-}*/
-
-/*func (suite *DeviceListTestSuite) getDevIP(mac string) string {
-	return suite.deviceList.Devices[mac].IPv4Address
-}*/
+}
 
 // TestGetDevFromIP just tests that GetDeviceEntryFromIP functions as
 // indended.
-/*func (suite *DeviceListTestSuite) TestGetDevFromIP() {
+func (suite *DeviceListTestSuite) TestGetDevFromIP() {
 	dev := suite.devicesTable[suite.mac1]
-	foundDev := suite.deviceList.GetDeviceEntryFromIP(dev.IPv4Address)
-	suite.True(proto.Equal(dev, foundDev))
-}*/
+
+	for _, ip := range dev.getDeviceIps() {
+		foundDev := suite.deviceList.GetDeviceEntryFromIP(ip)
+		suite.True(proto.Equal(dev, foundDev))
+	}
+}
 
 func TestDeviceList(t *testing.T) {
 	testSuite := &DeviceListTestSuite{}
