@@ -55,9 +55,10 @@ func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 // putDeviceUnsafe puts the device in the list without locking it.
 func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
-	/*if entry.IPv4Address != "" {
-		list.devicesByIP[entry.IPv4Address] = entry
-	}*/
+
+	for _, ip := range entry.getDeviceIps() {
+		list.devicesByIP[ip] = entry
+	}
 }
 
 func (list *DevicesList) PutDevice(entry *DeviceEntry) {
@@ -155,11 +156,17 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	}
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
-	if entry.MacAddress == "" /*&& entry.IPv4Address != ""*/ {
-		if found := list.getDeviceFromIPUnsafe(entry.MacAddress); found != nil {
-			entry.Merge(found)
-		} else {
-			return
+
+	deviceIps := entry.getDeviceIps()
+	if entry.MacAddress == "" && len(deviceIps) > 0 {
+		for _, ip := range deviceIps {
+			// Once an old entry is found and the new entry is merged with it,
+			// break out of the loop since any device found is a pointer that
+			// every IP for a device points to
+			if found := list.getDeviceFromIPUnsafe(ip); found != nil {
+				entry.Merge(found)
+				break
+			}
 		}
 	} else if entry.MacAddress == "" {
 		return
@@ -184,35 +191,42 @@ func (list *DevicesList) MergeSessions(sessions []*ActiveSessions.Session) {
 
 // Init initialize a new DeviceEntry
 func (n *DeviceEntry) Init() {
-	//n.IPv4Address = ""
 	n.MacAddress = ""
 	n.Lldp = nil
 	n.Neigh = nil
 	n.Nmap = nil
 }
 
+// Returns the list of IPs being used by a device
+func (n *DeviceEntry) getDeviceIps() []string {
+	// Use a set to easily get the list of unique IPs assigned to a device
+	ipSet := make(map[string]string)
+
+	for _, device := range n.Neigh {
+		ipSet[device.Ip] = ""
+	}
+
+	ipList := make([]string, len(ipSet))
+	for ip := range ipSet {
+		ipList = append(ipList, ip)
+	}
+
+	return ipList
+}
+
 // Merge fills the relevant fields of n that are not present with ones
 // of newEntry that are.
 func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
-	/*if n.IPv4Address == "" {
-		n.IPv4Address = newEntry.IPv4Address
-	}*/
-	if n.MacAddress == "" {
-		n.MacAddress = newEntry.MacAddress
-	}
-	if n.Lldp == nil {
-		n.Lldp = newEntry.Lldp
-	}
-	if n.Neigh == nil {
-		n.Neigh = newEntry.Neigh
-	}
-	if n.Nmap == nil {
-		n.Nmap = newEntry.Nmap
-	}
-	if n.LastUpdate < newEntry.LastUpdate {
-		n.LastUpdate = newEntry.LastUpdate
-	}
+	// The protobuf library has a merge function that merges exactly as needed,
+	// except for the case where the LastUpdated time coming in is less than
+	// The current LastUpdated time. Take a snapshot of the original before merging
+	lastUpdate := n.LastUpdate
 
+	proto.Merge(n, newEntry)
+
+	if lastUpdate > n.LastUpdate {
+		n.LastUpdate = lastUpdate
+	}
 }
 
 // SessionDetail is a summary of active session details for a device.
