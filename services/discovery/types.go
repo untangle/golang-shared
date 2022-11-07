@@ -2,7 +2,6 @@ package discovery
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -213,7 +212,6 @@ func (n *DeviceEntry) getDeviceIps() []string {
 	for ip := range ipSet {
 		ipList = append(ipList, ip)
 	}
-	fmt.Printf("testing %v\n", ipList)
 
 	return ipList
 }
