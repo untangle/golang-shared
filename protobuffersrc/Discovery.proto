@@ -14,12 +14,12 @@ enum ResponseCode {
 message EmptyParam {
 }
 
-message ScanResponse {
+message RPCCallCollectorsResponse {
     ResponseCode result = 1;
 }
 
 // param: net is a string in CIDR notation
-message ScanRequest {
+message RPCCallCollectorsRequest {
     repeated string collectors = 1;
     repeated string args = 2;
 }

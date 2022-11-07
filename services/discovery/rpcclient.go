@@ -12,23 +12,28 @@ const (
 	address = "127.0.0.1:5563"
 )
 
-// RequestCallCollectors is a stub for the RPC call
-func RequestCallCollectors(args disco.ScanRequest) {
-	logger.Info("RequestCallCollectors called\n")
+// CallCollectors is a stub for the RPC call
+func CallCollectors(args CallCollectorsRequest) (*CallCollectorsResponse, error) {
+	logger.Info("CallCollectors called\n")
 	if len(args.Collectors) == 0 {
-		logger.Warn("RequestHostScan called but no collector specified!")
+		logger.Warn("CallCollectors called but no collector specified!")
 	}
 
 	client, err := rpc.DialHTTP(network, address)
 	if err != nil {
 		logger.Err("Failed to connect to discovery service: %s\n", err.Error())
-		return
+		return nil, err
 	}
 	defer client.Close()
 
-	var reply disco.ScanResponse
-	err = client.Call("DiscoveryRPCService.CallCollectors", args, &reply)
-	if err != nil {
-		logger.Err("Failed to call DiscoveryRPCService.CallCollectors %s\n", err.Error())
+	rpcRequest := toRpcRequest(args)
+
+	var rpcResponse disco.RPCCallCollectorsResponse
+	if err := client.Call("DiscoveryRPCService.RPCCallCollectors", &rpcRequest, &rpcResponse); err != nil {
+		logger.Err("Failed to call DiscoveryRPCService.RPCCallCollectors %s\n", err.Error())
+		return nil, err
 	}
+
+	response := fromRPCResponse(rpcResponse)
+	return &response, nil
 }
