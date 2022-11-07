@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -202,14 +203,17 @@ func (n *DeviceEntry) getDeviceIps() []string {
 	// Use a set to easily get the list of unique IPs assigned to a device
 	ipSet := make(map[string]string)
 
-	for _, device := range n.Neigh {
-		ipSet[device.Ip] = ""
+	for _, neighEntry := range n.Neigh {
+		if neighEntry.Ip != "" {
+			ipSet[neighEntry.Ip] = ""
+		}
 	}
 
-	ipList := make([]string, len(ipSet))
+	var ipList []string
 	for ip := range ipSet {
 		ipList = append(ipList, ip)
 	}
+	fmt.Printf("testing %v\n", ipList)
 
 	return ipList
 }
