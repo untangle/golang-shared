@@ -11,8 +11,7 @@ const (
 
 	Discovery CollectorName = "discovery"
 
-	Arp CollectorName = "arp" // will be replaced by Neighbour
-
+	Arp       CollectorName = "arp" // will be replaced by Neighbour
 	Lldp      CollectorName = "lldp"
 	Neighbour CollectorName = "neighbour"
 	Nmap      CollectorName = "nmap"
