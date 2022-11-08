@@ -78,6 +78,26 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	}
 }
 
+// Test if MergeOrAddDeviceEntry can merge a DeviceEntry with just an IP address
+// if a DeviceEntry is already present in the DeviceList with a matching IP and a MAC Address
+func (suite *DeviceListTestSuite) TestMergeByIp() {
+	expectedSysName := "testIfThisFieldPresent"
+
+	suite.deviceList.MergeOrAddDeviceEntry(&DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{
+		Neigh: []*disco.NEIGH{{Ip: suite.devicesTable[suite.mac3].Neigh[0].Ip}},
+		Lldp:  []*disco.LLDP{{SysName: expectedSysName}},
+	}}, func() {})
+
+	dev := suite.deviceList.listDevices(func(d *DeviceEntry) bool {
+		if len(d.Lldp) > 0 && d.Lldp[0].SysName == expectedSysName {
+			return true
+		}
+		return false
+	})
+
+	suite.True(len(dev) > 0)
+}
+
 // TestListing tests that applying various predicates to the list
 // works.
 func (suite *DeviceListTestSuite) TestListing() {
