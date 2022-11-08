@@ -196,12 +196,14 @@ func (suite *DeviceListTestSuite) TestMerge() {
 	}
 	deviceTests := []newAndOldPair{}
 	i := 0
+
+	suite.deviceList.Lock.Lock()
 	for _, v := range suite.devicesTable {
 		newIp := fmt.Sprintf("192.168.1.%d", i)
 		newEntry := &DeviceEntry{
 			DiscoveryEntry: disco.DiscoveryEntry{
 				// The mac address has to be a deep copy to not cause a race condition
-				MacAddress: string([]byte(v.MacAddress)),
+				MacAddress: v.MacAddress,
 				LastUpdate: v.LastUpdate + 1,
 				Lldp:       v.Lldp,
 				Neigh:      []*disco.NEIGH{{Ip: newIp}},
@@ -218,6 +220,7 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		i++
 		deviceTests = append(deviceTests, testSpec)
 	}
+	suite.deviceList.Lock.Unlock()
 
 	// Do the merge multiple times for each device. The invariants should stay the
 	// same.
@@ -231,11 +234,11 @@ func (suite *DeviceListTestSuite) TestMerge() {
 			suite.deviceList.MergeOrAddDeviceEntry(pair.new,
 				func() {
 					// assert that we put this entry in the table.
-					//mapEntry := suite.deviceList.Devices[pair.expectedMac]
-					//suite.Same(mapEntry, pair.new)
-					//suite.Equal(mapEntry.LastUpdate, pair.new.LastUpdate)
-					//suite.ElementsMatch(mapEntry.getDeviceIpsUnsafe(), pair.expectedIps)
-					//suite.Equal(mapEntry.MacAddress, pair.expectedMac)
+					mapEntry := suite.deviceList.Devices[pair.expectedMac]
+					suite.Same(mapEntry, pair.new)
+					suite.Equal(mapEntry.LastUpdate, pair.new.LastUpdate)
+					suite.ElementsMatch(mapEntry.getDeviceIpsUnsafe(), pair.expectedIps)
+					suite.Equal(mapEntry.MacAddress, pair.expectedMac)
 					atomic.AddUint32(&count, 1)
 				})
 
