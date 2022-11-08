@@ -197,13 +197,12 @@ func (suite *DeviceListTestSuite) TestMerge() {
 	deviceTests := []newAndOldPair{}
 	i := 0
 
-	suite.deviceList.Lock.Lock()
-	for _, v := range suite.devicesTable {
+	for mac, v := range suite.devicesTable {
 		newIp := fmt.Sprintf("192.168.1.%d", i)
 		newEntry := &DeviceEntry{
 			DiscoveryEntry: disco.DiscoveryEntry{
 				// The mac address has to be a deep copy to not cause a race condition
-				MacAddress: v.MacAddress,
+				MacAddress: mac,
 				LastUpdate: v.LastUpdate + 1,
 				Lldp:       v.Lldp,
 				Neigh:      []*disco.NEIGH{{Ip: newIp}},
