@@ -28,10 +28,12 @@ func TestFillDeviceListWithZMQDeviceMessages(t *testing.T) {
 	zmqChan <- &ZmqMessage{Topic: NMAPDeviceZMQTopic, Message: nmapMessage}
 
 	// Sleep to give the ZMQ processor a change to process the sent messages
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 
-	// Get all device entries
+	// Get all device entries. Acquire and release the lock to prevent data races.
+	deviceList.Lock.Lock()
 	allDevices := deviceList.listDevices(func(entry *DeviceEntry) bool { return true })
+	deviceList.Lock.Unlock()
 	assert.Equal(t, totalSentMessages, len(allDevices))
 
 	shutdownChannel <- true
