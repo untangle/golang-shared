@@ -56,7 +56,7 @@ func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
 
-	for _, ip := range entry.getDeviceIps() {
+	for _, ip := range entry.getDeviceIpsUnsafe() {
 		list.devicesByIP[ip] = entry
 	}
 }
@@ -81,7 +81,7 @@ func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 
 	for _, device := range devices {
 		delete(list.Devices, device.MacAddress)
-		for _, ip := range device.getDeviceIps() {
+		for _, ip := range device.getDeviceIpsUnsafe() {
 			delete(list.devicesByIP, ip)
 		}
 		logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.MacAddress)
@@ -157,7 +157,7 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
 
-	deviceIps := entry.getDeviceIps()
+	deviceIps := entry.getDeviceIpsUnsafe()
 	if entry.MacAddress == "" && len(deviceIps) > 0 {
 		for _, ip := range deviceIps {
 			// Once an old entry is found and the new entry is merged with it,
@@ -197,8 +197,9 @@ func (n *DeviceEntry) Init() {
 	n.Nmap = nil
 }
 
-// Returns the list of IPs being used by a device
-func (n *DeviceEntry) getDeviceIps() []string {
+// Returns the list of IPs being used by a device. Does not acquire any locks
+// before accessing device list elements
+func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 	// Use a set to easily get the list of unique IPs assigned to a device
 	ipSet := make(map[string]string)
 
