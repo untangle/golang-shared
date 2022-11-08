@@ -16,8 +16,6 @@ import (
 type DeviceEntry struct {
 	disco.DiscoveryEntry
 	sessions []*ActiveSessions.Session
-
-	deviceLock sync.RWMutex
 }
 
 // DevicesList is an in-memory 'list' of all known devices (stored as
@@ -155,11 +153,9 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
 	// Lock the entry down before reading from it.
 	// Otherwise the read in Merge causes a data race
-	entry.deviceLock.RLock()
 	if entry.MacAddress == "00:00:00:00:00:00" {
 		return
 	}
-	entry.deviceLock.RUnlock()
 
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
@@ -227,9 +223,6 @@ func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 // Merge fills the relevant fields of n that are not present with ones
 // of newEntry that are.
 func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
-	n.deviceLock.Lock()
-	defer n.deviceLock.Unlock()
-
 	// The protobuf library has a merge function that merges exactly as needed,
 	// except for the case where the LastUpdated time coming in is less than
 	// The current LastUpdated time. Take a snapshot of the original before merging

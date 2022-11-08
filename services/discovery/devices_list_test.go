@@ -201,7 +201,6 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		newIp := fmt.Sprintf("192.168.1.%d", i)
 		newEntry := &DeviceEntry{
 			DiscoveryEntry: disco.DiscoveryEntry{
-				// The mac address has to be a deep copy to not cause a race condition
 				MacAddress: mac,
 				LastUpdate: v.LastUpdate + 1,
 				Lldp:       v.Lldp,
@@ -212,17 +211,17 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		testSpec := newAndOldPair{
 			old:         v,
 			new:         newEntry,
-			expectedMac: v.MacAddress,
+			expectedMac: mac,
 			expectedIps: append(v.getDeviceIpsUnsafe(), newIp),
 		}
+		// Do the merge multiple times for each device. The invariants should stay the
+		// same.
+		testSpecCopy := testSpec
 
 		i++
-		deviceTests = append(deviceTests, testSpec)
+		deviceTests = append(deviceTests, testSpec, testSpecCopy)
 	}
 
-	// Do the merge multiple times for each device. The invariants should stay the
-	// same.
-	deviceTests = append(deviceTests, deviceTests...)
 	wg := sync.WaitGroup{}
 	var count uint32
 	for _, devTest := range deviceTests {
