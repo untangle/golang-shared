@@ -219,7 +219,7 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		// same. Make sure the deviceEntry isn't just a pointer to previoulsy created
 		// entry or data races will occur.
 		testSpecCopy := testSpec
-		testSpec.new = &DeviceEntry{
+		testSpecCopy.new = &DeviceEntry{
 			DiscoveryEntry: disco.DiscoveryEntry{
 				MacAddress: mac,
 				LastUpdate: v.LastUpdate + 1,
