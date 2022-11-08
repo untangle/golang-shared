@@ -216,7 +216,7 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		}
 
 		// Do the merge multiple times for each device. The invariants should stay the
-		// same. Make sure the deviceEntry isn't just a pointer to previoulsy created
+		// same. Make sure the deviceEntry isn't just a pointer to previously created
 		// entry or data races will occur.
 		testSpecCopy := testSpec
 		testSpecCopy.new = &DeviceEntry{

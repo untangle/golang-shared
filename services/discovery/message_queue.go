@@ -49,8 +49,9 @@ Out:
 			switch msg.Topic {
 			case LLDPDeviceZMQTopic:
 				lldp := &disco.LLDP{}
+				logger.Debug("Attempting to nnmarshall LLDP ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, lldp); err != nil {
-					logger.Warn("Could not unmarshal LLDP ZMQ Message: %s", err.Error())
+					logger.Warn("Could not unmarshal LLDP ZMQ Message: %s\n", err.Error())
 					break
 				}
 
@@ -60,19 +61,21 @@ Out:
 				}
 			case NEIGHDeviceZMQTopic:
 				neigh := &disco.NEIGH{}
+				logger.Debug("Attempting to nnmarshall NEIGH ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, neigh); err != nil {
-					logger.Warn("Could not unmarshal NEIGH ZMQ Message: %s", err.Error())
+					logger.Warn("Could not unmarshal NEIGH ZMQ Message: %s\n", err.Error())
 					break
 				}
 
 				neighDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Neigh: []*disco.NEIGH{neigh}, MacAddress: neigh.Mac}}
+				logger.Debug("Attempting to nnmarshall NEIGH ZMQ message\n")
 				if err := MergeZmqMessageIntoDeviceList(devlist, neighDeviceEntry, callback); err != nil {
 					logger.Warn("Could not process NEIGH ZMQ message: %\n", err.Error())
 				}
 			case NMAPDeviceZMQTopic:
 				nmap := &disco.NMAP{}
 				if err := proto.Unmarshal(msg.Message, nmap); err != nil {
-					logger.Warn("Could not unmarshal NMAP ZMQ Message: %s", err.Error())
+					logger.Warn("Could not unmarshal NMAP ZMQ Message: %s\n", err.Error())
 					break
 				}
 
