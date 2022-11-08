@@ -153,6 +153,8 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 // called after everything is merged but before the lock is
 // released. This can allow you to clone/copy the merged device.
 func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
+	// Lock the entry down before reading from it.
+	// Otherwise the read in Merge causes a data race
 	entry.deviceLock.RLock()
 	if entry.MacAddress == "00:00:00:00:00:00" {
 		return
