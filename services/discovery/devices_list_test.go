@@ -214,13 +214,26 @@ func (suite *DeviceListTestSuite) TestMerge() {
 			expectedMac: mac,
 			expectedIps: append(v.getDeviceIpsUnsafe(), newIp),
 		}
+
 		// Do the merge multiple times for each device. The invariants should stay the
-		// same.
-		//testSpecCopy := testSpec
+		// same. Make sure the deviceEntry isn't just a pointer to previoulsy created
+		// entry or data races will occur.
+		testSpecCopy := testSpec
+		testSpec.new = &DeviceEntry{
+			DiscoveryEntry: disco.DiscoveryEntry{
+				MacAddress: mac,
+				LastUpdate: v.LastUpdate + 1,
+				Lldp:       v.Lldp,
+				Neigh:      []*disco.NEIGH{{Ip: newIp}},
+				Nmap:       v.Nmap,
+			},
+		}
 
 		i++
-		deviceTests = append(deviceTests, testSpec)
+		deviceTests = append(deviceTests, testSpec, testSpecCopy)
 	}
+
+	// Add entry with identical mac address to
 
 	wg := sync.WaitGroup{}
 	var count uint32
