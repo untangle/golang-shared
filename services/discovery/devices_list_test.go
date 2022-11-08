@@ -216,10 +216,10 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		}
 		// Do the merge multiple times for each device. The invariants should stay the
 		// same.
-		testSpecCopy := testSpec
+		//testSpecCopy := testSpec
 
 		i++
-		deviceTests = append(deviceTests, testSpec, testSpecCopy)
+		deviceTests = append(deviceTests, testSpec)
 	}
 
 	wg := sync.WaitGroup{}
