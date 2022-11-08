@@ -74,10 +74,11 @@ var loggerSingleton *Logger
 
 // GetLoggerInstancewithConfig returns a logger object that is a
 // singleton. It populates the loglevelmap.
+// This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-	if loggerSingleton == nil {
-		loggerSingleton = NewLoggerwithConfig(conf)
-	}
+
+	loggerSingleton = NewLoggerwithConfig(conf)
+
 	return loggerSingleton
 }
 
@@ -86,7 +87,12 @@ func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 func GetLoggerInstance() *Logger {
 	if loggerSingleton == nil {
 		loggerSingleton = NewLogger()
+		loggerSingleton.Startup()
+
 	}
+
+	//fmt.Printf("singleton map: %v\n", loggerSingleton.config.LogLevelMap)
+
 	return loggerSingleton
 }
 
@@ -98,14 +104,20 @@ func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	return &Logger{
-		config: LoggerConfig{FileLocation: "", LogLevelMap: map[string]LogLevel{"*": struct {
-			Name string `json:"logname"`
-			Id   uint8
-		}{Name: "INFO", Id: 6}}, OutputWriter: nil},
+		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 		logLevelName:     logLevelName,
+	}
+}
+
+// DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
+func DefaultLoggerConfig() LoggerConfig {
+	return LoggerConfig{
+		FileLocation: "",
+		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
+		OutputWriter: DefaultLogWriter("system"),
 	}
 }
 
@@ -119,8 +131,10 @@ func (logger *Logger) Startup() {
 	data := logger.config.LoadConfigFromFile()
 	if data != nil {
 		logger.config.LoadConfigFromJSON(data)
+	} else {
+		logger.config = DefaultLoggerConfig()
 	}
-	fmt.Print(logger.config.OutputWriter)
+
 	// Set system logger to use our logger
 	if logger.config.OutputWriter != nil {
 		log.SetOutput(logger.config.OutputWriter)
@@ -144,12 +158,6 @@ func (logger *Logger) Emerg(format string, args ...interface{}) {
 	logger.logMessage(LogLevelEmerg, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Emerg(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Emerg(format, args)
-}
-
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
 func (logger *Logger) IsEmergEnabled() bool {
 	return logger.isLogEnabled(LogLevelEmerg)
@@ -158,12 +166,6 @@ func (logger *Logger) IsEmergEnabled() bool {
 // Alert is called for log level ALERT messages
 func (logger *Logger) Alert(format string, args ...interface{}) {
 	logger.logMessage(LogLevelAlert, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Alert(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Alert(format, args)
 }
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
@@ -176,12 +178,6 @@ func (logger *Logger) Crit(format string, args ...interface{}) {
 	logger.logMessage(LogLevelCrit, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Crit(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Crit(format, args)
-}
-
 // IsCritEnabled returns true if CRIT logging is enable for the caller
 func (logger *Logger) IsCritEnabled() bool {
 	return logger.isLogEnabled(LogLevelCrit)
@@ -190,12 +186,6 @@ func (logger *Logger) IsCritEnabled() bool {
 // Err is called for log level ERR messages
 func (logger *Logger) Err(format string, args ...interface{}) {
 	logger.logMessage(LogLevelErr, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Err(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Err(format, args)
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
@@ -208,12 +198,6 @@ func (logger *Logger) Warn(format string, args ...interface{}) {
 	logger.logMessage(LogLevelWarn, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Warn(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Warn(format, args)
-}
-
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
 func (logger *Logger) IsWarnEnabled() bool {
 	return logger.isLogEnabled(LogLevelWarn)
@@ -222,12 +206,6 @@ func (logger *Logger) IsWarnEnabled() bool {
 // Notice is called for log level NOTICE messages
 func (logger *Logger) Notice(format string, args ...interface{}) {
 	logger.logMessage(LogLevelNotice, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Notice(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Notice(format, args)
 }
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
@@ -240,12 +218,6 @@ func (logger *Logger) Info(format string, args ...interface{}) {
 	logger.logMessage(LogLevelInfo, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Info(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Info(format, args)
-}
-
 // IsInfoEnabled returns true if INFO logging is enable for the caller
 func (logger *Logger) IsInfoEnabled() bool {
 	return logger.isLogEnabled(LogLevelInfo)
@@ -256,12 +228,6 @@ func (logger *Logger) Debug(format string, args ...interface{}) {
 	logger.logMessage(LogLevelDebug, format, Ocname{"", 0}, args...)
 }
 
-// For backward compatibility
-func Debug(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Debug(format, args)
-}
-
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
 func (logger *Logger) IsDebugEnabled() bool {
 	return logger.isLogEnabled(LogLevelDebug)
@@ -270,12 +236,6 @@ func (logger *Logger) IsDebugEnabled() bool {
 // Trace is called for log level TRACE messages
 func (logger *Logger) Trace(format string, args ...interface{}) {
 	logger.logMessage(LogLevelTrace, format, Ocname{"", 0}, args...)
-}
-
-// For backward compatibility
-func Trace(format string, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.Trace(format, args)
 }
 
 // OCTrace is called for overseer messages
@@ -297,7 +257,9 @@ func (logger *Logger) IsTraceEnabled() bool {
 // and our LogWriter type that can be created and passed to anything that
 // expects an object with output stream support. The logging source is passed
 // directly rather than determined from the call stack.
-func (logger *Logger) LogMessageSource(level int32, source string, format string, args ...interface{}) {
+func LogMessageSource(level int32, source string, format string, args ...interface{}) {
+	logger := GetLoggerInstance()
+
 	if level > logger.getLogLevel(source, "") {
 		return
 	}
@@ -331,22 +293,22 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(functionName) != 0 {
 		logger.logLevelLocker.RLock()
-		stat := logger.config.LogLevelMap[functionName] != LogLevel{}
+		level, ok := logger.config.LogLevelMap[functionName]
 		logger.logLevelLocker.RUnlock()
-		if stat {
-			return int32(logger.config.LogLevelMap[functionName].Id)
+		if ok {
+			return int32(level.GetId())
 		}
 	}
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		stat := logger.config.LogLevelMap[packageName] != LogLevel{}
+		level, ok := logger.config.LogLevelMap[functionName]
 		logger.logLevelLocker.RUnlock()
-		if stat {
-			return int32(logger.config.LogLevelMap[packageName].Id)
+		if ok {
+			return int32(level.GetId())
 		} else {
 			if val, ok := logger.config.LogLevelMap["*"]; ok {
-				return int32(val.Id)
+				return int32(val.GetId())
 			}
 		}
 	}
@@ -395,19 +357,8 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// Make sure we have struct variables populated
 	if (newOcname == Ocname{}) {
-		// fmt.Printf("ERROR: logFormatter OC verb missing arguments:%s", format)
-		return
+		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC
-		buffer := logFormatter(format, newOcname, args...)
-		if len(buffer) == 0 {
-			return
-		}
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
-	}
-
-	if len(args) == 0 {
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, format)
-	} else {
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
@@ -422,7 +373,8 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 // Frame 1 = findCallingFunction
 // Frame 2 = logMessage / isLogEnabled
 // Frame 3 = Warn, Info / IsWarnEnabled, IsInfoEnabled (etc...)
-// Frame 4 = the function that actually called logger.Warn, logger.Info, logger.IsWarnEnabled, logger.IsInfoEnabled, etc...
+// Frame 4 = the logger struct details
+// Frame 5 = the function that actually called logger.Warn, logger.Info, logger.IsWarnEnabled, logger.IsInfoEnabled, etc...
 
 // Here is an example of what we expect to see in the calling function frame:
 // FILE: /home/username/golang/src/github.com/untangle/packetd/services/dict/dict.go
@@ -434,7 +386,7 @@ func findCallingFunction() (string, int, string, string) {
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single stack frame we need
 	stack := make([]uintptr, 1)
-	count := runtime.Callers(4, stack)
+	count := runtime.Callers(5, stack)
 	if count != 1 {
 		return "unknown", 0, "unknown", "unknown"
 	}
@@ -474,18 +426,6 @@ func (logger *Logger) getPrefix() string {
 	nowtime := time.Now()
 	var elapsed = nowtime.Sub(logger.launchTime)
 	return fmt.Sprintf("[%11.5f] ", elapsed.Seconds())
-}
-
-// FindLogLevelValue returns the numeric log level for the arugmented name
-// or a negative value if the level is not valid
-func FindLogLevelValue(source string) int32 {
-	for levelvalue, levelname := range logLevelName {
-		if strings.Compare(strings.ToUpper(levelname), strings.ToUpper(source)) == 0 {
-			return (int32(levelvalue))
-		}
-	}
-
-	return -1
 }
 
 // FindLogLevelName returns the log level name for the argumented value
