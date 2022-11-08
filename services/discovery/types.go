@@ -217,9 +217,14 @@ func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 	return ipList
 }
 
+// Mutex used to avoid data races when merging
+var mergeLock sync.Mutex
+
 // Merge fills the relevant fields of n that are not present with ones
 // of newEntry that are.
 func (n *DeviceEntry) Merge(newEntry *DeviceEntry) {
+	mergeLock.Lock()
+	defer mergeLock.Unlock()
 	// The protobuf library has a merge function that merges exactly as needed,
 	// except for the case where the LastUpdated time coming in is less than
 	// The current LastUpdated time. Take a snapshot of the original before merging
