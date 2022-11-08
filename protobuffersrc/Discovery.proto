@@ -26,11 +26,10 @@ message RPCCallCollectorsRequest {
 
 message DiscoveryEntry {
     string macAddress = 1;
-    string IPv4Address = 2;
-    int64 LastUpdate = 3;
-    LLDP lldp = 10;
-    ARP arp = 11;
-    NMAP nmap = 12;
+    int64 LastUpdate = 2;
+    repeated LLDP lldp = 3;
+    repeated NEIGH neigh = 4;
+    repeated NMAP nmap = 5;
 }
 
 message LLDP {
@@ -48,7 +47,9 @@ message LLDP {
         string inventoryAssetTag = 9;
         string inventoryModel = 10;
         string inventoryVendor = 11;
-    	int64 LastUpdate = 12; 
+    	int64 LastUpdate = 12;
+        string mac = 13;
+        string ip = 14; 
 }
 
 message LLDPCapabilities {
@@ -56,11 +57,15 @@ message LLDPCapabilities {
     bool enabled = 2;
 }
 
-message ARP {
+message NEIGH {
      string ip = 1;
      string mac = 2;
      int64 LastUpdate = 3; 
      string state = 4;
+     string interface = 5;
+     string family =6;
+     int32 vlan =7;
+     int32 vni =8;
 }
 
 message NMAP {
@@ -71,6 +76,8 @@ message NMAP {
     string os = 5;
     repeated NMAPPorts openPorts = 6;
     int64 LastUpdate = 7; 
+    string mac = 8;
+    string ip = 9;
 }
 
 message NMAPPorts {
@@ -109,4 +116,16 @@ message LayerFour {
     string protoname = 2;
     int32 sPort = 3;
     int32 dPort = 4;
+}
+
+//This message is used to send deviceEntry to packetd for updating session entry with deviceEntry(Mac address)
+message DeviceEntry {
+    string macAddress = 1;
+    repeated string ipAddress = 2;
+    int64 LastUpdate = 3;
+    
+}
+
+message NeighEntries {
+    repeated NEIGH entries = 1;    
 }

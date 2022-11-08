@@ -3,8 +3,6 @@ package cacher
 import (
 	"math/rand"
 	"sync"
-
-	"github.com/untangle/golang-shared/services/logger"
 )
 
 // The value with it's corresponding index in the slice

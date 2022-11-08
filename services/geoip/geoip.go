@@ -14,11 +14,13 @@ import (
 	"time"
 
 	"github.com/oschwald/geoip2-golang"
-	"github.com/untangle/golang-shared/services/logger"
+	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/services/uritranslations"
 	"github.com/untangle/golang-shared/util/cache/cacher"
 )
+
+var logger = logService.GetLoggerInstance()
 
 // The full path of the database filename. We look for it here and
 // also download it to here if it doesn't exist or is out of date.
