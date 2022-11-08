@@ -81,8 +81,8 @@ func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 
 	for _, device := range devices {
 		delete(list.Devices, device.MacAddress)
-		if device.MacAddress != "" {
-			delete(list.devicesByIP, device.MacAddress)
+		for _, ip := range device.getDeviceIps() {
+			delete(list.devicesByIP, ip)
 		}
 		logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.MacAddress)
 	}

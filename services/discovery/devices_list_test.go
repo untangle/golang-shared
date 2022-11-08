@@ -286,9 +286,9 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 		device_count++
 
 	}
-	//device_ip_count = device_count - 1, because one device entry didn't have IPV4address.
-	//So it should not be added to devicesByIP map
-	device_ip_count = device_count - 1
+
+	//device_ip_count is six since there are six IPs present in the device entries
+	device_ip_count = 6
 
 	//Clean entries which are 48 hours older
 	predicates1 := []ListPredicate{
@@ -296,17 +296,17 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 	}
 	deviceList.CleanOldDeviceEntry(predicates1...)
 	//No entries should be deleted from the list, because no entries with LastUpdate older than 48 hours
-	suite.EqualValues(device_count, len(deviceList.Devices), "Cleaned 48 hours older entry")
-	suite.EqualValues(device_ip_count, len(deviceList.devicesByIP), "Cleaned 48 hours older entry")
+	suite.EqualValues(device_count, len(deviceList.Devices), "Cleaned 48 hour and older entry")
+	suite.EqualValues(device_ip_count, len(deviceList.devicesByIP), "Cleaned 48 hour and older entry")
 
 	//Clean entries which are 24 hours older
 	predicates2 := []ListPredicate{
 		LastUpdateOlderThanDuration(time.Hour * 24),
 	}
 	deviceList.CleanOldDeviceEntry(predicates2...)
-	//One device entry should be deleted from the device list which entry has LastUpdate with >24 hours
+	//two device entries should be deleted from the device list which entry has LastUpdate with >24 hours
 	suite.EqualValues(device_count-2, len(deviceList.Devices), "Cleaned 24 hours older entry")
-	suite.EqualValues(device_ip_count-1, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
+	suite.EqualValues(device_ip_count-2, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
 
 }
 
