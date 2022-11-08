@@ -219,7 +219,6 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		i++
 		deviceTests = append(deviceTests, testSpec)
 	}
-	suite.deviceList.Lock.Unlock()
 
 	// Do the merge multiple times for each device. The invariants should stay the
 	// same.
