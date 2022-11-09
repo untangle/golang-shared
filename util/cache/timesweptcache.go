@@ -3,9 +3,11 @@ package cache
 import (
 	"time"
 
-	"github.com/untangle/golang-shared/services/logger"
+	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/util/cache/cacher"
 )
+
+var logger = logService.GetLoggerInstance()
 
 // Adds the ability to sweep elements on a timer to a cache.
 // A goroutine is started which sweeps through

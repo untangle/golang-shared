@@ -6,10 +6,12 @@ import (
 	"time"
 
 	zmq "github.com/pebbe/zmq4"
-	"github.com/untangle/golang-shared/services/logger"
+	logService "github.com/untangle/golang-shared/services/logger"
 	zreq "github.com/untangle/golang-shared/structs/protocolbuffers/ZMQRequest"
 	"google.golang.org/protobuf/proto"
 )
+
+var logger = logService.GetLoggerInstance()
 
 const (
 	// ServerTick is tick for when server receives bytes

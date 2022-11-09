@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/plugins/util"
-	"github.com/untangle/golang-shared/services/logger"
+	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
+
+var logger = logService.GetLoggerInstance()
 
 const (
 	// LicenseFileDoesNotExistStr is the string to check if licenses should be reloaded when status is returned

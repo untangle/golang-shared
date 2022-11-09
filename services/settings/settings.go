@@ -16,8 +16,10 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/plugins/util"
-	"github.com/untangle/golang-shared/services/logger"
+	logService "github.com/untangle/golang-shared/services/logger"
 )
+
+var logger = logService.GetLoggerInstance()
 
 const settingsFile = "/etc/config/settings.json"
 const defaultsFile = "/etc/config/defaults.json"
@@ -31,8 +33,8 @@ var OSForSyncSettings string = "openwrt"
 // ShouldRunSighup is if sighup should be run after sync-settings callbacks
 var ShouldRunSighup bool = false
 
-// SighupExecutable is the executable to run for sighup if necessary
-var SighupExecutable string = ""
+// SighupExecutables are the executable to run for sighup if necessary
+var SighupExecutables []string
 
 // saveLocker is used to synchronize calls to the setsettings call
 var saveLocker sync.RWMutex
@@ -51,12 +53,12 @@ func SetOS(newOS string) {
 	OSForSyncSettings = newOS
 }
 
-// SetSighupProperties sets the properties of running sighup, such as if it should and the process to sighup
+// SetSighupProperties sets the properties of running sighup, such as if it should and the processes to sighup
 // @param shouldRunSighup - true if sighup should be run after callsbacks, false otherwise
-// @param sighupExecutable - executable to call sighup on, empty string if none
-func SetSighupProperties(shouldRunSighup bool, sighupExecutable string) {
+// @param sighupExecutables - executables to call sighup on, empty string if none
+func SetSighupProperties(shouldRunSighup bool, sighupExecutables []string) {
 	ShouldRunSighup = shouldRunSighup
-	SighupExecutable = sighupExecutable
+	SighupExecutables = sighupExecutables
 }
 
 var settingsFileSingleton *SettingsFile
@@ -84,6 +86,7 @@ func GetCurrentSettings(segments []string) (interface{}, error) {
 	return GetSettingsFile(segments, currentFile)
 }
 
+// Deprecated, use UnmarshallSettingsAtPath!
 // GetSettings returns the settings from the specified path
 func GetSettings(segments []string) (interface{}, error) {
 	return GetSettingsFile(segments, settingsFile)
@@ -151,8 +154,6 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
-	saveLocker.Lock()
-	defer saveLocker.Unlock()
 
 	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
 	if err != nil {
@@ -164,7 +165,9 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 		return createJSONErrorObject(err), err
 	}
 
+	saveLocker.Lock()
 	output, err := syncAndSave(jsonSettings, filename, force)
+	saveLocker.Unlock()
 	if err != nil {
 		var errJSON map[string]interface{}
 		marshalErr := json.Unmarshal([]byte(err.Error()), &errJSON)
@@ -483,12 +486,14 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 	}
 
 	logger.Debug("Sighup: %v\n", ShouldRunSighup)
-	logger.Debug("Executable: %s\n", SighupExecutable)
+	logger.Debug("Executables: %v\n", SighupExecutables)
 	if ShouldRunSighup {
-		err = util.RunSighup(SighupExecutable)
-		if err != nil {
-			logger.Warn("Failure running sighup on required executable %s: %s\n", SighupExecutable, err.Error())
-			return output, err
+		for _, executable := range SighupExecutables {
+			err = util.RunSighup(executable)
+			if err != nil {
+				logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
+				return output, err
+			}
 		}
 	}
 	os.Remove(tmpfile.Name())
