@@ -119,10 +119,6 @@ func (suite *DeviceListTestSuite) TestMergeByIp() {
 	ipv6LldpSysNames := getLldpSysNameList(ipv6LldpDevEntry.Lldp)
 	ipv6NmapSysNames := getLldpSysNameList(ipv6NmapDevEntry.Lldp)
 
-	suite.Contains(ipv4SysNames, macToExpected[suite.mac3].expectedLldpSysName)
-	suite.Contains(ipv6LldpSysNames, macToExpected[suite.mac4].expectedLldpSysName)
-	suite.Contains(ipv6NmapSysNames, macToExpected[suite.mac2].expectedLldpSysName)
-
 	suite.Equal(1,
 		getAppearanceCount(macToExpected[suite.mac3].expectedLldpSysName, ipv4SysNames),
 		"Mismatch in the occurrence of an expected LLDP SysName after a merge")
@@ -363,7 +359,7 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 	}
 
 	//device_ip_count is six since there are six IPs present in the device entries
-	device_ip_count = 6
+	device_ip_count = 8
 
 	//Clean entries which are 48 hours older
 	predicates1 := []ListPredicate{
@@ -381,7 +377,7 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 	deviceList.CleanOldDeviceEntry(predicates2...)
 	//two device entries should be deleted from the device list which entry has LastUpdate with >24 hours
 	suite.EqualValues(device_count-2, len(deviceList.Devices), "Cleaned 24 hours older entry")
-	suite.EqualValues(device_ip_count-2, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
+	suite.EqualValues(device_ip_count-3, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
 
 }
 
@@ -417,6 +413,12 @@ func (suite *DeviceListTestSuite) TestMergeSessions() {
 			ClientBytes: 0,
 			ServerBytes: 10,
 		},
+		{
+			Bytes:         10,
+			ClientBytes:   0,
+			ServerBytes:   10,
+			ClientAddress: suite.devicesTable[suite.mac4].getDeviceIpsUnsafe()[0],
+		},
 	}
 
 	suite.deviceList.MergeSessions(sessions)
@@ -424,6 +426,8 @@ func (suite *DeviceListTestSuite) TestMergeSessions() {
 	suite.Equal(len(dev.sessions), 1)
 
 	suite.Equal(1, len(suite.deviceList.Devices[suite.mac3].sessions))
+
+	suite.Equal(1, len(suite.deviceList.Devices[suite.mac4].sessions))
 }
 
 func (suite *DeviceListTestSuite) TestDeviceMarshal() {
