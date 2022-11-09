@@ -25,13 +25,13 @@ type CallCollectorsRequest struct {
 }
 
 // toRpcRequest - converts the wrapper request struct to the one the RPC function expects
-func toRpcRequest(req CallCollectorsRequest) disco.RPCCallCollectorsRequest {
+func toRpcRequest(req CallCollectorsRequest) disco.CallDiscoveryRequest {
 	strCollectors := make([]string, len(req.Collectors), len(req.Collectors))
 	for i, c := range req.Collectors {
 		strCollectors[i] = string(c)
 	}
 
-	return disco.RPCCallCollectorsRequest{
+	return disco.CallDiscoveryRequest{
 		Collectors: strCollectors,
 		Args:       req.Args,
 	}
@@ -43,7 +43,7 @@ type CallCollectorsResponse struct {
 }
 
 // fromRPCResponse - converts the RPC response into a wrapper
-func fromRPCResponse(rpcResponse disco.RPCCallCollectorsResponse) CallCollectorsResponse {
+func fromRPCResponse(rpcResponse disco.CallDiscoveryResponse) CallCollectorsResponse {
 	return CallCollectorsResponse{
 		int32(rpcResponse.Result),
 	}
