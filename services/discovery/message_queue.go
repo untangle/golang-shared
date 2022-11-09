@@ -29,8 +29,6 @@ func MergeZmqMessageIntoDeviceList(devlist *DevicesList, device *DeviceEntry, ca
 	return nil
 }
 
-// TODO: When mergiing Csaba's changes in, make sure to add a shutdown in reportd for this function
-
 // FillDeviceListWithZMQDeviceMessages will run an infinite loop
 // receiving messages from channel and putting them into the device
 // list. Call callback on each new device.
@@ -49,7 +47,7 @@ Out:
 			switch msg.Topic {
 			case LLDPDeviceZMQTopic:
 				lldp := &disco.LLDP{}
-				logger.Err("Attempting to unmarshall LLDP ZMQ message\n")
+				logger.Debug("Attempting to unmarshall LLDP ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, lldp); err != nil {
 					logger.Warn("Could not unmarshal LLDP ZMQ Message: %s\n", err.Error())
 					break
@@ -61,7 +59,7 @@ Out:
 				}
 			case NEIGHDeviceZMQTopic:
 				neigh := &disco.NEIGH{}
-				logger.Err("Attempting to unmarshall NEIGH ZMQ message\n")
+				logger.Debug("Attempting to unmarshall NEIGH ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, neigh); err != nil {
 					logger.Warn("Could not unmarshal NEIGH ZMQ Message: %s\n", err.Error())
 					break
@@ -73,7 +71,7 @@ Out:
 				}
 			case NMAPDeviceZMQTopic:
 				nmap := &disco.NMAP{}
-				logger.Err("Attempting to unmarshall NMAP ZMQ message\n")
+				logger.Debug("Attempting to unmarshall NMAP ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, nmap); err != nil {
 					logger.Warn("Could not unmarshal NMAP ZMQ Message: %s\n", err.Error())
 					break
