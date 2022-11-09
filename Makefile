@@ -23,8 +23,8 @@ WARN_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(YELLOW)$(1)$(NC)
 all: build lint
 build:
 	$(call LOG_FUNCTION,"Compiling protocol buffers...")
-	rm -rf structs/protocolbuffers/*
-	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
+	# rm -rf structs/protocolbuffers/*
+	# protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
 
 environment:
 	$(call LOG_FUNCTION,"Setting up environment...")
@@ -55,5 +55,11 @@ test: build
 racetest: EXTRA_TEST_FLAGS=-race
 racetest: test
 
+browsecoverage: test
+	go tool cover -html=$(GO_COVERPROFILE) -o $(COVERAGE_HTML)
+	$(BROWSER) $(COVERAGE_HTML)
+
+funccoverage: test
+	go tool cover -func $(GO_COVERPROFILE)
 
 .PHONY: build lint environment

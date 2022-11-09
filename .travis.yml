@@ -17,4 +17,21 @@ before_install:
 - mv "$TRAVIS_BUILD_DIR" "${DIR}/golang-shared"
 - cd "${DIR}/golang-shared"
 script:
-- docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
+  - docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
+before_deploy:
+  - git config --local user.name "Travis CI"
+  - git config --local user.email "travis@travis-ci.org"
+  - export TRAVIS_TAG=$(echo $TRAVIS_COMMIT_MESSAGE | python3 version.py)
+  - if [ -n "$TRAVIS_TAG" ] && [ ! $(git tag -l "$TRAVIS_TAG") ]; then git tag $TRAVIS_TAG; fi
+  # remove newlines in the commit message or deploy will fail
+  - RELEASE_NAME=${TRAVIS_COMMIT_MESSAGE//$'\n'/ }
+  - RELEASE_HASH_FILE=${TRAVIS_BRANCH}.sha512
+  - sha512sum $PUSH_FILE_PATH > $RELEASE_HASH_FILE
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    token: $UNTANGLE_BOT_OATH_TOKEN
+    on:
+      branch: master
+    name: $RELEASE_NAME
+    release_notes: $RELEASE_NAME
