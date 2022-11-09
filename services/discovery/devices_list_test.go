@@ -54,7 +54,7 @@ func (suite *DeviceListTestSuite) SetupTest() {
 		suite.mac2: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac2,
 			LastUpdate: suite.halfHourAgo.Unix(),
-			Nmap:       []*disco.NMAP{{Hostname: "TestHostname0"}, {Hostname: "TestHostname1"}},
+			Nmap:       []*disco.NMAP{{Hostname: "TestHostname0"}, {Hostname: "TestHostname1", Ip: "ff90::a00:37ff:feb8:e927"}},
 		}},
 		suite.mac3: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac3,
@@ -64,7 +64,7 @@ func (suite *DeviceListTestSuite) SetupTest() {
 		suite.mac4: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac4,
 			LastUpdate: suite.aDayago.Unix(),
-			Lldp:       []*disco.LLDP{{SysName: "Sysname0"}, {SysName: "Sysname1"}},
+			Lldp:       []*disco.LLDP{{SysName: "Sysname0"}, {SysName: "Sysname1", Ip: "ee80::a00:37ff:feb0:e927"}},
 		}},
 		suite.mac5: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac5,
@@ -81,21 +81,82 @@ func (suite *DeviceListTestSuite) SetupTest() {
 // Test if MergeOrAddDeviceEntry can merge a DeviceEntry with just an IP address
 // if a DeviceEntry is already present in the DeviceList with a matching IP and a MAC Address
 func (suite *DeviceListTestSuite) TestMergeByIp() {
-	expectedSysName := "testIfThisFieldPresent"
+	// Try to merge in a new LLDP entry containing an expected field to check for
+	// If expectedLldpSysname isn't present in a Device Entry, then it wasn't merged
+	// properly
+	type expected struct {
+		mergeIp             string
+		expectedLldpSysName string
+	}
+	macToExpected := make(map[string]*expected)
+
+	// Merge new Device Entries
+	macToExpected[suite.mac2] = &expected{mergeIp: suite.devicesTable[suite.mac2].Nmap[1].Ip, expectedLldpSysName: "Ipv6MergeNmap"}
+	macToExpected[suite.mac3] = &expected{mergeIp: suite.devicesTable[suite.mac3].Neigh[0].Ip, expectedLldpSysName: "Ipv4Merge"}
+	macToExpected[suite.mac4] = &expected{mergeIp: suite.devicesTable[suite.mac4].Lldp[1].Ip, expectedLldpSysName: "Ipv6MergeLldp"}
 
 	suite.deviceList.MergeOrAddDeviceEntry(&DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{
-		Neigh: []*disco.NEIGH{{Ip: suite.devicesTable[suite.mac3].Neigh[0].Ip}},
-		Lldp:  []*disco.LLDP{{SysName: expectedSysName}},
+		Neigh: []*disco.NEIGH{{Ip: macToExpected[suite.mac3].mergeIp}},
+		Lldp:  []*disco.LLDP{{SysName: macToExpected[suite.mac3].expectedLldpSysName}},
 	}}, func() {})
 
-	dev := suite.deviceList.listDevices(func(d *DeviceEntry) bool {
-		if len(d.Lldp) > 0 && d.Lldp[0].SysName == expectedSysName {
-			return true
-		}
-		return false
-	})
+	suite.deviceList.MergeOrAddDeviceEntry(&DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{
+		Lldp: []*disco.LLDP{{SysName: macToExpected[suite.mac2].expectedLldpSysName, Ip: macToExpected[suite.mac2].mergeIp}},
+	}}, func() {})
 
-	suite.True(len(dev) > 0)
+	suite.deviceList.MergeOrAddDeviceEntry(&DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{
+		Lldp: []*disco.LLDP{{SysName: macToExpected[suite.mac4].expectedLldpSysName}},
+		Nmap: []*disco.NMAP{{Ip: macToExpected[suite.mac4].mergeIp}},
+	}}, func() {})
+
+	// Retrieve the updated device entries
+	ipv4DevEntry := suite.deviceList.GetDeviceEntryFromIP(macToExpected[suite.mac3].mergeIp)
+	ipv6NmapDevEntry := suite.deviceList.GetDeviceEntryFromIP(macToExpected[suite.mac2].mergeIp)
+	ipv6LldpDevEntry := suite.deviceList.GetDeviceEntryFromIP(macToExpected[suite.mac4].mergeIp)
+
+	// Get all the lldp entries to use a contains assertion later with the expected SysName
+	ipv4SysNames := getLldpSysNameList(ipv4DevEntry.Lldp)
+	ipv6LldpSysNames := getLldpSysNameList(ipv6LldpDevEntry.Lldp)
+	ipv6NmapSysNames := getLldpSysNameList(ipv6NmapDevEntry.Lldp)
+
+	suite.Contains(ipv4SysNames, macToExpected[suite.mac3].expectedLldpSysName)
+	suite.Contains(ipv6LldpSysNames, macToExpected[suite.mac4].expectedLldpSysName)
+	suite.Contains(ipv6NmapSysNames, macToExpected[suite.mac2].expectedLldpSysName)
+
+	suite.Equal(1,
+		getAppearanceCount(macToExpected[suite.mac3].expectedLldpSysName, ipv4SysNames),
+		"Mismatch in the occurrence of an expected LLDP SysName after a merge")
+
+	suite.Equal(1,
+		getAppearanceCount(macToExpected[suite.mac4].expectedLldpSysName, ipv6LldpSysNames),
+		"Mismatch in the occurrence of an expected LLDP SysName after a merge")
+
+	suite.Equal(1,
+		getAppearanceCount(macToExpected[suite.mac2].expectedLldpSysName, ipv6NmapSysNames),
+		"Mismatch in the occurrence of an expected LLDP SysName after a merge")
+
+}
+
+// Counts the number of times a given string appears in a list.
+// Used to check that duplicates don't happen during a merge
+func getAppearanceCount(match string, list []string) int {
+	count := 0
+	for _, element := range list {
+		if element == match {
+			count += 1
+		}
+	}
+	return count
+}
+
+// Gets a list of lldp sysnames for a device
+func getLldpSysNameList(lldpEntries []*disco.LLDP) []string {
+	var sysNames []string
+	for _, lldp := range lldpEntries {
+		sysNames = append(sysNames, lldp.SysName)
+	}
+
+	return sysNames
 }
 
 // TestListing tests that applying various predicates to the list

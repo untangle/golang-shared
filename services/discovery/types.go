@@ -201,7 +201,8 @@ func (n *DeviceEntry) Init() {
 }
 
 // Returns the list of IPs being used by a device. Does not acquire any locks
-// before accessing device list elements
+// before accessing device list elements. The IPs are fetched by going through
+// each collector entry and adding any IPs found to a set
 func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 	// Use a set to easily get the list of unique IPs assigned to a device
 	ipSet := make(map[string]string)
@@ -210,6 +211,19 @@ func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 		if neighEntry.Ip != "" {
 			ipSet[neighEntry.Ip] = ""
 		}
+	}
+
+	for _, lldpEntry := range n.Lldp {
+		if lldpEntry.Ip != "" {
+			ipSet[lldpEntry.Ip] = ""
+		}
+	}
+
+	for _, nmapEntry := range n.Nmap {
+		if nmapEntry.Ip != "" {
+			ipSet[nmapEntry.Ip] = ""
+		}
+
 	}
 
 	var ipList []string
