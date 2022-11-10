@@ -41,7 +41,7 @@ lint: modules
 	$(call LOG_FUNCTION,"Running golang linter...")
 	cd /tmp; GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
 	$(shell go env GOPATH)/bin/golangci-lint --version
-# IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
+        # IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
 	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
 
 test: build
@@ -58,11 +58,6 @@ racetest: test
 browsecoverage: test
 	go tool cover -html=$(GO_COVERPROFILE) -o $(COVERAGE_HTML)
 	$(BROWSER) $(COVERAGE_HTML)
-
-
-funccoverage: test
-	go tool cover -func $(GO_COVERPROFILE)
-
 
 funccoverage: test
 	go tool cover -func $(GO_COVERPROFILE)
