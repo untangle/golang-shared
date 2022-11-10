@@ -110,7 +110,7 @@ func (*EmptyParam) Descriptor() ([]byte, []int) {
 	return file_Discovery_proto_rawDescGZIP(), []int{0}
 }
 
-type NmapResponse struct {
+type CallDiscoveryResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -118,8 +118,8 @@ type NmapResponse struct {
 	Result ResponseCode `protobuf:"varint,1,opt,name=result,proto3,enum=discoverd.ResponseCode" json:"result,omitempty"`
 }
 
-func (x *NmapResponse) Reset() {
-	*x = NmapResponse{}
+func (x *CallDiscoveryResponse) Reset() {
+	*x = CallDiscoveryResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_Discovery_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -127,13 +127,13 @@ func (x *NmapResponse) Reset() {
 	}
 }
 
-func (x *NmapResponse) String() string {
+func (x *CallDiscoveryResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NmapResponse) ProtoMessage() {}
+func (*CallDiscoveryResponse) ProtoMessage() {}
 
-func (x *NmapResponse) ProtoReflect() protoreflect.Message {
+func (x *CallDiscoveryResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_Discovery_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -145,12 +145,12 @@ func (x *NmapResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NmapResponse.ProtoReflect.Descriptor instead.
-func (*NmapResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CallDiscoveryResponse.ProtoReflect.Descriptor instead.
+func (*CallDiscoveryResponse) Descriptor() ([]byte, []int) {
 	return file_Discovery_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *NmapResponse) GetResult() ResponseCode {
+func (x *CallDiscoveryResponse) GetResult() ResponseCode {
 	if x != nil {
 		return x.Result
 	}
@@ -158,17 +158,17 @@ func (x *NmapResponse) GetResult() ResponseCode {
 }
 
 // param: net is a string in CIDR notation
-type NmapRequest struct {
+type CallDiscoveryRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Net  []string `protobuf:"bytes,1,rep,name=net,proto3" json:"net,omitempty"`
-	Host []string `protobuf:"bytes,2,rep,name=host,proto3" json:"host,omitempty"`
+	Collectors []string `protobuf:"bytes,1,rep,name=collectors,proto3" json:"collectors,omitempty"`
+	Args       []string `protobuf:"bytes,2,rep,name=args,proto3" json:"args,omitempty"`
 }
 
-func (x *NmapRequest) Reset() {
-	*x = NmapRequest{}
+func (x *CallDiscoveryRequest) Reset() {
+	*x = CallDiscoveryRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_Discovery_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -176,13 +176,13 @@ func (x *NmapRequest) Reset() {
 	}
 }
 
-func (x *NmapRequest) String() string {
+func (x *CallDiscoveryRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NmapRequest) ProtoMessage() {}
+func (*CallDiscoveryRequest) ProtoMessage() {}
 
-func (x *NmapRequest) ProtoReflect() protoreflect.Message {
+func (x *CallDiscoveryRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_Discovery_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -194,21 +194,21 @@ func (x *NmapRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NmapRequest.ProtoReflect.Descriptor instead.
-func (*NmapRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CallDiscoveryRequest.ProtoReflect.Descriptor instead.
+func (*CallDiscoveryRequest) Descriptor() ([]byte, []int) {
 	return file_Discovery_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *NmapRequest) GetNet() []string {
+func (x *CallDiscoveryRequest) GetCollectors() []string {
 	if x != nil {
-		return x.Net
+		return x.Collectors
 	}
 	return nil
 }
 
-func (x *NmapRequest) GetHost() []string {
+func (x *CallDiscoveryRequest) GetArgs() []string {
 	if x != nil {
-		return x.Host
+		return x.Args
 	}
 	return nil
 }
@@ -1217,14 +1217,16 @@ var File_Discovery_proto protoreflect.FileDescriptor
 var file_Discovery_proto_rawDesc = []byte{
 	0x0a, 0x0f, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x12, 0x09, 0x64, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x64, 0x22, 0x0c, 0x0a, 0x0a,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x22, 0x3f, 0x0a, 0x0c, 0x4e, 0x6d,
-	0x61, 0x70, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x06, 0x72, 0x65,
-	0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x17, 0x2e, 0x64, 0x69, 0x73,
-	0x63, 0x6f, 0x76, 0x65, 0x72, 0x64, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x43,
-	0x6f, 0x64, 0x65, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x33, 0x0a, 0x0b, 0x4e,
-	0x6d, 0x61, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6e, 0x65,
-	0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x03, 0x6e, 0x65, 0x74, 0x12, 0x12, 0x0a, 0x04,
-	0x68, 0x6f, 0x73, 0x74, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74,
+	0x45, 0x6d, 0x70, 0x74, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x22, 0x48, 0x0a, 0x15, 0x43, 0x61,
+	0x6c, 0x6c, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0e, 0x32, 0x17, 0x2e, 0x64, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x64, 0x2e,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x43, 0x6f, 0x64, 0x65, 0x52, 0x06, 0x72, 0x65,
+	0x73, 0x75, 0x6c, 0x74, 0x22, 0x4a, 0x0a, 0x14, 0x43, 0x61, 0x6c, 0x6c, 0x44, 0x69, 0x73, 0x63,
+	0x6f, 0x76, 0x65, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e, 0x0a, 0x0a,
+	0x63, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09,
+	0x52, 0x0a, 0x63, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x12, 0x12, 0x0a, 0x04,
+	0x61, 0x72, 0x67, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x61, 0x72, 0x67, 0x73,
 	0x22, 0xc2, 0x01, 0x0a, 0x0e, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x45, 0x6e,
 	0x74, 0x72, 0x79, 0x12, 0x1e, 0x0a, 0x0a, 0x6d, 0x61, 0x63, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
 	0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6d, 0x61, 0x63, 0x41, 0x64, 0x64, 0x72,
@@ -1382,26 +1384,26 @@ func file_Discovery_proto_rawDescGZIP() []byte {
 var file_Discovery_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_Discovery_proto_goTypes = []interface{}{
-	(ResponseCode)(0),        // 0: discoverd.ResponseCode
-	(*EmptyParam)(nil),       // 1: discoverd.EmptyParam
-	(*NmapResponse)(nil),     // 2: discoverd.NmapResponse
-	(*NmapRequest)(nil),      // 3: discoverd.NmapRequest
-	(*DiscoveryEntry)(nil),   // 4: discoverd.DiscoveryEntry
-	(*LLDP)(nil),             // 5: discoverd.LLDP
-	(*LLDPCapabilities)(nil), // 6: discoverd.LLDPCapabilities
-	(*NEIGH)(nil),            // 7: discoverd.NEIGH
-	(*NMAP)(nil),             // 8: discoverd.NMAP
-	(*NMAPPorts)(nil),        // 9: discoverd.NMAPPorts
-	(*Independent)(nil),      // 10: discoverd.Independent
-	(*Reply)(nil),            // 11: discoverd.Reply
-	(*Original)(nil),         // 12: discoverd.Original
-	(*LayerThree)(nil),       // 13: discoverd.LayerThree
-	(*LayerFour)(nil),        // 14: discoverd.LayerFour
-	(*DeviceEntry)(nil),      // 15: discoverd.DeviceEntry
-	(*NeighEntries)(nil),     // 16: discoverd.NeighEntries
+	(ResponseCode)(0),             // 0: discoverd.ResponseCode
+	(*EmptyParam)(nil),            // 1: discoverd.EmptyParam
+	(*CallDiscoveryResponse)(nil), // 2: discoverd.CallDiscoveryResponse
+	(*CallDiscoveryRequest)(nil),  // 3: discoverd.CallDiscoveryRequest
+	(*DiscoveryEntry)(nil),        // 4: discoverd.DiscoveryEntry
+	(*LLDP)(nil),                  // 5: discoverd.LLDP
+	(*LLDPCapabilities)(nil),      // 6: discoverd.LLDPCapabilities
+	(*NEIGH)(nil),                 // 7: discoverd.NEIGH
+	(*NMAP)(nil),                  // 8: discoverd.NMAP
+	(*NMAPPorts)(nil),             // 9: discoverd.NMAPPorts
+	(*Independent)(nil),           // 10: discoverd.Independent
+	(*Reply)(nil),                 // 11: discoverd.Reply
+	(*Original)(nil),              // 12: discoverd.Original
+	(*LayerThree)(nil),            // 13: discoverd.LayerThree
+	(*LayerFour)(nil),             // 14: discoverd.LayerFour
+	(*DeviceEntry)(nil),           // 15: discoverd.DeviceEntry
+	(*NeighEntries)(nil),          // 16: discoverd.NeighEntries
 }
 var file_Discovery_proto_depIdxs = []int32{
-	0,  // 0: discoverd.NmapResponse.result:type_name -> discoverd.ResponseCode
+	0,  // 0: discoverd.CallDiscoveryResponse.result:type_name -> discoverd.ResponseCode
 	5,  // 1: discoverd.DiscoveryEntry.lldp:type_name -> discoverd.LLDP
 	7,  // 2: discoverd.DiscoveryEntry.neigh:type_name -> discoverd.NEIGH
 	8,  // 3: discoverd.DiscoveryEntry.nmap:type_name -> discoverd.NMAP
@@ -1439,7 +1441,7 @@ func file_Discovery_proto_init() {
 			}
 		}
 		file_Discovery_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NmapResponse); i {
+			switch v := v.(*CallDiscoveryResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1451,7 +1453,7 @@ func file_Discovery_proto_init() {
 			}
 		}
 		file_Discovery_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NmapRequest); i {
+			switch v := v.(*CallDiscoveryRequest); i {
 			case 0:
 				return &v.state
 			case 1:

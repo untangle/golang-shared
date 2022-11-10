@@ -37,7 +37,6 @@ func FillDeviceListWithZMQDeviceMessages(
 	channel chan *ZmqMessage,
 	shutdownChannel chan bool,
 	callback func(*DeviceEntry)) {
-Out:
 	for {
 		select {
 		case msg := <-channel:
@@ -83,8 +82,8 @@ Out:
 				}
 			}
 		case <-shutdownChannel:
-			shutdownChannel <- true
-			break Out
+			shutdownChannel <- true // for testing purposes
+			return
 		}
 	}
 }
