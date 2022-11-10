@@ -35,3 +35,11 @@ deploy:
       branch: master
     name: $RELEASE_NAME
     release_notes: $RELEASE_NAME
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    token: $UNTANGLE_BOT_OATH_TOKEN
+    on:
+      branch: versioning
+    name: $RELEASE_NAME
+    release_notes: $RELEASE_NAME
