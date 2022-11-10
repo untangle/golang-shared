@@ -26,8 +26,6 @@ before_deploy:
   - if [ -n "$TRAVIS_TAG" ] && [ ! $(git tag -l "$TRAVIS_TAG") ]; then git tag $TRAVIS_TAG; else echo "Uh-oh, tag $TRAVIS_TAG already exists!"; fi
   # remove newlines in the commit message or deploy will fail
   - RELEASE_NAME=${TRAVIS_COMMIT_MESSAGE//$'\n'/ }
-  - RELEASE_HASH_FILE=${TRAVIS_BRANCH}.sha512
-  - sha512sum $PUSH_FILE_PATH > $RELEASE_HASH_FILE
 deploy:
   - provider: releases
     skip_cleanup: true
