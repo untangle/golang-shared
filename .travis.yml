@@ -11,9 +11,7 @@ env:
 
   # UNTANGLE_BOT_OATH_TOKEN
   - secure: R9Q9Nyx1Wimy2fbvY3tOpVNWTl8f2pWTunE1VQWzQStJuZWASZr3FnkFFQ4DfgnxGeEqDYZiybxFNkVYJ/ZRcjoc+HRJHglzOjlsyBPt/bKGJHa1SE9czT6Lo0xvudIyICtapOjIwvqIGSaaW73nzBGBh6Hyy+lK2TXbep7oXGR3Hkoxg49/XzHN1BwHlUxW4OmXXSREmRTyKXNxh9qTcUWPkw2OPk4KKRrXmWo/k2UQlETUynJyVmbAoPaGWKVOCcuvYnu51nv5YoqGRAJ8a2J1ENg8mDgxfi2ExHh2rdrooglFQCo+/nc6PehYleb03EuPFg8WAFt72FvpcyX/VyPWZomb5Dx1Ye1PEmD+nsvoDwde9KyKaqAbLY8pRLWj1BOfDbOyN+FdD+1gMSEVnHiD0K8zqJEEtmVxCiOzszazSOW+lW04U/fTlVdfIxY6H28s/GQmBbYKvVsRUsb2vlRvb5WB97+LTL23ZkYqI4Wmplwd+N3oUsoUAU1WNlQu5HahcPDkEzzjlW4leF+oAWRg1LcYQx/9/cnZpz2i/6RpKLkJE2htUdHwo7Xo5kkeFRka1gsXdjwuxQQmYgr/ueELXfYjnEPUKy3LwfOb1lyzQjD1b50++k0ZhPr0/hE8Ap2vhtvO8lshkFeF+oKD5XgVTWJTPcHcxE9vlmCCjQU=
-  matrix:
-  - TARGET=glibc
-  - TARGET=musl
+
 services:
 - docker
 
@@ -21,6 +19,9 @@ services:
 jobs:
   include:
     - stage: test
+      env:
+        - TARGET=glibc
+        - TARGET=musl
       before_install:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - mkdir -p "$DIR"
