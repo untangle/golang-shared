@@ -31,7 +31,6 @@ jobs:
   include:
     - stage: deploy
       env: TARGET=musl
-      script:
       before_deploy:
         - git config --local user.name "Travis CI"
         - git config --local user.email "travis@travis-ci.org"
