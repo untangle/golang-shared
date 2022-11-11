@@ -7,7 +7,7 @@ EXTRA_TEST_FLAGS ?=
 GOTEST_COVERAGE ?= yes
 GO_COVERPROFILE ?= /tmp/packetd_coverage.out
 COVERAGE_HTML ?= /tmp/packetd_coverage.html
-BROWSER ?= open 
+BROWSER ?= open
 
 # logging
 NC := "\033[0m" # no color
@@ -41,7 +41,7 @@ lint: modules
 	$(call LOG_FUNCTION,"Running golang linter...")
 	cd /tmp; GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
 	$(shell go env GOPATH)/bin/golangci-lint --version
-# IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
+        # IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
 	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
 
 test: build
