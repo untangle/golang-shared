@@ -21,11 +21,13 @@ before_install:
 - mkdir -p "$DIR"
 - mv "$TRAVIS_BUILD_DIR" "${DIR}/golang-shared"
 - cd "${DIR}/golang-shared"
-script:
-- docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build
-  ${TARGET}-local || travis_terminate 1
+
 jobs:
   include:
+    - stage: test
+      script:
+        - docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build
+        ${TARGET}-local || travis_terminate 1
     - stage: deploy
       env: TARGET=musl
       before_deploy:
@@ -41,4 +43,4 @@ jobs:
           on:
             branch: master
             name: "$TRAVIS_TAG"
-            release_notes: "$RELEASE_NOTES"
+          release_notes: "$RELEASE_NOTES"
