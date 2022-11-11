@@ -34,7 +34,7 @@ jobs:
       before_deploy:
         - git config --local user.name "Travis CI"
         - git config --local user.email "travis@travis-ci.org"
-        - export TRAVIS_TAG=$(python3 version.py --fetch <<< "$TRAVIS_COMMIT_MESSAGE")
+        - export TRAVIS_TAG=$(python3 version.py --fetch <<< "$TRAVIS_COMMIT_MESSAGE")-testing
         - if [ -n "$TRAVIS_TAG" ] && [ ! $(git tag -l "$TRAVIS_TAG") ]; then git tag $TRAVIS_TAG; else echo "Uh-oh, tag $TRAVIS_TAG already exists!"; fi
         - RELEASE_NOTES=${TRAVIS_COMMIT_MESSAGE//$'\n'/ }
       script: /bin/true
@@ -45,4 +45,4 @@ jobs:
           name: "$TRAVIS_TAG"
           release_notes: "$RELEASE_NOTES"
           on:
-            branch: master
+            branch: versioning
