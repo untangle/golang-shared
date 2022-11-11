@@ -40,7 +40,7 @@ jobs:
         - provider: releases
           skip_cleanup: true
           token: "$UNTANGLE_BOT_OATH_TOKEN"
+          name: "$TRAVIS_TAG"
+          release_notes: "$RELEASE_NOTES"
           on:
             branch: master
-            name: "$TRAVIS_TAG"
-          release_notes: "$RELEASE_NOTES"
