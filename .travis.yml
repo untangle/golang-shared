@@ -1,5 +1,5 @@
 sudo: required
-dist: jammy
+dist: focal
 env:
   global:
     # DOCKER_PASSWORD
