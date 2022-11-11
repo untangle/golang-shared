@@ -20,7 +20,7 @@ services:
 before_install:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - mkdir -p "$DIR"
-  - mv "$TRAVIS_BUILD_DIR" "${DIR}/golang-shared"
+  - cp -R "$TRAVIS_BUILD_DIR" "${DIR}/golang-shared"
 
 script:
   - pushd "${DIR}/golang-shared"
