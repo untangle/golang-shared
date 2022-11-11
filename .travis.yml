@@ -26,8 +26,7 @@ jobs:
   include:
     - stage: test
       script:
-        - docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build
-        ${TARGET}-local || travis_terminate 1
+        - docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
     - stage: deploy
       env: TARGET=musl
       before_deploy:
