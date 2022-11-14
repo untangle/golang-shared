@@ -47,7 +47,7 @@ def find_latest_tag(fetch: bool):
 do_fetch = '--fetch' in sys.argv[1:]
 latest = find_latest_tag(do_fetch)
 
-# Now, loop through each liine of the commit message, looking for what
+# Now, loop through each line of the commit message, looking for what
 # version.
 msg = sys.stdin.read().splitlines()
 for type, (pattern, index) in patterns.items():

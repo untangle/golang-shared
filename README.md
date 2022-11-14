@@ -12,12 +12,19 @@ This package contains shared service components between untangle's restd, packet
     docker-compose -f build/docker-compose.build.yml up --build musl-local
     ```
 
-# Versioning
+# Versioning and CI/CD
 
-When merging to master, add a message to the bottom line of your merge
-message saying `version: bug` or `version: minor` or `version: major`.
+Every time you merge to master, a new version must be created. This is
+done semi-automatically by CI, but you need to tell it which type of
+version -- bug, minor, major -- is being created by the merge. To
+indicate this, when merging to master, add a message to the bottom
+line of your merge message (which is created when you merge the PR
+from the github UI) saying `version: bug` or `version: minor` or
+`version: major`.
 
-The version message needs to be on a line by itself. Make sure it's
-your merge message.
+The version message needs to be on a line by itself. *Make sure it's
+in your merge message.* It cannot be in some message that was commited
+to the branch that is being merged, it must be in the merge message
+itself, which will be created when you merge the PR on github.
 
 ##  [Working with modules](./MODULES.md)
