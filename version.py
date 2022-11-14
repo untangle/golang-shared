@@ -65,6 +65,6 @@ else:
     print(
         f'Could not find a version message in commit msg: {msg}!\n'
         'Please make sure your commit has version: (bug|minor|major)\n'
-        'on a line by itself somewhere.',
+        'on a line by itself somewhere. See the README.md Versioning section.',
         file=sys.stderr)
     raise SystemExit(1)
