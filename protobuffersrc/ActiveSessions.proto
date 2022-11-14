@@ -71,4 +71,6 @@ message Session {
   string application_name_inferred = 63;
   string server_dns_hint = 64;
   string client_dns_hint = 65;
+  uint32 client_port = 66;
+  uint32 client_port_new = 67;
 }
