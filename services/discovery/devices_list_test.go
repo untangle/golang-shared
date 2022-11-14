@@ -358,7 +358,7 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 
 	}
 
-	//device_ip_count is six since there are six IPs present in the device entries
+	//device_ip_count is eight since there are eight IPs present in the device entries
 	device_ip_count = 8
 
 	//Clean entries which are 48 hours older
