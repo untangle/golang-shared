@@ -46,6 +46,9 @@ def find_latest_tag(fetch: bool):
 
 do_fetch = '--fetch' in sys.argv[1:]
 latest = find_latest_tag(do_fetch)
+
+# Now, loop through each liine of the commit message, looking for what
+# version.
 msg = sys.stdin.read().splitlines()
 for type, (pattern, index) in patterns.items():
     # if any line matches the version increment pattern, increment the
@@ -59,5 +62,9 @@ for type, (pattern, index) in patterns.items():
         print('v' + '.'.join([str(i) for i in new]))
         break
 else:
-    print(f'Could not read commit msg: {msg}!', file=sys.stderr)
+    print(
+        f'Could not find a version message in commit msg: {msg}!\n'
+        'Please make sure your commit has version: (bug|minor|major)\n'
+        'on a line by itself somewhere.',
+        file=sys.stderr)
     raise SystemExit(1)
