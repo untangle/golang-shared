@@ -27,4 +27,11 @@ in your merge message.* It cannot be in some message that was commited
 to the branch that is being merged, it must be in the merge message
 itself, which will be created when you merge the PR on github.
 
+When things go wrong and it didn't version correctly, you can push to
+master with an empty commit like:
+
+```
+git commit --allow-empty -m "version: bug"
+```
+
 ##  [Working with modules](./MODULES.md)
