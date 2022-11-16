@@ -73,7 +73,7 @@ func validateOneCollector(pluginInterface interface{}) bool {
 
 	// depending on the collector type we try to cast to the actual collector settings struct and validate it
 	switch basePlugin.Type {
-	case discovery.Arp:
+	case discovery.Arp: // settings are still saved under "arp" field
 		neighbourSettings := NeighbourSettings{}
 		if err := json.Unmarshal(pluginBytes, &neighbourSettings); err != nil {
 			logger.Info("ValidateDiscoverySettings could not unmarshal neighbour settings with err %v\n", err)
@@ -114,6 +114,10 @@ func (s *LldpSettings) IsValid() bool {
 		logger.Info("ValidateDiscoverySettings LldpSettings AutoInterval should be between %v and %v but is %v\n", minAutoIncrement, maxAutoIncrement, s.AutoInterval)
 		return false
 	}
+	if s.Type != discovery.Lldp {
+		logger.Info("ValidateDiscoverySettings LldpSettings wrong type %v\n", s.Type)
+		return false
+	}
 	return true
 }
 
@@ -122,12 +126,20 @@ func (s *NeighbourSettings) IsValid() bool {
 		logger.Info("ValidateDiscoverySettings NeighbourSettings AutoInterval should be between %v and %v but is %v\n", minAutoIncrement, maxAutoIncrement, s.AutoInterval)
 		return false
 	}
+	if s.Type != discovery.Arp { // settings are still saved under "arp" field
+		logger.Info("ValidateDiscoverySettings NeighbourSettings wrong type %v\n", s.Type)
+		return false
+	}
 	return true
 }
 
 func (s *NmapSettings) IsValid() bool {
 	if !validateAutoInterval(s.AutoInterval) {
 		logger.Info("ValidateDiscoverySettings NmapSettings AutoInterval should be between %v and %v but is %v\n", minAutoIncrement, maxAutoIncrement, s.AutoInterval)
+		return false
+	}
+	if s.Type != discovery.Nmap {
+		logger.Info("ValidateDiscoverySettings NmapSettings wrong type %v\n", s.Type)
 		return false
 	}
 	return true
