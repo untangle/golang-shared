@@ -31,7 +31,11 @@ type NmapSettings struct {
 }
 
 type DiscoveryPluginSettings struct {
-	Enabled bool          `json:"enabled"`
+	Enabled bool `json:"enabled"`
+}
+
+type discoverySettingsObject struct {
+	DiscoveryPluginSettings
 	Plugins []interface{} `json:"plugins"`
 }
 
@@ -40,9 +44,9 @@ type DiscoveryPluginSettings struct {
 func ValidateDiscoverySettings(settingsObjBytes []byte) bool {
 
 	// first we unmarshal the whole settings object
-	discoverySettings := DiscoveryPluginSettings{}
+	discoverySettings := discoverySettingsObject{}
 	if err := json.Unmarshal(settingsObjBytes, &discoverySettings); err != nil {
-		logger.Info("ValidateDiscoverySettings unable to unmarshall DiscoveryPluginSettings with err %v\n", err)
+		logger.Info("ValidateDiscoverySettings unable to unmarshall discoverySettingsObject with err %v\n", err)
 		return false
 	}
 
