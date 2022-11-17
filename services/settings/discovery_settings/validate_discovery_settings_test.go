@@ -1,4 +1,4 @@
-package settings
+package discovery_settings
 
 import (
 	"encoding/json"
@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/untangle/golang-shared/services/logger"
 )
 
-func TestValidatePluginSettings(t *testing.T) {
+func TestValidateDiscoverySettings(t *testing.T) {
 
 	type testCase struct {
 		SettingsObj interface{} `json:"settingsObj"`
@@ -16,7 +17,7 @@ func TestValidatePluginSettings(t *testing.T) {
 		Description string      `json:"description"`
 	}
 
-	raw, err := ioutil.ReadFile("./testdata/settings_types.json")
+	raw, err := ioutil.ReadFile("./../testdata/discovery_settings_types.json")
 	assert.Nil(t, err, "error reading test file")
 
 	testObject := []testCase{}
@@ -25,6 +26,7 @@ func TestValidatePluginSettings(t *testing.T) {
 	assert.Nil(t, err, "error unmarshalling test file")
 
 	for testIndex, test := range testObject {
+		logger.Info("Test %v:%v", testIndex, test.Description)
 		bodyBytes, err := json.Marshal(test.SettingsObj)
 		assert.Nil(t, err, "error marshalling test case %v:%v", testIndex, test.Description)
 
