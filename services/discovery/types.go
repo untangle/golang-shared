@@ -162,24 +162,30 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
 
+	logger.Err("Before new: %v", entry)
+
 	deviceIps := entry.getDeviceIpsUnsafe()
 	if entry.MacAddress == "" && len(deviceIps) > 0 {
 		for _, ip := range deviceIps {
-			// Once an old entry is found and the new entry is merged with it,
-			// break out of the loop since any device found is a pointer that
+			// Once an old entry is oldEntry and the new entry is merged with it,
+			// break out of the loop since any device oldEntry is a pointer that
 			// every IP for a device points to
-			if found := list.getDeviceFromIPUnsafe(ip); found != nil {
-				found.Merge(entry)
-				list.putDeviceUnsafe(found)
+			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil {
+				logger.Err("Before old: %v", oldEntry)
+				oldEntry.Merge(entry)
+				list.putDeviceUnsafe(oldEntry)
 				callback()
+				logger.Err("After %v", oldEntry)
 				return
 			}
 		}
 	} else if entry.MacAddress == "" {
 		return
 	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
+		logger.Err("Before old: %v", oldEntry)
 		oldEntry.Merge(entry)
 		list.putDeviceUnsafe(oldEntry)
+		logger.Err("AFter %v", oldEntry)
 		callback()
 		return
 	}
