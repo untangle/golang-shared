@@ -23,7 +23,10 @@ type DeviceEntry struct {
 type DevicesList struct {
 	Devices map[string]*DeviceEntry
 
-	// an index of the devices by IP.
+	// TODO: Prior to 1.18, net.HardwareAddr and net.IpAddr cannot be used as a map key.
+	// Currently we have to be careful about making our Mac and IPV6 string uppercase
+	// before using them as a key in devicesByIp and Devices maps to avoid duplicates. Once upgraded
+	// to 1.18+, swap these string type keys to net.HardwareAddr for Devices and net.IpAddr for devicesByIp
 	devicesByIP map[string]*DeviceEntry
 	Lock        sync.RWMutex
 }
@@ -166,14 +169,19 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 			// break out of the loop since any device found is a pointer that
 			// every IP for a device points to
 			if found := list.getDeviceFromIPUnsafe(ip); found != nil {
-				entry.Merge(found)
-				break
+				found.Merge(entry)
+				list.putDeviceUnsafe(found)
+				callback()
+				return
 			}
 		}
 	} else if entry.MacAddress == "" {
 		return
 	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
-		entry.Merge(oldEntry)
+		oldEntry.Merge(entry)
+		list.putDeviceUnsafe(oldEntry)
+		callback()
+		return
 	}
 	list.putDeviceUnsafe(entry)
 	callback()
@@ -206,23 +214,16 @@ func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 	// Use a set to easily get the list of unique IPs assigned to a device
 	ipSet := make(map[string]struct{})
 
-	for _, neighEntry := range n.Neigh {
-		if neighEntry.Ip != "" {
-			ipSet[neighEntry.Ip] = struct{}{}
-		}
+	for ip := range n.Neigh {
+		ipSet[ip] = struct{}{}
 	}
 
-	for _, lldpEntry := range n.Lldp {
-		if lldpEntry.Ip != "" {
-			ipSet[lldpEntry.Ip] = struct{}{}
-		}
+	for ip := range n.Lldp {
+		ipSet[ip] = struct{}{}
 	}
 
-	for _, nmapEntry := range n.Nmap {
-		if nmapEntry.Ip != "" {
-			ipSet[nmapEntry.Ip] = struct{}{}
-		}
-
+	for ip := range n.Nmap {
+		ipSet[ip] = struct{}{}
 	}
 
 	var ipList []string
