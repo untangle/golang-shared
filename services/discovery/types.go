@@ -152,6 +152,7 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 // put the new entry in the table. The provided callback function is
 // called after everything is merged but before the lock is
 // released. This can allow you to clone/copy the merged device.
+// Make sure to merge new into old.
 func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
 	// Lock the entry down before reading from it.
 	// Otherwise the read in Merge causes a data race
@@ -162,34 +163,33 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
 
-	logger.Err("Before new: %v", entry)
-
 	deviceIps := entry.getDeviceIpsUnsafe()
-	if entry.MacAddress == "" && len(deviceIps) > 0 {
+	if entry.MacAddress == "" && len(deviceIps) <= 0 {
+		return
+	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
+		oldEntry.Merge(entry)
+		list.putDeviceUnsafe(oldEntry)
+	} else if len(deviceIps) > 0 {
+		// See if the IPs of entry correspond to any others
+		found := false
 		for _, ip := range deviceIps {
 			// Once an old entry is oldEntry and the new entry is merged with it,
 			// break out of the loop since any device oldEntry is a pointer that
 			// every IP for a device points to
 			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil {
-				logger.Err("Before old: %v", oldEntry)
 				oldEntry.Merge(entry)
 				list.putDeviceUnsafe(oldEntry)
-				callback()
-				logger.Err("After %v", oldEntry)
-				return
+				found = true
+				break
 			}
 		}
-	} else if entry.MacAddress == "" {
-		return
-	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
-		logger.Err("Before old: %v", oldEntry)
-		oldEntry.Merge(entry)
-		list.putDeviceUnsafe(oldEntry)
-		logger.Err("AFter %v", oldEntry)
-		callback()
-		return
+		if !found {
+			list.putDeviceUnsafe(entry)
+		}
+	} else {
+		list.putDeviceUnsafe(entry)
 	}
-	list.putDeviceUnsafe(entry)
+
 	callback()
 }
 
