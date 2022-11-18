@@ -13,7 +13,7 @@ const (
 
 // CallCollectors is a stub for the RPC call
 func CallCollectors(args CallCollectorsRequest) (*CallCollectorsResponse, error) {
-	logger.Info("CallCollectors called\n")
+	logger.Debug("CallCollectors called\n")
 	if len(args.Collectors) == 0 {
 		logger.Warn("CallCollectors called but no collector specified!")
 	}
