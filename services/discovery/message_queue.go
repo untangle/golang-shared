@@ -1,6 +1,8 @@
 package discovery
 
 import (
+	"strings"
+
 	logService "github.com/untangle/golang-shared/services/logger"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
@@ -52,8 +54,14 @@ func FillDeviceListWithZMQDeviceMessages(
 					break
 				}
 
-				lldpDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Lldp: []*disco.LLDP{lldp},
-					MacAddress: lldp.Mac,
+				macAddress := strings.ToUpper(lldp.Mac)
+				ipAddr := strings.ToUpper(lldp.Ip)
+
+				entryMap := make(map[string]*disco.LLDP)
+				entryMap[ipAddr] = lldp
+
+				lldpDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Lldp: entryMap,
+					MacAddress: macAddress,
 					LastUpdate: lldp.LastUpdate}}
 				if err := MergeZmqMessageIntoDeviceList(devlist, lldpDeviceEntry, callback); err != nil {
 					logger.Warn("Could not process LLDP ZMQ message: %\n", err.Error())
@@ -66,8 +74,14 @@ func FillDeviceListWithZMQDeviceMessages(
 					break
 				}
 
-				neighDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Neigh: []*disco.NEIGH{neigh},
-					MacAddress: neigh.Mac,
+				macAddress := strings.ToUpper(neigh.Mac)
+				ipAddr := strings.ToUpper(neigh.Ip)
+
+				entryMap := make(map[string]*disco.NEIGH)
+				entryMap[ipAddr] = neigh
+
+				neighDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Neigh: entryMap,
+					MacAddress: macAddress,
 					LastUpdate: neigh.LastUpdate}}
 				if err := MergeZmqMessageIntoDeviceList(devlist, neighDeviceEntry, callback); err != nil {
 					logger.Warn("Could not process NEIGH ZMQ message: %\n", err.Error())
@@ -80,8 +94,14 @@ func FillDeviceListWithZMQDeviceMessages(
 					break
 				}
 
-				nmapDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Nmap: []*disco.NMAP{nmap},
-					MacAddress: nmap.Mac,
+				macAddress := strings.ToUpper(nmap.Mac)
+				ipAddr := strings.ToUpper(nmap.Ip)
+
+				entryMap := make(map[string]*disco.NMAP)
+				entryMap[ipAddr] = nmap
+
+				nmapDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Nmap: entryMap,
+					MacAddress: macAddress,
 					LastUpdate: nmap.LastUpdate}}
 				if err := MergeZmqMessageIntoDeviceList(devlist, nmapDeviceEntry, callback); err != nil {
 					logger.Warn("Could not process NMAP ZMQ message: %\n", err.Error())

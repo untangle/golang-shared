@@ -42,40 +42,74 @@ func (suite *DeviceListTestSuite) SetupTest() {
 	suite.mac1 = "00:11:22:33:44:55"
 	suite.mac2 = "00:11:22:33:44:66"
 	suite.mac3 = "00:11:33:44:55:66"
-	suite.mac4 = "00:aa:bb:cc:dd:ee"
-	suite.mac5 = "00:aa:bb:cc:dd:ef"
+	suite.mac4 = "00:AA:BB:BB:DD:EE"
+	suite.mac5 = "00:AA:BB:CC:DD:EF"
 
 	suite.devicesTable = map[string]*DeviceEntry{
 		suite.mac1: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac1,
 			LastUpdate: suite.oneHourAgo.Unix(),
-			Neigh:      []*disco.NEIGH{{Ip: "192.168.50.4"}, {Ip: "192.168.50.5"}},
+			Neigh:      map[string]*disco.NEIGH{"192.168.50.4": {Ip: "192.168.50.4"}, "192.168.50.5": {Ip: "192.168.50.5"}},
 		}},
 		suite.mac2: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac2,
 			LastUpdate: suite.halfHourAgo.Unix(),
-			Nmap:       []*disco.NMAP{{Hostname: "TestHostname0"}, {Hostname: "TestHostname1", Ip: "ff90::a00:37ff:feb8:e927"}},
+			Nmap:       map[string]*disco.NMAP{"ee90::a00:37ef:feb8:e927": {Hostname: "TestHostname0", Ip: "ee90::a00:37ef:feb8:e927"}, "ff90::a00:37ff:feb8:e927": {Hostname: "TestHostname1", Ip: "ff90::a00:37ff:feb8:e927"}},
 		}},
 		suite.mac3: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac3,
 			LastUpdate: suite.halfHourAgo.Unix(),
-			Neigh:      []*disco.NEIGH{{Ip: "192.168.53.4"}, {Ip: "192.168.53.5"}},
+			Neigh:      map[string]*disco.NEIGH{"192.168.53.4": {Ip: "192.168.53.4", State: "bad"}, "192.168.53.5": {Ip: "192.168.53.5", State: "bad"}},
 		}},
 		suite.mac4: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac4,
 			LastUpdate: suite.aDayago.Unix(),
-			Lldp:       []*disco.LLDP{{SysName: "Sysname0"}, {SysName: "Sysname1", Ip: "ee80::a00:37ff:feb0:e927"}},
+			Lldp:       map[string]*disco.LLDP{"ee80::a11:37ee:feb0:e927": {SysName: "Sysname0", Ip: "ee80::a11:37ee:feb0:e927"}, "ee80::a00:37ff:feb0:e927": {SysName: "Sysname1", Ip: "ee80::a00:37ff:feb0:e927"}},
 		}},
 		suite.mac5: {DiscoveryEntry: disco.DiscoveryEntry{
 			MacAddress: suite.mac5,
 			LastUpdate: suite.aDayago.Unix(),
-			Neigh:      []*disco.NEIGH{{Ip: "192.168.55.4"}, {Ip: "192.168.55.5"}},
+			Neigh:      map[string]*disco.NEIGH{"192.168.55.4": {Ip: "192.168.55.4"}, "192.168.55.5": {Ip: "192.168.55.5"}},
 		}},
 	}
 	suite.deviceList = NewDevicesList()
 	for _, entry := range suite.devicesTable {
 		suite.deviceList.PutDevice(entry)
 	}
+}
+
+// Tests that the collector components of a device list merge properly.
+// It's expected that the new device entry collector fields overwrite the old ones
+func (suite *DeviceListTestSuite) TestMergeCollectors() {
+	// Sysname to check for to verify the new value overwrote the onld
+	expectedSysnameLldp := "SysNameNew"
+	expectedStateNeigh := "good"
+	expectedHostnameNmap := "new"
+
+	// Since maps have a random order, have to hard code the IPs to match up
+	lldpMerge := *suite.devicesTable[suite.mac4]
+	neighMerge := *suite.devicesTable[suite.mac3]
+	nmapMerge := *suite.devicesTable[suite.mac2]
+
+	ipLldpMerge := lldpMerge.getDeviceIpsUnsafe()[0]
+	ipNeighMerge := neighMerge.getDeviceIpsUnsafe()[0]
+	ipNmapMerge := nmapMerge.getDeviceIpsUnsafe()[0]
+
+	lldpMerge.Lldp = map[string]*disco.LLDP{ipLldpMerge: {SysName: expectedSysnameLldp, Ip: ipLldpMerge}}
+	neighMerge.Neigh = map[string]*disco.NEIGH{ipNeighMerge: {State: expectedStateNeigh, Ip: ipNeighMerge}}
+	nmapMerge.Nmap = map[string]*disco.NMAP{ipNmapMerge: {Hostname: expectedHostnameNmap, Ip: ipNmapMerge}}
+
+	suite.deviceList.MergeOrAddDeviceEntry(&lldpMerge, func() {})
+	suite.deviceList.MergeOrAddDeviceEntry(&neighMerge, func() {})
+	suite.deviceList.MergeOrAddDeviceEntry(&nmapMerge, func() {})
+
+	lldpDevice := suite.deviceList.getDeviceFromIPUnsafe(ipLldpMerge)
+	neighDevice := suite.deviceList.getDeviceFromIPUnsafe(ipNeighMerge)
+	nmapDevice := suite.deviceList.getDeviceFromIPUnsafe(ipNmapMerge)
+
+	suite.Equal(expectedSysnameLldp, lldpDevice.Lldp[ipLldpMerge].SysName)
+	suite.Equal(expectedStateNeigh, neighDevice.Neigh[ipNeighMerge].State)
+	suite.Equal(expectedHostnameNmap, nmapDevice.Nmap[ipNmapMerge].Hostname)
 }
 
 // Test if MergeOrAddDeviceEntry can merge a DeviceEntry with just an IP address
@@ -89,24 +123,25 @@ func (suite *DeviceListTestSuite) TestMergeByIp() {
 		expectedLldpSysName string
 	}
 	macToExpected := make(map[string]*expected)
+	expectedLldpIp := "1.1.1.5"
 
 	// Merge new Device Entries
-	macToExpected[suite.mac2] = &expected{mergeIp: suite.devicesTable[suite.mac2].Nmap[1].Ip, expectedLldpSysName: "Ipv6MergeNmap"}
-	macToExpected[suite.mac3] = &expected{mergeIp: suite.devicesTable[suite.mac3].Neigh[0].Ip, expectedLldpSysName: "Ipv4Merge"}
-	macToExpected[suite.mac4] = &expected{mergeIp: suite.devicesTable[suite.mac4].Lldp[1].Ip, expectedLldpSysName: "Ipv6MergeLldp"}
+	macToExpected[suite.mac2] = &expected{mergeIp: suite.devicesTable[suite.mac2].Nmap["ff90::a00:37ff:feb8:e927"].Ip, expectedLldpSysName: "Ipv6MergeNmap"}
+	macToExpected[suite.mac3] = &expected{mergeIp: suite.devicesTable[suite.mac3].Neigh["192.168.53.4"].Ip, expectedLldpSysName: "Ipv4Merge"}
+	macToExpected[suite.mac4] = &expected{mergeIp: suite.devicesTable[suite.mac4].Lldp["ee80::a00:37ff:feb0:e927"].Ip, expectedLldpSysName: "Ipv6MergeLldp"}
 
 	suite.deviceList.MergeOrAddDeviceEntry(&DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{
-		Neigh: []*disco.NEIGH{{Ip: macToExpected[suite.mac3].mergeIp}},
-		Lldp:  []*disco.LLDP{{SysName: macToExpected[suite.mac3].expectedLldpSysName}},
+		Neigh: map[string]*disco.NEIGH{macToExpected[suite.mac3].mergeIp: {Ip: macToExpected[suite.mac3].mergeIp}},
+		Lldp:  map[string]*disco.LLDP{macToExpected[suite.mac3].mergeIp: {SysName: macToExpected[suite.mac3].expectedLldpSysName}},
 	}}, func() {})
 
 	suite.deviceList.MergeOrAddDeviceEntry(&DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{
-		Lldp: []*disco.LLDP{{SysName: macToExpected[suite.mac2].expectedLldpSysName, Ip: macToExpected[suite.mac2].mergeIp}},
+		Lldp: map[string]*disco.LLDP{macToExpected[suite.mac2].mergeIp: {SysName: macToExpected[suite.mac2].expectedLldpSysName, Ip: macToExpected[suite.mac2].mergeIp}},
 	}}, func() {})
 
 	suite.deviceList.MergeOrAddDeviceEntry(&DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{
-		Lldp: []*disco.LLDP{{SysName: macToExpected[suite.mac4].expectedLldpSysName}},
-		Nmap: []*disco.NMAP{{Ip: macToExpected[suite.mac4].mergeIp}},
+		Nmap: map[string]*disco.NMAP{macToExpected[suite.mac4].mergeIp: {Ip: macToExpected[suite.mac4].mergeIp}},
+		Lldp: map[string]*disco.LLDP{expectedLldpIp: {SysName: macToExpected[suite.mac4].expectedLldpSysName}},
 	}}, func() {})
 
 	// Retrieve the updated device entries
@@ -146,7 +181,7 @@ func getAppearanceCount(match string, list []string) int {
 }
 
 // Gets a list of lldp sysnames for a device
-func getLldpSysNameList(lldpEntries []*disco.LLDP) []string {
+func getLldpSysNameList(lldpEntries map[string]*disco.LLDP) []string {
 	var sysNames []string
 	for _, lldp := range lldpEntries {
 		sysNames = append(sysNames, lldp.SysName)
@@ -241,7 +276,7 @@ func (suite *DeviceListTestSuite) TestListing() {
 
 }
 
-// TestMerge tests the merge and add funcionality. We test that
+// TestMerge tests the merge and add functionality. We test that
 // concurrent merges are okay and that we actually do merge undefined
 // or newer fields.
 func (suite *DeviceListTestSuite) TestMerge() {
@@ -261,7 +296,7 @@ func (suite *DeviceListTestSuite) TestMerge() {
 				MacAddress: mac,
 				LastUpdate: v.LastUpdate + 1,
 				Lldp:       v.Lldp,
-				Neigh:      []*disco.NEIGH{{Ip: newIp}},
+				Neigh:      map[string]*disco.NEIGH{newIp: {Ip: newIp}},
 				Nmap:       v.Nmap,
 			},
 		}
@@ -281,7 +316,7 @@ func (suite *DeviceListTestSuite) TestMerge() {
 				MacAddress: mac,
 				LastUpdate: v.LastUpdate + 1,
 				Lldp:       v.Lldp,
-				Neigh:      []*disco.NEIGH{{Ip: newIp}},
+				Neigh:      map[string]*disco.NEIGH{newIp: {Ip: newIp}},
 				Nmap:       v.Nmap,
 			},
 		}
@@ -289,8 +324,6 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		i++
 		deviceTests = append(deviceTests, testSpec, testSpecCopy)
 	}
-
-	// Add entry with identical mac address to
 
 	wg := sync.WaitGroup{}
 	var count uint32
@@ -302,7 +335,6 @@ func (suite *DeviceListTestSuite) TestMerge() {
 				func() {
 					// assert that we put this entry in the table.
 					mapEntry := suite.deviceList.Devices[pair.expectedMac]
-					suite.Same(mapEntry, pair.new)
 					suite.Equal(mapEntry.LastUpdate, pair.new.LastUpdate)
 					suite.ElementsMatch(mapEntry.getDeviceIpsUnsafe(), pair.expectedIps)
 					suite.Equal(mapEntry.MacAddress, pair.expectedMac)
@@ -358,8 +390,8 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 
 	}
 
-	//device_ip_count is eight since there are eight IPs present in the device entries
-	device_ip_count = 8
+	//device_ip_count is ten since there are ten IPs present in the device entries
+	device_ip_count = 10
 
 	//Clean entries which are 48 hours older
 	predicates1 := []ListPredicate{
@@ -377,8 +409,7 @@ func (suite *DeviceListTestSuite) TestCleanDeviceEntry() {
 	deviceList.CleanOldDeviceEntry(predicates2...)
 	//two device entries should be deleted from the device list which entry has LastUpdate with >24 hours
 	suite.EqualValues(device_count-2, len(deviceList.Devices), "Cleaned 24 hours older entry")
-	suite.EqualValues(device_ip_count-3, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
-
+	suite.EqualValues(device_ip_count-4, len(deviceList.devicesByIP), "Cleaned 24 hours older entry")
 }
 
 // TestMarshallingList tests that we can marshal a list of devices
