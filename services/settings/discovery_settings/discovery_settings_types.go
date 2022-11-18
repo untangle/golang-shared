@@ -37,7 +37,7 @@ type discoverySettingsObject struct {
 	Plugins []interface{} `json:"plugins"`
 }
 
+// interface for collector settings types
 type iCollectorSettings interface {
 	IsValid() bool
-	readBytes(bytes []byte) bool
 }

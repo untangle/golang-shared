@@ -50,14 +50,9 @@ func validateOneCollector(settingsInterface interface{}) bool {
 		return false
 	}
 
-	// get settings object for the plugin's type as interface
-	pluginSettings, ok := createSettingsForCollector(baseSettings.Type)
+	// convert setting bytes to the settings corresponding to the collector type
+	pluginSettings, ok := readCollectorBytes(baseSettings.Type, settingsBytes)
 	if !ok {
-		return false
-	}
-
-	// read plugin settings from bytes
-	if !pluginSettings.readBytes(settingsBytes) {
 		return false
 	}
 

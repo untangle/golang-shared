@@ -18,41 +18,18 @@ var (
 )
 
 // if collectorName is valid, returns a new settings object for the collectorName and true, otherwise returns (nil, false)
-func createSettingsForCollector(collectorName discovery.CollectorName) (
-	settingsObj iCollectorSettings,
-	exists bool,
-) {
+func readCollectorBytes(collectorName discovery.CollectorName, bytes []byte) (iCollectorSettings, bool) {
 	createSettings, ok := collectorToSettingsMap[collectorName]
 	if !ok {
-		logger.Info("createSettingsForCollector received unknown settings type %v\n", collectorName)
+		logger.Info("readCollectorBytes received unknown settings type %v\n", collectorName)
 		return nil, false
 	}
-	return createSettings(), true
-}
 
-// attempts to read a byte array and convert it to LldpSettings, returns true if the conversion was successful, false otherwise
-func (s *LldpSettings) readBytes(bytes []byte) bool {
-	if err := json.Unmarshal(bytes, s); err != nil {
-		logger.Info("ValidateDiscoverySettings could not unmarshal LldpSettings with err %v\n", err)
-		return false
+	settings := createSettings()
+	if err := json.Unmarshal(bytes, settings); err != nil {
+		logger.Info("readCollectorBytes could not unmarshal %v with err %v\n", collectorName, err)
+		return nil, false
 	}
-	return true
-}
 
-// attempts to read a byte array and convert it to LldpSettings, returns true if the conversion was successful, false otherwise
-func (s *NeighbourSettings) readBytes(bytes []byte) bool {
-	if err := json.Unmarshal(bytes, s); err != nil {
-		logger.Info("ValidateDiscoverySettings could not unmarshal NeighbourSettings with err %v\n", err)
-		return false
-	}
-	return true
-}
-
-// attempts to read a byte array and convert it to LldpSettings, returns true if the conversion was successful, false otherwise
-func (s *NmapSettings) readBytes(bytes []byte) bool {
-	if err := json.Unmarshal(bytes, s); err != nil {
-		logger.Info("ValidateDiscoverySettings could not unmarshal NmapSettings with err %v\n", err)
-		return false
-	}
-	return true
+	return settings, true
 }
