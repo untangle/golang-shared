@@ -218,11 +218,11 @@ type DiscoveryEntry struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MacAddress string   `protobuf:"bytes,1,opt,name=macAddress,proto3" json:"macAddress,omitempty"`
-	LastUpdate int64    `protobuf:"varint,2,opt,name=LastUpdate,proto3" json:"LastUpdate,omitempty"`
-	Lldp       []*LLDP  `protobuf:"bytes,3,rep,name=lldp,proto3" json:"lldp,omitempty"`
-	Neigh      []*NEIGH `protobuf:"bytes,4,rep,name=neigh,proto3" json:"neigh,omitempty"`
-	Nmap       []*NMAP  `protobuf:"bytes,5,rep,name=nmap,proto3" json:"nmap,omitempty"`
+	MacAddress string            `protobuf:"bytes,1,opt,name=macAddress,proto3" json:"macAddress,omitempty"`
+	LastUpdate int64             `protobuf:"varint,2,opt,name=LastUpdate,proto3" json:"LastUpdate,omitempty"`
+	Lldp       map[string]*LLDP  `protobuf:"bytes,3,rep,name=lldp,proto3" json:"lldp,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Neigh      map[string]*NEIGH `protobuf:"bytes,4,rep,name=neigh,proto3" json:"neigh,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Nmap       map[string]*NMAP  `protobuf:"bytes,5,rep,name=nmap,proto3" json:"nmap,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *DiscoveryEntry) Reset() {
@@ -271,21 +271,21 @@ func (x *DiscoveryEntry) GetLastUpdate() int64 {
 	return 0
 }
 
-func (x *DiscoveryEntry) GetLldp() []*LLDP {
+func (x *DiscoveryEntry) GetLldp() map[string]*LLDP {
 	if x != nil {
 		return x.Lldp
 	}
 	return nil
 }
 
-func (x *DiscoveryEntry) GetNeigh() []*NEIGH {
+func (x *DiscoveryEntry) GetNeigh() map[string]*NEIGH {
 	if x != nil {
 		return x.Neigh
 	}
 	return nil
 }
 
-func (x *DiscoveryEntry) GetNmap() []*NMAP {
+func (x *DiscoveryEntry) GetNmap() map[string]*NMAP {
 	if x != nil {
 		return x.Nmap
 	}
@@ -1243,7 +1243,7 @@ var file_Discovery_proto_rawDesc = []byte{
 	0x63, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09,
 	0x52, 0x0a, 0x63, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x12, 0x12, 0x0a, 0x04,
 	0x61, 0x72, 0x67, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x61, 0x72, 0x67, 0x73,
-	0x22, 0xc2, 0x01, 0x0a, 0x0e, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x45, 0x6e,
+	0x22, 0xde, 0x03, 0x0a, 0x0e, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x45, 0x6e,
 	0x74, 0x72, 0x79, 0x12, 0x1e, 0x0a, 0x0a, 0x6d, 0x61, 0x63, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
 	0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6d, 0x61, 0x63, 0x41, 0x64, 0x64, 0x72,
 	0x65, 0x73, 0x73, 0x12, 0x1e, 0x0a, 0x0a, 0x4c, 0x61, 0x73, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74,
@@ -1402,7 +1402,7 @@ func file_Discovery_proto_rawDescGZIP() []byte {
 }
 
 var file_Discovery_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_Discovery_proto_goTypes = []interface{}{
 	(ResponseCode)(0),             // 0: discoverd.ResponseCode
 	(*EmptyParam)(nil),            // 1: discoverd.EmptyParam
@@ -1421,12 +1421,15 @@ var file_Discovery_proto_goTypes = []interface{}{
 	(*LayerFour)(nil),             // 14: discoverd.LayerFour
 	(*DeviceEntry)(nil),           // 15: discoverd.DeviceEntry
 	(*NeighEntries)(nil),          // 16: discoverd.NeighEntries
+	nil,                           // 17: discoverd.DiscoveryEntry.LldpEntry
+	nil,                           // 18: discoverd.DiscoveryEntry.NeighEntry
+	nil,                           // 19: discoverd.DiscoveryEntry.NmapEntry
 }
 var file_Discovery_proto_depIdxs = []int32{
 	0,  // 0: discoverd.CallDiscoveryResponse.result:type_name -> discoverd.ResponseCode
-	5,  // 1: discoverd.DiscoveryEntry.lldp:type_name -> discoverd.LLDP
-	7,  // 2: discoverd.DiscoveryEntry.neigh:type_name -> discoverd.NEIGH
-	8,  // 3: discoverd.DiscoveryEntry.nmap:type_name -> discoverd.NMAP
+	17, // 1: discoverd.DiscoveryEntry.lldp:type_name -> discoverd.DiscoveryEntry.LldpEntry
+	18, // 2: discoverd.DiscoveryEntry.neigh:type_name -> discoverd.DiscoveryEntry.NeighEntry
+	19, // 3: discoverd.DiscoveryEntry.nmap:type_name -> discoverd.DiscoveryEntry.NmapEntry
 	6,  // 4: discoverd.LLDP.chassisCapabilities:type_name -> discoverd.LLDPCapabilities
 	6,  // 5: discoverd.LLDP.medCapabilities:type_name -> discoverd.LLDPCapabilities
 	9,  // 6: discoverd.NMAP.openPorts:type_name -> discoverd.NMAPPorts
@@ -1435,11 +1438,14 @@ var file_Discovery_proto_depIdxs = []int32{
 	13, // 9: discoverd.Original.layerThree:type_name -> discoverd.LayerThree
 	14, // 10: discoverd.Original.layerFour:type_name -> discoverd.LayerFour
 	7,  // 11: discoverd.NeighEntries.entries:type_name -> discoverd.NEIGH
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	5,  // 12: discoverd.DiscoveryEntry.LldpEntry.value:type_name -> discoverd.LLDP
+	7,  // 13: discoverd.DiscoveryEntry.NeighEntry.value:type_name -> discoverd.NEIGH
+	8,  // 14: discoverd.DiscoveryEntry.NmapEntry.value:type_name -> discoverd.NMAP
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_Discovery_proto_init() }
@@ -1647,7 +1653,7 @@ func file_Discovery_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_Discovery_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   16,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
