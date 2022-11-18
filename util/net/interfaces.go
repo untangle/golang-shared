@@ -31,3 +31,7 @@ type IpAliases struct {
 func (intf *Interface) GetCidrNotation() string {
 	return fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix)
 }
+
+func (alias *IpAliases) GetIpAliasesCidrNotation() string {
+	return fmt.Sprintf("%s/%d", alias.V4Address, alias.V4Prefix)
+}
