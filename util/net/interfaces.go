@@ -15,12 +15,17 @@ type Interface struct {
 	DHCPRangeStart    string
 	DHCPRangeEnd      string
 	DownloadKbps      int
-	Enabled           bool   `json:"enabled"`
-	Name              string `json:"name"`
-	Type              string `json:"type"`
-	V4StaticAddress   string `json:"v4StaticAddress"`
-	V4StaticPrefix    uint8  `json:"v4StaticPrefix"`
-	IsWAN             bool   `json:"wan"`
+	Enabled           bool        `json:"enabled"`
+	Name              string      `json:"name"`
+	Type              string      `json:"type"`
+	Aliases           []IpAliases `json:"v4Aliases"`
+	V4StaticAddress   string      `json:"v4StaticAddress"`
+	V4StaticPrefix    uint8       `json:"v4StaticPrefix"`
+	IsWAN             bool        `json:"wan"`
+}
+type IpAliases struct {
+	V4Address string `json:"v4Address"`
+	V4Prefix  uint32 `json:"v4Prefix"`
 }
 
 func (intf *Interface) GetCidrNotation() string {
