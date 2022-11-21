@@ -413,6 +413,56 @@ func (suite *DeviceListTestSuite) TestGetDevFromIP() {
 	}
 }
 
+func (suite *DeviceListTestSuite) TestApplyToMac() {
+
+	wg := sync.WaitGroup{}
+	const nUpdates = 100
+	const nNoOps = 20
+	noOpsLeft := nNoOps
+	macNoexist := "00:00:00:00:00:00"
+	originalValue := suite.devicesTable[suite.mac1].LastUpdate
+	for i := 0; i < nUpdates+nNoOps; i++ {
+		wg.Add(1)
+		if i%2 == 0 && noOpsLeft > 0 {
+			// Do a 'no op' update -- one where nothing
+			// should happen because the device doesn't
+			// exist.
+			go func() {
+				called := false
+				val, err := suite.deviceList.ApplyToDeviceWithMac(
+					func(entry *DeviceEntry) (interface{}, error) {
+						called = true
+						entry.LastUpdate = entry.LastUpdate + 1
+						return entry.LastUpdate, nil
+					},
+					macNoexist)
+				suite.NotNil(err)
+				suite.Nil(val)
+				suite.False(called)
+				wg.Done()
+			}()
+			noOpsLeft--
+		} else {
+			// Update the device's LastUpdate field.
+			go func() {
+				var oldLastUpdate int64
+				val, err := suite.deviceList.ApplyToDeviceWithMac(
+					func(entry *DeviceEntry) (interface{}, error) {
+						oldLastUpdate = suite.devicesTable[suite.mac1].LastUpdate
+						entry.LastUpdate = entry.LastUpdate + 1
+						return entry.LastUpdate, nil
+					},
+					suite.mac1)
+				suite.Nil(err)
+				suite.EqualValues(val, oldLastUpdate+1)
+				wg.Done()
+			}()
+		}
+	}
+	wg.Wait()
+	suite.EqualValues(originalValue+nUpdates, suite.devicesTable[suite.mac1].LastUpdate)
+}
+
 func TestDeviceList(t *testing.T) {
 	testSuite := &DeviceListTestSuite{}
 	suite.Run(t, testSuite)

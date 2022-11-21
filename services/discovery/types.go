@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +17,8 @@ import (
 type DeviceEntry struct {
 	disco.DiscoveryEntry
 	sessions []*ActiveSessions.Session
+	rxTotal  uint
+	txTotal  uint
 }
 
 // DevicesList is an in-memory 'list' of all known devices (stored as
@@ -126,6 +129,20 @@ func (list *DevicesList) ApplyToDeviceList(
 	defer list.Lock.Unlock()
 	listOfDevs := list.listDevices(preds...)
 	return doToList(listOfDevs)
+}
+
+// ApplyToDeviceWithMac will apply doToDev to the device with the
+// given mac, if present, and return the result, otherwise it will
+// return an error.
+func (list *DevicesList) ApplyToDeviceWithMac(
+	doToDev func(*DeviceEntry) (interface{}, error),
+	mac string) (interface{}, error) {
+	list.Lock.Lock()
+	defer list.Lock.Unlock()
+	if dev, wasFound := list.Devices[mac]; wasFound {
+		return doToDev(dev)
+	}
+	return nil, fmt.Errorf("device with mac: %s not found", mac)
 }
 
 // getDeviceFromIPUnsafe gets a device in the table by IP address.
@@ -245,13 +262,19 @@ type SessionDetail struct {
 
 	// Total number of bytes used by a device
 	DataUsage int64 `json:"dataUsage"`
+
+	RxTotal int64 `json:"rxTotal"`
+
+	TxTotal int64 `json:"txTotal"`
 }
 
 func (n *DeviceEntry) calcSessionDetails() (output SessionDetail) {
+	output.DataUsage = int64(n.rxTotal + n.txTotal)
+	output.RxTotal = int64(n.rxTotal)
+	output.TxTotal = int64(n.txTotal)
 	for _, session := range n.sessions {
 		output.ByteTransferRate += int64(session.ByteRate)
 		output.NumSessions++
-		output.DataUsage += int64(session.Bytes)
 	}
 	return
 }
@@ -264,6 +287,28 @@ func (n *DeviceEntry) MarshalJSON() ([]byte, error) {
 		DiscoveryEntry: &n.DiscoveryEntry,
 		SessionDetail:  n.calcSessionDetails(),
 	})
+}
+
+// IncrTx increments total tx bytes by tx, returns updated total.
+func (n *DeviceEntry) IncrTx(tx uint) uint {
+	n.txTotal += tx
+	return n.txTotal
+}
+
+// IncrRx increments total rx bytes by rx, returns updated total.
+func (n *DeviceEntry) IncrRx(rx uint) uint {
+	n.rxTotal += rx
+	return n.rxTotal
+}
+
+// RxTotal returns total rx bytes for this device.
+func (n *DeviceEntry) RxTotal() uint {
+	return n.rxTotal
+}
+
+// TxTotal returns total tx bytes for this device
+func (n *DeviceEntry) TxTotal() uint {
+	return n.txTotal
 }
 
 // SetMac sets the mac address of the device entry. It 'normalizes' it.
