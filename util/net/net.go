@@ -1,6 +1,9 @@
 package interfaces
 
 import (
+	"fmt"
+	"net"
+
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -27,4 +30,20 @@ func GetInterfaces(filter func(Interface) bool) []Interface {
 	} else {
 		return interfaces
 	}
+}
+
+func GetLocalInterfaces() []Interface {
+	return GetInterfaces((func(intf Interface) bool {
+		return !intf.IsWAN && intf.Enabled && intf.V4StaticAddress != ""
+	}))
+}
+
+func GetLocalInterfaceFromIp(cidrAddr net.IP) (Interface, error) {
+	var intf Interface
+	for _, intf = range GetLocalInterfaces() {
+		if intf.NetworkHasIP(cidrAddr) {
+			return intf, nil
+		}
+	}
+	return intf, fmt.Errorf("CIDR Address %s not in local interfaces", cidrAddr)
 }
