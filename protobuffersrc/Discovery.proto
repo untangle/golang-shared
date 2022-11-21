@@ -27,9 +27,9 @@ message CallDiscoveryRequest {
 message DiscoveryEntry {
     string macAddress = 1;
     int64 LastUpdate = 2;
-    repeated LLDP lldp = 3;
-    repeated NEIGH neigh = 4;
-    repeated NMAP nmap = 5;
+    map<string, LLDP> lldp = 3;
+    map<string, NEIGH> neigh = 4;
+    map<string, NMAP> nmap = 5;
 }
 
 message LLDP {

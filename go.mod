@@ -3,6 +3,7 @@ module github.com/untangle/golang-shared
 go 1.12
 
 require (
+	github.com/deckarep/golang-set/v2 v2.1.0 // indirect
 	github.com/gin-gonic/gin v1.8.1
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/mitchellh/mapstructure v1.5.0
@@ -14,6 +15,4 @@ require (
 	golang.org/x/net v0.0.0-20220728211354-c7608f3a8462 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-	gopkg.in/go-playground/validator.v9 v9.29.1 // indirect
 )

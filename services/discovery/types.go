@@ -26,7 +26,10 @@ type DeviceEntry struct {
 type DevicesList struct {
 	Devices map[string]*DeviceEntry
 
-	// an index of the devices by IP.
+	// TODO: Prior to 1.18, net.HardwareAddr and net.IpAddr cannot be used as a map key.
+	// Currently we have to be careful about making our Mac and IPV6 string uppercase
+	// before using them as a key in devicesByIp and Devices maps to avoid duplicates. Once upgraded
+	// to 1.18+, swap these string type keys to net.HardwareAddr for Devices and net.IpAddr for devicesByIp
 	devicesByIP map[string]*DeviceEntry
 	Lock        sync.RWMutex
 }
@@ -68,7 +71,6 @@ func (list *DevicesList) PutDevice(entry *DeviceEntry) {
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
 	list.putDeviceUnsafe(entry)
-
 }
 
 // Get 24hours older device discovery entry from device list and delete the entry from device list
@@ -167,6 +169,7 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 // put the new entry in the table. The provided callback function is
 // called after everything is merged but before the lock is
 // released. This can allow you to clone/copy the merged device.
+// Make sure to merge new into old.
 func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
 	// Lock the entry down before reading from it.
 	// Otherwise the read in Merge causes a data race
@@ -178,22 +181,32 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	defer list.Lock.Unlock()
 
 	deviceIps := entry.getDeviceIpsUnsafe()
-	if entry.MacAddress == "" && len(deviceIps) > 0 {
+	if entry.MacAddress == "" && len(deviceIps) <= 0 {
+		return
+	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
+		oldEntry.Merge(entry)
+		list.putDeviceUnsafe(oldEntry)
+	} else if len(deviceIps) > 0 {
+		// See if the IPs of entry correspond to any others
+		found := false
 		for _, ip := range deviceIps {
-			// Once an old entry is found and the new entry is merged with it,
-			// break out of the loop since any device found is a pointer that
+			// Once an old entry is oldEntry and the new entry is merged with it,
+			// break out of the loop since any device oldEntry is a pointer that
 			// every IP for a device points to
-			if found := list.getDeviceFromIPUnsafe(ip); found != nil {
-				entry.Merge(found)
+			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil {
+				oldEntry.Merge(entry)
+				list.putDeviceUnsafe(oldEntry)
+				found = true
 				break
 			}
 		}
-	} else if entry.MacAddress == "" {
-		return
-	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
-		entry.Merge(oldEntry)
+		if !found {
+			list.putDeviceUnsafe(entry)
+		}
+	} else {
+		list.putDeviceUnsafe(entry)
 	}
-	list.putDeviceUnsafe(entry)
+
 	callback()
 }
 
@@ -218,15 +231,22 @@ func (n *DeviceEntry) Init() {
 }
 
 // Returns the list of IPs being used by a device. Does not acquire any locks
-// before accessing device list elements
+// before accessing device list elements. The IPs are fetched by going through
+// each collector entry and adding any IPs found to a set
 func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 	// Use a set to easily get the list of unique IPs assigned to a device
-	ipSet := make(map[string]string)
+	ipSet := make(map[string]struct{})
 
-	for _, neighEntry := range n.Neigh {
-		if neighEntry.Ip != "" {
-			ipSet[neighEntry.Ip] = ""
-		}
+	for ip := range n.Neigh {
+		ipSet[ip] = struct{}{}
+	}
+
+	for ip := range n.Lldp {
+		ipSet[ip] = struct{}{}
+	}
+
+	for ip := range n.Nmap {
+		ipSet[ip] = struct{}{}
 	}
 
 	var ipList []string

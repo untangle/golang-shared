@@ -64,11 +64,10 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 // split -> Mock Json pass to the function below
 // read the raw configuration json from the file
 func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
-	serviceMap := make(map[string]LogLevel)
 	conf.LogLevelMap = make(map[string]LogLevel)
 
 	// unmarshal the configuration into a map
-	err := json.Unmarshal(data, &serviceMap)
+	err := json.Unmarshal(data, &conf.LogLevelMap)
 	if err != nil {
 		GetLoggerInstance().Err("Unable to parse Log configuration\n")
 		return

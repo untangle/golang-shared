@@ -302,7 +302,7 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		level, ok := logger.config.LogLevelMap[functionName]
+		level, ok := logger.config.LogLevelMap[packageName]
 		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
