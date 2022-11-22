@@ -1,0 +1,110 @@
+[
+    {
+        "settingsObj":{
+            "enabled":false,
+            "plugins":[
+                {
+                    "autoInterval":43200,
+                    "enabled":true,
+                    "type":"lldp"
+                },
+                {
+                    "autoInterval":43200,
+                    "enabled":false,
+                    "type":"nmap"
+                },
+                {
+                    "autoInterval":43200,
+                    "enabled":true,
+                    "type":"arp"
+                }
+            ]
+        },
+        "valid":true,
+        "description": "all settings are correct, should pass"
+    },
+    {
+        "settingsObj":{
+            "enabled":false,
+            "plugins":[
+                {
+                    "autoInterval":-1,
+                    "enabled":true,
+                    "type":"arp"
+                }
+            ]
+        },
+        "valid":false,
+        "description": "negative autointerval value should fail"
+    },
+    {
+        "settingsObj":{
+            "enabled":false,
+            "plugins":[
+                {
+                    "autoInterval": 12.34,
+                    "enabled":true,
+                    "type":"arp"
+                }
+            ]
+        },
+        "valid":false,
+        "description": "decimal autointerval value should fail"
+    },
+    {
+        "settingsObj":{
+            "enabled":false,
+            "plugins":[
+                {
+                    "ohNoThereIsATypoAutoInterval":43200,
+                    "enabled":true,
+                    "type":"lldp"
+                }
+            ]
+        },
+        "valid":false,
+        "description": "autoInterval missing should fail with zero value"
+    },
+    {
+        "settingsObj":{
+            "enabled":false,
+            "plugins":[
+                {
+                    "autoInterval":43200,
+                    "enabled":true,
+                    "type":"somePluginNameWeWillDefinitelyNeverUse"
+                }
+            ]
+        },
+        "valid": false,
+        "description": "bad plugin type should fail"
+    },
+    {
+        "settingsObj": {
+            "enabled": true,
+            "onMyGodAnotherTypoPlugins": [
+                {
+                    "autoInterval":43200,
+                    "enabled":true,
+                    "type":"arp"
+                }
+            ]
+        },
+        "valid":true,
+        "description": "bad name for plugins field should be ignored"
+    },
+    {
+        "settingsObj": {
+            "enabled": true,
+            "plugins": [
+                {
+                    "autoInterval":43200,
+                    "enabled":true,
+                    "typoTypeTypoType":"arp"
+                }
+            ]
+        },
+        "valid":false,
+        "description": "typo in type should fail"
+    }
+]
