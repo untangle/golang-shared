@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	network = "tcp"
 	address = "127.0.0.1:5563"
+	network = "tcp"
 )
 
 // CallCollectors is a stub for the RPC call
