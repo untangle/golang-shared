@@ -32,18 +32,23 @@ func GetInterfaces(filter func(Interface) bool) []Interface {
 	}
 }
 
+// Returns local interfaces. That is, those that aren't a WAN, are enabled,
+// and have either an IPv4 or IPv6 address
 func GetLocalInterfaces() []Interface {
 	return GetInterfaces((func(intf Interface) bool {
-		return !intf.IsWAN && intf.Enabled && intf.V4StaticAddress != ""
+		return !intf.IsWAN && intf.Enabled && (intf.V4StaticAddress != "" || intf.V6StaticAddress != "")
 	}))
 }
 
-func GetLocalInterfaceFromIp(cidrAddr net.IP) (Interface, error) {
+// Grabs a single local interface from an IP. If the passed IP is within the
+// interface's network, that interface is returned. Otherwise an error is
+// returned.
+func GetLocalInterfaceFromIp(addr net.IP) (Interface, error) {
 	var intf Interface
 	for _, intf = range GetLocalInterfaces() {
-		if intf.NetworkHasIP(cidrAddr) {
+		if intf.NetworkHasIP(addr) {
 			return intf, nil
 		}
 	}
-	return intf, fmt.Errorf("CIDR Address %s not in local interfaces", cidrAddr)
+	return intf, fmt.Errorf("address '%s' not in local interfaces", addr)
 }
