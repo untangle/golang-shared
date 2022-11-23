@@ -71,7 +71,7 @@ func TestNetworkHasIp(t *testing.T) {
 		if err != nil {
 			actual := intf.NetworkHasIP(ip)
 			if actual != expected {
-				t.Errorf(fmt.Sprintf("Test %s: Expected '%t', got '%t' on cidrString '%s' with interface enabled? '%t'", testName, expected, actual, cidrString, intf.DHCPEnabled))
+				t.Errorf(fmt.Sprintf("Test %s: Expected '%t', got '%t'", testName, expected, actual))
 			}
 		}
 	}
@@ -100,7 +100,7 @@ func TestGetNetwork(t *testing.T) {
 			if err1 != nil {
 				// if the networks contain the other's IP, then we got the correct network
 				if !actual.Contains(expected.IP) || !expected.Contains(actual.IP) {
-					t.Errorf(fmt.Sprintf("Test %s: actual IP '%s' and is not the same as the expected network '%s'", testName, actual.IP.String(), expected.IP.String()))
+					t.Errorf(fmt.Sprintf("Test %s: IPs '%s' and '%s' are not on the same network", testName, actual.String(), expected.String()))
 				}
 			}
 

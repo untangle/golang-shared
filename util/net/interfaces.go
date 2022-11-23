@@ -55,13 +55,9 @@ func (intf *Interface) GetNetwork() (net.IPNet, error) {
 // Checks if a given net.IP is within the interface's network. Used to map
 // IP addresses to interface's for discovery
 func (intf *Interface) NetworkHasIP(ip net.IP) bool {
-	cidr, err := intf.GetCidrNotation()
-	if err == nil {
-		_, intfNetwork, err := net.ParseCIDR(cidr)
-		if err == nil && intfNetwork.Contains(ip) {
-			return true
-		}
+	intfNetwork, err := intf.GetNetwork()
+	if err == nil && intfNetwork.Contains(ip) {
+		return true
 	}
-
 	return false
 }

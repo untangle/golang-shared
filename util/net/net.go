@@ -52,3 +52,19 @@ func GetLocalInterfaceFromIp(addr net.IP) (Interface, error) {
 	}
 	return intf, fmt.Errorf("address '%s' not in local interfaces", addr)
 }
+
+// Grabs a single local interface from an IP string. The passed IP string does
+// not have to be checked before the method, it is checked inside this method.
+// Importantly, to get a Local Interface, the passed IP string needs to be in
+// CIDR form (with a "/XX" for the mask at the end of the string). Without
+// this information, we cannot know the network of the passed address so we
+// cannot ensure the interface is on the same network
+func GetLocalInterfaceFromIpString(addr string) (Interface, error) {
+	var intf Interface
+	ip, _, err := net.ParseCIDR(addr)
+	if err == nil {
+		intf, err = GetLocalInterfaceFromIp(ip)
+		return intf, err
+	}
+	return intf, err
+}
