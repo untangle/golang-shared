@@ -43,14 +43,13 @@ func GetLocalInterfaces() []Interface {
 // Grabs a single local interface from an IP. If the passed IP is within the
 // interface's network, that interface is returned. Otherwise an error is
 // returned.
-func GetLocalInterfaceFromIp(addr net.IP) (Interface, error) {
-	var intf Interface
-	for _, intf = range GetLocalInterfaces() {
+func GetLocalInterfaceFromIp(addr net.IP) (*Interface, error) {
+	for _, intf := range GetLocalInterfaces() {
 		if intf.NetworkHasIP(addr) {
-			return intf, nil
+			return &intf, nil
 		}
 	}
-	return intf, fmt.Errorf("address '%s' not in local interfaces", addr)
+	return nil, fmt.Errorf("address '%s' not in local interfaces", addr)
 }
 
 // Grabs a single local interface from an IP string. The passed IP string does
@@ -59,12 +58,11 @@ func GetLocalInterfaceFromIp(addr net.IP) (Interface, error) {
 // CIDR form (with a "/XX" for the mask at the end of the string). Without
 // this information, we cannot know the network of the passed address so we
 // cannot ensure the interface is on the same network
-func GetLocalInterfaceFromIpString(addr string) (Interface, error) {
-	var intf Interface
+func GetLocalInterfaceFromIpString(addr string) (*Interface, error) {
 	ip, _, err := net.ParseCIDR(addr)
 	if err == nil {
-		intf, err = GetLocalInterfaceFromIp(ip)
+		intf, err := GetLocalInterfaceFromIp(ip)
 		return intf, err
 	}
-	return intf, err
+	return nil, err
 }

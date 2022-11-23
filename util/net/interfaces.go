@@ -47,8 +47,7 @@ func (intf *Interface) GetNetwork() (*net.IPNet, error) {
 		_, ipNet, err := net.ParseCIDR(cidr)
 		return ipNet, err
 	} else {
-		var ipNet net.IPNet
-		return &ipNet, err
+		return nil, err
 	}
 }
 
