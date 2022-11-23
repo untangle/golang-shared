@@ -41,14 +41,14 @@ func (intf *Interface) GetCidrNotation() (string, error) {
 
 // Returns the net.IPNet object corresponding to the interface obtained
 // using GetCidrNotation()
-func (intf *Interface) GetNetwork() (net.IPNet, error) {
+func (intf *Interface) GetNetwork() (*net.IPNet, error) {
 	cidr, err := intf.GetCidrNotation()
 	if err == nil {
 		_, ipNet, err := net.ParseCIDR(cidr)
-		return *ipNet, err
+		return ipNet, err
 	} else {
 		var ipNet net.IPNet
-		return ipNet, err
+		return &ipNet, err
 	}
 }
 

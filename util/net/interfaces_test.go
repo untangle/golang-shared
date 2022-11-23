@@ -76,7 +76,7 @@ func TestNetworkHasIp(t *testing.T) {
 		}
 	}
 
-	testArr := [3]string{
+	testArr := []string{
 		ipv4Mask24,
 		ipv4Mask16,
 		ipv6Mask64,
@@ -107,7 +107,7 @@ func TestGetNetwork(t *testing.T) {
 		}
 	}
 
-	testArr := [3]string{
+	testArr := []string{
 		ipv4Mask24,
 		ipv4Mask16,
 		ipv6Mask64,
