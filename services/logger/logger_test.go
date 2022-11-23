@@ -129,7 +129,7 @@ func (suite *TestLogger) TestWrite() {
 }
 
 func (suite *TestLogger) TestDefaultLogWriter() {
-	assert.Equal(suite.T(), &LogWriter{buffer: []uint8{}, source: "System"}, DefaultLogWriter("System"))
+	assert.Equal(suite.T(), &LogWriter{buffer: []uint8{}, source: "System", logLevel: LogLevelInfo}, DefaultLogWriter("System"))
 }
 
 func (suite *TestLogger) TestLoadConfigFromFile() {
