@@ -6,14 +6,14 @@ type LogWriter struct {
 	source string
 
 	// defines the log logging level
-	logLevel int32
+	logLevel LogLevel
 
 	// Allows to update the log level based on the log message content.
 	// If this is not set (== nil), this functionality is just ignored and the logLevel is used  for all messages.
 	// The function will reveive 2 prameters:
-	//    currentLevel the current log level set for logging
-	//    message the actual message we want to log
-	logLevelProcessor func(currentLevel int32, message string) int32
+	//    currentLevel - the current log level set for logging
+	//    message - the actual message we want to log
+	logLevelProcessor func(currentLevel LogLevel, message string) LogLevel
 }
 
 // DefaultLogWriter creates an io Writer to steam output to the Log facility
@@ -21,18 +21,23 @@ func DefaultLogWriter(name string) *LogWriter {
 	writer := new(LogWriter)
 	writer.buffer = make([]byte, 0)
 	writer.source = name
-	writer.logLevel = LogLevelInfo
+	writer.logLevel = NewLogLevel("INFO")
 
 	return writer
 }
 
 // SetLogLevel allows to modify the log level of messages
-func (writer *LogWriter) SetLogLevel(logLevel int32) {
+func (writer *LogWriter) SetLogLevel(logLevel LogLevel) error {
+	if logLevel.GetId() < 0 {
+		return ErrInvalidLogLevel
+	}
 	writer.logLevel = logLevel
+
+	return nil
 }
 
 // SetLogLevelProcessor allows to set a function that can update the log level based on the message content.
-func (writer *LogWriter) SetLogLevelProcessor(processor func(currentLevel int32, message string) int32) {
+func (writer *LogWriter) SetLogLevelProcessor(processor func(currentLevel LogLevel, message string) LogLevel) {
 	writer.logLevelProcessor = processor
 }
 
@@ -57,6 +62,6 @@ func (writer *LogWriter) logMessage() {
 		logLevel = writer.logLevelProcessor(logLevel, message)
 	}
 
-	LogMessageSource(logLevel, writer.source, message)
+	LogMessageSource(logLevel.GetId(), writer.source, message)
 	writer.buffer = make([]byte, 0)
 }
