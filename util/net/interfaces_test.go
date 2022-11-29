@@ -4,27 +4,25 @@ import (
 	"fmt"
 	"net"
 	"testing"
-	//logService "github.com/untangle/golang-shared/services/logger"
 )
 
-type testStruct struct {
+type interfacesTestStruct struct {
 	testInterface    Interface
 	passNetworkHasIp string
 	failNetworkHasIp string
 }
 
 var (
-	testMap    map[string]testStruct
+	testMap    map[string]interfacesTestStruct
 	ipv4Mask24 string
 	ipv4Mask16 string
 	ipv6Mask64 string
 )
 
-func setupSuite(t *testing.T) func(t *testing.T) {
-	//var logger := logService.GetLoggerInstance()
-	testMap = make(map[string]testStruct)
+func interfacesTestSetup(t *testing.T) func(t *testing.T) {
+	testMap = make(map[string]interfacesTestStruct)
 	ipv4Mask24 = "ipv4Mask24"
-	testMap[ipv4Mask24] = testStruct{
+	testMap[ipv4Mask24] = interfacesTestStruct{
 		testInterface: Interface{
 			Enabled:         true,
 			V4StaticAddress: "192.168.0.1",
@@ -35,7 +33,7 @@ func setupSuite(t *testing.T) func(t *testing.T) {
 		failNetworkHasIp: "192.168.1.1/24",
 	}
 	ipv4Mask16 = "ipv4Mask16"
-	testMap[ipv4Mask16] = testStruct{
+	testMap[ipv4Mask16] = interfacesTestStruct{
 		testInterface: Interface{
 			Enabled:         true,
 			V4StaticAddress: "192.168.0.1",
@@ -46,11 +44,11 @@ func setupSuite(t *testing.T) func(t *testing.T) {
 		failNetworkHasIp: "192.168.56.10/24",
 	}
 	ipv6Mask64 = "ipv6Mask64"
-	testMap[ipv6Mask64] = testStruct{
+	testMap[ipv6Mask64] = interfacesTestStruct{
 		testInterface: Interface{
 			Enabled:         true,
 			V6StaticAddress: "2001:DB8:0000:0000:244:17FF:FEB6:D37D",
-			v6StaticPrefix:  64,
+			V6StaticPrefix:  64,
 			IsWAN:           false,
 		},
 		passNetworkHasIp: "2001:DB8:0000:0001:244:17FF:FEB6:D37D/64",
@@ -63,7 +61,7 @@ func setupSuite(t *testing.T) func(t *testing.T) {
 }
 
 func TestNetworkHasIp(t *testing.T) {
-	tearDownSuite := setupSuite(t)
+	tearDownSuite := interfacesTestSetup(t)
 	defer tearDownSuite(t)
 
 	runTest := func(cidrString string, intf Interface, expected bool, testName string) {
@@ -90,7 +88,7 @@ func TestNetworkHasIp(t *testing.T) {
 }
 
 func TestGetNetwork(t *testing.T) {
-	tearDownSuite := setupSuite(t)
+	tearDownSuite := interfacesTestSetup(t)
 	defer tearDownSuite(t)
 
 	runTest := func(intf Interface, expectedStr string, testName string) {

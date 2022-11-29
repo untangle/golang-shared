@@ -22,7 +22,7 @@ type Interface struct {
 	V4StaticAddress   string `json:"v4StaticAddress"`
 	V4StaticPrefix    uint8  `json:"v4StaticPrefix"`
 	V6StaticAddress   string `json:"v6StaticAddress"`
-	v6StaticPrefix    uint8  `json:"v6StaticPrefix"`
+	V6StaticPrefix    uint8  `json:"v6StaticPrefix"`
 	IsWAN             bool   `json:"wan"`
 }
 
@@ -33,7 +33,7 @@ func (intf *Interface) GetCidrNotation() (string, error) {
 	if intf.V4StaticAddress != "" {
 		return fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix), nil
 	} else if intf.V6StaticAddress != "" {
-		return fmt.Sprintf("%s/%d", intf.V6StaticAddress, intf.v6StaticPrefix), nil
+		return fmt.Sprintf("%s/%d", intf.V6StaticAddress, intf.V6StaticPrefix), nil
 	} else {
 		return "", fmt.Errorf("interface '%s' does not have a V4StaticAddress or V6StaticAddress", intf.Name)
 	}

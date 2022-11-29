@@ -1,0 +1,22 @@
+{
+    "network": 
+    {
+        "interfaces": 
+        [
+            {
+                "wan": false,
+                "enabled": true,
+                "v4StaticAddress": "192.168.56.1",
+                "v4StaticPrefix": 24,
+                "device": "eth0"
+            },
+            {
+                "wan": false,
+                "enabled": true,
+                "v4StaticAddress": "asdf",
+                "v4StaticPrefix": 0,
+                "device": "qwer"
+            }
+        ]
+    }
+}
