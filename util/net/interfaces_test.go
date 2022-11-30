@@ -7,9 +7,9 @@ import (
 )
 
 type interfacesTestStruct struct {
-	testInterface    Interface
-	passNetworkHasIp string
-	failNetworkHasIp string
+	testInterface Interface
+	passIp        string
+	failIp        string
 }
 
 var (
@@ -29,8 +29,8 @@ func interfacesTestSetup(t *testing.T) func(t *testing.T) {
 			V4StaticPrefix:  24,
 			IsWAN:           false,
 		},
-		passNetworkHasIp: "192.168.0.10/24",
-		failNetworkHasIp: "192.168.1.1/24",
+		passIp: "192.168.0.10/24",
+		failIp: "192.168.1.1/24",
 	}
 	ipv4Mask16 = "ipv4Mask16"
 	testMap[ipv4Mask16] = interfacesTestStruct{
@@ -40,8 +40,8 @@ func interfacesTestSetup(t *testing.T) func(t *testing.T) {
 			V4StaticPrefix:  16,
 			IsWAN:           false,
 		},
-		passNetworkHasIp: "192.168.56.10/16",
-		failNetworkHasIp: "192.168.56.10/24",
+		passIp: "192.168.56.10/16",
+		failIp: "192.1.56.10/24",
 	}
 	ipv6Mask64 = "ipv6Mask64"
 	testMap[ipv6Mask64] = interfacesTestStruct{
@@ -51,8 +51,8 @@ func interfacesTestSetup(t *testing.T) func(t *testing.T) {
 			V6StaticPrefix:  64,
 			IsWAN:           false,
 		},
-		passNetworkHasIp: "2001:DB8:0000:0001:244:17FF:FEB6:D37D/64",
-		failNetworkHasIp: "2001:DB8:0000:0000:244:17FF:FEB6:D37D/16",
+		passIp: "2001:DB8::/64",
+		failIp: "2002:DB8::/16",
 	}
 
 	return func(t *testing.T) {
@@ -60,48 +60,25 @@ func interfacesTestSetup(t *testing.T) func(t *testing.T) {
 	}
 }
 
-func TestNetworkHasIp(t *testing.T) {
+func TestGetNetworks(t *testing.T) {
 	tearDownSuite := interfacesTestSetup(t)
 	defer tearDownSuite(t)
 
-	runTest := func(cidrString string, intf Interface, expected bool, testName string) {
-		ip, _, err := net.ParseCIDR(cidrString)
-		if err != nil {
-			actual := intf.NetworkHasIP(ip)
-			if actual != expected {
-				t.Errorf(fmt.Sprintf("Test %s: Expected '%t', got '%t'", testName, expected, actual))
-			}
-		}
-	}
-
-	testArr := []string{
-		ipv4Mask24,
-		ipv4Mask16,
-		ipv6Mask64,
-	}
-
-	for _, testName := range testArr {
-		test := testMap[testName]
-		runTest(test.passNetworkHasIp, test.testInterface, true, testName)
-		runTest(test.failNetworkHasIp, test.testInterface, false, testName)
-	}
-}
-
-func TestGetNetwork(t *testing.T) {
-	tearDownSuite := interfacesTestSetup(t)
-	defer tearDownSuite(t)
-
-	runTest := func(intf Interface, expectedStr string, testName string) {
-		actual, err0 := intf.GetNetwork()
-		if err0 != nil {
-			_, expected, err1 := net.ParseCIDR(expectedStr)
-			if err1 != nil {
-				// if the networks contain the other's IP, then we got the correct network
-				if !actual.Contains(expected.IP) || !expected.Contains(actual.IP) {
-					t.Errorf(fmt.Sprintf("Test %s: IPs '%s' and '%s' are not on the same network", testName, actual.String(), expected.String()))
+	runTest := func(testName string, shouldPass bool, ipStr string, intf Interface) {
+		ip, _, err := net.ParseCIDR(ipStr)
+		if err == nil {
+			network := intf.GetNetworks()[0]
+			if network.Contains(ip) != shouldPass {
+				var printStr string
+				if shouldPass {
+					printStr = "Test %s: IP '%s' is not on the network '%s'"
+				} else {
+					printStr = "Test %s: IP '%s' is on the network '%s'"
 				}
+				t.Errorf(fmt.Sprintf(printStr, testName, ip.String(), network.String()))
 			}
-
+		} else {
+			t.Errorf(fmt.Sprintf("Test %s: IP '%s' did not parse correctly", testName, ip.String()))
 		}
 	}
 
@@ -113,6 +90,7 @@ func TestGetNetwork(t *testing.T) {
 
 	for _, testName := range testArr {
 		test := testMap[testName]
-		runTest(test.testInterface, test.passNetworkHasIp, testName)
+		runTest(testName, true, test.passIp, test.testInterface)
+		runTest(testName, false, test.failIp, test.testInterface)
 	}
 }

@@ -1,8 +1,6 @@
 package interfaces
 
 import (
-	"net"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,42 +8,47 @@ import (
 )
 
 var (
-	settingsPath string
-	settingsFile *settings.SettingsFile
-	addr0        string
-	mask0        uint8
-	device0      string
-	addr1        string
-	mask1        uint8
+	testSettingsPath   string
+	testSettingsFile   *settings.SettingsFile
+	expectedInterfaces []Interface
 )
 
 func netTestSetup(t *testing.T) func(t *testing.T) {
-	settingsPath = "./testdata/settings.json"
-	settingsFile = settings.NewSettingsFile(settingsPath)
-	addr0 = "192.168.56.1"
-	mask0 = 24
-	device0 = "eth0"
-	addr1 = "192.168.56.10"
-	mask1 = 24
+	testSettingsPath = "./testdata/settings.json"
+	testSettingsFile = settings.NewSettingsFile(testSettingsPath)
+	expectedInterfaces = []Interface{
+		{
+			IsWAN:           false,
+			Enabled:         true,
+			V4StaticAddress: "192.168.56.1",
+			V4StaticPrefix:  24,
+			Device:          "eth0",
+		},
+		{
+			IsWAN:           false,
+			Enabled:         true,
+			V4StaticAddress: "asdf",
+			V4StaticPrefix:  0,
+			Device:          "qwer",
+		},
+	}
 
 	return func(t *testing.T) {
 		// shutdown
 	}
 }
 
-func TestGetLocalInterfaceFromIp(t *testing.T) {
+func TestGetLocalInterfacesFromPath(t *testing.T) {
 	tearDownSuite := netTestSetup(t)
 	defer tearDownSuite(t)
 
-	ip, _, parseErr := net.ParseCIDR(addr1 + "/" + strconv.Itoa(int(mask1)))
-	if parseErr == nil {
-		intf, getErr := GetLocalInterfaceFromIpAndPath(ip, settingsPath)
-		if getErr == nil {
-			assert.NotNil(t, intf)
-			assert.NotNil(t, intf.Device)
-			assert.Equal(t, device0, intf.Device)
-		}
+	intfSettings := InterfaceSettings{
+		file:     settings.NewSettingsFile(testSettingsPath),
+		jsonPath: []string{},
 	}
+	intfSettings.SetJsonPath(defaultJsonParent, defaultJsonChild)
+	interfaces := GetLocalInterfacesFromSettings(intfSettings)
+	assert.Equal(t, expectedInterfaces, interfaces)
 }
 
 func TestSettings(t *testing.T) {
@@ -53,26 +56,7 @@ func TestSettings(t *testing.T) {
 	defer tearDownSuite(t)
 
 	var interfaces []Interface
-	err := settingsFile.UnmarshalSettingsAtPath(&interfaces, "network", "interfaces")
+	err := testSettingsFile.UnmarshalSettingsAtPath(&interfaces, "network", "interfaces")
 	assert.Nil(t, err)
-	assert.Equal(
-		t,
-		interfaces,
-		[]Interface{
-			{
-				IsWAN:           false,
-				Enabled:         true,
-				V4StaticAddress: addr0,
-				V4StaticPrefix:  mask0,
-				Device:          device0,
-			},
-			{
-				IsWAN:           false,
-				Enabled:         true,
-				V4StaticAddress: "asdf",
-				V4StaticPrefix:  0,
-				Device:          "qwer",
-			},
-		},
-	)
+	assert.Equal(t, interfaces, expectedInterfaces)
 }

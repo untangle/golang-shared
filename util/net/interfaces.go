@@ -26,37 +26,40 @@ type Interface struct {
 	IsWAN             bool   `json:"wan"`
 }
 
-// Get CIDR notation using the IP address and static prefix. If there's an
-// IPv4 address, that is returned. If not, an IPv6 address is grabbed. If
-// neither exists, an error is returned.
-func (intf *Interface) GetCidrNotation() (string, error) {
-	if intf.V4StaticAddress != "" {
-		return fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix), nil
-	} else if intf.V6StaticAddress != "" {
-		return fmt.Sprintf("%s/%d", intf.V6StaticAddress, intf.V6StaticPrefix), nil
-	} else {
-		return "", fmt.Errorf("interface '%s' does not have a V4StaticAddress or V6StaticAddress", intf.Name)
-	}
+func (intf *Interface) GetIpV4Network() (*net.IPNet, error) {
+	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix))
+	return ipNet, err
 }
 
-// Returns the net.IPNet object corresponding to the interface obtained
-// using GetCidrNotation()
-func (intf *Interface) GetNetwork() (*net.IPNet, error) {
-	cidr, err := intf.GetCidrNotation()
-	if err == nil {
-		_, ipNet, err := net.ParseCIDR(cidr)
-		return ipNet, err
-	} else {
-		return nil, err
-	}
+func (intf *Interface) GetIpV6Network() (*net.IPNet, error) {
+	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V6StaticAddress, intf.V6StaticPrefix))
+	return ipNet, err
 }
 
-// Checks if a given net.IP is within the interface's network. Used to map
-// IP addresses to interface's for discovery
-func (intf *Interface) NetworkHasIP(ip net.IP) bool {
-	intfNetwork, err := intf.GetNetwork()
-	if err == nil && intfNetwork.Contains(ip) {
-		return true
+func (intf *Interface) GetNetworks() []net.IPNet {
+	var networks []net.IPNet
+	ipV4Net, v4Err := intf.GetIpV4Network()
+	if v4Err == nil {
+		networks = append(networks, *ipV4Net)
 	}
-	return false
+	ipV6Net, v6Err := intf.GetIpV6Network()
+	if v6Err == nil {
+		networks = append(networks, *ipV6Net)
+	}
+	return networks
+}
+
+func (intf *Interface) HasContainingNetwork(addr net.IP) net.IPNet {
+	currMask := 0
+	var maxMatching net.IPNet
+	for _, network := range intf.GetNetworks() {
+		// do most specific prefix match on networks belonging to this interface
+		ones, _ := network.Mask.Size()
+		if network.Contains(addr) && ones > currMask {
+			// if we have a mask, compare to current. Keep larger.
+			currMask = ones
+			maxMatching = network
+		}
+	}
+	return maxMatching
 }
