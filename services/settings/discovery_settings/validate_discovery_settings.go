@@ -2,7 +2,6 @@ package discovery_settings
 
 import (
 	"encoding/json"
-	"os"
 
 	"github.com/untangle/golang-shared/services/discovery"
 	"github.com/untangle/golang-shared/services/logger"
@@ -17,9 +16,6 @@ const (
 // ValidateDiscoverySettings - ensures the settings we received are in a valid format
 //  returns true if the object is valid, false otherwise
 func ValidateDiscoverySettings(settingsObjBytes []byte) bool {
-	err := os.WriteFile("/tmp/testBody.json", settingsObjBytes, 0655)
-	logger.Err("%s\n", err)
-	logger.Err("%v\n", string(settingsObjBytes))
 	// first we unmarshal the whole discovery settings object
 	discoverySettings := discoverySettingsObject{}
 	if err := json.Unmarshal(settingsObjBytes, &discoverySettings); err != nil {
