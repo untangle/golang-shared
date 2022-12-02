@@ -204,12 +204,6 @@ func SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions
 		return currentSettings, err
 	}
 
-	if err := UnmarshalSettingsAtPath(&currentSettings, ""); err != nil {
-		return createJSONErrorObject(err), err
-	}
-
-	logger.Err("at path did: %v", currentSettings)
-
 	currentSettingsJson, ok := currentSettings.(map[string]interface{})
 	if !ok {
 		err := fmt.Errorf("invalid global settings object")
