@@ -15,17 +15,44 @@ import (
 
 // DataUse is an interval of data use by the device.
 type DataUse struct {
-	Start   time.Time
-	End     time.Time
+	// Start of this interval.
+	Start time.Time
+
+	// End of this interval.
+	End time.Time
+
+	// Bytes rx/tx during this interval.
 	RxBytes uint
 	TxBytes uint
 }
 
+// DataTracker is for tracking data use over time, keeping the data
+// use in 'bins' which are for some specified time interval. It also
+// ages out/trims bins past a specified duration, the
+// maxTrackDuration, given during construction.
 type DataTracker struct {
-	dataUseIntervals   []DataUse
+	// slice of intervals.
+	dataUseIntervals []DataUse
+
+	// How long each bin should represent. It's possible that
+	// End-Start for a bin will exceed this amount if no activity
+	// was recorded.
 	dataUseBinInterval time.Duration
-	maxTrackDuration   time.Duration
+
+	// maxTrackDuration -- maximum time to keep track of a data
+	// use interval. Bins after this interval will be removed when
+	// new bins are added. For example if you have it set to 1
+	// hour, and you get a data use 'report' somehow (create a
+	// bin), that bin will stay in the object until more than an
+	// hour later another bin is added.
+	maxTrackDuration time.Duration
 }
+
+// default interval that a DataUse is in the DataTracker.
+const defaultBinInterval = 30 * time.Minute
+
+// default duration to track data in a data tracker, amounts after this are discarded.
+const defaultTrackDuration = 24 * time.Hour
 
 // DeviceEntry represents a device found via discovery and methods on
 // it. Mostly used as a key of DevicesList.
@@ -34,9 +61,6 @@ type DeviceEntry struct {
 	sessions    []*ActiveSessions.Session
 	dataTracker *DataTracker
 }
-
-const defaultBinInterval = 30 * time.Minute
-const defaultTrackDuration = 24 * time.Hour
 
 // DevicesList is an in-memory 'list' of all known devices (stored as
 // a map from mac address string to device).
@@ -146,9 +170,11 @@ func LastUpdateOlderThanDuration(period time.Duration) ListPredicate {
 
 }
 
-// listDevices returns a list of devices matching all predicates. It
-// doesn't do anything with locks so without the outer function
-// locking appropriately is unsafe.
+// transformDevices returns a list of devices after running each
+// element of the list through the transformers. If a transformer
+// returns nil, that element is not included in the output list or run
+// through transformers after.  This doesn't do anything with locks so
+// without the outer function locking appropriately it is unsafe.
 func (list *DevicesList) transformDevices(transformers ...ListElementTransformer) (returns []*DeviceEntry) {
 
 	returns = []*DeviceEntry{}
@@ -164,6 +190,9 @@ search:
 	return
 }
 
+// PredsToTransformers transforms a list of predicates to transformers
+// which return the device pointer if the pred is true else nil. Can
+// be used with transformDevices to filter the device list.
 func PredsToTransformers(preds []ListPredicate) []ListElementTransformer {
 	output := make([]ListElementTransformer, 0, len(preds))
 	for _, pred := range preds {
@@ -184,6 +213,12 @@ func (list *DevicesList) ApplyToDeviceList(
 	return doToList(listOfDevs)
 }
 
+// ApplyToTransformedList 'transforms' a list by applying the
+// transformers in sequence to each device in the list, and calling
+// doToList on the result. If any transformer returns nil on a
+// particular device, then that device isn't included in the slice
+// passed to doToList, allowing you to filter and transform at the
+// same time.
 func (list *DevicesList) ApplyToTransformedList(
 	doToList func([]*DeviceEntry) (interface{}, error),
 	trans ...ListElementTransformer) (interface{}, error) {
@@ -377,6 +412,8 @@ func (n *DeviceEntry) calcSessionDetails() (output SessionDetail) {
 	return
 }
 
+// getDataTracker returns the data tracker or creates a new one if it
+// doesn't exist, using the default bin interval and track duration.
 func (n *DeviceEntry) getDataTracker() *DataTracker {
 	if n.dataTracker == nil {
 		n.dataTracker = NewDataTracker(
@@ -386,22 +423,31 @@ func (n *DeviceEntry) getDataTracker() *DataTracker {
 	return n.dataTracker
 }
 
+// IncrData increments the data use amount for this device, using the
+// member data tracker instance.
 func (n *DeviceEntry) IncrData(incr DataUseAmount) {
 	n.getDataTracker().IncrData(incr)
 }
 
+// GetDataUse gets total data use of this device as kept by the
+// tracker (which may be trimmed).
 func (n *DeviceEntry) GetDataUse() DataUseAmount {
 	return n.getDataTracker().TotalUse()
 }
 
+// DataUseAmount is a utility struct for dealing with rx/tx pairs.
 type DataUseAmount struct {
 	Tx uint
 	Rx uint
 }
 
+// Total returns the total data use, rx + tx.
 func (amnt DataUseAmount) Total() uint {
 	return amnt.Tx + amnt.Rx
 }
+
+// IncrData adds incr to the data use of the current bin or creates a
+// new one if the current has expired, and adds it to that.
 func (dataTracker *DataTracker) IncrData(incr DataUseAmount) {
 	last := len(dataTracker.dataUseIntervals) - 1
 	lastInterval := &dataTracker.dataUseIntervals[last]
@@ -426,6 +472,8 @@ func (dataTracker *DataTracker) IncrData(incr DataUseAmount) {
 	lastInterval.TxBytes += incr.Tx
 }
 
+// NewDataTracker creates a new data tracker that keeps bisn with
+// binInterval duration and a max track time of maxInterval.
 func NewDataTracker(
 	binInterval time.Duration,
 	maxInterval time.Duration) *DataTracker {
@@ -450,18 +498,7 @@ func (dataTracker *DataTracker) IncrRx(rx uint) {
 	dataTracker.IncrData(DataUseAmount{Rx: rx})
 }
 
-func (dataTracker *DataTracker) DataUseInInterval(before time.Duration) (output DataUseAmount) {
-	for i := len(dataTracker.dataUseIntervals) - 1; i >= 0; i-- {
-		interval := &dataTracker.dataUseIntervals[i]
-		if time.Since(interval.Start) > before {
-			break
-		}
-		output.Rx += interval.RxBytes
-		output.Tx += interval.TxBytes
-	}
-	return
-}
-
+// TotalUse gets total data use for all time we keep track of.
 func (dataTracker *DataTracker) TotalUse() (output DataUseAmount) {
 	for _, i := range dataTracker.dataUseIntervals {
 		output.Rx += i.RxBytes
@@ -470,6 +507,8 @@ func (dataTracker *DataTracker) TotalUse() (output DataUseAmount) {
 	return
 }
 
+// RestrictTrackerToInterval will trim the intervals to those inside
+// the duration.
 func (dataTracker *DataTracker) RestrictTrackerToInterval(before time.Duration) {
 	// Find the first entry that is within the interval, and use
 	// the slice after that.  This allows us to get a new data
