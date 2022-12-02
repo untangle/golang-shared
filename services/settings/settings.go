@@ -196,12 +196,14 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 // 	Json structure of all the settings. For each exceptions, the current settings will be
 // 	used instead of the what was in newSettings. Returns an error if something went wrong, along
 // 	with an error JSON. If the settings were set, no error will be returned and a JSON response
-// object will be returned will be
+//  object will be returned will be. Only works for settings at the highest level in the settings json
 func SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions []string) (interface{}, error) {
 	var currentSettings interface{}
 	if err := UnmarshalSettingsAtPath(&currentSettings); err != nil {
 		return createJSONErrorObject(err), err
 	}
+
+	logger.Err("at path did: %v", currentSettings)
 
 	currentSettingsJson, ok := currentSettings.(map[string]interface{})
 	if !ok {
