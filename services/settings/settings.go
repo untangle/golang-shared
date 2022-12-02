@@ -199,7 +199,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 //  object will be returned will be. Only works for settings at the highest level in the settings json
 func SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions []string) (interface{}, error) {
 	var currentSettings interface{}
-	if err := UnmarshalSettingsAtPath(&currentSettings); err != nil {
+	if err := UnmarshalSettingsAtPath(&currentSettings, ""); err != nil {
 		return createJSONErrorObject(err), err
 	}
 
