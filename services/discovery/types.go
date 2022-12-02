@@ -3,6 +3,7 @@ package discovery
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -12,14 +13,30 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// DataUse is an interval of data use by the device.
+type DataUse struct {
+	Start   time.Time
+	End     time.Time
+	RxBytes uint
+	TxBytes uint
+}
+
+type DataTracker struct {
+	dataUseIntervals   []DataUse
+	dataUseBinInterval time.Duration
+	maxTrackDuration   time.Duration
+}
+
 // DeviceEntry represents a device found via discovery and methods on
 // it. Mostly used as a key of DevicesList.
 type DeviceEntry struct {
 	disco.DiscoveryEntry
-	sessions []*ActiveSessions.Session
-	rxTotal  uint
-	txTotal  uint
+	sessions    []*ActiveSessions.Session
+	dataTracker *DataTracker
 }
+
+const defaultBinInterval = 30 * time.Minute
+const defaultTrackDuration = 24 * time.Hour
 
 // DevicesList is an in-memory 'list' of all known devices (stored as
 // a map from mac address string to device).
@@ -46,6 +63,21 @@ func NewDevicesList() *DevicesList {
 // true if it 'accepts' the entry.
 type ListPredicate func(entry *DeviceEntry) bool
 
+// ListElementTransformer is a function that transforms its input in
+// some way.
+type ListElementTransformer func(entry *DeviceEntry) *DeviceEntry
+
+// WrapPredicateAsTransformer returns a ListElementTransformer that
+// returns nil if the predicate fails, else the entry.
+func WrapPredicateAsTransformer(pred ListPredicate) ListElementTransformer {
+	return func(entry *DeviceEntry) *DeviceEntry {
+		if pred(entry) {
+			return entry
+		}
+		return nil
+	}
+}
+
 // WithUpdatesWithinDuration returns a predicate ensuring that the
 // LastUpdate member was within the period. So if period is an hour
 // for example, the returned predicate will return true when the
@@ -58,11 +90,20 @@ func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 	}
 }
 
+// TrimToDataUseSince trims the tracked data use to be within the
+// specified period.
+func TrimToDataUseSince(period time.Duration) ListElementTransformer {
+	return func(entry *DeviceEntry) *DeviceEntry {
+		entry.getDataTracker().RestrictTrackerToInterval(period)
+		return entry
+	}
+}
+
 // putDeviceUnsafe puts the device in the list without locking it.
 func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
 
-	for _, ip := range entry.getDeviceIpsUnsafe() {
+	for _, ip := range entry.GetDeviceIPs() {
 		list.devicesByIP[ip] = entry
 	}
 }
@@ -73,20 +114,22 @@ func (list *DevicesList) PutDevice(entry *DeviceEntry) {
 	list.putDeviceUnsafe(entry)
 }
 
-// Get 24hours older device discovery entry from device list and delete the entry from device list
+// Get 24hours older device discovery entry from device list and
+// delete the entry from device list
 func (list *DevicesList) CleanOldDeviceEntry(preds ...ListPredicate) {
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
-	listOfDevs := list.listDevices(preds...)
+	listOfDevs := list.transformDevices(PredsToTransformers(preds)...)
 	list.CleanDevices(listOfDevs)
 }
 
-// Clean device discovery entry from devices list if the entry lastUpdate is 24 hours older
+// Clean device discovery entry from devices list if the entry
+// lastUpdate is 24 hours older
 func (list *DevicesList) CleanDevices(devices []*DeviceEntry) {
 
 	for _, device := range devices {
 		delete(list.Devices, device.MacAddress)
-		for _, ip := range device.getDeviceIpsUnsafe() {
+		for _, ip := range device.GetDeviceIPs() {
 			delete(list.devicesByIP, ip)
 		}
 		logger.Debug("Deleted entry %s:%s\n", device.MacAddress, device.MacAddress)
@@ -106,19 +149,27 @@ func LastUpdateOlderThanDuration(period time.Duration) ListPredicate {
 // listDevices returns a list of devices matching all predicates. It
 // doesn't do anything with locks so without the outer function
 // locking appropriately is unsafe.
-func (list *DevicesList) listDevices(preds ...ListPredicate) (returns []*DeviceEntry) {
+func (list *DevicesList) transformDevices(transformers ...ListElementTransformer) (returns []*DeviceEntry) {
 
 	returns = []*DeviceEntry{}
 search:
 	for _, device := range list.Devices {
-		for _, pred := range preds {
-			if !pred(device) {
+		for _, trans := range transformers {
+			if device = trans(device); device == nil {
 				continue search
 			}
 		}
 		returns = append(returns, device)
 	}
 	return
+}
+
+func PredsToTransformers(preds []ListPredicate) []ListElementTransformer {
+	output := make([]ListElementTransformer, 0, len(preds))
+	for _, pred := range preds {
+		output = append(output, WrapPredicateAsTransformer(pred))
+	}
+	return output
 }
 
 // ApplyToDeviceList applys doToList to the list of device entries in
@@ -129,7 +180,16 @@ func (list *DevicesList) ApplyToDeviceList(
 	preds ...ListPredicate) (interface{}, error) {
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
-	listOfDevs := list.listDevices(preds...)
+	listOfDevs := list.transformDevices(PredsToTransformers(preds)...)
+	return doToList(listOfDevs)
+}
+
+func (list *DevicesList) ApplyToTransformedList(
+	doToList func([]*DeviceEntry) (interface{}, error),
+	trans ...ListElementTransformer) (interface{}, error) {
+	list.Lock.Lock()
+	defer list.Lock.Unlock()
+	listOfDevs := list.transformDevices(trans...)
 	return doToList(listOfDevs)
 }
 
@@ -180,7 +240,7 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 	list.Lock.Lock()
 	defer list.Lock.Unlock()
 
-	deviceIps := entry.getDeviceIpsUnsafe()
+	deviceIps := entry.GetDeviceIPs()
 	if entry.MacAddress == "" && len(deviceIps) <= 0 {
 		return
 	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
@@ -230,10 +290,8 @@ func (n *DeviceEntry) Init() {
 	n.Nmap = nil
 }
 
-// Returns the list of IPs being used by a device. Does not acquire any locks
-// before accessing device list elements. The IPs are fetched by going through
-// each collector entry and adding any IPs found to a set
-func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
+// GetDeviceIPSet returns the set of IPs as a hashmap.
+func (n *DeviceEntry) GetDeviceIPSet() map[string]struct{} {
 	// Use a set to easily get the list of unique IPs assigned to a device
 	ipSet := make(map[string]struct{})
 
@@ -248,8 +306,17 @@ func (n *DeviceEntry) getDeviceIpsUnsafe() []string {
 	for ip := range n.Nmap {
 		ipSet[ip] = struct{}{}
 	}
+	return ipSet
+}
+
+// GetDeviceIPs returns the list of IPs being used by a device. Does
+// not acquire any locks before accessing device list elements. The
+// IPs are fetched by going through each collector entry and adding
+// any IPs found to a set.
+func (n *DeviceEntry) GetDeviceIPs() []string {
 
 	var ipList []string
+	ipSet := n.GetDeviceIPSet()
 	for ip := range ipSet {
 		ipList = append(ipList, ip)
 	}
@@ -288,17 +355,6 @@ type SessionDetail struct {
 	TxTotal int64 `json:"txTotal"`
 }
 
-func (n *DeviceEntry) calcSessionDetails() (output SessionDetail) {
-	output.DataUsage = int64(n.rxTotal + n.txTotal)
-	output.RxTotal = int64(n.rxTotal)
-	output.TxTotal = int64(n.txTotal)
-	for _, session := range n.sessions {
-		output.ByteTransferRate += int64(session.ByteRate)
-		output.NumSessions++
-	}
-	return
-}
-
 func (n *DeviceEntry) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		*disco.DiscoveryEntry
@@ -309,26 +365,126 @@ func (n *DeviceEntry) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (n *DeviceEntry) calcSessionDetails() (output SessionDetail) {
+	for _, session := range n.sessions {
+		output.ByteTransferRate += int64(session.ByteRate)
+		output.NumSessions++
+	}
+	data := n.GetDataUse()
+	output.RxTotal = int64(data.Rx)
+	output.TxTotal = int64(data.Tx)
+	output.DataUsage = int64(data.Total())
+	return
+}
+
+func (n *DeviceEntry) getDataTracker() *DataTracker {
+	if n.dataTracker == nil {
+		n.dataTracker = NewDataTracker(
+			defaultBinInterval,
+			defaultTrackDuration)
+	}
+	return n.dataTracker
+}
+
+func (n *DeviceEntry) IncrData(incr DataUseAmount) {
+	n.getDataTracker().IncrData(incr)
+}
+
+func (n *DeviceEntry) GetDataUse() DataUseAmount {
+	return n.getDataTracker().TotalUse()
+}
+
+type DataUseAmount struct {
+	Tx uint
+	Rx uint
+}
+
+func (amnt DataUseAmount) Total() uint {
+	return amnt.Tx + amnt.Rx
+}
+func (dataTracker *DataTracker) IncrData(incr DataUseAmount) {
+	last := len(dataTracker.dataUseIntervals) - 1
+	lastInterval := &dataTracker.dataUseIntervals[last]
+
+	firstInterval := &dataTracker.dataUseIntervals[0]
+	if time.Since(firstInterval.Start) > dataTracker.maxTrackDuration {
+		dataTracker.RestrictTrackerToInterval(dataTracker.maxTrackDuration)
+		dataTracker.IncrData(incr)
+		return
+	} else if time.Since(lastInterval.Start) > dataTracker.dataUseBinInterval {
+		now := time.Now()
+		dataTracker.dataUseIntervals = append(
+			dataTracker.dataUseIntervals,
+			DataUse{
+				Start: now,
+			})
+		lastInterval.End = now
+		dataTracker.IncrData(incr)
+		return
+	}
+	lastInterval.RxBytes += incr.Rx
+	lastInterval.TxBytes += incr.Tx
+}
+
+func NewDataTracker(
+	binInterval time.Duration,
+	maxInterval time.Duration) *DataTracker {
+	return &DataTracker{
+		dataUseIntervals: []DataUse{
+			{
+				Start: time.Now(),
+			},
+		},
+		maxTrackDuration:   maxInterval,
+		dataUseBinInterval: binInterval,
+	}
+}
+
 // IncrTx increments total tx bytes by tx, returns updated total.
-func (n *DeviceEntry) IncrTx(tx uint) uint {
-	n.txTotal += tx
-	return n.txTotal
+func (dataTracker *DataTracker) IncrTx(tx uint) {
+	dataTracker.IncrData(DataUseAmount{Tx: tx})
 }
 
 // IncrRx increments total rx bytes by rx, returns updated total.
-func (n *DeviceEntry) IncrRx(rx uint) uint {
-	n.rxTotal += rx
-	return n.rxTotal
+func (dataTracker *DataTracker) IncrRx(rx uint) {
+	dataTracker.IncrData(DataUseAmount{Rx: rx})
 }
 
-// RxTotal returns total rx bytes for this device.
-func (n *DeviceEntry) RxTotal() uint {
-	return n.rxTotal
+func (dataTracker *DataTracker) DataUseInInterval(before time.Duration) (output DataUseAmount) {
+	for i := len(dataTracker.dataUseIntervals) - 1; i >= 0; i-- {
+		interval := &dataTracker.dataUseIntervals[i]
+		if time.Since(interval.Start) > before {
+			break
+		}
+		output.Rx += interval.RxBytes
+		output.Tx += interval.TxBytes
+	}
+	return
 }
 
-// TxTotal returns total tx bytes for this device
-func (n *DeviceEntry) TxTotal() uint {
-	return n.txTotal
+func (dataTracker *DataTracker) TotalUse() (output DataUseAmount) {
+	for _, i := range dataTracker.dataUseIntervals {
+		output.Rx += i.RxBytes
+		output.Tx += i.TxBytes
+	}
+	return
+}
+
+func (dataTracker *DataTracker) RestrictTrackerToInterval(before time.Duration) {
+	// Find the first entry that is within the interval, and use
+	// the slice after that.  This allows us to get a new data
+	// tracker with up to that interval.
+	begin := sort.Search(
+		len(dataTracker.dataUseIntervals),
+		func(idx int) bool {
+			return time.Since(dataTracker.dataUseIntervals[idx].Start) <= before
+		})
+	dataTracker.dataUseIntervals = dataTracker.dataUseIntervals[begin:]
+	// If there were only old bins, create a new one starting now.
+	if len(dataTracker.dataUseIntervals) == 0 {
+		dataTracker.dataUseIntervals = append(dataTracker.dataUseIntervals,
+			DataUse{Start: time.Now()})
+	}
 }
 
 // SetMac sets the mac address of the device entry. It 'normalizes' it.

@@ -32,7 +32,7 @@ type DiscoveryPluginSettings struct {
 }
 
 // whole settings object, contains discovery settings and an array of settings for individual collectors
-type discoverySettingsObject struct {
+type DiscoverySettingsObject struct {
 	DiscoveryPluginSettings
 	Plugins []interface{} `json:"plugins"`
 }
