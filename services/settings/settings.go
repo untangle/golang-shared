@@ -192,6 +192,30 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	return map[string]interface{}{"output": output}, err
 }
 
+// Updates settings with the new settings passed in. newSettings needs to be a valid
+// 	Json structure of all the settings. For each exceptions, the current settings will be
+// 	used instead of the what was in newSettings. Returns an error if something went wrong, along
+// 	with an error JSON. If the settings were set, no error will be returned and a JSON response
+// object will be returned will be
+func SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions []string) (interface{}, error) {
+	var currentSettings interface{}
+	if err := UnmarshalSettingsAtPath(&currentSettings); err != nil {
+		return createJSONErrorObject(err), err
+	}
+
+	currentSettingsJson, ok := currentSettings.(map[string]interface{})
+	if !ok {
+		err := fmt.Errorf("invalid global settings object")
+		return createJSONErrorObject(err), err
+	}
+
+	for _, exception := range exceptions {
+		newSettings[exception] = currentSettingsJson[exception]
+	}
+
+	return SetSettings(nil, newSettings, true)
+}
+
 // RegisterSyncCallback registers a callback. Will be called after sync-settings complete.
 func RegisterSyncCallback(callback func()) {
 	// Insert callback
