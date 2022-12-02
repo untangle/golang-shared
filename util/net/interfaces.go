@@ -37,6 +37,7 @@ type V6IpAliases struct {
 	V6Prefix  string `json:"v6Prefix"`
 }
 
+// Get IPV4 static and aliases addresses
 func (intf *Interface) GetIpV4Network() []net.IPNet {
 	var networks []net.IPNet
 	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix))
@@ -52,6 +53,7 @@ func (intf *Interface) GetIpV4Network() []net.IPNet {
 	return networks
 }
 
+// Get IPV6 static and aliases addresses
 func (intf *Interface) GetIpV6Network() []net.IPNet {
 	var networks []net.IPNet
 	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V6StaticAddress, intf.V6StaticPrefix))
@@ -67,6 +69,7 @@ func (intf *Interface) GetIpV6Network() []net.IPNet {
 	return networks
 }
 
+// Get IPV4 and IPV6 static addresses and aliases addresses
 func (intf *Interface) GetNetworks() []net.IPNet {
 	var networks []net.IPNet
 	ipV4Nets := intf.GetIpV4Network()
