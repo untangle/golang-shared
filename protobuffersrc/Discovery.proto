@@ -50,6 +50,7 @@ message LLDP {
     	int64 LastUpdate = 12;
         string mac = 13;
         string ip = 14; 
+        string interface = 15;
 }
 
 message LLDPCapabilities {
@@ -63,9 +64,9 @@ message NEIGH {
      int64 LastUpdate = 3; 
      string state = 4;
      string interface = 5;
-     string family =6;
-     int32 vlan =7;
-     int32 vni =8;
+     string family = 6;
+     int32 vlan = 7;
+     int32 vni = 8;
 }
 
 message NMAP {
@@ -78,6 +79,7 @@ message NMAP {
     int64 LastUpdate = 7; 
     string mac = 8;
     string ip = 9;
+    string interface = 10;
 }
 
 message NMAPPorts {
