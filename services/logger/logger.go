@@ -293,6 +293,46 @@ func OCCrit(format string, para1 string, para2 int64, args ...interface{}) {
 	currentLogger.OCCrit(format, para1, para2, args)
 }
 
+// OCWarn is called for overseer warn messages
+func (logger *Logger) OCWarn(format string, newOcname Ocname, args ...interface{}) {
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+}
+
+func OCWarn(format string, newOcname Ocname, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCWarn(format, newOcname, args)
+}
+
+// OCDebug is called for overseer warn messages
+func (logger *Logger) OCDebug(format string, newOcname Ocname, args ...interface{}) {
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+}
+
+func OCDebug(format string, newOcname Ocname, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCDebug(format, newOcname, args)
+}
+
+// OCErr is called for overseer err messages
+func (logger *Logger) OCErr(format string, newOcname Ocname, args ...interface{}) {
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+}
+
+func OCErr(format string, newOcname Ocname, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCErr(format, newOcname, args)
+}
+
+// OCCrit is called for overseer crit messages
+func (logger *Logger) OCCrit(format string, newOcname Ocname, args ...interface{}) {
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+}
+
+func OCCrit(format string, newOcname Ocname, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCCrit(format, newOcname, args)
+}
+
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
 func (logger *Logger) IsTraceEnabled() bool {
 	return logger.isLogEnabled(LogLevelTrace)
