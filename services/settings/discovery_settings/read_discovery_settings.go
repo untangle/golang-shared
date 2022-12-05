@@ -10,7 +10,6 @@ import (
 var (
 	// map [collector type] function that returns a new settings object for said collector type
 	collectorToSettingsMap = map[discovery.CollectorName]func() iCollectorSettings{
-		discovery.Arp:       func() iCollectorSettings { return &NeighbourSettings{} },
 		discovery.Neighbour: func() iCollectorSettings { return &NeighbourSettings{} },
 		discovery.Lldp:      func() iCollectorSettings { return &LldpSettings{} },
 		discovery.Nmap:      func() iCollectorSettings { return &NmapSettings{} },
