@@ -38,6 +38,11 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 	}
 }
 
+// run once, before test suite methods
+func (suite *TestLogger) SetupSuite() {
+	suite.write = *DefaultLogWriter("test")
+}
+
 func (suite *TestLogger) TestStartup() {
 	suite.logger.Startup()
 	assert.Equal(suite.T(), nil, suite.logger.config.OutputWriter)
@@ -123,13 +128,14 @@ func (suite *TestLogger) TestFindLogLevelID() {
 }
 
 func (suite *TestLogger) TestWrite() {
+
 	int_result, error_result := suite.write.Write([]byte("test\n"))
 	assert.Equal(suite.T(), 5, int_result)
 	assert.Equal(suite.T(), nil, error_result)
 }
 
 func (suite *TestLogger) TestDefaultLogWriter() {
-	assert.Equal(suite.T(), &LogWriter{buffer: []uint8{}, source: "System"}, DefaultLogWriter("System"))
+	assert.Equal(suite.T(), &LogWriter{buffer: []uint8{}, source: "System", logLevel: NewLogLevel("INFO")}, DefaultLogWriter("System"))
 }
 
 func (suite *TestLogger) TestLoadConfigFromFile() {
