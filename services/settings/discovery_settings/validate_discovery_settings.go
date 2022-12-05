@@ -92,7 +92,7 @@ func (s *LldpSettings) IsValid() bool {
 
 // validate neighbour collector settings, returns true if the object is valid, false otherwise
 func (s *NeighbourSettings) IsValid() bool {
-	return s.CollectorSettingsBase.IsValid(discovery.Arp)
+	return s.CollectorSettingsBase.IsValid(discovery.Neighbour)
 }
 
 // validate nmap collector settings, returns true if the object is valid, false otherwise
