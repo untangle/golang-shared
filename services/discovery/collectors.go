@@ -4,8 +4,7 @@ import (
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
-// CollectorName - type alias used for identifying collector plugins
-type CollectorName string
+type CollectorName string // CollectorName - type alias used for identifying collector plugins
 
 const (
 	All CollectorName = "all"
