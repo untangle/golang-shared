@@ -126,7 +126,7 @@ func (logger *Logger) Startup() {
 
 	// capture startup time
 	logger.launchTime = time.Now()
-
+	fmt.Printf(logger.config.FileLocation)
 	// create the map and load the Log configuration
 	data := logger.config.LoadConfigFromFile()
 	if data != nil {
@@ -239,58 +239,58 @@ func (logger *Logger) Trace(format string, args ...interface{}) {
 }
 
 // OCTrace is called for overseer messages
-func (logger *Logger) OCTrace(format string, para1 string, para2 int64, args ...interface{}) {
-	newOcname := Ocname{para1, para2}
+func (logger *Logger) OCTrace(format string, name string, limit int64, args ...interface{}) {
+	newOcname := Ocname{name, limit}
 	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
-func OCTrace(format string, para1 string, para2 int64, args ...interface{}) {
+func OCTrace(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCTrace(format, para1, para2, args)
+	currentLogger.OCTrace(format, name, limit, args)
 }
 
 // OCWarn is called for overseer warn messages
-func (logger *Logger) OCWarn(format string, para1 string, para2 int64, args ...interface{}) {
-	newOcname := Ocname{para1, para2}
+func (logger *Logger) OCWarn(format string, name string, limit int64, args ...interface{}) {
+	newOcname := Ocname{name, limit}
 	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
-func OCWarn(format string, para1 string, para2 int64, args ...interface{}) {
+func OCWarn(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCWarn(format, para1, para2, args)
+	currentLogger.OCWarn(format, name, limit, args)
 }
 
 // OCDebug is called for overseer warn messages
-func (logger *Logger) OCDebug(format string, para1 string, para2 int64, args ...interface{}) {
-	newOcname := Ocname{para1, para2}
+func (logger *Logger) OCDebug(format string, name string, limit int64, args ...interface{}) {
+	newOcname := Ocname{name, limit}
 	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
-func OCDebug(format string, para1 string, para2 int64, args ...interface{}) {
+func OCDebug(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCDebug(format, para1, para2, args)
+	currentLogger.OCDebug(format, name, limit, args)
 }
 
 // OCErr is called for overseer err messages
-func (logger *Logger) OCErr(format string, para1 string, para2 int64, args ...interface{}) {
-	newOcname := Ocname{para1, para2}
+func (logger *Logger) OCErr(format string, name string, limit int64, args ...interface{}) {
+	newOcname := Ocname{name, limit}
 	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
-func OCErr(format string, para1 string, para2 int64, args ...interface{}) {
+func OCErr(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCErr(format, para1, para2, args)
+	currentLogger.OCErr(format, name, limit, args)
 }
 
 // OCCrit is called for overseer crit messages
-func (logger *Logger) OCCrit(format string, para1 string, para2 int64, args ...interface{}) {
-	newOcname := Ocname{para1, para2}
+func (logger *Logger) OCCrit(format string, name string, limit int64, args ...interface{}) {
+	newOcname := Ocname{name, limit}
 	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
-func OCCrit(format string, para1 string, para2 int64, args ...interface{}) {
+func OCCrit(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCCrit(format, para1, para2, args)
+	currentLogger.OCCrit(format, name, limit, args)
 }
 
 // OCWarn is called for overseer warn messages
