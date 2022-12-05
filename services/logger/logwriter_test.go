@@ -4,7 +4,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,13 +26,6 @@ func (suite *LogWriterTestSuite) SetupSuite() {
 func (suite *LogWriterTestSuite) TestLogLevels() {
 	// Init log writer
 	logWriter := DefaultLogWriter("test")
-	logWriter.SetLogLevelProcessor(func(currentLevel LogLevel, message string) LogLevel {
-		if strings.Contains(message, "err") {
-			return NewLogLevel("ERROR")
-		}
-
-		return currentLevel
-	})
 
 	log.SetOutput(logWriter)
 
@@ -46,11 +38,6 @@ func (suite *LogWriterTestSuite) TestLogLevels() {
 		// And assert that the message was logged with the right log level.
 		assert.Contains(suite.T(), string(result), testLevel)
 	}
-
-	result := suite.logAndGetOutput("This is an error.")
-
-	// And assert that the message was logged with the right log level.
-	assert.Contains(suite.T(), string(result), "ERROR")
 }
 
 func (*LogWriterTestSuite) logAndGetOutput(message string) string {
