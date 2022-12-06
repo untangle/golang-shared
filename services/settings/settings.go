@@ -161,7 +161,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	}
 	jsonSettings, ok = newSettings.(map[string]interface{})
 	if !ok {
-		err = errors.New("Invalid global settings object")
+		err = errors.New("invalid global settings object")
 		return createJSONErrorObject(err), err
 	}
 
@@ -192,31 +192,6 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	return map[string]interface{}{"output": output}, err
 }
 
-// Updates settings with the new settings passed in. newSettings needs to be a valid
-// 	Json structure of all the settings. For each exceptions, the current settings will be
-// 	used instead of the what was in newSettings. Returns an error if something went wrong, along
-// 	with an error JSON. If the settings were set, no error will be returned and a JSON response
-//  object will be returned will be. Only works for settings at the highest level in the settings json
-func SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions []string) (interface{}, error) {
-	currentSettings, err := GetSettings(nil)
-	if err != nil {
-		// Json error should be passed up from GetSettings()
-		return currentSettings, err
-	}
-
-	currentSettingsJson, ok := currentSettings.(map[string]interface{})
-	if !ok {
-		err := fmt.Errorf("invalid global settings object")
-		return createJSONErrorObject(err), err
-	}
-
-	for _, exception := range exceptions {
-		newSettings[exception] = currentSettingsJson[exception]
-	}
-
-	return SetSettings(nil, newSettings, true)
-}
-
 // RegisterSyncCallback registers a callback. Will be called after sync-settings complete.
 func RegisterSyncCallback(callback func()) {
 	// Insert callback
@@ -241,7 +216,7 @@ func readSettingsFileJSON(filename string) (map[string]interface{}, error) {
 		return j, nil
 	}
 
-	return nil, errors.New("Invalid settings file format")
+	return nil, errors.New("invalid settings file format")
 }
 
 // writeSettingsFileJSON writes the specified JSON object to the settings file
@@ -345,7 +320,7 @@ func TrimSettingsFile(segments []string, filename string) (interface{}, error) {
 	var jsonSettings map[string]interface{}
 
 	if segments == nil {
-		err = errors.New("Invalid trim settings path")
+		err = errors.New("invalid trim settings path")
 		return createJSONErrorObject(err), err
 	}
 

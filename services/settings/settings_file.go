@@ -3,6 +3,8 @@ package settings
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -96,4 +98,93 @@ func (file *SettingsFile) GenerateBackupFile(backupGenerationScript string, scri
 	}
 
 	return settingsFile, fileData, nil
+}
+
+// Returns a JSON structure(map[string]interface{}) of the current settings
+func (file *SettingsFile) GetAllSettings() (map[string]interface{}, error) {
+	file.mutex.RLock()
+	defer file.mutex.RUnlock()
+
+	raw, err := ioutil.ReadFile(file.filename)
+	if err != nil {
+		return nil, err
+	}
+	var jsonObject interface{}
+	err = json.Unmarshal(raw, &jsonObject)
+	if err != nil {
+		return nil, err
+	}
+	j, ok := jsonObject.(map[string]interface{})
+	if ok {
+		return j, nil
+	}
+
+	return nil, errors.New("invalid settings file format")
+}
+
+// Updates settings with the new settings passed in. newSettings needs to be a valid
+// 	Json structure(map[string]interface{}) of all the settings. For each exceptions, the current settings will be
+// 	used instead of the what was in newSettings. Returns an error if something went wrong, along
+// 	with an error JSON. If the settings were set, no error will be returned and a JSON response
+//  object will be returned will be. !!!Only works for settings at the highest level in the settings json
+func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions []string) (interface{}, error) {
+	currentSettings, err := file.GetAllSettings()
+	if err != nil {
+		return currentSettings, err
+	}
+
+	for _, exception := range exceptions {
+		newSettings[exception] = currentSettings[exception]
+	}
+
+	return file.SetSettings(nil, newSettings, true)
+}
+
+// SetSettings updates the settings. Calls lock/unlock on the SettingsFile's mutex
+func (file *SettingsFile) SetSettings(segments []string, value interface{}, force bool) (interface{}, error) {
+	var ok bool
+	var err error
+	var jsonSettings map[string]interface{}
+	var newSettings interface{}
+
+	jsonSettings, err = file.GetAllSettings()
+	if err != nil {
+		return createJSONErrorObject(err), err
+	}
+
+	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
+	if err != nil {
+		return createJSONErrorObject(err), err
+	}
+	jsonSettings, ok = newSettings.(map[string]interface{})
+	if !ok {
+		err = errors.New("invalid global settings object")
+		return createJSONErrorObject(err), err
+	}
+
+	file.mutex.Lock()
+	output, err := syncAndSave(jsonSettings, file.filename, force)
+	file.mutex.Unlock()
+	if err != nil {
+		var errJSON map[string]interface{}
+		marshalErr := json.Unmarshal([]byte(err.Error()), &errJSON)
+		if marshalErr != nil {
+			logger.Warn("Failed to marshal into json: %s\n", marshalErr.Error())
+			if strings.Contains(err.Error(), "CONFIRM") {
+				return determineSetSettingsError(err, output, file.filename, jsonSettings)
+			}
+		} else {
+			if _, ok := errJSON["CONFIRM"]; ok {
+				return determineSetSettingsError(err, output, file.filename, jsonSettings)
+			}
+		}
+		logger.Warn("Failed to save settings: %s\n", err.Error())
+		responseErr := err.Error()
+		if len(responseErr) == 0 {
+			responseErr = "failed_sync_settings"
+		}
+		return map[string]interface{}{"error": responseErr, "output": output}, err
+	}
+
+	return map[string]interface{}{"output": output}, err
 }
