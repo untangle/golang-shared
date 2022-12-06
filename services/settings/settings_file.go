@@ -70,7 +70,7 @@ func (file *SettingsFile) UnmarshalSettingsAtPath(value interface{}, settings ..
 // "", nil, err will be returned.
 // The script provided must output a line specifying the location of the generated backup file in the format:
 // 	Backup location: <full path of file> \n
-func (file *SettingsFile) GenerateBackupFile(backupGenerationScript string, scriptArgs []string) (string, []byte, error) {
+func (file *SettingsFile) GenerateBackupFile(backupGenerationScript string, scriptArgs ...string) (string, []byte, error) {
 	file.mutex.RLock()
 	defer file.mutex.RUnlock()
 
