@@ -5,6 +5,12 @@ import (
 	"net"
 )
 
+const (
+	// ConfigTypeBridged - If the interface is a bridged
+	// interface, this is it's ConfigType.
+	ConfigTypeBridged = "BRIDGED"
+)
+
 // Interface corresponds to the interface JSON structure in the settings.json
 // file.
 type Interface struct {
@@ -19,6 +25,7 @@ type Interface struct {
 
 	Enabled         bool          `json:"enabled"`
 	Name            string        `json:"name"`
+	InterfaceID     int           `json:"interfaceID"`
 	Type            string        `json:"type"`
 	V4StaticAddress string        `json:"v4StaticAddress"`
 	V4StaticPrefix  uint8         `json:"v4StaticPrefix"`
@@ -35,6 +42,10 @@ type V4IpAliases struct {
 type V6IpAliases struct {
 	V6Address string `json:"v6Address"`
 	V6Prefix  string `json:"v6Prefix"`
+}
+
+func (intf *Interface) IsBridged() bool {
+	return intf.ConfigType == ConfigTypeBridged
 }
 
 // Get IPV4 static and aliases addresses

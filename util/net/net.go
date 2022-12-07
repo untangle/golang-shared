@@ -31,8 +31,7 @@ const (
 // GetInterfaces returns a list of interfaces, filtered by any propeties passed in
 // @param - filter func(InterfaceDetail) bool - a function filter to filter results if needed
 // @return - []InterfaceDetail - an array of InterfaceDetail types
-func GetInterfaces(intfSettings InterfaceSettings, filter func(Interface) bool) []Interface {
-	var interfaces []Interface
+func GetInterfaces(intfSettings InterfaceSettings, filter func(Interface) bool) (interfaces []Interface) {
 	err := intfSettings.UnmarshalJson(&interfaces)
 	if err != nil {
 		logger.Warn("Unable to read network settings: %s\n", err.Error())
