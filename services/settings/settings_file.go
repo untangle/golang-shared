@@ -69,39 +69,6 @@ func (file *SettingsFile) UnmarshalSettingsAtPath(value interface{}, settings ..
 	return unmarshaller.UnmarshalAtPath(value, settings...)
 }
 
-// Generates a backup of a settings file using a provided script. Locks the settings file before generation.
-// Returns the file name as the full path to it, the settings file data as []byte, and an error. If any error occurs
-// "", nil, err will be returned.
-// The script provided must output a line specifying the location of the generated backup file in the format:
-// 	Backup location: <full path of file> \n
-func (file *SettingsFile) GenerateBackupFile(backupGenerationScript string, scriptArgs ...string) (string, []byte, error) {
-	file.mutex.RLock()
-	defer file.mutex.RUnlock()
-
-	cmd, err := exec.Command(backupGenerationScript, scriptArgs...).Output()
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to create the settings file with command %s %v", backupGenerationScript, scriptArgs)
-	}
-
-	scanner := bufio.NewScanner(bytes.NewReader(cmd))
-	var settingsFile string
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "Backup location:") {
-			settingsFile = strings.Trim(strings.Split(scanner.Text(), ": ")[1], " \n")
-		}
-	}
-	if settingsFile == "" {
-		return "", nil, fmt.Errorf("failed to create the default settings file")
-	}
-
-	fileData, err := ioutil.ReadFile(settingsFile)
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to read the default settings file")
-	}
-
-	return settingsFile, fileData, nil
-}
-
 // Returns a JSON structure(map[string]interface{}) of the current settings
 func (file *SettingsFile) GetAllSettings() (map[string]interface{}, error) {
 	file.mutex.RLock()
@@ -220,4 +187,37 @@ func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]in
 	}
 
 	return file.SetSettings(nil, newSettings, true)
+}
+
+// Generates a backup of a settings file using a provided script. Locks the settings file before generation.
+// Returns the file name as the full path to it, the settings file data as []byte, and an error. If any error occurs
+// "", nil, err will be returned.
+// The script provided must output a line specifying the location of the generated backup file in the format:
+// 	Backup location: <full path of file> \n
+func (file *SettingsFile) GenerateBackupFile(backupGenerationScript string, scriptArgs ...string) (string, []byte, error) {
+	file.mutex.RLock()
+	defer file.mutex.RUnlock()
+
+	cmd, err := exec.Command(backupGenerationScript, scriptArgs...).Output()
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to create the settings file with command %s %v", backupGenerationScript, scriptArgs)
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(cmd))
+	var settingsFile string
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "Backup location:") {
+			settingsFile = strings.Trim(strings.Split(scanner.Text(), ": ")[1], " \n")
+		}
+	}
+	if settingsFile == "" {
+		return "", nil, fmt.Errorf("failed to create the default settings file")
+	}
+
+	fileData, err := ioutil.ReadFile(settingsFile)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to read the default settings file")
+	}
+
+	return settingsFile, fileData, nil
 }
