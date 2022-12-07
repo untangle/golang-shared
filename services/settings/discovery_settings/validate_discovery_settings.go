@@ -18,7 +18,7 @@ const (
 func ValidateDiscoverySettings(settingsObjBytes []byte) bool {
 
 	// first we unmarshal the whole discovery settings object
-	discoverySettings := discoverySettingsObject{}
+	discoverySettings := DiscoverySettingsObject{}
 	if err := json.Unmarshal(settingsObjBytes, &discoverySettings); err != nil {
 		logger.Info("ValidateDiscoverySettings unable to unmarshall discoverySettingsObject with err %v\n", err)
 		return false
