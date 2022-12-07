@@ -1,6 +1,11 @@
 package logger
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
+
+var ErrInvalidLogLevel = errors.New("invalid log level")
 
 // LogLevel struct retains the loglevel information in a string and int.
 type LogLevel struct {
@@ -18,4 +23,8 @@ func (lvl *LogLevel) GetId() int32 {
 	}
 
 	return -1
+}
+
+func NewLogLevel(name string) LogLevel {
+	return LogLevel{Name: name}
 }

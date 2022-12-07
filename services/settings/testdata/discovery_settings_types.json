@@ -16,7 +16,7 @@
                 {
                     "autoInterval":43200,
                     "enabled":true,
-                    "type":"arp"
+                    "type":"neighbour"
                 }
             ]
         },
@@ -30,7 +30,7 @@
                 {
                     "autoInterval":-1,
                     "enabled":true,
-                    "type":"arp"
+                    "type":"neighbour"
                 }
             ]
         },
@@ -44,7 +44,7 @@
                 {
                     "autoInterval": 12.34,
                     "enabled":true,
-                    "type":"arp"
+                    "type":"neighbour"
                 }
             ]
         },
@@ -86,7 +86,7 @@
                 {
                     "autoInterval":43200,
                     "enabled":true,
-                    "type":"arp"
+                    "type":"neighbour"
                 }
             ]
         },
@@ -100,7 +100,7 @@
                 {
                     "autoInterval":43200,
                     "enabled":true,
-                    "typoTypeTypoType":"arp"
+                    "typoTypeTypoType":"neighbour"
                 }
             ]
         },

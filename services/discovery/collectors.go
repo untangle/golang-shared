@@ -4,15 +4,11 @@ import (
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
-// CollectorName - type alias used for identifying collector plugins
-type CollectorName string
+type CollectorName string // CollectorName - type alias used for identifying collector plugins
 
 const (
 	All CollectorName = "all"
 
-	Discovery CollectorName = "discovery"
-
-	Arp       CollectorName = "arp" // will be replaced by Neighbour
 	Lldp      CollectorName = "lldp"
 	Neighbour CollectorName = "neighbour"
 	Nmap      CollectorName = "nmap"
