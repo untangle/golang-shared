@@ -18,4 +18,8 @@ message SessionStatsEvent {
   uint32 packetRate = 12;
   uint32 clientPacketRate = 13;
   uint32 serverPacketRate = 14;
+
+
+  // Network address of the client.
+  string clientNetworkAddress = 15;
 }
