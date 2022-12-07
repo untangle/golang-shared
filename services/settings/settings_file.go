@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/untangle/golang-shared/util"
 )
 
 // SettingsFile is an object representing the system-wide settings and
@@ -122,24 +124,6 @@ func (file *SettingsFile) GetAllSettings() (map[string]interface{}, error) {
 	return nil, errors.New("invalid settings file format")
 }
 
-// Updates settings with the new settings passed in. newSettings needs to be a valid
-// 	Json structure(map[string]interface{}) of all the settings. For each exception, the current settings will be
-// 	used instead of the what was in newSettings. Returns an error if something went wrong, along
-// 	with an error JSON. If the settings were set, no error will be returned and a JSON response
-//  object will be returned will be. !!!Only works for settings at the highest level in the settings json
-func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions []string) (interface{}, error) {
-	currentSettings, err := file.GetAllSettings()
-	if err != nil {
-		return currentSettings, err
-	}
-
-	for _, exception := range exceptions {
-		newSettings[exception] = currentSettings[exception]
-	}
-
-	return file.SetSettings(nil, newSettings, true)
-}
-
 // SetSettings updates the settings. Calls lock/unlock on the SettingsFile's mutex
 func (file *SettingsFile) SetSettings(segments []string, value interface{}, force bool) (interface{}, error) {
 	var ok bool
@@ -187,4 +171,52 @@ func (file *SettingsFile) SetSettings(segments []string, value interface{}, forc
 	}
 
 	return map[string]interface{}{"output": output}, err
+}
+
+// Restores settings from a backups file. The backup file should be in the form of a tar.gz with structure
+// /
+func (file *SettingsFile) RestoreSettingsFromFile(fileData []byte, exceptions ...string) (interface{}, error) {
+	// Set settings data with what could potentially be a JSON string.
+	// If it's not, the settings data will get swapped out for what was in
+	// a tar file
+	settingsData := fileData
+
+	// A user uploaded settings file was originally a single JSON file. For
+	// backwards compatibility, if the file uploaded wasn't a JSON
+	// try treating it as a JSON
+	fileName := "settings.json"
+	foundFiles, err := util.ExtractFilesFromTar(fileData, true, fileName)
+	if err != nil {
+		logger.Warn("Failed to extract the settings restore file as a tar. Attempting to use the settings restore file as a JSON\n")
+	} else {
+		if data, ok := foundFiles[fileName]; ok {
+			settingsData = data
+			logger.Debug("Retrieved settings restore file from tar.")
+		}
+	}
+
+	var settingsJson map[string]interface{}
+	if err := json.Unmarshal(settingsData, &settingsJson); err != nil {
+		return createJSONErrorObject(err), err
+	}
+
+	return file.SetAllSettingsWithExceptions(settingsJson, exceptions...)
+}
+
+// Updates settings with the new settings passed in. newSettings needs to be a valid
+// 	Json structure(map[string]interface{}) of all the settings. For each exception, the current settings will be
+// 	used instead of the what was in newSettings. Returns an error if something went wrong, along
+// 	with an error JSON. If the settings were set, no error will be returned and a JSON response
+//  object will be. !!!Only works for settings at the highest level in the settings json
+func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions ...string) (interface{}, error) {
+	currentSettings, err := file.GetAllSettings()
+	if err != nil {
+		return createJSONErrorObject(err), err
+	}
+
+	for _, exception := range exceptions {
+		newSettings[exception] = currentSettings[exception]
+	}
+
+	return file.SetSettings(nil, newSettings, true)
 }
