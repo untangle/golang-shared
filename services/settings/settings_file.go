@@ -174,7 +174,8 @@ func (file *SettingsFile) SetSettings(segments []string, value interface{}, forc
 }
 
 // Restores settings from a backups file. The backup file should be in the form of a tar.gz with structure
-// /
+// /<directory named after date/time created>/settings.json. Initially, backups were restored with just the
+// settings.json file, so for the time being the old settings.json backups are still supported.
 func (file *SettingsFile) RestoreSettingsFromFile(fileData []byte, exceptions ...string) (interface{}, error) {
 	// Set settings data with what could potentially be a JSON string.
 	// If it's not, the settings data will get swapped out for what was in
