@@ -53,7 +53,11 @@ func TestGetAllSettings(t *testing.T) {
 // Uses a script that just points at the testdata/settings.json to generate a backup
 func TestGenerateBackup(t *testing.T) {
 	s := NewSettingsFile(testSettingsFilePath)
-	name, data, err := s.GenerateBackupFile("./testdata/testBackupGeneration.sh")
+
+	// Since the pipeline runs this code in in containers that are both ash/bash
+	// just hack GenerateBackupFile to run a command they can both use.
+	// The echo command simulates a scripts output
+	name, data, err := s.GenerateBackupFile("echo", "Backup location: ./testdata/settings.json")
 	assert.NoError(t, err)
 	assert.Equal(t, name, "./testdata/settings.json")
 
