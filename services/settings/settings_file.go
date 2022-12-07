@@ -123,7 +123,7 @@ func (file *SettingsFile) GetAllSettings() (map[string]interface{}, error) {
 }
 
 // Updates settings with the new settings passed in. newSettings needs to be a valid
-// 	Json structure(map[string]interface{}) of all the settings. For each exceptions, the current settings will be
+// 	Json structure(map[string]interface{}) of all the settings. For each exception, the current settings will be
 // 	used instead of the what was in newSettings. Returns an error if something went wrong, along
 // 	with an error JSON. If the settings were set, no error will be returned and a JSON response
 //  object will be returned will be. !!!Only works for settings at the highest level in the settings json
