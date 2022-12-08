@@ -4,15 +4,11 @@ import (
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
-// CollectorName - type alias used for identifying collector plugins
-type CollectorName string
+type CollectorName string // CollectorName - type alias used for identifying collector plugins
 
 const (
 	All CollectorName = "all"
 
-	Discovery CollectorName = "discovery"
-
-	Arp       CollectorName = "arp" // will be replaced by Neighbour
 	Lldp      CollectorName = "lldp"
 	Neighbour CollectorName = "neighbour"
 	Nmap      CollectorName = "nmap"
@@ -26,7 +22,7 @@ type CallCollectorsRequest struct {
 
 // toRpcRequest - converts the wrapper request struct to the one the RPC function expects
 func toRpcRequest(req CallCollectorsRequest) disco.CallDiscoveryRequest {
-	strCollectors := make([]string, len(req.Collectors), len(req.Collectors))
+	strCollectors := make([]string, len(req.Collectors))
 	for i, c := range req.Collectors {
 		strCollectors[i] = string(c)
 	}

@@ -18,7 +18,7 @@ const (
 func ValidateDiscoverySettings(settingsObjBytes []byte) bool {
 
 	// first we unmarshal the whole discovery settings object
-	discoverySettings := discoverySettingsObject{}
+	discoverySettings := DiscoverySettingsObject{}
 	if err := json.Unmarshal(settingsObjBytes, &discoverySettings); err != nil {
 		logger.Info("ValidateDiscoverySettings unable to unmarshall discoverySettingsObject with err %v\n", err)
 		return false
@@ -92,7 +92,7 @@ func (s *LldpSettings) IsValid() bool {
 
 // validate neighbour collector settings, returns true if the object is valid, false otherwise
 func (s *NeighbourSettings) IsValid() bool {
-	return s.CollectorSettingsBase.IsValid(discovery.Arp)
+	return s.CollectorSettingsBase.IsValid(discovery.Neighbour)
 }
 
 // validate nmap collector settings, returns true if the object is valid, false otherwise
