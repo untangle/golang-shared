@@ -86,8 +86,29 @@ func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
 
 	for _, ip := range entry.GetDeviceIPs() {
+		list.cleanupEntryIp(ip, entry)
 		list.devicesByIP[ip] = entry
 	}
+}
+
+// If we have an IP in the entry that belongs to another mac address, it means that:
+// - the old devices IP got changed/removed and assigned to the new device
+//		OR
+// - the new devices IP got changed/removed and assigned to the old entry
+// Decide what is the case based on the entries LastUpdate field.
+func (list *DevicesList) cleanupEntryIp(ip string, entry *DeviceEntry) {
+	ipEntry, ok := list.devicesByIP[ip]
+	if !ok || ipEntry.MacAddress == entry.MacAddress {
+		return
+	}
+
+	if entry.LastUpdate >= ipEntry.LastUpdate {
+		ipEntry.RemoveIp(ip)
+
+		return
+	}
+
+	entry.RemoveIp(ip)
 }
 
 func (list *DevicesList) PutDevice(entry *DeviceEntry) {
@@ -315,6 +336,12 @@ func (n *DeviceEntry) GetDeviceIPs() []string {
 	}
 
 	return ipList
+}
+
+func (n *DeviceEntry) RemoveIp(ip string) {
+	delete(n.Lldp, ip)
+	delete(n.Neigh, ip)
+	delete(n.Nmap, ip)
 }
 
 // Merge fills the relevant fields of n that are not present with ones
