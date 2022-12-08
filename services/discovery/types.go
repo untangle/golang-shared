@@ -91,12 +91,14 @@ func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	}
 }
 
-// If we have an IP in the entry that belongs to another mac address, it means that:
-// - the old devices IP got changed/removed and assigned to the new device
-//		OR
-// - the new devices IP got changed/removed and assigned to the old entry
-// Decide what is the case based on the entries LastUpdate field.
+// If the current entry contains the IP, and the IP is also assigned to another entry, it means
+// that one of the entries IP got changed/removed and reassigned.
+// We need to remove the ip from the entry with smallest LastUpdate.
 func (list *DevicesList) cleanupEntryIp(ip string, entry *DeviceEntry) {
+	if !entry.HasIp(ip) {
+		return
+	}
+
 	ipEntry, ok := list.devicesByIP[ip]
 	if !ok || ipEntry.MacAddress == entry.MacAddress {
 		return
@@ -321,6 +323,13 @@ func (n *DeviceEntry) GetDeviceIPSet() map[string]struct{} {
 		ipSet[ip] = struct{}{}
 	}
 	return ipSet
+}
+
+func (n *DeviceEntry) HasIp(ip string) bool {
+	ipSet := n.GetDeviceIPSet()
+	_, ok := ipSet[ip]
+
+	return ok
 }
 
 // GetDeviceIPs returns the list of IPs being used by a device. Does
