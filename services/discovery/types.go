@@ -86,31 +86,38 @@ func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
 
 	for _, ip := range entry.GetDeviceIPs() {
-		list.cleanupEntryIp(ip, entry)
-		list.devicesByIP[ip] = entry
+		list.putDevicesByIpUnsafe(ip, entry)
 	}
 }
 
-// If the current entry contains the IP, and the IP is also assigned to another entry, it means
-// that one of the entries IP got changed/removed and reassigned.
-// We need to keep the IP on the entry with latest LastUpdate.
-func (list *DevicesList) cleanupEntryIp(ip string, entry *DeviceEntry) {
+func (list *DevicesList) putDevicesByIpUnsafe(ip string, entry *DeviceEntry) {
 	if !entry.HasIp(ip) {
 		return
 	}
 
+	// If the IP is also assigned to another entry, it means
+	// that one of the entries IP got changed/removed and reassigned.
+	// We need to keep the IP on the entry with the latest LastUpdate.
 	ipEntry, ok := list.devicesByIP[ip]
 	if !ok || ipEntry.MacAddress == entry.MacAddress {
+		list.devicesByIP[ip] = entry
 		return
 	}
 
 	if entry.LastUpdate > ipEntry.LastUpdate {
-		ipEntry.RemoveIp(ip)
-
+		list.cleanEntryIpUnsafe(ip, ipEntry)
+		list.devicesByIP[ip] = entry
 		return
 	}
 
+	list.cleanEntryIpUnsafe(ip, entry)
+}
+
+func (list *DevicesList) cleanEntryIpUnsafe(ip string, entry *DeviceEntry) {
 	entry.RemoveIp(ip)
+	if entry.IsEmpty() {
+		delete(list.Devices, entry.MacAddress)
+	}
 }
 
 func (list *DevicesList) PutDevice(entry *DeviceEntry) {
@@ -330,6 +337,10 @@ func (n *DeviceEntry) HasIp(ip string) bool {
 	_, ok := ipSet[ip]
 
 	return ok
+}
+
+func (n *DeviceEntry) IsEmpty() bool {
+	return len(n.Lldp) == 0 && len(n.Neigh) == 0 && len(n.Nmap) == 0
 }
 
 // GetDeviceIPs returns the list of IPs being used by a device. Does
