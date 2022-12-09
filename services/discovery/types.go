@@ -93,7 +93,7 @@ func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 
 // If the current entry contains the IP, and the IP is also assigned to another entry, it means
 // that one of the entries IP got changed/removed and reassigned.
-// We need to remove the ip from the entry with smallest LastUpdate.
+// We need to keep the IP on the entry with latest LastUpdate.
 func (list *DevicesList) cleanupEntryIp(ip string, entry *DeviceEntry) {
 	if !entry.HasIp(ip) {
 		return
@@ -104,7 +104,7 @@ func (list *DevicesList) cleanupEntryIp(ip string, entry *DeviceEntry) {
 		return
 	}
 
-	if entry.LastUpdate >= ipEntry.LastUpdate {
+	if entry.LastUpdate > ipEntry.LastUpdate {
 		ipEntry.RemoveIp(ip)
 
 		return
