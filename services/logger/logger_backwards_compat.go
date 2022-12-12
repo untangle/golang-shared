@@ -17,7 +17,7 @@ func IsTraceEnabled() bool {
 // For backward compatibility
 func Debug(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Debug(format, args)
+	currentLogger.Debug(format, args...)
 }
 
 // For backward compatibility
@@ -29,7 +29,7 @@ func IsDebugEnabled() bool {
 // For backward compatibility
 func Info(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Info(format, args)
+	currentLogger.Info(format, args...)
 }
 
 // For backward compatibility
@@ -41,7 +41,7 @@ func IsInfoEnabled() bool {
 // For backward compatibility
 func Notice(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Notice(format, args)
+	currentLogger.Notice(format, args...)
 }
 
 // For backward compatibility
@@ -53,7 +53,7 @@ func IsNoticeEnabled() bool {
 // For backward compatibility
 func Warn(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Warn(format, args)
+	currentLogger.Warn(format, args...)
 }
 
 // For backward compatibility
@@ -77,7 +77,7 @@ func IsErrEnabled() bool {
 // For backward compatibility
 func Crit(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Crit(format, args)
+	currentLogger.Crit(format, args...)
 }
 
 // For backward compatibility
@@ -89,7 +89,7 @@ func IsCritEnabled() bool {
 // For backward compatibility
 func Alert(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Alert(format, args)
+	currentLogger.Alert(format, args...)
 }
 
 // For backward compatibility
@@ -101,7 +101,7 @@ func IsAlertEnabled() bool {
 // For backward compatibility
 func Emerg(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Emerg(format, args)
+	currentLogger.Emerg(format, args...)
 }
 
 // For backward compatibility
