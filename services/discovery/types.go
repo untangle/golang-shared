@@ -276,7 +276,8 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 			// Once an old entry is oldEntry and the new entry is merged with it,
 			// break out of the loop since any device oldEntry is a pointer that
 			// every IP for a device points to
-			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil {
+			// We do not merge the new entry into the old entry if the new entry is a new device.
+			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "") {
 				oldEntry.Merge(entry)
 				list.putDeviceUnsafe(oldEntry)
 				found = true
