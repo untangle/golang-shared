@@ -334,10 +334,11 @@ func (n *DeviceEntry) GetDeviceIPSet() map[string]struct{} {
 }
 
 func (n *DeviceEntry) HasIp(ip string) bool {
-	ipSet := n.GetDeviceIPSet()
-	_, ok := ipSet[ip]
+	_, inNamp := n.Nmap[ip]
+	_, inNeigh := n.Neigh[ip]
+	_, inLldp := n.Lldp[ip]
 
-	return ok
+	return inNamp || inNeigh || inLldp
 }
 
 func (n *DeviceEntry) IsEmpty() bool {

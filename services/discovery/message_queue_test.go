@@ -19,9 +19,9 @@ func TestFillDeviceListWithZMQDeviceMessages(t *testing.T) {
 	go FillDeviceListWithZMQDeviceMessages(deviceList, zmqChan, shutdownChannel, func(de *DeviceEntry) {})
 
 	totalSentMessages := 3
-	lldpMessage, _ := proto.Marshal(&disco.LLDP{Mac: "11:11:11:11:11:11"})
-	neighMessage, _ := proto.Marshal(&disco.NEIGH{Mac: "22:22:22:22:22:22"})
-	nmapMessage, _ := proto.Marshal(&disco.NMAP{Mac: "33:33:33:33:33:33"})
+	lldpMessage, _ := proto.Marshal(&disco.LLDP{Mac: "11:11:11:11:11:11", Ip: "192.168.11.22"})
+	neighMessage, _ := proto.Marshal(&disco.NEIGH{Mac: "22:22:22:22:22:22", Ip: "192.168.33.44"})
+	nmapMessage, _ := proto.Marshal(&disco.NMAP{Mac: "33:33:33:33:33:33", Ip: "192.168.55.66"})
 
 	zmqChan <- &ZmqMessage{Topic: LLDPDeviceZMQTopic, Message: lldpMessage}
 	zmqChan <- &ZmqMessage{Topic: NEIGHDeviceZMQTopic, Message: neighMessage}
