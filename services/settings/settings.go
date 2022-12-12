@@ -161,7 +161,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	}
 	jsonSettings, ok = newSettings.(map[string]interface{})
 	if !ok {
-		err = errors.New("Invalid global settings object")
+		err = errors.New("invalid global settings object")
 		return createJSONErrorObject(err), err
 	}
 
@@ -216,7 +216,7 @@ func readSettingsFileJSON(filename string) (map[string]interface{}, error) {
 		return j, nil
 	}
 
-	return nil, errors.New("Invalid settings file format")
+	return nil, errors.New("invalid settings file format")
 }
 
 // writeSettingsFileJSON writes the specified JSON object to the settings file
@@ -320,7 +320,7 @@ func TrimSettingsFile(segments []string, filename string) (interface{}, error) {
 	var jsonSettings map[string]interface{}
 
 	if segments == nil {
-		err = errors.New("Invalid trim settings path")
+		err = errors.New("invalid trim settings path")
 		return createJSONErrorObject(err), err
 	}
 

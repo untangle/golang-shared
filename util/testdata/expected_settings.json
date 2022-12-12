@@ -1,0 +1,1308 @@
+{
+    "accounts": {
+        "credentials": [
+            {
+                "passwordHashMD5": "$1$UQwMky7.$qe.DzVuoCRegOQj.OO/6j.",
+                "passwordHashSHA512": "$6$zAEbNYF2Knyo6mpb$5xlDqYySccr3gdJRgQcxbtVnyfHBvC79t88vldjAWoB../wLWIo.T3CXFO2.9swuOXS/QZI9w6tm40SpEp2ES.",
+                "username": "admin"
+            }
+        ]
+    },
+    "dashboard": {
+        "widgets": [
+            {
+                "interval": 0,
+                "isReport": false,
+                "name": "Server Info"
+            },
+            {
+                "interval": 0,
+                "isReport": false,
+                "name": "CPU Load"
+            },
+            {
+                "interval": 30,
+                "name": "Interface Usage"
+            },
+            {
+                "interval": 0,
+                "isReport": false,
+                "name": "Network Layout"
+            },
+            {
+                "interval": 30,
+                "name": "Interface Average Latency"
+            },
+            {
+                "interval": 30,
+                "name": "Top Applications by Bandwidth"
+            },
+            {
+                "interval": 30,
+                "name": "Top Applications Bandwidth by Time"
+            },
+            {
+                "interval": 30,
+                "isReport": true,
+                "name": "WAN Routing"
+            }
+        ]
+    },
+    "dhcp": {
+        "dhcpAuthoritative": true,
+        "staticDhcpEntries": []
+    },
+    "discovery": {
+        "enabled": true,
+        "plugins": [
+            {
+                "autoInterval": 3600,
+                "enabled": true,
+                "type": "lldp"
+            },
+            {
+                "autoInterval": 3600,
+                "enabled": true,
+                "type": "nmap"
+            },
+            {
+                "autoInterval": 360,
+                "enabled": true,
+                "type": "arp"
+            }
+        ]
+    },
+    "dns": {
+        "localServers": [],
+        "staticEntries": []
+    },
+    "firewall": {
+        "tables": {
+            "access": {
+                "chain_type": "filter",
+                "chains": [
+                    {
+                        "base": true,
+                        "description": "The base access-rules chain",
+                        "hook": "input",
+                        "name": "access-rules",
+                        "priority": 0,
+                        "rules": [
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "50,51"
+                                    }
+                                ],
+                                "description": "Accept IPsec Authentication Header, Encap Security Payload (AH, ESP)",
+                                "enabled": false,
+                                "ruleId": "1953c304-94db-4a43-853a-a480a56b7b6d"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 17,
+                                        "type": "DESTINATION_PORT",
+                                        "value": 500
+                                    }
+                                ],
+                                "description": "Accept IPsec IKE (UDP/500)",
+                                "enabled": false,
+                                "ruleId": "1953c74b-1cc4-4b1d-8895-21ddf662061f"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 17,
+                                        "type": "DESTINATION_PORT",
+                                        "value": 4500
+                                    }
+                                ],
+                                "description": "Accept IPsec NAT-T (UDP/4500)",
+                                "enabled": false,
+                                "ruleId": "1953ce84-9dcd-48b6-a80c-b56543492d41"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "CT_STATE",
+                                        "value": "established"
+                                    }
+                                ],
+                                "description": "Accept established",
+                                "enabled": true,
+                                "ruleId": "d765ff4f-b9a4-4c81-a7da-4496a61031d2"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "CT_STATE",
+                                        "value": "related"
+                                    }
+                                ],
+                                "description": "Accept related",
+                                "enabled": true,
+                                "ruleId": "2f0da303-b691-4878-ba9c-87b93556bff9"
+                            },
+                            {
+                                "action": {
+                                    "type": "DROP"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "CT_STATE",
+                                        "value": "invalid"
+                                    }
+                                ],
+                                "description": "Drop invalid",
+                                "enabled": true,
+                                "ruleId": "a7ce7073-8838-4bf2-b8e7-3f1d51d09952"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_NAME",
+                                        "value": "lo"
+                                    }
+                                ],
+                                "description": "Accept loopback",
+                                "enabled": true,
+                                "ruleId": "f97740ca-d2e3-47a9-85d0-5842d5dce0a7"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "80"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept HTTP on LANs (TCP/80)",
+                                "enabled": true,
+                                "ruleId": "15ae5aea-8353-421c-8f6a-9f9e7026a55b"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "80"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 1
+                                    }
+                                ],
+                                "description": "Accept HTTP on WANs (TCP/80)",
+                                "enabled": false,
+                                "ruleId": "c8eb8e53-bb09-4a57-8a14-750cd04bb9ce"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "443"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept HTTPS on LANs (TCP/443)",
+                                "enabled": true,
+                                "ruleId": "935b9fee-0c3b-4e25-b012-b943c4bf4187"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "443"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 1
+                                    }
+                                ],
+                                "description": "Accept HTTPS on WANs (TCP/443)",
+                                "enabled": false,
+                                "ruleId": "550c7a32-f831-4d7d-8612-7f57c3c86e99"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "22"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept SSH on LANs (TCP/22)",
+                                "enabled": true,
+                                "ruleId": "facbf47e-bcb4-4dd0-957a-4a6ddbe6426e"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "22"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 1
+                                    }
+                                ],
+                                "description": "Accept SSH on WANs (TCP/22)",
+                                "enabled": false,
+                                "ruleId": "7a6700fe-c632-45c6-ac66-5e031731fadf"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "53"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept DNS on LANs (TCP/53)",
+                                "enabled": true,
+                                "ruleId": "ba551c87-27be-4bca-b58b-6dcd872f9069"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 17,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "53"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept DNS on LANs (UDP/53)",
+                                "enabled": true,
+                                "ruleId": "f4d8bdeb-a94d-46b6-b401-618b99847046"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "1"
+                                    }
+                                ],
+                                "description": "Accept ICMP",
+                                "enabled": true,
+                                "ruleId": "27931b26-a215-4900-87e8-bfe155fcc41f"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "58"
+                                    }
+                                ],
+                                "description": "Accept ICMPv6",
+                                "enabled": true,
+                                "ruleId": "14cbfdd8-8619-447c-84dd-98a014f3cba3"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 17,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "67"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept DHCP on LANs (UDP/67)",
+                                "enabled": true,
+                                "ruleId": "6cd51834-55b3-4065-b67e-846faf4271c8"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 17,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "547"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept DHCPv6 on LANs (UDP/547)",
+                                "enabled": true,
+                                "ruleId": "233fc3b8-d7dc-4a8e-afc2-62aa9a6adfb8"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 17,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "546"
+                                    }
+                                ],
+                                "description": "Accept DHCPv6 Replies (UDP/546)",
+                                "enabled": true,
+                                "ruleId": "20b2f80d-a446-499b-9de7-092fd26a5568"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "8485"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept HTTP 8485 threat prevention on LANs (TCP/8485)",
+                                "enabled": false,
+                                "ruleId": "e5b191fd-5db6-46f3-9e00-d40f1387be86"
+                            },
+                            {
+                                "action": {
+                                    "type": "ACCEPT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "8486"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_INTERFACE_TYPE",
+                                        "value": 2
+                                    }
+                                ],
+                                "description": "Accept HTTPS 8486 threat prevention on LANs (TCP/8486)",
+                                "enabled": false,
+                                "ruleId": "aef2ce56-0620-4439-8aa6-6176477e95a0"
+                            },
+                            {
+                                "action": {
+                                    "type": "DROP"
+                                },
+                                "conditions": [],
+                                "description": "Drop All",
+                                "enabled": true,
+                                "ruleId": "886c713f-eb86-4a46-b17b-e3508f136f5b"
+                            }
+                        ]
+                    }
+                ],
+                "family": "inet",
+                "name": "access"
+            },
+            "captive-portal": {
+                "chains": [
+                    {
+                        "base": true,
+                        "description": "The base captive-portal-rules chain",
+                        "hook": "prerouting",
+                        "name": "captive-portal-rules",
+                        "priority": -110,
+                        "rules": [],
+                        "type": "nat"
+                    }
+                ],
+                "family": "ip,ip6",
+                "name": "captive-portal"
+            },
+            "filter": {
+                "chain_type": "filter",
+                "chains": [
+                    {
+                        "base": true,
+                        "description": "The base filter-rules chain",
+                        "hook": "forward",
+                        "name": "filter-rules",
+                        "priority": 0,
+                        "rules": [
+                            {
+                                "action": {
+                                    "type": "DROP"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "CT_STATE",
+                                        "value": "invalid"
+                                    }
+                                ],
+                                "description": "Drop packets not related to any session",
+                                "enabled": true,
+                                "ruleId": "c4ad3b51-fd56-4f4e-ba52-d1b8f888a429"
+                            },
+                            {
+                                "action": {
+                                    "type": "REJECT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_ADDRESS",
+                                        "value": "1.2.3.4"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_PORT",
+                                        "value": "1234"
+                                    }
+                                ],
+                                "description": "Example: A rule of rejecting TCP sessions to 1.2.3.4 port 1234",
+                                "enabled": false,
+                                "ruleId": "d3218e16-5118-4e95-a408-b1fdb9f9bfc2"
+                            },
+                            {
+                                "action": {
+                                    "type": "REJECT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "CLIENT_ADDRESS",
+                                        "value": "192.168.1.100"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_PORT",
+                                        "value": "21"
+                                    }
+                                ],
+                                "description": "Example: A rule of rejecting TCP port 21 (FTP) from 192.168.1.100",
+                                "enabled": false,
+                                "ruleId": "d016cfef-f097-4afe-a93e-b214f86d80d6"
+                            }
+                        ]
+                    }
+                ],
+                "family": "inet",
+                "name": "filter"
+            },
+            "nat": {
+                "chain_type": "nat",
+                "chains": [
+                    {
+                        "base": true,
+                        "description": "The nat-rules chain",
+                        "hook": "postrouting",
+                        "name": "nat-rules",
+                        "priority": 95,
+                        "rules": [
+                            {
+                                "action": {
+                                    "snat_address": "1.2.3.4",
+                                    "type": "SNAT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "port_protocol": 6,
+                                        "type": "DESTINATION_PORT",
+                                        "value": "1234"
+                                    }
+                                ],
+                                "description": "Example: NAT TCP port 25 to 1.2.3.4",
+                                "enabled": false,
+                                "ruleId": "2a9de1be-77e0-4061-b6e9-7f6bab2ba312"
+                            },
+                            {
+                                "action": {
+                                    "snat_address": "1.2.3.4",
+                                    "type": "SNAT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_ADDRESS",
+                                        "value": "192.168.1.100"
+                                    }
+                                ],
+                                "description": "Example: NAT client 192.168.1.100 to 1.2.3.4",
+                                "enabled": false,
+                                "ruleId": "13192913-4b67-4a52-a069-05562b5986f3"
+                            },
+                            {
+                                "action": {
+                                    "type": "MASQUERADE"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "SOURCE_ADDRESS",
+                                        "value": "192.168.1.200"
+                                    }
+                                ],
+                                "description": "Example: NAT client 192.168.1.200 to Auto",
+                                "enabled": false,
+                                "ruleId": "e9408acc-a993-44f8-9538-c1b5c1d5f1a7"
+                            }
+                        ]
+                    }
+                ],
+                "family": "ip,ip6",
+                "name": "nat"
+            },
+            "port-forward": {
+                "chain_type": "nat",
+                "chains": [
+                    {
+                        "base": true,
+                        "default": true,
+                        "description": "The base port-forwards chain",
+                        "hook": "prerouting",
+                        "name": "port-forward-rules",
+                        "priority": 100,
+                        "rules": [
+                            {
+                                "action": {
+                                    "dnat_address": "1.2.3.5",
+                                    "type": "DNAT"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "DESTINATION_ADDRESS",
+                                        "value": "1.2.3.4"
+                                    }
+                                ],
+                                "description": "Example: Forward 1.2.3.4 to 1.2.3.5",
+                                "enabled": false,
+                                "ruleId": "37edfc33-1e1c-484d-b818-b4023e927f20"
+                            }
+                        ]
+                    }
+                ],
+                "family": "ip,ip6",
+                "name": "port-forward"
+            },
+            "shaping": {
+                "chain_type": "filter",
+                "chains": [
+                    {
+                        "base": true,
+                        "description": "The base shaping-rules chain",
+                        "hook": "postrouting",
+                        "name": "shaping-rules",
+                        "priority": 5,
+                        "rules": [
+                            {
+                                "action": {
+                                    "chain": "prioritization-rules",
+                                    "type": "JUMP"
+                                },
+                                "conditions": [],
+                                "description": "Call prioritization-rules",
+                                "enabled": true,
+                                "ruleId": "9a93540c-e8cd-40d7-b273-5676e586f4fa"
+                            },
+                            {
+                                "action": {
+                                    "chain": "limiting-rules",
+                                    "type": "JUMP"
+                                },
+                                "conditions": [],
+                                "description": "Call limiting-rules",
+                                "enabled": true,
+                                "ruleId": "b02e6bc0-b15e-4e38-ac91-cb60ea1d4853"
+                            }
+                        ]
+                    },
+                    {
+                        "default": true,
+                        "description": "The main prioritization rules chain",
+                        "name": "prioritization-rules",
+                        "rules": [
+                            {
+                                "action": {
+                                    "priority": 3,
+                                    "type": "SET_PRIORITY"
+                                },
+                                "conditions": [],
+                                "description": "Default priority",
+                                "enabled": true,
+                                "ruleId": "8ead0fdb-e76e-45de-b941-90c80fb9f103"
+                            },
+                            {
+                                "action": {
+                                    "priority": 1,
+                                    "type": "SET_PRIORITY"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_PORT",
+                                        "value": "4569"
+                                    }
+                                ],
+                                "description": "VoIP (IAX) Traffic",
+                                "enabled": false,
+                                "ruleId": "f09b17b2-60ec-4646-9b4a-b5c156dc0124"
+                            },
+                            {
+                                "action": {
+                                    "priority": 1,
+                                    "type": "SET_PRIORITY"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_PORT",
+                                        "value": "4569"
+                                    }
+                                ],
+                                "description": "VoIP (IAX) Traffic",
+                                "enabled": false,
+                                "ruleId": "7c3b7b81-365c-4493-9c16-84071119b9e9"
+                            },
+                            {
+                                "action": {
+                                    "priority": 1,
+                                    "type": "SET_PRIORITY"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "1"
+                                    }
+                                ],
+                                "description": "Ping Priority",
+                                "enabled": true,
+                                "ruleId": "c7470c72-0512-44e2-b360-059c768f92fd"
+                            },
+                            {
+                                "action": {
+                                    "priority": 1,
+                                    "type": "SET_PRIORITY"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "17"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_PORT",
+                                        "value": "53"
+                                    }
+                                ],
+                                "description": "DNS Priority",
+                                "enabled": true,
+                                "ruleId": "3dfd74ee-6a56-4f11-b789-e7492d8fe796"
+                            },
+                            {
+                                "action": {
+                                    "priority": 2,
+                                    "type": "SET_PRIORITY"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_PORT",
+                                        "value": "22"
+                                    }
+                                ],
+                                "description": "SSH Priority",
+                                "enabled": true,
+                                "ruleId": "5d5ee18b-4c7e-4742-ab87-469a18ac6d81"
+                            },
+                            {
+                                "action": {
+                                    "priority": 3,
+                                    "type": "SET_PRIORITY"
+                                },
+                                "conditions": [
+                                    {
+                                        "op": "==",
+                                        "type": "IP_PROTOCOL",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "op": "==",
+                                        "type": "SERVER_PORT",
+                                        "value": "1194"
+                                    }
+                                ],
+                                "description": "Openvpn Priority",
+                                "enabled": true,
+                                "ruleId": "e0dd0c83-7afb-4104-9d66-8f22ee92293d"
+                            }
+                        ]
+                    },
+                    {
+                        "default": true,
+                        "description": "The main limiting rules chain",
+                        "name": "limiting-rules",
+                        "rules": []
+                    }
+                ],
+                "family": "inet",
+                "name": "shaping"
+            }
+        }
+    },
+    "geoip": {
+        "blockedCountries": [],
+        "enabled": false,
+        "enabledLog": false,
+        "passedNetworks": []
+    },
+    "ipsec": {
+        "authentication": {
+            "shared_secret": "shared_secret",
+            "type": "shared_secret"
+        },
+        "debug": 0,
+        "enabled": false,
+        "keyexchange": "ikev2",
+        "local": {
+            "gateway": "%any",
+            "networks": [
+                {
+                    "network": "0.0.0.0",
+                    "prefix": 0
+                }
+            ]
+        },
+        "phase1": [
+            {
+                "encryption": "3des",
+                "group": "modp2048",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "3des",
+                "group": "modp1536",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "3des",
+                "group": "modp1024",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes128",
+                "group": "modp2048",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes128",
+                "group": "modp1536",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes128",
+                "group": "modp1024",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes256",
+                "group": "modp2048",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes256",
+                "group": "modp1536",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes256",
+                "group": "modp1024",
+                "hash": "sha1"
+            }
+        ],
+        "phase2": [
+            {
+                "encryption": "3des",
+                "group": "modp2048",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "3des",
+                "group": "modp1536",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "3des",
+                "group": "modp1024",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes128",
+                "group": "modp2048",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes128",
+                "group": "modp1536",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes128",
+                "group": "modp1024",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes256",
+                "group": "modp2048",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes256",
+                "group": "modp1536",
+                "hash": "sha1"
+            },
+            {
+                "encryption": "aes256",
+                "group": "modp1024",
+                "hash": "sha1"
+            }
+        ],
+        "remote": {
+            "gateway": "%any",
+            "networks": [
+                {
+                    "network": "172.16.6.0",
+                    "prefix": 24
+                }
+            ]
+        }
+    },
+    "network": {
+        "interfaces": [
+            {
+                "configType": "ADDRESSED",
+                "device": "eth0",
+                "dhcpEnabled": true,
+                "dhcpLeaseDuration": 3600,
+                "dhcpRangeEnd": "192.168.1.200",
+                "dhcpRangeStart": "192.168.1.100",
+                "dhcpRelayEnabled": false,
+                "downloadKbps": 0,
+                "enabled": true,
+                "ethAutoneg": true,
+                "ethDuplex": "full",
+                "ethSpeed": 1000,
+                "interfaceId": 1,
+                "name": "internal",
+                "natIngress": false,
+                "qosEnabled": false,
+                "type": "NIC",
+                "uploadKbps": 0,
+                "v4ConfigType": "STATIC",
+                "v4StaticAddress": "192.168.57.2",
+                "v4StaticPrefix": 24,
+                "v6AssignHint": "1234",
+                "v6AssignPrefix": 64,
+                "v6ConfigType": "ASSIGN",
+                "virtual": false,
+                "wan": false,
+                "wanWeight": 0,
+                "dhcpRelayAddress": ""
+            },
+            {
+                "configType": "ADDRESSED",
+                "device": "eth1",
+                "downloadKbps": 0,
+                "enabled": true,
+                "ethAutoneg": true,
+                "ethDuplex": "full",
+                "ethSpeed": 1000,
+                "interfaceId": 2,
+                "name": "WAN0",
+                "natEgress": true,
+                "natIngress": false,
+                "qosEnabled": false,
+                "type": "NIC",
+                "uploadKbps": 0,
+                "v4ConfigType": "DHCP",
+                "v6ConfigType": "DHCP",
+                "virtual": false,
+                "wan": true,
+                "wanWeight": 0
+            }
+        ],
+        "switches": []
+    },
+    "reports": {
+        "entries": []
+    },
+    "routes": [],
+    "system": {
+        "autoBackup": {
+            "dayOfWeek": -1,
+            "enabled": true,
+            "hourOfDay": 1,
+            "minuteOfHour": 32
+        },
+        "autoUpgrade": {
+            "dayOfWeek": 0,
+            "enabled": true,
+            "hourOfDay": 5,
+            "minuteOfHour": 0
+        },
+        "cloud": {
+            "cloudServers": [
+                "cmd.untangle.com"
+            ],
+            "enabled": true,
+            "supportAccessEnabled": true
+        },
+        "domainName": "example.com",
+        "hostName": "mfw",
+        "setupWizard": {
+            "completed": true
+        },
+        "timeZone": {
+            "displayName": "America/Denver",
+            "value": "MST7MDT,M3.2.0,M11.1.0"
+        }
+    },
+    "threatprevention": {
+        "enabled": false,
+        "passList": [],
+        "redirect": false,
+        "sensitivity": 20
+    },
+    "uris": {
+        "uriTranslations": [
+            {
+                "uri": "https://downloads.untangle.com/download.php"
+            },
+            {
+                "uri": "https://queue.untangle.com/v1/put"
+            },
+            {
+                "uri": "https://classify.untangle.com/"
+            },
+            {
+                "uri": "https://www.untangle.com/store/open.php"
+            },
+            {
+                "uri": "https://auth.untangle.com/v1/CheckTokenAccess"
+            },
+            {
+                "uri": "https://database.untangle.com/v1/put"
+            },
+            {
+                "uri": "https://www.untangle.com/cmd/networks"
+            },
+            {
+                "uri": "https://www.untangle.com/cmd/account/"
+            },
+            {
+                "uri": "https://www.untangle.com/legal"
+            },
+            {
+                "uri": "https://support.untangle.com/hc"
+            },
+            {
+                "uri": "https://untanglemicroedge.featureupvote.com/"
+            },
+            {
+                "uri": "https://license.untangle.com/license.php"
+            },
+            {
+                "uri": "https://updates.untangle.com/api"
+            },
+            {
+                "uri": "https://boxbackup.untangle.com/boxbackup/backup.php"
+            },
+            {
+                "uri": "https://cmd.untangle.com/"
+            }
+        ]
+    },
+    "version": 3,
+    "wan": {
+        "policies": [
+            {
+                "best_of_metric": "LOWEST_LATENCY",
+                "criteria": [],
+                "description": "Lowest Latency WAN",
+                "enabled": true,
+                "interfaces": [
+                    {
+                        "interfaceId": 0
+                    }
+                ],
+                "policyId": "baa2aba8-4ec7-43d4-89b8-11b4510aec6a",
+                "type": "BEST_OF"
+            },
+            {
+                "best_of_metric": "HIGHEST_AVAILABLE_BANDWIDTH",
+                "criteria": [],
+                "description": "Highest Available Bandwidth WAN",
+                "enabled": true,
+                "interfaces": [
+                    {
+                        "interfaceId": 0
+                    }
+                ],
+                "policyId": "3c4adcd2-0f8a-460c-84d1-68a8a3460817",
+                "type": "BEST_OF"
+            },
+            {
+                "balance_algorithm": "AVAILABLE_BANDWIDTH",
+                "criteria": [],
+                "description": "Balance by Bandwidth Available",
+                "enabled": true,
+                "interfaces": [
+                    {
+                        "interfaceId": 0
+                    }
+                ],
+                "policyId": "36ef33d8-cbd3-488c-a75c-8d2be0372e77",
+                "type": "BALANCE"
+            },
+            {
+                "balance_algorithm": "BANDWIDTH",
+                "criteria": [],
+                "description": "Balance by Bandwidth",
+                "enabled": true,
+                "interfaces": [
+                    {
+                        "interfaceId": 0
+                    }
+                ],
+                "policyId": "7b71bb9d-3c33-42f4-a6be-59737b68c0df",
+                "type": "BALANCE"
+            }
+        ],
+        "policy_chains": [
+            {
+                "default": true,
+                "description": "User defined wan routing rules",
+                "name": "user-wan-rules",
+                "rules": [
+                    {
+                        "action": {
+                            "policy": "baa2aba8-4ec7-43d4-89b8-11b4510aec6a",
+                            "type": "WAN_POLICY"
+                        },
+                        "conditions": [],
+                        "description": "Send all traffic to wan policy 1",
+                        "enabled": true,
+                        "logs": [
+                            {
+                                "type": "NFLOG",
+                                "prefix": "{'type':'R:wan-routing:user-wan-rules','ruleId':'e2993427','action':'WAN_POLICY','policy':'baa2aba8'} "
+                            },
+                            {
+                                "type": "DICT",
+                                "field": "wan_rule_id",
+                                "field_type": "long_string",
+                                "value": "e2993427"
+                            }
+                        ],
+                        "ruleId": "e2993427-ce0f-4b49-be9a-7f32795c810e"
+                    }
+                ]
+            }
+        ]
+    },
+    "webfilter": {
+        "blockList": [],
+        "categories": [
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 11
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 44
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 49
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 56
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 57
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 58
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 59
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 67
+            }
+        ],
+        "enabled": false,
+        "passList": []
+    }
+}
