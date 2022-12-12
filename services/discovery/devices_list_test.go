@@ -629,6 +629,57 @@ func (suite *DeviceListTestSuite) TestTransformList() {
 		TrimToDataUseSince(time.Minute))
 
 }
+
+func (suite *DeviceListTestSuite) TestDhcpOverlay() {
+	// Test ips are removed from the old device.
+	oldDevice := suite.buildDhcpOverlayEntry("mac_overlay_1", "192.168.11.1", suite.aDayago.Unix())
+	oldDevice.DiscoveryEntry.Neigh["192.168.11.2"] = &disco.NEIGH{Ip: "192.168.11.2"}
+	newDevice := suite.buildDhcpOverlayEntry("mac_overlay_2", "192.168.11.1", suite.oneHourAgo.Unix())
+	suite.deviceList.MergeOrAddDeviceEntry(oldDevice, func() {})
+	suite.deviceList.MergeOrAddDeviceEntry(newDevice, func() {})
+
+	ips := newDevice.GetDeviceIPs()
+	assert.False(suite.T(), suite.deviceList.Devices[oldDevice.MacAddress].HasIp(ips[0]))
+	assert.True(suite.T(), suite.deviceList.Devices[newDevice.MacAddress].HasIp(ips[0]))
+
+	// Test ips are removed from the old device and old device is removed because it has no more ips.
+	oldDevice = suite.buildDhcpOverlayEntry("mac_overlay_3", "192.168.12.1", suite.aDayago.Unix())
+	newDevice = suite.buildDhcpOverlayEntry("mac_overlay_4", "192.168.12.1", suite.oneHourAgo.Unix())
+
+	suite.deviceList.MergeOrAddDeviceEntry(newDevice, func() {})
+	suite.deviceList.MergeOrAddDeviceEntry(oldDevice, func() {})
+
+	ips = newDevice.GetDeviceIPs()
+	_, ok := suite.deviceList.Devices[oldDevice.MacAddress]
+	assert.False(suite.T(), ok)
+	assert.True(suite.T(), suite.deviceList.Devices[newDevice.MacAddress].HasIp(ips[0]))
+}
+
+func (suite *DeviceListTestSuite) buildDhcpOverlayEntry(mac, ip string, lastUpdated int64) *DeviceEntry {
+	return &DeviceEntry{
+		DiscoveryEntry: disco.DiscoveryEntry{
+			MacAddress: mac,
+			LastUpdate: lastUpdated,
+			Neigh: map[string]*disco.NEIGH{
+				ip: {Ip: ip},
+			},
+			Lldp: map[string]*disco.LLDP{
+				ip: {
+					SysName: "Sys " + ip,
+					Ip:      ip,
+				},
+			},
+			Nmap: map[string]*disco.NMAP{
+				ip: {
+					Hostname: "Sys host " + ip,
+					Ip:       ip,
+				},
+			},
+		},
+		dataTracker: NewDataTracker(defaultBinInterval, defaultTrackDuration),
+	}
+}
+
 func TestDeviceList(t *testing.T) {
 	testSuite := &DeviceListTestSuite{}
 	suite.Run(t, testSuite)
