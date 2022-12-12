@@ -86,7 +86,37 @@ func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
 
 	for _, ip := range entry.GetDeviceIPs() {
+		list.putDevicesByIpUnsafe(ip, entry)
+	}
+}
+
+func (list *DevicesList) putDevicesByIpUnsafe(ip string, entry *DeviceEntry) {
+	if !entry.HasIp(ip) {
+		return
+	}
+
+	// If the IP is also assigned to another entry, it means
+	// that one of the entries IP got changed/removed and reassigned.
+	// We need to keep the IP on the entry with the latest LastUpdate.
+	ipEntry, ok := list.devicesByIP[ip]
+	if !ok || ipEntry.MacAddress == entry.MacAddress {
 		list.devicesByIP[ip] = entry
+		return
+	}
+
+	if entry.LastUpdate > ipEntry.LastUpdate {
+		list.cleanEntryIpUnsafe(ip, ipEntry)
+		list.devicesByIP[ip] = entry
+		return
+	}
+
+	list.cleanEntryIpUnsafe(ip, entry)
+}
+
+func (list *DevicesList) cleanEntryIpUnsafe(ip string, entry *DeviceEntry) {
+	entry.RemoveIp(ip)
+	if entry.IsEmpty() {
+		delete(list.Devices, entry.MacAddress)
 	}
 }
 
@@ -246,7 +276,8 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 			// Once an old entry is oldEntry and the new entry is merged with it,
 			// break out of the loop since any device oldEntry is a pointer that
 			// every IP for a device points to
-			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil {
+			// We do not merge the new entry into the old entry if the new entry is a new device.
+			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "") {
 				oldEntry.Merge(entry)
 				list.putDeviceUnsafe(oldEntry)
 				found = true
@@ -302,6 +333,18 @@ func (n *DeviceEntry) GetDeviceIPSet() map[string]struct{} {
 	return ipSet
 }
 
+func (n *DeviceEntry) HasIp(ip string) bool {
+	_, inNamp := n.Nmap[ip]
+	_, inNeigh := n.Neigh[ip]
+	_, inLldp := n.Lldp[ip]
+
+	return inNamp || inNeigh || inLldp
+}
+
+func (n *DeviceEntry) IsEmpty() bool {
+	return len(n.Lldp) == 0 && len(n.Neigh) == 0 && len(n.Nmap) == 0
+}
+
 // GetDeviceIPs returns the list of IPs being used by a device. Does
 // not acquire any locks before accessing device list elements. The
 // IPs are fetched by going through each collector entry and adding
@@ -315,6 +358,12 @@ func (n *DeviceEntry) GetDeviceIPs() []string {
 	}
 
 	return ipList
+}
+
+func (n *DeviceEntry) RemoveIp(ip string) {
+	delete(n.Lldp, ip)
+	delete(n.Neigh, ip)
+	delete(n.Nmap, ip)
 }
 
 // Merge fills the relevant fields of n that are not present with ones
