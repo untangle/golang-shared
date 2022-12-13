@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type interfacesTestStruct struct {
@@ -155,5 +157,41 @@ func TestGetNetworks(t *testing.T) {
 		test := testMap[testName]
 		runTest(testName, true, test.passIps, test.testInterface)
 		runTest(testName, false, test.failIps, test.testInterface)
+	}
+}
+
+func cidr2Net(cidr []string) []*net.IPNet {
+	nets := []*net.IPNet{}
+	for _, str := range cidr {
+		_, net, _ := net.ParseCIDR(str)
+		nets = append(nets, net)
+	}
+	return nets
+}
+func TestGetMostSpecificPrefix(t *testing.T) {
+
+	type testParams struct {
+		nets        []string
+		ip          string
+		expectedNet string
+	}
+	tests := []testParams{
+		{
+			nets:        []string{"192.168.128.0/17", "192.168.0.0/16"},
+			ip:          "192.168.128.1",
+			expectedNet: "192.168.128.0/17",
+		},
+		{
+			nets:        []string{"10.10.192.0/18", "10.10.192.0/24"},
+			ip:          "10.10.192.1",
+			expectedNet: "10.10.192.0/24",
+		},
+	}
+
+	for _, test := range tests {
+		outputNet := MostSpecificPrefixMatch(cidr2Net(test.nets), net.ParseIP(test.ip))
+		assert.NotNil(t, outputNet)
+		_, expectedNet, _ := net.ParseCIDR(test.expectedNet)
+		assert.EqualValues(t, outputNet, expectedNet)
 	}
 }
