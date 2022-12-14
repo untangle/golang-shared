@@ -126,7 +126,7 @@ func (logger *Logger) Startup() {
 
 	// capture startup time
 	logger.launchTime = time.Now()
-	fmt.Printf(logger.config.FileLocation)
+
 	// create the map and load the Log configuration
 	data := logger.config.LoadConfigFromFile()
 	if data != nil {
@@ -246,7 +246,7 @@ func (logger *Logger) OCTrace(format string, name string, limit int64, args ...i
 
 func OCTrace(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCTrace(format, name, limit, args)
+	currentLogger.OCTrace(format, name, limit, args...)
 }
 
 // OCWarn is called for overseer warn messages
@@ -257,7 +257,7 @@ func (logger *Logger) OCWarn(format string, name string, limit int64, args ...in
 
 func OCWarn(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCWarn(format, name, limit, args)
+	currentLogger.OCWarn(format, name, limit, args...)
 }
 
 // OCDebug is called for overseer warn messages
@@ -268,7 +268,7 @@ func (logger *Logger) OCDebug(format string, name string, limit int64, args ...i
 
 func OCDebug(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCDebug(format, name, limit, args)
+	currentLogger.OCDebug(format, name, limit, args...)
 }
 
 // OCErr is called for overseer err messages
@@ -279,7 +279,7 @@ func (logger *Logger) OCErr(format string, name string, limit int64, args ...int
 
 func OCErr(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCErr(format, name, limit, args)
+	currentLogger.OCErr(format, name, limit, args...)
 }
 
 // OCCrit is called for overseer crit messages
@@ -290,7 +290,7 @@ func (logger *Logger) OCCrit(format string, name string, limit int64, args ...in
 
 func OCCrit(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCCrit(format, name, limit, args)
+	currentLogger.OCCrit(format, name, limit, args...)
 }
 
 // OCWarn is called for overseer warn messages
