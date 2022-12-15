@@ -22,7 +22,7 @@ type CallCollectorsRequest struct {
 
 // toRpcRequest - converts the wrapper request struct to the one the RPC function expects
 func toRpcRequest(req CallCollectorsRequest) disco.CallDiscoveryRequest {
-	strCollectors := make([]string, len(req.Collectors), len(req.Collectors))
+	strCollectors := make([]string, len(req.Collectors))
 	for i, c := range req.Collectors {
 		strCollectors[i] = string(c)
 	}

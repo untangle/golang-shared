@@ -19,22 +19,21 @@ func TestFillDeviceListWithZMQDeviceMessages(t *testing.T) {
 	go FillDeviceListWithZMQDeviceMessages(deviceList, zmqChan, shutdownChannel, func(de *DeviceEntry) {})
 
 	totalSentMessages := 3
-	lldpMessage, _ := proto.Marshal(&disco.LLDP{Mac: "11:11:11:11:11:11"})
-	neighMessage, _ := proto.Marshal(&disco.NEIGH{Mac: "22:22:22:22:22:22"})
-	nmapMessage, _ := proto.Marshal(&disco.NMAP{Mac: "33:33:33:33:33:33"})
+	lldpMessage, _ := proto.Marshal(&disco.LLDP{Mac: "11:11:11:11:11:11", Ip: "192.168.11.22"})
+	neighMessage, _ := proto.Marshal(&disco.NEIGH{Mac: "22:22:22:22:22:22", Ip: "192.168.33.44"})
+	nmapMessage, _ := proto.Marshal(&disco.NMAP{Mac: "33:33:33:33:33:33", Ip: "192.168.55.66"})
 
 	zmqChan <- &ZmqMessage{Topic: LLDPDeviceZMQTopic, Message: lldpMessage}
 	zmqChan <- &ZmqMessage{Topic: NEIGHDeviceZMQTopic, Message: neighMessage}
 	zmqChan <- &ZmqMessage{Topic: NMAPDeviceZMQTopic, Message: nmapMessage}
 
 	// Sleep to give the ZMQ processor a change to process the sent messages
-	time.Sleep(1 * time.Second)
+	time.Sleep(time.Second / 2)
 
-	// Get all device entries. Acquire and release the lock to prevent data races.
-	deviceList.Lock.Lock()
-	allDevices := deviceList.listDevices(func(entry *DeviceEntry) bool { return true })
-	deviceList.Lock.Unlock()
-	assert.Equal(t, totalSentMessages, len(allDevices))
+	_, _ = deviceList.ApplyToDeviceList(func(devs []*DeviceEntry) (interface{}, error) {
+		assert.Equal(t, totalSentMessages, len(devs))
+		return nil, nil
+	})
 
 	shutdownChannel <- true
 	shutdownSuccess := false

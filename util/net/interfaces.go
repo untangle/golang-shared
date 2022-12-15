@@ -49,40 +49,40 @@ func (intf *Interface) IsBridged() bool {
 }
 
 // Get IPV4 static and aliases addresses
-func (intf *Interface) GetIpV4Network() []net.IPNet {
-	var networks []net.IPNet
+func (intf *Interface) GetIpV4Network() []*net.IPNet {
+	var networks []*net.IPNet
 	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix))
 	if err == nil {
-		networks = append(networks, *ipNet)
+		networks = append(networks, ipNet)
 	}
 	for _, alias := range intf.V4Aliases {
 		_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", alias.V4Address, alias.V4Prefix))
 		if err == nil {
-			networks = append(networks, *ipNet)
+			networks = append(networks, ipNet)
 		}
 	}
 	return networks
 }
 
 // Get IPV6 static and aliases addresses
-func (intf *Interface) GetIpV6Network() []net.IPNet {
-	var networks []net.IPNet
+func (intf *Interface) GetIpV6Network() []*net.IPNet {
+	var networks []*net.IPNet
 	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V6StaticAddress, intf.V6StaticPrefix))
 	if err == nil {
-		networks = append(networks, *ipNet)
+		networks = append(networks, ipNet)
 	}
 	for _, alias := range intf.V6Aliases {
 		_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%s", alias.V6Address, alias.V6Prefix))
 		if err == nil {
-			networks = append(networks, *ipNet)
+			networks = append(networks, ipNet)
 		}
 	}
 	return networks
 }
 
 // Get IPV4 and IPV6 static addresses and aliases addresses
-func (intf *Interface) GetNetworks() []net.IPNet {
-	var networks []net.IPNet
+func (intf *Interface) GetNetworks() []*net.IPNet {
+	var networks []*net.IPNet
 	ipV4Nets := intf.GetIpV4Network()
 	if len(ipV4Nets) != 0 {
 		networks = append(networks, ipV4Nets...)
@@ -94,10 +94,13 @@ func (intf *Interface) GetNetworks() []net.IPNet {
 	return networks
 }
 
-func (intf *Interface) HasContainingNetwork(addr net.IP) net.IPNet {
+// MostSpecificPrefixMatch returns from the networks and addr the
+// network with the longest matching prefix.
+func MostSpecificPrefixMatch(nets []*net.IPNet, addr net.IP) *net.IPNet {
 	currMask := 0
-	var maxMatching net.IPNet
-	for _, network := range intf.GetNetworks() {
+	var maxMatching *net.IPNet = nil
+
+	for _, network := range nets {
 		// do most specific prefix match on networks belonging to this interface
 		ones, _ := network.Mask.Size()
 		if network.Contains(addr) && ones > currMask {
@@ -107,4 +110,8 @@ func (intf *Interface) HasContainingNetwork(addr net.IP) net.IPNet {
 		}
 	}
 	return maxMatching
+}
+
+func (intf *Interface) HasContainingNetwork(addr net.IP) *net.IPNet {
+	return MostSpecificPrefixMatch(intf.GetNetworks(), addr)
 }
