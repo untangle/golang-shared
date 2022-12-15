@@ -111,30 +111,6 @@ func IsEmergEnabled() bool {
 }
 
 // For backward compatibility
-func OCCrit(format string, newOcname Ocname, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.OCCrit(format, newOcname, args...)
-}
-
-// For backward compatibility
-func OCErr(format string, newOcname Ocname, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.OCErr(format, newOcname, args...)
-}
-
-// For backward compatibility
-func OCDebug(format string, newOcname Ocname, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.OCDebug(format, newOcname, args...)
-}
-
-// For backward compatibility
-func OCWarn(format string, newOcname Ocname, args ...interface{}) {
-	currentLogger := GetLoggerInstance()
-	currentLogger.OCWarn(format, newOcname, args...)
-}
-
-// For backward compatibility
 func OCCrit(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	currentLogger.OCCrit(format, name, limit, args...)
