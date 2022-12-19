@@ -5,7 +5,7 @@ package logger
 // For backward compatibility
 func Trace(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Trace(format, args)
+	currentLogger.Trace(format, args...)
 }
 
 // For backward compatibility
@@ -65,7 +65,7 @@ func IsWarnEnabled() bool {
 // For backward compatibility
 func Err(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Err(format, args)
+	currentLogger.Err(format, args...)
 }
 
 // For backward compatibility
@@ -108,4 +108,34 @@ func Emerg(format string, args ...interface{}) {
 func IsEmergEnabled() bool {
 	currentLogger := GetLoggerInstance()
 	return currentLogger.isLogEnabled(LogLevelEmerg)
+}
+
+// For backward compatibility
+func OCCrit(format string, name string, limit int64, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCCrit(format, name, limit, args...)
+}
+
+// For backward compatibility
+func OCErr(format string, name string, limit int64, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCErr(format, name, limit, args...)
+}
+
+// For backward compatibility
+func OCDebug(format string, name string, limit int64, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCDebug(format, name, limit, args...)
+}
+
+// For backward compatibility
+func OCWarn(format string, name string, limit int64, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCWarn(format, name, limit, args...)
+}
+
+// For backward compatibility
+func OCTrace(format string, name string, limit int64, args ...interface{}) {
+	currentLogger := GetLoggerInstance()
+	currentLogger.OCTrace(format, name, limit, args...)
 }
