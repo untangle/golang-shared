@@ -81,6 +81,50 @@ func TrimToDataUseSince(period time.Duration) ListElementTransformer {
 	}
 }
 
+// Wraps an LLDP, NMAP, or NEIGH collector struct in a device entry
+// If the collector struct is missing a field needed to initialize the
+// 	collector struct, and error is returned.
+func WrapCollectorInDeviceEntry(collector interface{}) (*DeviceEntry, error) {
+	var deviceEntry DeviceEntry
+
+	switch collectorWithType := collector.(type) {
+	case *disco.LLDP:
+		if collectorWithType.Ip == "" {
+			return nil, fmt.Errorf("LLDP entry missing IP field")
+		}
+
+		deviceEntry.MacAddress = collectorWithType.Mac
+
+		deviceEntry.Lldp = make(map[string]*disco.LLDP)
+		deviceEntry.Lldp[collectorWithType.Ip] = collectorWithType
+
+	case *disco.NEIGH:
+		if collectorWithType.Ip == "" {
+			return nil, fmt.Errorf("NEIGH entry missing IP field")
+		}
+
+		deviceEntry.MacAddress = collectorWithType.Mac
+
+		deviceEntry.Neigh = make(map[string]*disco.NEIGH)
+		deviceEntry.Neigh[collectorWithType.Ip] = collectorWithType
+
+	case *disco.NMAP:
+		if collectorWithType.Ip == "" {
+			return nil, fmt.Errorf(("NMAP entry missing IP field"))
+		}
+
+		deviceEntry.MacAddress = collectorWithType.Mac
+
+		deviceEntry.Nmap = make(map[string]*disco.NMAP)
+		deviceEntry.Nmap[collectorWithType.Ip] = collectorWithType
+
+	default:
+		return nil, fmt.Errorf("argument provided to the function was not an LLDP, NMAP, or NEIGH struct")
+	}
+
+	return &deviceEntry, nil
+}
+
 // putDeviceUnsafe puts the device in the list without locking it.
 func (list *DevicesList) putDeviceUnsafe(entry *DeviceEntry) {
 	list.Devices[entry.MacAddress] = entry
@@ -467,48 +511,4 @@ func NormalizeCollectorEntry(collector interface{}) error {
 	}
 
 	return nil
-}
-
-// Wraps an LLDP, NMAP, or NEIGH collector struct in a device entry
-// If the collector struct is missing a field needed to initialize the
-// 	collector struct, and error is returned.
-func WrapCollectorInDeviceEntry(collector interface{}) (*DeviceEntry, error) {
-	var deviceEntry DeviceEntry
-
-	switch collectorWithType := collector.(type) {
-	case *disco.LLDP:
-		if collectorWithType.Ip == "" {
-			return nil, fmt.Errorf("LLDP entry missing IP field")
-		}
-
-		deviceEntry.MacAddress = collectorWithType.Mac
-
-		deviceEntry.Lldp = make(map[string]*disco.LLDP)
-		deviceEntry.Lldp[collectorWithType.Ip] = collectorWithType
-
-	case *disco.NEIGH:
-		if collectorWithType.Ip == "" {
-			return nil, fmt.Errorf("NEIGH entry missing IP field")
-		}
-
-		deviceEntry.MacAddress = collectorWithType.Mac
-
-		deviceEntry.Neigh = make(map[string]*disco.NEIGH)
-		deviceEntry.Neigh[collectorWithType.Ip] = collectorWithType
-
-	case *disco.NMAP:
-		if collectorWithType.Ip == "" {
-			return nil, fmt.Errorf(("NMAP entry missing IP field"))
-		}
-
-		deviceEntry.MacAddress = collectorWithType.Mac
-
-		deviceEntry.Nmap = make(map[string]*disco.NMAP)
-		deviceEntry.Nmap[collectorWithType.Ip] = collectorWithType
-
-	default:
-		return nil, fmt.Errorf("argument provided to the function was not an LLDP, NMAP, or NEIGH struct")
-	}
-
-	return &deviceEntry, nil
 }
