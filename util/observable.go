@@ -1,6 +1,8 @@
 package util
 
-import "sync"
+import (
+	"sync"
+)
 
 // Listener type for geoip. It is called with the session and an
 // interface.
