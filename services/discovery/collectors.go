@@ -82,6 +82,7 @@ func WrapCollectorInDeviceEntry(collector interface{}) (*DeviceEntry, error) {
 		}
 
 		deviceEntry.MacAddress = collectorWithType.Mac
+		deviceEntry.LastUpdate = collectorWithType.LastUpdate
 
 		deviceEntry.Lldp = make(map[string]*disco.LLDP)
 		deviceEntry.Lldp[collectorWithType.Ip] = collectorWithType
@@ -92,6 +93,7 @@ func WrapCollectorInDeviceEntry(collector interface{}) (*DeviceEntry, error) {
 		}
 
 		deviceEntry.MacAddress = collectorWithType.Mac
+		deviceEntry.LastUpdate = collectorWithType.LastUpdate
 
 		deviceEntry.Neigh = make(map[string]*disco.NEIGH)
 		deviceEntry.Neigh[collectorWithType.Ip] = collectorWithType
@@ -102,6 +104,7 @@ func WrapCollectorInDeviceEntry(collector interface{}) (*DeviceEntry, error) {
 		}
 
 		deviceEntry.MacAddress = collectorWithType.Mac
+		deviceEntry.LastUpdate = collectorWithType.LastUpdate
 
 		deviceEntry.Nmap = make(map[string]*disco.NMAP)
 		deviceEntry.Nmap[collectorWithType.Ip] = collectorWithType
