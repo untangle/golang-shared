@@ -66,8 +66,10 @@ func WrapPredicateAsTransformer(pred ListPredicate) ListElementTransformer {
 // device has a LastUpdate time within the last hour.
 func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 	return func(entry *DeviceEntry) bool {
+		logger.Err("entries last update: %v\n")
 		lastUpdated := time.Unix(entry.LastUpdate, 0)
 		now := time.Now()
+		logger.Err("The times: period: %v, elapsed: %v, lastupdate: %v\n\n\n", period, now.Sub(lastUpdated), lastUpdated)
 		return (now.Sub(lastUpdated) <= period)
 	}
 }
