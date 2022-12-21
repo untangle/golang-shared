@@ -68,10 +68,10 @@ func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 	return func(entry *DeviceEntry) bool {
 		lastUpdated := time.Unix(entry.LastUpdate, 0)
 		logger.Err("The entry was: %v\n", entry)
-		logger.Err("entries last update: %v\n", lastUpdated)
+		logger.Err("entries last update: %v actual: %v \n", lastUpdated, entry.LastUpdate)
 		now := time.Now()
 		logger.Err("The times: period: %v, elapsed: %v, lastupdate: %v\n\n\n", period, now.Sub(lastUpdated), lastUpdated)
-		return true // (now.Sub(lastUpdated) <= period)
+		return (now.Sub(lastUpdated) <= period)
 	}
 }
 
