@@ -67,11 +67,11 @@ func WrapPredicateAsTransformer(pred ListPredicate) ListElementTransformer {
 func WithUpdatesWithinDuration(period time.Duration) ListPredicate {
 	return func(entry *DeviceEntry) bool {
 		lastUpdated := time.Unix(entry.LastUpdate, 0)
-		logger.Err("The entry was: %v", entry)
+		logger.Err("The entry was: %v\n", entry)
 		logger.Err("entries last update: %v\n", lastUpdated)
 		now := time.Now()
 		logger.Err("The times: period: %v, elapsed: %v, lastupdate: %v\n\n\n", period, now.Sub(lastUpdated), lastUpdated)
-		return (now.Sub(lastUpdated) <= period)
+		return true // (now.Sub(lastUpdated) <= period)
 	}
 }
 
