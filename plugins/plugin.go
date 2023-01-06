@@ -94,7 +94,7 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor) {
 	constructorType := reflect.TypeOf(constructor)
 	outputType := constructorType.Out(0)
-
+	logger.Err("Type %v, output %v\n", constructorType, outputType)
 	// create a func at runtime that we can invoke that requires
 	// the plugin to ensure it gets instantiated, and also appends
 	// it to the list of registered plugins.
