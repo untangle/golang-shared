@@ -10,7 +10,7 @@ package alerts
 import logService "github.com/untangle/golang-shared/services/logger"
 
 // AlertZMQTopic Topic name to be used when sending alerts.
-const AlertZMQTopic string = "arista:reportd:alertd:alert"
+const AlertZMQTopic string = "arista:alertd:alert"
 
 const socketAddress = "tcp://*:5562"
 const messageBuffer = 1000
