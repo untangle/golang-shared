@@ -38,7 +38,7 @@ func TestAlertPublisher(t *testing.T) {
 	})
 
 	// Tear down
-	handler.shutdown()
+	handler.Shutdown()
 	_ = subscriberSocket.Close()
 }
 

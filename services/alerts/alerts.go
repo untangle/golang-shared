@@ -1,9 +1,9 @@
 // Package alerts provides a service for alert publishing on a ZMQ socket.
 // Usage:
-// 		alerts.Startup()
-// 		alerts.Publisher.Send(alert)
+// 		alerts.Publisher().Send(alert1)
+// 		alerts.Publisher().Send(alert2)
 //		...
-//		alerts.Shutdown()
+//		alerts.Publisher().Shutdown()
 
 package alerts
 
@@ -22,24 +22,14 @@ type ZmqMessage struct {
 }
 
 var loggerInstance = logService.GetLoggerInstance()
-var Publisher *AlertPublisher
+var publisher *AlertPublisher
 
-// Startup initializes the Publisher
-func Startup() {
-	if Publisher != nil {
-		return
+// Publisher returns the Publisher singleton.
+func Publisher() *AlertPublisher {
+	if publisher == nil {
+		publisher = newAlertPublisher(loggerInstance)
+		publisher.startup()
 	}
 
-	Publisher = NewAlertPublisher(loggerInstance)
-	Publisher.startup()
-}
-
-// Shutdown stops and resets the publisher.
-func Shutdown() {
-	if Publisher == nil {
-		return
-	}
-
-	Publisher.shutdown()
-	Publisher = nil
+	return publisher
 }

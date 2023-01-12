@@ -22,8 +22,8 @@ type AlertPublisher struct {
 	socketAddress           string
 }
 
-// NewAlertPublisher Gets the singleton instance of AlertPublisher.
-func NewAlertPublisher(logger *logger.Logger) *AlertPublisher {
+// newAlertPublisher Gets the singleton instance of AlertPublisher.
+func newAlertPublisher(logger *logger.Logger) *AlertPublisher {
 	once.Do(func() {
 		alertPublisherSingleton = &AlertPublisher{
 			logger:                  logger,
@@ -41,8 +41,8 @@ func (publisher *AlertPublisher) startup() {
 	go publisher.zmqPublisher()
 }
 
-// shutdown stops the goroutine running the ZMQ subscriber and closes the channels used in the service.
-func (publisher *AlertPublisher) shutdown() {
+// Shutdown stops the goroutine running the ZMQ subscriber and closes the channels used in the service.
+func (publisher *AlertPublisher) Shutdown() {
 	publisher.zmqPublisherShutdown <- true
 	close(publisher.zmqPublisherShutdown)
 	close(publisher.messagePublisherChannel)
