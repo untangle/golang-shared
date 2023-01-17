@@ -31,4 +31,5 @@ message Alert {
     AlertType type = 1;
     AlertSeverity severity = 2;
     string message = 3;
+    map<string, string> params = 4;
 }
