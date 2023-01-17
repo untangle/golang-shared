@@ -7,7 +7,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/untangle/golang-shared/services/alerts"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
+	protoAlerts "github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -247,6 +249,19 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
+func sendDiscoveredNewDeviceAlert(entry *DeviceEntry) {
+	deviceIps := entry.GetDeviceIPs()
+	alerts.Publisher().Send(&protoAlerts.Alert{
+		Type:     protoAlerts.AlertType_DISCOVERY,
+		Severity: protoAlerts.AlertSeverity_INFO,
+		Message:  "ALERT_NEW_DEVICE_DISCOVERED",
+		Params: map[string]string{
+			"ips":        strings.Join(deviceIps, ", "),
+			"macAddress": entry.MacAddress,
+		},
+	})
+}
+
 // MergeOrAddDeviceEntry merges the new entry if an entry can be found
 // that corresponds to the same MAC or IP. If none can be found, we
 // put the new entry in the table. The provided callback function is
@@ -285,9 +300,11 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 			}
 		}
 		if !found {
+			sendDiscoveredNewDeviceAlert(entry)
 			list.putDeviceUnsafe(entry)
 		}
 	} else {
+		sendDiscoveredNewDeviceAlert(entry)
 		list.putDeviceUnsafe(entry)
 	}
 
