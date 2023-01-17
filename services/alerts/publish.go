@@ -29,7 +29,7 @@ func newAlertPublisher(logger *logger.Logger) *AlertPublisher {
 			logger:                  logger,
 			messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 			zmqPublisherShutdown:    make(chan bool),
-			socketAddress:           socketAddress,
+			socketAddress:           PublisherSocketAddressConnect,
 		}
 	})
 
@@ -105,7 +105,7 @@ func (publisher *AlertPublisher) setupZmqPubSocket() (soc *zmq.Socket, err error
 		return nil, err
 	}
 
-	if err = socket.Bind(publisher.socketAddress); err != nil {
+	if err = socket.Connect(publisher.socketAddress); err != nil {
 		publisher.logger.Err("Unable to bind to ZMQ socket: %s\n", err)
 		return nil, err
 	}
