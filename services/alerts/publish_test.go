@@ -65,7 +65,7 @@ func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
 		return nil, err
 	}
 
-	if err = pubSocket.Connect(socket); err != nil {
+	if err = pubSocket.Bind(socket); err != nil {
 		return nil, err
 	}
 
