@@ -21,7 +21,7 @@ var (
 	ipv6Mask64  string
 	ipv4Aliases string
 	ipv6Aliases string
-	ipBridged	string
+	ipBridged   string
 )
 
 func interfacesTestSetup(t *testing.T) func(t *testing.T) {
