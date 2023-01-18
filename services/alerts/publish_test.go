@@ -81,6 +81,7 @@ func newTestAlertHandler() *AlertPublisher {
 		logger:                  logger.NewLogger(),
 		messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 		zmqPublisherShutdown:    make(chan bool),
+		zmqPublisherStarted:     make(chan bool, 1),
 		socketAddress:           testSocketAddress,
 	}
 }

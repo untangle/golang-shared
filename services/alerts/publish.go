@@ -19,6 +19,7 @@ type AlertPublisher struct {
 	logger                  *logger.Logger
 	messagePublisherChannel chan ZmqMessage
 	zmqPublisherShutdown    chan bool
+	zmqPublisherStarted     chan bool
 	socketAddress           string
 }
 
@@ -29,6 +30,7 @@ func newAlertPublisher(logger *logger.Logger) *AlertPublisher {
 			logger:                  logger,
 			messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 			zmqPublisherShutdown:    make(chan bool),
+			zmqPublisherStarted:     make(chan bool, 1),
 			socketAddress:           PublisherSocketAddressConnect,
 		}
 	})
@@ -39,12 +41,16 @@ func newAlertPublisher(logger *logger.Logger) *AlertPublisher {
 // startup starts the ZMQ publisher in the background.
 func (publisher *AlertPublisher) startup() {
 	go publisher.zmqPublisher()
+
+	// Blocks until the publisher starts.
+	<-publisher.zmqPublisherStarted
 }
 
 // Shutdown stops the goroutine running the ZMQ subscriber and closes the channels used in the service.
 func (publisher *AlertPublisher) Shutdown() {
 	publisher.zmqPublisherShutdown <- true
 	close(publisher.zmqPublisherShutdown)
+	close(publisher.zmqPublisherStarted)
 	close(publisher.messagePublisherChannel)
 }
 
@@ -73,6 +79,8 @@ func (publisher *AlertPublisher) zmqPublisher() {
 		return
 	}
 	defer socket.Close()
+
+	publisher.zmqPublisherStarted <- true
 
 	for {
 		select {
