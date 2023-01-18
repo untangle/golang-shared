@@ -249,7 +249,10 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
-func sendDiscoveredNewDeviceAlert(entry *DeviceEntry) {
+func sendDiscoveredNewDeviceAlert(entry *DeviceEntry, isWarmup bool) {
+	if isWarmup {
+		return
+	}
 	deviceIps := entry.GetDeviceIPs()
 	alerts.Publisher().Send(&protoAlerts.Alert{
 		Type:     protoAlerts.AlertType_DISCOVERY,
@@ -268,7 +271,8 @@ func sendDiscoveredNewDeviceAlert(entry *DeviceEntry) {
 // called after everything is merged but before the lock is
 // released. This can allow you to clone/copy the merged device.
 // Make sure to merge new into old.
-func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
+// isWarmup prevents alerts from being created since when reportd starts, all devices are read from DB and processed here
+func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func(), isWarmup bool) {
 	// Lock the entry down before reading from it.
 	// Otherwise the read in Merge causes a data race
 	if entry.MacAddress == "00:00:00:00:00:00" {
@@ -300,11 +304,11 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 			}
 		}
 		if !found {
-			sendDiscoveredNewDeviceAlert(entry)
+			sendDiscoveredNewDeviceAlert(entry, isWarmup)
 			list.putDeviceUnsafe(entry)
 		}
 	} else {
-		sendDiscoveredNewDeviceAlert(entry)
+		sendDiscoveredNewDeviceAlert(entry, isWarmup)
 		list.putDeviceUnsafe(entry)
 	}
 
