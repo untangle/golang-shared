@@ -29,7 +29,6 @@ func MergeZmqMessageIntoDeviceList(devlist *DevicesList, device *DeviceEntry, ca
 			proto.Merge(&clonedEntry.DiscoveryEntry, device)
 			callback(clonedEntry)
 		},
-		false,
 	)
 	return nil
 }

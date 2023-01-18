@@ -249,8 +249,9 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
-func sendDiscoveredNewDeviceAlert(entry *DeviceEntry, isWarmup bool) {
-	if isWarmup {
+func sendDiscoveredNewDeviceAlert(entry *DeviceEntry, isDbEntry bool) {
+	if isDbEntry {
+		// we don't want DB entries to create a new alert for each known device every time a restart occurs
 		return
 	}
 	deviceIps := entry.GetDeviceIPs()
@@ -265,14 +266,26 @@ func sendDiscoveredNewDeviceAlert(entry *DeviceEntry, isWarmup bool) {
 	})
 }
 
-// MergeOrAddDeviceEntry merges the new entry if an entry can be found
+// MergeOrAddDatabaseDeviceEntry processes DB items when reportd starts
+// check mergeOrAddEntry for more details
+func (list *DevicesList) MergeOrAddDatabaseDeviceEntry(entry *DeviceEntry, callback func()) {
+	list.mergeOrAddEntry(entry, callback, true)
+}
+
+// MergeOrAddDeviceEntry processes entries found by discoverd
+// check mergeOrAddEntry for more details
+func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
+	list.mergeOrAddEntry(entry, callback, false)
+}
+
+// mergeOrAddEntry merges the new entry if an entry can be found
 // that corresponds to the same MAC or IP. If none can be found, we
 // put the new entry in the table. The provided callback function is
 // called after everything is merged but before the lock is
 // released. This can allow you to clone/copy the merged device.
 // Make sure to merge new into old.
-// isWarmup prevents alerts from being created since when reportd starts, all devices are read from DB and processed here
-func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func(), isWarmup bool) {
+// isDbEntry prevents alerts from being created since when reportd starts, all devices are read from DB and processed here
+func (list *DevicesList) mergeOrAddEntry(entry *DeviceEntry, callback func(), isDbEntry bool) {
 	// Lock the entry down before reading from it.
 	// Otherwise the read in Merge causes a data race
 	if entry.MacAddress == "00:00:00:00:00:00" {
@@ -304,11 +317,11 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 			}
 		}
 		if !found {
-			sendDiscoveredNewDeviceAlert(entry, isWarmup)
+			sendDiscoveredNewDeviceAlert(entry, isDbEntry)
 			list.putDeviceUnsafe(entry)
 		}
 	} else {
-		sendDiscoveredNewDeviceAlert(entry, isWarmup)
+		sendDiscoveredNewDeviceAlert(entry, isDbEntry)
 		list.putDeviceUnsafe(entry)
 	}
 
