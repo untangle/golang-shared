@@ -21,6 +21,7 @@ var (
 	ipv6Mask64  string
 	ipv4Aliases string
 	ipv6Aliases string
+	ipBridged   string
 )
 
 func interfacesTestSetup(t *testing.T) func(t *testing.T) {
@@ -80,6 +81,30 @@ func interfacesTestSetup(t *testing.T) func(t *testing.T) {
 		},
 		passIps: []string{"192.168.0.1/16", "172.16.0.2/24", "172.18.0.2/24"},
 		failIps: []string{"172.19.0.2/24", "172.192.0.2/24"},
+	}
+
+	ipBridged = "ipBridged"
+	testMap[ipBridged] = interfacesTestStruct{
+		testInterface: Interface{
+			ConfigType:      ConfigTypeBridged,
+			Enabled:         true,
+			V4StaticAddress: "192.168.0.1",
+			V4StaticPrefix:  16,
+			V4Aliases: []V4IpAliases{
+				{
+					V4Address: "172.16.0.2",
+					V4Prefix:  24,
+				},
+				{
+					V4Address: "172.18.0.2",
+					V4Prefix:  24,
+				},
+			},
+
+			IsWAN: false,
+		},
+		passIps: []string{},
+		failIps: []string{},
 	}
 
 	ipv6Aliases = "ipv6Aliases"
@@ -151,6 +176,7 @@ func TestGetNetworks(t *testing.T) {
 		ipv6Mask64,
 		ipv4Aliases,
 		ipv6Aliases,
+		ipBridged,
 	}
 
 	for _, testName := range testArr {
