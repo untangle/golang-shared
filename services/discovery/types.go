@@ -249,33 +249,30 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
-func sendDiscoveredNewDeviceAlert(entry *DeviceEntry, isDbEntry bool) {
-	if isDbEntry {
-		// we don't want DB entries to create a new alert for each known device every time a restart occurs
-		return
-	}
+// buildAlert builds the alert object that will be sent to alertd and adds device details
+func buildAlert(entry *DeviceEntry) *protoAlerts.Alert {
 	deviceIps := entry.GetDeviceIPs()
-	alerts.Publisher().Send(&protoAlerts.Alert{
+	return &protoAlerts.Alert{
 		Type:     protoAlerts.AlertType_DISCOVERY,
 		Severity: protoAlerts.AlertSeverity_INFO,
 		Message:  "ALERT_NEW_DEVICE_DISCOVERED",
 		Params: map[string]string{
-			"ips":        strings.Join(deviceIps, ", "),
+			"ips":        strings.Join(deviceIps, ","),
 			"macAddress": entry.MacAddress,
 		},
-	})
+	}
 }
 
 // MergeOrAddDatabaseDeviceEntry processes DB items when reportd starts
 // check mergeOrAddEntry for more details
 func (list *DevicesList) MergeOrAddDatabaseDeviceEntry(entry *DeviceEntry, callback func()) {
-	list.mergeOrAddEntry(entry, callback, true)
+	list.mergeOrAddEntry(alerts.Publisher().Send, entry, callback, true)
 }
 
 // MergeOrAddDeviceEntry processes entries found by discoverd
 // check mergeOrAddEntry for more details
 func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
-	list.mergeOrAddEntry(entry, callback, false)
+	list.mergeOrAddEntry(alerts.Publisher().Send, entry, callback, false)
 }
 
 // mergeOrAddEntry merges the new entry if an entry can be found
@@ -285,7 +282,7 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 // released. This can allow you to clone/copy the merged device.
 // Make sure to merge new into old.
 // isDbEntry prevents alerts from being created since when reportd starts, all devices are read from DB and processed here
-func (list *DevicesList) mergeOrAddEntry(entry *DeviceEntry, callback func(), isDbEntry bool) {
+func (list *DevicesList) mergeOrAddEntry(sendAlert func(alert *protoAlerts.Alert), entry *DeviceEntry, callback func(), isDbEntry bool) {
 	// Lock the entry down before reading from it.
 	// Otherwise the read in Merge causes a data race
 	if entry.MacAddress == "00:00:00:00:00:00" {
@@ -309,7 +306,7 @@ func (list *DevicesList) mergeOrAddEntry(entry *DeviceEntry, callback func(), is
 			// break out of the loop since any device oldEntry is a pointer that
 			// every IP for a device points to
 			// We do not merge the new entry into the old entry if the new entry is a new device.
-			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "") {
+			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "" || oldEntry.MacAddress == "") {
 				oldEntry.Merge(entry)
 				list.putDeviceUnsafe(oldEntry)
 				found = true
@@ -317,11 +314,15 @@ func (list *DevicesList) mergeOrAddEntry(entry *DeviceEntry, callback func(), is
 			}
 		}
 		if !found {
-			sendDiscoveredNewDeviceAlert(entry, isDbEntry)
+			if !isDbEntry {
+				sendAlert(buildAlert(entry))
+			}
 			list.putDeviceUnsafe(entry)
 		}
 	} else {
-		sendDiscoveredNewDeviceAlert(entry, isDbEntry)
+		if !isDbEntry {
+			sendAlert(buildAlert(entry))
+		}
 		list.putDeviceUnsafe(entry)
 	}
 
