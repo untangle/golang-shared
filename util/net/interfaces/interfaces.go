@@ -51,6 +51,9 @@ func (intf *Interface) IsBridged() bool {
 // Get IPV4 static and aliases addresses
 func (intf *Interface) GetIpV4Network() []*net.IPNet {
 	var networks []*net.IPNet
+	if intf.IsBridged() {
+		return networks
+	}
 	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V4StaticAddress, intf.V4StaticPrefix))
 	if err == nil {
 		networks = append(networks, ipNet)
@@ -67,6 +70,9 @@ func (intf *Interface) GetIpV4Network() []*net.IPNet {
 // Get IPV6 static and aliases addresses
 func (intf *Interface) GetIpV6Network() []*net.IPNet {
 	var networks []*net.IPNet
+	if intf.IsBridged() {
+		return networks
+	}
 	_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", intf.V6StaticAddress, intf.V6StaticPrefix))
 	if err == nil {
 		networks = append(networks, ipNet)

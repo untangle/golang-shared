@@ -12,8 +12,8 @@ import logService "github.com/untangle/golang-shared/services/logger"
 // AlertZMQTopic Topic name to be used when sending alerts.
 const AlertZMQTopic string = "arista:alertd:alert"
 
-const PublisherSocketAddressConnect = "tcp://127.0.0.1:5563"
-const PublisherSocketAddressBind = "tcp://*:5563"
+const PublisherSocketAddressConnect = "tcp://127.0.0.1:5565"
+const PublisherSocketAddressBind = "tcp://*:5565"
 
 const SubscriberSocketAddressConnect = "tcp://127.0.0.1:5564"
 const SubscriberSocketAddressBind = "tcp://*:5564"

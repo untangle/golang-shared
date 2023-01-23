@@ -353,7 +353,8 @@ func (suite *DeviceListTestSuite) TestMerge() {
 		wg.Add(1)
 		go func(pair newAndOldPair) {
 			defer wg.Done()
-			suite.deviceList.MergeOrAddDeviceEntry(pair.new,
+			suite.deviceList.MergeOrAddDeviceEntry(
+				pair.new,
 				func() {
 					// assert that we put this entry in the table.
 					mapEntry := suite.deviceList.Devices[pair.expectedMac]
@@ -361,7 +362,8 @@ func (suite *DeviceListTestSuite) TestMerge() {
 					suite.ElementsMatch(mapEntry.GetDeviceIPs(), pair.expectedIps)
 					suite.Equal(mapEntry.MacAddress, pair.expectedMac)
 					atomic.AddUint32(&count, 1)
-				})
+				},
+			)
 
 		}(devTest)
 	}
@@ -388,9 +390,7 @@ func (suite *DeviceListTestSuite) TestBroadcastInsertion() {
 		},
 	}
 
-	deviceList.MergeOrAddDeviceEntry(&newBroadcastDiscovery,
-		func() {
-		})
+	deviceList.MergeOrAddDeviceEntry(&newBroadcastDiscovery, func() {})
 
 	// Asssert that broadcast entry was not added.
 	suite.EqualValues(count, len(deviceList.Devices), "Adding broadcast discovery entry.")
