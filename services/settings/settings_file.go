@@ -42,6 +42,11 @@ func WithLock(mutex *sync.RWMutex) SettingsOption {
 // as a path to the settings file, and any supplemental options you
 // want.
 func NewSettingsFile(filename string, opts ...SettingsOption) *SettingsFile {
+	// use default settings file location if none was provided
+	if filename == "" {
+		filename = settingsFile
+	}
+
 	file := &SettingsFile{
 		filename: filename,
 	}
