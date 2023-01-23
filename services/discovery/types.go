@@ -249,8 +249,87 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
+// MergeOrAddDeviceEntrySilent processes existing entries read from DB reportd
+// it will NOT create any new device alerts
+func (list *DevicesList) MergeOrAddDeviceEntrySilent(entry *DeviceEntry, callback func()) {
+	list.mergeOrAdd(entry, callback)
+}
+
+// MergeOrAddDeviceEntry processes entries found by discoverd
+// it will create an alert if a new device is discovered
+func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
+	list.mergeOrAddWithAlert(entry, callback, alerts.Publisher().Send)
+}
+
+// mergeOrAdd merges the new entry if an entry can be found
+// that corresponds to the same MAC or IP. If none can be found, we
+// put the new entry in the table. The provided callback function is
+// called after everything is merged but before the lock is
+// released. This can allow you to clone/copy the merged device.
+// Make sure to merge new into old.
+// returns a pointer to the inserted device (new or existing)
+// returns true if the device is a new one or false if it is an existing one
+func (list *DevicesList) mergeOrAdd(entry *DeviceEntry, callback func()) (
+	processedEntry *DeviceEntry,
+	isNewDevice bool,
+) {
+	// Lock the entry down before reading from it.
+	// Otherwise the read in Merge causes a data race
+	if entry.MacAddress == "00:00:00:00:00:00" {
+		return nil, false
+	}
+
+	list.Lock.Lock()
+	defer list.Lock.Unlock()
+
+	deviceIps := entry.GetDeviceIPs()
+	if entry.MacAddress == "" && len(deviceIps) <= 0 {
+		return nil, false
+	}
+
+	// deferred functions are called LIFO which means this will be called BEFORE the mutex unlock
+	defer callback()
+
+	if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
+		oldEntry.Merge(entry)
+		list.putDeviceUnsafe(oldEntry)
+		return oldEntry, false
+	}
+
+	if len(deviceIps) > 0 {
+		// See if the IPs of entry correspond to any others
+		for _, ip := range deviceIps {
+			// Once an old entry is oldEntry and the new entry is merged with it,
+			// break out of the loop since any device oldEntry is a pointer that
+			// every IP for a device points to
+			// We do not merge the new entry into the old entry if the new entry is a new device.
+			oldEntry := list.getDeviceFromIPUnsafe(ip)
+			if oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "" || oldEntry.MacAddress == "") {
+				oldEntry.Merge(entry)
+				list.putDeviceUnsafe(oldEntry)
+				return oldEntry, false
+			}
+		}
+
+		list.putDeviceUnsafe(entry)
+		return entry, true
+	}
+
+	list.putDeviceUnsafe(entry)
+	return entry, true
+}
+
+// mergeOrAddWithAlert cals mergeOrAdd and creates a "new device discovered" alert when necessary
+func (list *DevicesList) mergeOrAddWithAlert(entry *DeviceEntry, callback func(), sendAlert func(*protoAlerts.Alert)) {
+	processedEntry, isNewDevice := list.mergeOrAdd(entry, callback)
+
+	if isNewDevice {
+		sendAlert(buildNewDeviceDiscoveredAlert(processedEntry))
+	}
+}
+
 // buildAlert builds the alert object that will be sent to alertd and adds device details
-func buildAlert(entry *DeviceEntry) *protoAlerts.Alert {
+func buildNewDeviceDiscoveredAlert(entry *DeviceEntry) *protoAlerts.Alert {
 	deviceIps := entry.GetDeviceIPs()
 	return &protoAlerts.Alert{
 		Type:     protoAlerts.AlertType_DISCOVERY,
@@ -261,72 +340,6 @@ func buildAlert(entry *DeviceEntry) *protoAlerts.Alert {
 			"macAddress": entry.MacAddress,
 		},
 	}
-}
-
-// MergeOrAddDatabaseDeviceEntry processes DB items when reportd starts
-// check mergeOrAddEntry for more details
-func (list *DevicesList) MergeOrAddDatabaseDeviceEntry(entry *DeviceEntry, callback func()) {
-	list.mergeOrAddEntry(alerts.Publisher().Send, entry, callback, true)
-}
-
-// MergeOrAddDeviceEntry processes entries found by discoverd
-// check mergeOrAddEntry for more details
-func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
-	list.mergeOrAddEntry(alerts.Publisher().Send, entry, callback, false)
-}
-
-// mergeOrAddEntry merges the new entry if an entry can be found
-// that corresponds to the same MAC or IP. If none can be found, we
-// put the new entry in the table. The provided callback function is
-// called after everything is merged but before the lock is
-// released. This can allow you to clone/copy the merged device.
-// Make sure to merge new into old.
-// isDbEntry prevents alerts from being created since when reportd starts, all devices are read from DB and processed here
-func (list *DevicesList) mergeOrAddEntry(sendAlert func(alert *protoAlerts.Alert), entry *DeviceEntry, callback func(), isDbEntry bool) {
-	// Lock the entry down before reading from it.
-	// Otherwise the read in Merge causes a data race
-	if entry.MacAddress == "00:00:00:00:00:00" {
-		return
-	}
-
-	list.Lock.Lock()
-	defer list.Lock.Unlock()
-
-	deviceIps := entry.GetDeviceIPs()
-	if entry.MacAddress == "" && len(deviceIps) <= 0 {
-		return
-	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
-		oldEntry.Merge(entry)
-		list.putDeviceUnsafe(oldEntry)
-	} else if len(deviceIps) > 0 {
-		// See if the IPs of entry correspond to any others
-		found := false
-		for _, ip := range deviceIps {
-			// Once an old entry is oldEntry and the new entry is merged with it,
-			// break out of the loop since any device oldEntry is a pointer that
-			// every IP for a device points to
-			// We do not merge the new entry into the old entry if the new entry is a new device.
-			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "" || oldEntry.MacAddress == "") {
-				oldEntry.Merge(entry)
-				list.putDeviceUnsafe(oldEntry)
-				found = true
-				break
-			}
-		}
-		if !found {
-			if !isDbEntry {
-				sendAlert(buildAlert(entry))
-			}
-			list.putDeviceUnsafe(entry)
-		}
-	} else {
-		if !isDbEntry {
-			sendAlert(buildAlert(entry))
-		}
-		list.putDeviceUnsafe(entry)
-	}
-
-	callback()
 }
 
 // MergeSessions merges the sessions into the devices.

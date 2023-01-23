@@ -12,62 +12,101 @@ func TestNewDeviceDiscoveredAlert(t *testing.T) {
 	devicesList := NewDevicesList()
 	emptyCb := func() {}
 
-	alerts := []*protoAlerts.Alert{}
+	var alert *protoAlerts.Alert
 	sendAlert := func(a *protoAlerts.Alert) {
-		alerts = append(alerts, a)
+		alert = a
 	}
 
-	devicesToAdd := []*DeviceEntry{
+	type testParams struct {
+		ips        string
+		macAddress string
+	}
+	type testCase struct {
+		name   string
+		entry  DeviceEntry
+		params *testParams // nil if a new alert should not be created
+	}
+
+	testCases := []testCase{
 		{
+			name: "empty device shouldn't generate alert",
 			// empty device entry that shouldn't generate any alert
+			params: nil,
 		},
 		{
-			// all zeros mac shouldn't generate any alert
-			DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
-				MacAddress: "00:00:00:00:00:00",
+			name: "all zeros mac shouldn't generate alert",
+			entry: DeviceEntry{
+				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
+					MacAddress: "00:00:00:00:00:00",
+				},
+			},
+			params: nil,
+		},
+		{
+			name: "new mac address generates alert",
+			entry: DeviceEntry{
+				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
+					MacAddress: "11:11:11:11:11:11",
+				},
+			},
+			params: &testParams{
+				ips:        "",
+				macAddress: "11:11:11:11:11:11",
 			},
 		},
 		{
-			// new mac address generates alert
-			DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
-				MacAddress: "11:11:11:11:11:11",
+			name: "same mac as the previous one, even with new IPs, shouldn't generate alert",
+			entry: DeviceEntry{
+				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
+					MacAddress: "11:11:11:11:11:11",
+					Neigh: map[string]*protoDiscoverd.NEIGH{
+						"192.168.56.1": {},
+					},
+				},
+			},
+			params: nil,
+		},
+		{
+			name: "new mac with some IPs generates alert",
+			entry: DeviceEntry{
+				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
+					MacAddress: "22:22:22:22:22:22",
+					Neigh: map[string]*protoDiscoverd.NEIGH{
+						"192.168.56.2": {},
+					},
+					Lldp: map[string]*protoDiscoverd.LLDP{
+						"192.168.56.3": {},
+					},
+				},
+			},
+			params: &testParams{
+				ips:        "192.168.56.2,192.168.56.3",
+				macAddress: "22:22:22:22:22:22",
 			},
 		},
 		{
-			// same mac as the previous one, even with new IPs, shouldn't generate
-			DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
-				MacAddress: "11:11:11:11:11:11",
-				Neigh: map[string]*protoDiscoverd.NEIGH{
-					"192.168.56.1": {},
+			name: "unknown mac but existing IP shouldn't generate alert",
+			entry: DeviceEntry{
+				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
+					Neigh: map[string]*protoDiscoverd.NEIGH{
+						"192.168.56.2": {},
+					},
 				},
 			},
+			params: nil,
 		},
 		{
-			// new mac with some IPs
-			DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
-				MacAddress: "22:22:22:22:22:22",
-				Neigh: map[string]*protoDiscoverd.NEIGH{
-					"192.168.56.2": {},
-				},
-				Lldp: map[string]*protoDiscoverd.LLDP{
-					"192.168.56.3": {},
+			name: "unknown mac and new IP generates new alert",
+			entry: DeviceEntry{
+				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
+					Neigh: map[string]*protoDiscoverd.NEIGH{
+						"192.168.56.56": {},
+					},
 				},
 			},
-		},
-		{
-			// unknown mac but existing IP shouldn't generate alert
-			DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
-				Neigh: map[string]*protoDiscoverd.NEIGH{
-					"192.168.56.2": {},
-				},
-			},
-		},
-		{
-			// unknown mac and new IP generates new alert
-			DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
-				Neigh: map[string]*protoDiscoverd.NEIGH{
-					"192.168.56.56": {},
-				},
+			params: &testParams{
+				ips:        "192.168.56.56",
+				macAddress: "",
 			},
 		},
 		// TODO: this seems to fall into the `if !found` case
@@ -75,55 +114,33 @@ func TestNewDeviceDiscoveredAlert(t *testing.T) {
 		// TODO: A S K   A B O U T   T H I S
 		// ./types.go:309  || oldEntry.MacAddress == ""
 		{
-			// new mac and existing IP shouldn't generate alert
-			DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
-				MacAddress: "33:33:33:33:33:33",
-				Neigh: map[string]*protoDiscoverd.NEIGH{
-					"192.168.56.56": {},
+			name: "new mac and existing IP shouldn't generate alert",
+			entry: DeviceEntry{
+				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
+					MacAddress: "33:33:33:33:33:33",
+					Neigh: map[string]*protoDiscoverd.NEIGH{
+						"192.168.56.56": {},
+					},
 				},
 			},
+			params: nil,
 		},
 	}
-	expectedAlerts := []*protoAlerts.Alert{
-		{
-			Params: map[string]string{
-				"ips":        "",
-				"macAddress": "11:11:11:11:11:11",
-			},
-		},
-		{
-			Params: map[string]string{
-				"ips":        "192.168.56.2,192.168.56.3",
-				"macAddress": "22:22:22:22:22:22",
-			},
-		},
-		{
-			Params: map[string]string{
-				"ips":        "192.168.56.56",
-				"macAddress": "",
-			},
-		},
-	}
+	for _, test := range testCases {
+		// reset alert so we can check if a new one was created during this step
+		alert = nil
+		devicesList.mergeOrAddWithAlert(&test.entry, emptyCb, sendAlert)
 
-	for _, d := range devicesToAdd {
-		devicesList.mergeOrAddEntry(sendAlert, d, emptyCb, false)
-	}
+		if test.params == nil {
+			assert.Nil(t, alert)
+			return
+		}
 
-	assert.Equal(t, len(expectedAlerts), len(alerts))
-	for i, a := range alerts {
-		e := expectedAlerts[i]
+		assert.NotNil(t, alert)
 
-		assert.Equal(t, protoAlerts.AlertType_DISCOVERY, a.Type)
-		assert.Equal(t, "ALERT_NEW_DEVICE_DISCOVERED", a.Message)
-		assert.Equal(t, e.Params["ips"], a.Params["ips"])
-		assert.Equal(t, e.Params["macAddress"], a.Params["macAddress"])
+		assert.Equal(t, protoAlerts.AlertType_DISCOVERY, alert.Type)
+		assert.Equal(t, "ALERT_NEW_DEVICE_DISCOVERED", alert.Message)
+		assert.Equal(t, test.params.ips, alert.Params["ips"])
+		assert.Equal(t, test.params.macAddress, alert.Params["macAddress"])
 	}
-
-	// check that no alerts are created when reading from DB at startup
-	warmUpDeviceList := NewDevicesList()
-	alerts = []*protoAlerts.Alert{}
-	for _, d := range devicesToAdd {
-		warmUpDeviceList.mergeOrAddEntry(sendAlert, d, emptyCb, true)
-	}
-	assert.Equal(t, 0, len(alerts))
 }
