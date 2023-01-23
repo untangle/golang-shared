@@ -7,7 +7,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/untangle/golang-shared/services/alerts"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
+	protoAlerts "github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	disco "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 	"google.golang.org/protobuf/proto"
 )
@@ -247,17 +249,34 @@ func (list *DevicesList) GetDeviceEntryFromIP(ip string) *disco.DiscoveryEntry {
 	return nil
 }
 
-// MergeOrAddDeviceEntry merges the new entry if an entry can be found
+// MergeOrAddDeviceEntrySilent processes existing entries read from DB reportd
+// it will NOT create any new device alerts
+func (list *DevicesList) MergeOrAddDeviceEntrySilent(entry *DeviceEntry, callback func()) {
+	list.mergeOrAdd(entry, callback)
+}
+
+// MergeOrAddDeviceEntry processes entries found by discoverd
+// it will create an alert if a new device is discovered
+func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
+	list.mergeOrAddWithAlert(entry, callback, alerts.Publisher().Send)
+}
+
+// mergeOrAdd merges the new entry if an entry can be found
 // that corresponds to the same MAC or IP. If none can be found, we
 // put the new entry in the table. The provided callback function is
 // called after everything is merged but before the lock is
 // released. This can allow you to clone/copy the merged device.
 // Make sure to merge new into old.
-func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
+// returns a pointer to the inserted device (new or existing)
+// returns true if the device is a new one or false if it is an existing one
+func (list *DevicesList) mergeOrAdd(entry *DeviceEntry, callback func()) (
+	processedEntry *DeviceEntry,
+	isNewDevice bool,
+) {
 	// Lock the entry down before reading from it.
 	// Otherwise the read in Merge causes a data race
 	if entry.MacAddress == "00:00:00:00:00:00" {
-		return
+		return nil, false
 	}
 
 	list.Lock.Lock()
@@ -265,33 +284,62 @@ func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func
 
 	deviceIps := entry.GetDeviceIPs()
 	if entry.MacAddress == "" && len(deviceIps) <= 0 {
-		return
-	} else if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
+		return nil, false
+	}
+
+	// deferred functions are called LIFO which means this will be called BEFORE the mutex unlock
+	defer callback()
+
+	if oldEntry, ok := list.Devices[entry.MacAddress]; ok {
 		oldEntry.Merge(entry)
 		list.putDeviceUnsafe(oldEntry)
-	} else if len(deviceIps) > 0 {
+		return oldEntry, false
+	}
+
+	if len(deviceIps) > 0 {
 		// See if the IPs of entry correspond to any others
-		found := false
 		for _, ip := range deviceIps {
 			// Once an old entry is oldEntry and the new entry is merged with it,
 			// break out of the loop since any device oldEntry is a pointer that
 			// every IP for a device points to
 			// We do not merge the new entry into the old entry if the new entry is a new device.
-			if oldEntry := list.getDeviceFromIPUnsafe(ip); oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "") {
+			oldEntry := list.getDeviceFromIPUnsafe(ip)
+			if oldEntry != nil && (oldEntry.MacAddress == entry.MacAddress || entry.MacAddress == "" || oldEntry.MacAddress == "") {
 				oldEntry.Merge(entry)
 				list.putDeviceUnsafe(oldEntry)
-				found = true
-				break
+				return oldEntry, false
 			}
 		}
-		if !found {
-			list.putDeviceUnsafe(entry)
-		}
-	} else {
+
 		list.putDeviceUnsafe(entry)
+		return entry, true
 	}
 
-	callback()
+	list.putDeviceUnsafe(entry)
+	return entry, true
+}
+
+// mergeOrAddWithAlert cals mergeOrAdd and creates a "new device discovered" alert when necessary
+func (list *DevicesList) mergeOrAddWithAlert(entry *DeviceEntry, callback func(), sendAlert func(*protoAlerts.Alert)) {
+	processedEntry, isNewDevice := list.mergeOrAdd(entry, callback)
+
+	if isNewDevice {
+		sendAlert(buildNewDeviceDiscoveredAlert(processedEntry))
+	}
+}
+
+// buildAlert builds the alert object that will be sent to alertd and adds device details
+func buildNewDeviceDiscoveredAlert(entry *DeviceEntry) *protoAlerts.Alert {
+	deviceIps := entry.GetDeviceIPs()
+	return &protoAlerts.Alert{
+		Type:     protoAlerts.AlertType_DISCOVERY,
+		Severity: protoAlerts.AlertSeverity_INFO,
+		Message:  "ALERT_NEW_DEVICE_DISCOVERED",
+		Params: map[string]string{
+			"ips":        strings.Join(deviceIps, ","),
+			"macAddress": entry.MacAddress,
+		},
+	}
 }
 
 // MergeSessions merges the sessions into the devices.

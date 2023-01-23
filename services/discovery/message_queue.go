@@ -23,11 +23,13 @@ type ZmqMessage struct {
 // occur).
 func MergeZmqMessageIntoDeviceList(devlist *DevicesList, device *DeviceEntry, callback func(*DeviceEntry)) error {
 	clonedEntry := &DeviceEntry{}
-	devlist.MergeOrAddDeviceEntry(device,
+	devlist.MergeOrAddDeviceEntry(
+		device,
 		func() {
 			proto.Merge(&clonedEntry.DiscoveryEntry, device)
 			callback(clonedEntry)
-		})
+		},
+	)
 	return nil
 }
 
