@@ -8,7 +8,7 @@ import (
 	protoDiscoverd "github.com/untangle/golang-shared/structs/protocolbuffers/Discoverd"
 )
 
-func TestNewDeviceDiscoveredAlert(t *testing.T) {
+func TestNewDeviceAlert(t *testing.T) {
 	devicesList := NewDevicesList()
 	emptyCb := func() {}
 
@@ -109,10 +109,6 @@ func TestNewDeviceDiscoveredAlert(t *testing.T) {
 				macAddress: "",
 			},
 		},
-		// TODO: this seems to fall into the `if !found` case
-		//  but should it ???
-		// TODO: A S K   A B O U T   T H I S
-		// ./types.go:309  || oldEntry.MacAddress == ""
 		{
 			name: "new mac and existing IP shouldn't generate alert",
 			entry: DeviceEntry{
