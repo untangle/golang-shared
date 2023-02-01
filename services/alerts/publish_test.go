@@ -76,8 +76,8 @@ func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
 	return pubSocket, nil
 }
 
-func newTestAlertHandler() *AlertPublisher {
-	return &AlertPublisher{
+func newTestAlertHandler() *ZmqAlertPublisher {
+	return &ZmqAlertPublisher{
 		logger:                  logger.NewLogger(),
 		messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 		zmqPublisherShutdown:    make(chan bool),

@@ -258,7 +258,7 @@ func (list *DevicesList) MergeOrAddDeviceEntrySilent(entry *DeviceEntry, callbac
 // MergeOrAddDeviceEntry processes entries found by discoverd
 // it will create an alert if a new device is discovered
 func (list *DevicesList) MergeOrAddDeviceEntry(entry *DeviceEntry, callback func()) {
-	list.mergeOrAddWithAlert(entry, callback, alerts.Publisher().Send)
+	list.mergeOrAddWithAlert(entry, callback, alerts.Publisher())
 }
 
 // mergeOrAdd merges the new entry if an entry can be found
@@ -320,11 +320,11 @@ func (list *DevicesList) mergeOrAdd(entry *DeviceEntry, callback func()) (
 }
 
 // mergeOrAddWithAlert cals mergeOrAdd and creates a "new device discovered" alert when necessary
-func (list *DevicesList) mergeOrAddWithAlert(entry *DeviceEntry, callback func(), sendAlert func(*protoAlerts.Alert)) {
+func (list *DevicesList) mergeOrAddWithAlert(entry *DeviceEntry, callback func(), alertsPublisher alerts.AlertPublisher) {
 	processedEntry, isNewDevice := list.mergeOrAdd(entry, callback)
 
 	if isNewDevice {
-		sendAlert(buildNewDeviceDiscoveredAlert(processedEntry))
+		alertsPublisher.Send(buildNewDeviceDiscoveredAlert(processedEntry))
 	}
 }
 
