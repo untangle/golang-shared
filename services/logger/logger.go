@@ -39,6 +39,7 @@ type LoggerLevels interface {
 	Info(format string, args ...interface{})
 	Debug(format string, args ...interface{})
 	Trace(format string, args ...interface{})
+	OCWarn(format string, name string, limit int64, args ...interface{})
 }
 
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
