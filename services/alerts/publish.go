@@ -8,14 +8,18 @@ import (
 	"sync"
 )
 
-var alertPublisherSingleton *AlertPublisher
+var alertPublisherSingleton *ZmqAlertPublisher
 var once sync.Once
 
-// AlertPublisher runs a ZMQ publisher socket in the background.
+type AlertPublisher interface {
+	Send(alert *Alerts.Alert)
+}
+
+// ZmqAlertPublisher runs a ZMQ publisher socket in the background.
 // When the Send method is called the alert is passed down to the
 // ZMQ socket using a chanel and the message is published to ZMQ
 // using the alert specific topic.
-type AlertPublisher struct {
+type ZmqAlertPublisher struct {
 	logger                  *logger.Logger
 	messagePublisherChannel chan ZmqMessage
 	zmqPublisherShutdown    chan bool
@@ -23,10 +27,10 @@ type AlertPublisher struct {
 	socketAddress           string
 }
 
-// newAlertPublisher Gets the singleton instance of AlertPublisher.
-func newAlertPublisher(logger *logger.Logger) *AlertPublisher {
+// newZmqAlertPublisher Gets the singleton instance of ZmqAlertPublisher.
+func newZmqAlertPublisher(logger *logger.Logger) *ZmqAlertPublisher {
 	once.Do(func() {
-		alertPublisherSingleton = &AlertPublisher{
+		alertPublisherSingleton = &ZmqAlertPublisher{
 			logger:                  logger,
 			messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 			zmqPublisherShutdown:    make(chan bool),
@@ -39,7 +43,7 @@ func newAlertPublisher(logger *logger.Logger) *AlertPublisher {
 }
 
 // startup starts the ZMQ publisher in the background.
-func (publisher *AlertPublisher) startup() {
+func (publisher *ZmqAlertPublisher) startup() {
 	go publisher.zmqPublisher()
 
 	// Blocks until the publisher starts.
@@ -47,7 +51,7 @@ func (publisher *AlertPublisher) startup() {
 }
 
 // Shutdown stops the goroutine running the ZMQ subscriber and closes the channels used in the service.
-func (publisher *AlertPublisher) Shutdown() {
+func (publisher *ZmqAlertPublisher) Shutdown() {
 	publisher.zmqPublisherShutdown <- true
 	close(publisher.zmqPublisherShutdown)
 	close(publisher.zmqPublisherStarted)
@@ -55,7 +59,7 @@ func (publisher *AlertPublisher) Shutdown() {
 }
 
 // Send publishes the alert to on the ZMQ publishing socket.
-func (publisher *AlertPublisher) Send(alert *Alerts.Alert) {
+func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 	logger.Debug("Publish alert %v\n", alert)
 	alertMessage, err := proto.Marshal(alert)
 	if err != nil {
@@ -72,7 +76,7 @@ func (publisher *AlertPublisher) Send(alert *Alerts.Alert) {
 //
 // This method should be run as a goroutine. The goroutine can be stopped
 // by sending a message on the zmqPublisherShutdown channel.
-func (publisher *AlertPublisher) zmqPublisher() {
+func (publisher *ZmqAlertPublisher) zmqPublisher() {
 	socket, err := publisher.setupZmqPubSocket()
 	if err != nil {
 		logger.Warn("Unable to setup ZMQ publisher socket: %s\n", err)
@@ -99,7 +103,7 @@ func (publisher *AlertPublisher) zmqPublisher() {
 }
 
 // setupZmqPubSocket sets up the ZMQ socket for publishing alerts
-func (publisher *AlertPublisher) setupZmqPubSocket() (soc *zmq.Socket, err error) {
+func (publisher *ZmqAlertPublisher) setupZmqPubSocket() (soc *zmq.Socket, err error) {
 	publisher.logger.Info("Setting up Alerts ZMQ publisher socket...\n")
 
 	socket, err := zmq.NewSocket(zmq.PUB)
