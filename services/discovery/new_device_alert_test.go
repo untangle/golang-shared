@@ -1,6 +1,8 @@
 package discovery
 
 import (
+	"github.com/untangle/golang-shared/testing/mocks"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,10 +14,7 @@ func TestNewDeviceAlert(t *testing.T) {
 	devicesList := NewDevicesList()
 	emptyCb := func() {}
 
-	var alert *protoAlerts.Alert
-	sendAlert := func(a *protoAlerts.Alert) {
-		alert = a
-	}
+	alertPublisher := &mocks.MockAlertPublisher{}
 
 	type testParams struct {
 		ips        string
@@ -23,19 +22,20 @@ func TestNewDeviceAlert(t *testing.T) {
 	}
 	type testCase struct {
 		name   string
-		entry  DeviceEntry
+		entry  *DeviceEntry
 		params *testParams // nil if a new alert should not be created
 	}
 
 	testCases := []testCase{
 		{
-			name: "empty device shouldn't generate alert",
+			name:  "empty device shouldn't generate alert",
+			entry: &DeviceEntry{},
 			// empty device entry that shouldn't generate any alert
 			params: nil,
 		},
 		{
 			name: "all zeros mac shouldn't generate alert",
-			entry: DeviceEntry{
+			entry: &DeviceEntry{
 				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
 					MacAddress: "00:00:00:00:00:00",
 				},
@@ -44,7 +44,7 @@ func TestNewDeviceAlert(t *testing.T) {
 		},
 		{
 			name: "new mac address generates alert",
-			entry: DeviceEntry{
+			entry: &DeviceEntry{
 				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
 					MacAddress: "11:11:11:11:11:11",
 				},
@@ -56,7 +56,7 @@ func TestNewDeviceAlert(t *testing.T) {
 		},
 		{
 			name: "same mac as the previous one, even with new IPs, shouldn't generate alert",
-			entry: DeviceEntry{
+			entry: &DeviceEntry{
 				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
 					MacAddress: "11:11:11:11:11:11",
 					Neigh: map[string]*protoDiscoverd.NEIGH{
@@ -68,7 +68,7 @@ func TestNewDeviceAlert(t *testing.T) {
 		},
 		{
 			name: "new mac with some IPs generates alert",
-			entry: DeviceEntry{
+			entry: &DeviceEntry{
 				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
 					MacAddress: "22:22:22:22:22:22",
 					Neigh: map[string]*protoDiscoverd.NEIGH{
@@ -86,7 +86,7 @@ func TestNewDeviceAlert(t *testing.T) {
 		},
 		{
 			name: "unknown mac but existing IP shouldn't generate alert",
-			entry: DeviceEntry{
+			entry: &DeviceEntry{
 				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
 					Neigh: map[string]*protoDiscoverd.NEIGH{
 						"192.168.56.2": {},
@@ -96,8 +96,8 @@ func TestNewDeviceAlert(t *testing.T) {
 			params: nil,
 		},
 		{
-			name: "unknown mac and new IP generates new alert",
-			entry: DeviceEntry{
+			name: "unknown mac and new IP does generates new alert",
+			entry: &DeviceEntry{
 				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
 					Neigh: map[string]*protoDiscoverd.NEIGH{
 						"192.168.56.56": {},
@@ -111,7 +111,7 @@ func TestNewDeviceAlert(t *testing.T) {
 		},
 		{
 			name: "new mac and existing IP shouldn't generate alert",
-			entry: DeviceEntry{
+			entry: &DeviceEntry{
 				DiscoveryEntry: protoDiscoverd.DiscoveryEntry{
 					MacAddress: "33:33:33:33:33:33",
 					Neigh: map[string]*protoDiscoverd.NEIGH{
@@ -124,19 +124,28 @@ func TestNewDeviceAlert(t *testing.T) {
 	}
 	for _, test := range testCases {
 		// reset alert so we can check if a new one was created during this step
-		alert = nil
-		devicesList.mergeOrAddWithAlert(&test.entry, emptyCb, sendAlert)
+		alertPublisher.LastAlert = nil
+		devicesList.mergeOrAddWithAlert(test.entry, emptyCb, alertPublisher)
 
 		if test.params == nil {
-			assert.Nil(t, alert)
-			return
+			assert.Nil(t, alertPublisher.LastAlert, test.name)
+			continue
 		}
 
-		assert.NotNil(t, alert)
+		assert.NotNil(t, alertPublisher.LastAlert, test.name)
 
-		assert.Equal(t, protoAlerts.AlertType_DISCOVERY, alert.Type)
-		assert.Equal(t, "ALERT_NEW_DEVICE_DISCOVERED", alert.Message)
-		assert.Equal(t, test.params.ips, alert.Params["ips"])
-		assert.Equal(t, test.params.macAddress, alert.Params["macAddress"])
+		assert.Equal(t, protoAlerts.AlertType_DISCOVERY, alertPublisher.LastAlert.Type, test.name)
+		assert.Equal(t, "ALERT_NEW_DEVICE_DISCOVERED", alertPublisher.LastAlert.Message, test.name)
+		assert.Equal(t, len(test.params.ips), len(alertPublisher.LastAlert.Params["ips"]), test.name)
+
+		// in alert.Params["ips"] we do not know the order of the ips
+		// we check that it contains all the expected ips
+		for _, ip := range strings.Split(test.params.ips, ",") {
+			assert.Contains(t, alertPublisher.LastAlert.Params["ips"], ip, test.name)
+		}
+
+		assert.Equal(t, test.params.macAddress, alertPublisher.LastAlert.Params["macAddress"], test.name)
 	}
 }
+
+// Mocks
