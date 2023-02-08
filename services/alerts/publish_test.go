@@ -14,7 +14,7 @@ const testSocketAddress = "inproc://testInProcDescriptor"
 func TestAlertPublisher(t *testing.T) {
 	//Set up
 	handler := newTestAlertHandler()
-	handler.startup()
+	handler.Startup()
 
 	subscriberSocket, err := createTestSubscriberSocket(testSocketAddress)
 	assert.Nil(t, err)

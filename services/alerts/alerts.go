@@ -1,6 +1,6 @@
 // Package alerts provides a service for alert publishing on a ZMQ socket.
 // Usage:
-// 		alerts.Startup() // this is just so it initializes the publisher on service startup, not on the first call
+// 		alerts.Startup() // this is just so it initializes the publisher on service Startup, not on the first call
 // 		alerts.Publisher().Send(alert1)
 // 		alerts.Publisher().Send(alert2)
 //		...
@@ -33,8 +33,8 @@ var publisher AlertPublisher
 // Publisher returns the Publisher singleton.
 func Publisher() AlertPublisher {
 	if publisher == nil {
-		zmqPublisher := newZmqAlertPublisher(loggerInstance)
-		zmqPublisher.startup()
+		zmqPublisher := NewZmqAlertPublisher(loggerInstance)
+		_ = zmqPublisher.Startup()
 
 		publisher = zmqPublisher
 	}
@@ -56,6 +56,6 @@ func Shutdown() {
 	}
 
 	var zmqPublisher interface{} = Publisher()
-	zmqPublisher.(*ZmqAlertPublisher).Shutdown()
+	_ = zmqPublisher.(*ZmqAlertPublisher).Shutdown()
 	publisher = nil
 }
