@@ -1,6 +1,7 @@
 package alerts
 
 import (
+	"errors"
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
@@ -10,6 +11,7 @@ import (
 
 var alertPublisherSingleton *ZmqAlertPublisher
 var once sync.Once
+var ErrPublisherStarted = errors.New("publisher already running")
 
 type AlertPublisher interface {
 	Send(alert *Alerts.Alert)
@@ -20,15 +22,20 @@ type AlertPublisher interface {
 // ZMQ socket using a chanel and the message is published to ZMQ
 // using the alert specific topic.
 type ZmqAlertPublisher struct {
-	logger                  *logger.Logger
+	logger                  logger.LoggerLevels
 	messagePublisherChannel chan ZmqMessage
 	zmqPublisherShutdown    chan bool
 	zmqPublisherStarted     chan bool
 	socketAddress           string
+	started                 bool
 }
 
-// newZmqAlertPublisher Gets the singleton instance of ZmqAlertPublisher.
-func newZmqAlertPublisher(logger *logger.Logger) *ZmqAlertPublisher {
+func (publisher *ZmqAlertPublisher) Name() string {
+	return "Alert publisher"
+}
+
+// NewZmqAlertPublisher Gets the singleton instance of ZmqAlertPublisher.
+func NewZmqAlertPublisher(logger logger.LoggerLevels) *ZmqAlertPublisher {
 	once.Do(func() {
 		alertPublisherSingleton = &ZmqAlertPublisher{
 			logger:                  logger,
@@ -42,20 +49,34 @@ func newZmqAlertPublisher(logger *logger.Logger) *ZmqAlertPublisher {
 	return alertPublisherSingleton
 }
 
-// startup starts the ZMQ publisher in the background.
-func (publisher *ZmqAlertPublisher) startup() {
+func NewDefaultAlertPublisher(logger logger.LoggerLevels) AlertPublisher {
+	return NewZmqAlertPublisher(logger)
+}
+
+// Startup starts the ZMQ publisher in the background.
+func (publisher *ZmqAlertPublisher) Startup() error {
+	// Make sure it is not started twice.
+	if publisher.started {
+		return ErrPublisherStarted
+	}
+
 	go publisher.zmqPublisher()
 
 	// Blocks until the publisher starts.
-	<-publisher.zmqPublisherStarted
+	publisher.started = <-publisher.zmqPublisherStarted
+
+	return nil
 }
 
 // Shutdown stops the goroutine running the ZMQ subscriber and closes the channels used in the service.
-func (publisher *ZmqAlertPublisher) Shutdown() {
+func (publisher *ZmqAlertPublisher) Shutdown() error {
 	publisher.zmqPublisherShutdown <- true
 	close(publisher.zmqPublisherShutdown)
 	close(publisher.zmqPublisherStarted)
 	close(publisher.messagePublisherChannel)
+	publisher.started = false
+
+	return nil
 }
 
 // Send publishes the alert to on the ZMQ publishing socket.
