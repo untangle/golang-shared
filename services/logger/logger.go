@@ -21,7 +21,7 @@ type Ocname struct {
 
 // Logger struct retains information about the logger related information
 type Logger struct {
-	config           LoggerConfig
+	config           *LoggerConfig
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
@@ -77,7 +77,6 @@ var once sync.Once
 func init() {
 	once.Do(func() {
 		loggerSingleton = NewLogger()
-
 	})
 }
 
@@ -85,7 +84,7 @@ func init() {
 // singleton. It populates the loglevelmap.
 // This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-	loggerSingleton.config = *conf
+	loggerSingleton.config = conf
 
 	return loggerSingleton
 }
@@ -98,7 +97,7 @@ func GetLoggerInstance() *Logger {
 
 // NewLoggerwithConfig creates an new instance of the logger struct with default config
 func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
-	return &Logger{config: *conf}
+	return &Logger{config: conf}
 }
 
 // NewLogger creates an new instance of the logger struct with wildcard config
@@ -113,8 +112,8 @@ func NewLogger() *Logger {
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
-func DefaultLoggerConfig() LoggerConfig {
-	return LoggerConfig{
+func DefaultLoggerConfig() *LoggerConfig {
+	return &LoggerConfig{
 		FileLocation: "",
 		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
 		OutputWriter: DefaultLogWriter("system"),
