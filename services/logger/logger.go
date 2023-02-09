@@ -74,6 +74,13 @@ const LogLevelTrace int32 = 8
 var loggerSingleton *Logger
 var once sync.Once
 
+func init() {
+	once.Do(func() {
+		loggerSingleton = NewLogger()
+
+	})
+}
+
 // GetLoggerInstancewithConfig returns a logger object that is a
 // singleton. It populates the loglevelmap.
 // This will always replace the singleton with the configured logger
