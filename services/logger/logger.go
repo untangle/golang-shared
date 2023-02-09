@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/overseer"
+	"gorm.io/gorm/logger"
 )
 
 const serviceName = "logger"
@@ -85,6 +86,15 @@ func init() {
 // This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 	loggerSingleton.Config = conf
+	// capture startup time
+	loggerSingleton.launchTime = time.Now()
+
+	// Set system logger to use our logger
+	if logger.Config.OutputWriter != nil {
+		log.SetOutput(loggerSingleton.Config.OutputWriter)
+	} else {
+		panic("oh no\n")
+	}
 
 	return loggerSingleton
 }
