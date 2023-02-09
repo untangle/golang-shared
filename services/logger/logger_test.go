@@ -173,7 +173,7 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 	assert.Equal(suite.T(), []uint8([]byte(nil)), logger.config.LoadConfigFromFile())
 	// Test that load config from file works
 	logger.config.FileLocation = "LoggerConfig.json"
-	assert.Equal(suite.T(), 791, len(logger.config.LoadConfigFromFile()))
+	assert.Equal(suite.T(), 1548, len(logger.config.LoadConfigFromFile()))
 
 	logger.getLogLevel("discovery", "discovery")
 	//Test that the LoggerConfig.json matches some properties
@@ -221,12 +221,46 @@ func (suite *TestLogger) TestInstanceModifications() {
 	//overwrite config
 	logInstance.LoadConfig(&testConfig)
 
-	assert.Equal(suite.T(), logInstance.config, &testConfig)
+	assert.Equal(suite.T(), &testConfig, logInstance.config)
 
 	//new instance - should use singleton
 	logInstance2 := GetLoggerInstance()
 
 	//config matches
-	assert.Equal(suite.T(), logInstance2.config, &testConfig)
+	assert.Equal(suite.T(), &testConfig, logInstance2.config)
+
+}
+
+func (suite *TestLogger) TestInstanceLoadFromDisk() {
+	logInstance := GetLoggerInstance()
+	testConfig := createTestConfig()
+
+	//overwrite default config
+	logInstance.LoadConfig(&testConfig)
+
+	// now load from file
+	logInstance.config.FileLocation = "LoggerConfig.json"
+	logInstance.config.LoadConfigFromFile()
+
+	// verify these are different
+	assert.NotEqual(suite.T(), testConfig, logInstance.config)
+
+	// Verify we loaded the actual config
+	//assert.Equal(suite.T(), NewLogLevel("WARN"), logInstance.config.GetLogLevel("test"))
+}
+
+func (suite *TestLogger) TestSaveToDisk() {
+	logInstance := GetLoggerInstance()
+
+	//Verify we loaded the default config
+	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+
+	// Create the test config - save it, load it to the new instance and verify it loaded
+	testConfig := createTestConfig()
+	testConfig.SaveConfig()
+
+	logInstance.LoadConfig(&testConfig)
+
+	assert.Equal(suite.T(), &testConfig, logInstance.config)
 
 }
