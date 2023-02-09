@@ -17,7 +17,6 @@ type LoggerConfig struct {
 // loadLoggerConfig loads the logger configuration file
 func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	if conf.FileLocation == "" {
-		GetLoggerInstance().Err("FileLocation must be set\n")
 		return nil
 	}
 
@@ -36,7 +35,6 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 
 		// if there is still an error we are out of options
 		if err != nil {
-			GetLoggerInstance().Err("Unable to load Log configuration file: %s\n", conf.FileLocation)
 			return nil
 		}
 	}
@@ -47,14 +45,12 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	// get the file status
 	info, err = file.Stat()
 	if err != nil {
-		GetLoggerInstance().Err("Unable to query file information\n")
 		return nil
 	}
 	data := make([]byte, info.Size())
 	len, err := file.Read(data)
 
 	if (err != nil) || (len < 1) {
-		GetLoggerInstance().Err("Unable to read Log configuration\n")
 		return nil
 	}
 
@@ -69,19 +65,16 @@ func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
 	// unmarshal the configuration into a map
 	err := json.Unmarshal(data, &conf.LogLevelMap)
 	if err != nil {
-		GetLoggerInstance().Err("Unable to parse Log configuration\n")
 		return
 	}
 }
 
 // writeLoggerConfigToJSON will load the default config
 func (conf *LoggerConfig) writeLoggerConfigToJSON() {
-	GetLoggerInstance().Alert("Log configuration not found. Creating default File: %s\n", conf.FileLocation)
 
 	// convert the config map to a json object
 	jstr, err := json.MarshalIndent(conf.LogLevelMap, "", "")
 	if err != nil {
-		GetLoggerInstance().Alert("Log failure creating default configuration: %s\n", err.Error())
 		return
 	}
 

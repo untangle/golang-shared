@@ -21,7 +21,7 @@ type Ocname struct {
 
 // Logger struct retains information about the logger related information
 type Logger struct {
-	config           LoggerConfig
+	config           *LoggerConfig
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
@@ -74,17 +74,6 @@ const LogLevelTrace int32 = 8
 var loggerSingleton *Logger
 var once sync.Once
 
-// GetLoggerInstancewithConfig returns a logger object that is a
-// singleton. It populates the loglevelmap.
-// This will always replace the singleton with the configured logger
-func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-	once.Do(func() {
-		loggerSingleton = NewLoggerwithConfig(conf)
-	})
-
-	return loggerSingleton
-}
-
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
@@ -93,11 +82,6 @@ func GetLoggerInstance() *Logger {
 	})
 
 	return loggerSingleton
-}
-
-// NewLoggerwithConfig creates an new instance of the logger struct with default config
-func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
-	return &Logger{config: *conf}
 }
 
 // NewLogger creates an new instance of the logger struct with wildcard config
@@ -112,12 +96,17 @@ func NewLogger() *Logger {
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
-func DefaultLoggerConfig() LoggerConfig {
-	return LoggerConfig{
+func DefaultLoggerConfig() *LoggerConfig {
+	return &LoggerConfig{
 		FileLocation: "",
 		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
 		OutputWriter: DefaultLogWriter("system"),
 	}
+}
+
+//LoadConfig loads the config to the current logger
+func (logger *Logger) LoadConfig(conf *LoggerConfig) {
+	logger.config = conf
 }
 
 // Startup starts the logging service
@@ -126,19 +115,21 @@ func (logger *Logger) Startup() {
 	// capture startup time
 	logger.launchTime = time.Now()
 
-	// create the map and load the Log configuration
-	data := logger.config.LoadConfigFromFile()
-	if data != nil {
-		logger.config.LoadConfigFromJSON(data)
-	} else {
-		logger.config = DefaultLoggerConfig()
-	}
+	if logger.config != nil {
+		// create the map and load the Log configuration
+		data := logger.config.LoadConfigFromFile()
+		if data != nil {
+			logger.config.LoadConfigFromJSON(data)
+		} else {
+			logger.config = DefaultLoggerConfig()
+		}
 
-	// Set system logger to use our logger
-	if logger.config.OutputWriter != nil {
-		log.SetOutput(logger.config.OutputWriter)
-	} else {
-		log.SetOutput(DefaultLogWriter("system"))
+		// Set system logger to use our logger
+		if logger.config.OutputWriter != nil {
+			log.SetOutput(logger.config.OutputWriter)
+		} else {
+			log.SetOutput(DefaultLogWriter("system"))
+		}
 	}
 }
 
@@ -376,13 +367,13 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// Make sure we have struct variables populated
 	if (newOcname == Ocname{}) {
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
+		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, buffer)
 	}
 }
 
