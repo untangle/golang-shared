@@ -71,14 +71,14 @@ const LogLevelDebug int32 = 7
 // LogLevelTrace = custom value
 const LogLevelTrace int32 = 8
 
-var configLoadWG sync.WaitGroup
 var loggerSingleton *Logger
+var configLock sync.RWMutex
 var once sync.Once
 
 func init() {
-	configLoadWG.Add(1)
 	once.Do(func() {
-		defer configLoadWG.Done()
+		configLock.Lock()
+		defer configLock.Unlock()
 		loggerSingleton = NewLogger()
 	})
 }
@@ -87,7 +87,8 @@ func init() {
 // singleton. It populates the loglevelmap.
 // This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-	configLoadWG.Wait()
+	configLock.Lock()
+	defer configLock.Unlock()
 	loggerSingleton.config = conf
 
 	return loggerSingleton
@@ -96,7 +97,8 @@ func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
-	configLoadWG.Wait()
+	configLock.Lock()
+	defer configLock.Unlock()
 	return loggerSingleton
 }
 
@@ -127,7 +129,8 @@ func DefaultLoggerConfig() *LoggerConfig {
 
 // Startup starts the logging service
 func (logger *Logger) Startup() {
-
+	configLock.Lock()
+	defer configLock.Unlock()
 	// capture startup time
 	logger.launchTime = time.Now()
 
