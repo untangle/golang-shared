@@ -72,6 +72,7 @@ const LogLevelDebug int32 = 7
 const LogLevelTrace int32 = 8
 
 var loggerSingleton *Logger
+var once sync.Once
 
 // GetLoggerInstancewithConfig returns a logger object that is a
 // singleton. It populates the loglevelmap.
@@ -86,13 +87,10 @@ func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
-	if loggerSingleton == nil {
+	once.Do(func() {
 		loggerSingleton = NewLogger()
 		loggerSingleton.Startup()
-
-	}
-
-	//fmt.Printf("singleton map: %v\n", loggerSingleton.config.LogLevelMap)
+	})
 
 	return loggerSingleton
 }
