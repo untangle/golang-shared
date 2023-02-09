@@ -85,11 +85,6 @@ func init() {
 // singleton. It populates the loglevelmap.
 // This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-	// Make sure the singleton has been created
-	once.Do(func() {
-		loggerSingleton = NewLoggerwithConfig(conf)
-	})
-
 	loggerSingleton.config = *conf
 
 	return loggerSingleton
@@ -98,10 +93,6 @@ func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
-	once.Do(func() {
-		loggerSingleton = NewLogger()
-	})
-
 	return loggerSingleton
 }
 
