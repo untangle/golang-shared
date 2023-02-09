@@ -109,6 +109,11 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 	logger.config = conf
 }
 
+// GetConfig returns the logger config
+func (logger *Logger) GetConfig() LoggerConfig {
+	return *logger.config
+}
+
 // Startup starts the logging service
 func (logger *Logger) Startup() {
 
@@ -116,12 +121,12 @@ func (logger *Logger) Startup() {
 	logger.launchTime = time.Now()
 
 	if logger.config != nil {
-		// create the map and load the Log configuration
+		// Load config from file - or save the current config to disk (Should this really happen in startup??)
 		data := logger.config.LoadConfigFromFile()
 		if data != nil {
 			logger.config.LoadConfigFromJSON(data)
 		} else {
-			logger.config = DefaultLoggerConfig()
+			logger.config.SaveConfig()
 		}
 
 		// Set system logger to use our logger
@@ -338,7 +343,7 @@ func logFormatter(format string, newOcname Ocname, args ...interface{}) string {
 		// if there are only two arguments everything after the verb is the message
 
 		// more than two arguments so use the remaining format and arguments
-		buffer := fmt.Sprintf(format)
+		buffer := fmt.Sprint(format)
 		return buffer
 	}
 	// return empty string when a repeat is limited

@@ -28,15 +28,9 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	file, err = os.Open(conf.FileLocation)
 	fmt.Print(err)
 
-	// if there was an error create the default config and try the open again
+	// if there was an error - return nil
 	if err != nil {
-		conf.writeLoggerConfigToJSON()
-		file, err = os.Open(conf.FileLocation)
-
-		// if there is still an error we are out of options
-		if err != nil {
-			return nil
-		}
+		return nil
 	}
 
 	// make sure the file gets closed
@@ -70,21 +64,27 @@ func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
 }
 
 // writeLoggerConfigToJSON will load the default config
-func (conf *LoggerConfig) writeLoggerConfigToJSON() {
+func (conf *LoggerConfig) SaveConfig() {
 
 	// convert the config map to a json object
 	jstr, err := json.MarshalIndent(conf.LogLevelMap, "", "")
 	if err != nil {
+		fmt.Printf("Unable to unmarshal LogLevelMap: %s", err)
 		return
 	}
 
 	// create the logger configuration file
 	file, err := os.Create(conf.FileLocation)
 	if err != nil {
+		fmt.Printf("Unable to save file: %s, error: %s", conf.FileLocation, err)
 		return
 	}
+	defer file.Close()
 
 	// write the default configuration and close the file
-	file.Write(jstr)
-	file.Close()
+	_, err = file.Write(jstr)
+	if err != nil {
+		fmt.Printf("Unable to write to file: %s, error: %s", conf.FileLocation, err)
+		return
+	}
 }
