@@ -76,8 +76,8 @@ var configLock sync.RWMutex
 var once sync.Once
 
 func init() {
+	configLock.Lock()
 	once.Do(func() {
-		configLock.Lock()
 		defer configLock.Unlock()
 		loggerSingleton = NewLogger()
 	})
