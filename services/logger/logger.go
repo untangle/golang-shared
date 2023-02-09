@@ -22,6 +22,7 @@ type Ocname struct {
 // Logger struct retains information about the logger related information
 type Logger struct {
 	config           LoggerConfig
+	configLocker     sync.RWMutex
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
@@ -78,9 +79,12 @@ var once sync.Once
 // singleton. It populates the loglevelmap.
 // This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
+	// Make sure the singleton has been created
 	once.Do(func() {
 		loggerSingleton = NewLoggerwithConfig(conf)
 	})
+
+	loggerSingleton.config = *conf
 
 	return loggerSingleton
 }
