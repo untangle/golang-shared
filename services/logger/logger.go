@@ -78,8 +78,9 @@ var once sync.Once
 // singleton. It populates the loglevelmap.
 // This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-
-	loggerSingleton = NewLoggerwithConfig(conf)
+	once.Do(func() {
+		loggerSingleton = NewLoggerwithConfig(conf)
+	})
 
 	return loggerSingleton
 }
@@ -89,7 +90,6 @@ func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
 func GetLoggerInstance() *Logger {
 	once.Do(func() {
 		loggerSingleton = NewLogger()
-		loggerSingleton.Startup()
 	})
 
 	return loggerSingleton
