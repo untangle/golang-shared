@@ -21,7 +21,7 @@ type Ocname struct {
 
 // Logger struct retains information about the logger related information
 type Logger struct {
-	config           *LoggerConfig
+	Config           *LoggerConfig
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
@@ -84,7 +84,7 @@ func init() {
 // singleton. It populates the loglevelmap.
 // This will always replace the singleton with the configured logger
 func GetLoggerInstancewithConfig(conf *LoggerConfig) *Logger {
-	loggerSingleton.config = conf
+	loggerSingleton.Config = conf
 
 	return loggerSingleton
 }
@@ -97,13 +97,13 @@ func GetLoggerInstance() *Logger {
 
 // NewLoggerwithConfig creates an new instance of the logger struct with default config
 func NewLoggerwithConfig(conf *LoggerConfig) *Logger {
-	return &Logger{config: conf}
+	return &Logger{Config: conf}
 }
 
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	return &Logger{
-		config:           DefaultLoggerConfig(),
+		Config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
@@ -126,16 +126,16 @@ func (logger *Logger) Startup() {
 	logger.launchTime = time.Now()
 
 	// create the map and load the Log configuration
-	data := logger.config.LoadConfigFromFile()
+	data := logger.Config.LoadConfigFromFile()
 	if data != nil {
-		logger.config.LoadConfigFromJSON(data)
+		logger.Config.LoadConfigFromJSON(data)
 	} else {
-		logger.config = DefaultLoggerConfig()
+		logger.Config = DefaultLoggerConfig()
 	}
 
 	// Set system logger to use our logger
-	if logger.config.OutputWriter != nil {
-		log.SetOutput(logger.config.OutputWriter)
+	if logger.Config.OutputWriter != nil {
+		log.SetOutput(logger.Config.OutputWriter)
 	} else {
 		log.SetOutput(DefaultLogWriter("system"))
 	}
@@ -311,7 +311,7 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(functionName) != 0 {
 		logger.logLevelLocker.RLock()
-		level, ok := logger.config.LogLevelMap[functionName]
+		level, ok := logger.Config.LogLevelMap[functionName]
 		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
@@ -320,12 +320,12 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		level, ok := logger.config.LogLevelMap[packageName]
+		level, ok := logger.Config.LogLevelMap[packageName]
 		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
 		} else {
-			if val, ok := logger.config.LogLevelMap["*"]; ok {
+			if val, ok := logger.Config.LogLevelMap["*"]; ok {
 				return int32(val.GetId())
 			}
 		}

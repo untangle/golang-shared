@@ -25,7 +25,7 @@ type TestLogger struct {
 }
 
 func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
-	logger.config.LogLevelMap = map[string]LogLevel{
+	logger.Config.LogLevelMap = map[string]LogLevel{
 		"Emergtest":  {"EMERG", 0},
 		"Alerttest":  {"ALERT", 1},
 		"Crittest":   {"CRIT", 2},
@@ -45,11 +45,11 @@ func (suite *TestLogger) SetupSuite() {
 
 func (suite *TestLogger) TestStartup() {
 	suite.logger.Startup()
-	assert.Equal(suite.T(), nil, suite.logger.config.OutputWriter)
-	suite.logger.config.FileLocation = "LoggerConfig.json"
+	assert.Equal(suite.T(), nil, suite.logger.Config.OutputWriter)
+	suite.logger.Config.FileLocation = "LoggerConfig.json"
 	suite.logger.Startup()
 	var MockWriter bytes.Buffer
-	suite.logger.config.OutputWriter = &MockWriter
+	suite.logger.Config.OutputWriter = &MockWriter
 	suite.logger.Startup()
 }
 
@@ -139,9 +139,9 @@ func (suite *TestLogger) TestDefaultLogWriter() {
 }
 
 func (suite *TestLogger) TestLoadConfigFromFile() {
-	assert.Equal(suite.T(), []uint8([]byte(nil)), suite.logger.config.LoadConfigFromFile())
-	suite.logger.config.FileLocation = "LoggerConfig.json"
-	assert.Equal(suite.T(), 791, len(suite.logger.config.LoadConfigFromFile()))
+	assert.Equal(suite.T(), []uint8([]byte(nil)), suite.logger.Config.LoadConfigFromFile())
+	suite.logger.Config.FileLocation = "LoggerConfig.json"
+	assert.Equal(suite.T(), 791, len(suite.logger.Config.LoadConfigFromFile()))
 }
 
 func (suite *TestLogger) TestLoadConfigFromJSON() {
@@ -163,5 +163,5 @@ func (suite *TestLogger) TestLoadConfigFromJSON() {
 	"kernel": "INFO",
 	"logger": "INFO"`
 	Mockdata := []byte(mockstring)
-	suite.logger.config.LoadConfigFromJSON(Mockdata)
+	suite.logger.Config.LoadConfigFromJSON(Mockdata)
 }
