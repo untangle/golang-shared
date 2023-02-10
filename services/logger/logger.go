@@ -369,7 +369,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	}
 }
 
-// This function uses runtime.Callers to get the call stack to determine the calling function
+// func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function
 // Our public function heirarchy is implemented so the caller is always at the 5th frame
 // Frame 0 = runtime.Callers
 // Frame 1 = findCallingFunction
@@ -377,14 +377,13 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 // Frame 3 = Warn, Info / IsWarnEnabled, IsInfoEnabled (etc...)
 // Frame 4 = the logger struct details
 // Frame 5 = the function that actually called logger.Warn, logger.Info, logger.IsWarnEnabled, logger.IsInfoEnabled, etc...
-
 // Here is an example of what we expect to see in the calling function frame:
 // FILE: /home/username/golang/src/github.com/untangle/packetd/services/dict/dict.go
 // FUNC: github.com/untangle/packetd/services/dict.cleanDictionary
 // LINE: 827
 // We find the last / in caller.Function and use the entire string as the function name (dict.cleanDictionary)
 // We find the dot in the function name and use the left side as the package name (dict)
-func findCallingFunction() (string, int, string, string) {
+func findCallingFunction() (file string, lineNumber int, packageName string, functionName string) {
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single stack frame we need
 	stack := make([]uintptr, 1)
@@ -396,9 +395,6 @@ func findCallingFunction() (string, int, string, string) {
 	// get the frame object for the caller
 	frames := runtime.CallersFrames(stack)
 	caller, _ := frames.Next()
-
-	var functionName string
-	var packageName string
 
 	// Find the index of the last slash to isolate the package.FunctionName
 	end := strings.LastIndex(caller.Function, "/")
