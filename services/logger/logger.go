@@ -22,6 +22,7 @@ type Ocname struct {
 // Logger struct retains information about the logger related information
 type Logger struct {
 	config           *LoggerConfig
+	defaultConfig    *LoggerConfig
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
@@ -93,6 +94,7 @@ func SetLoggerInstance(newSingleton *Logger) {
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	return &Logger{
+		defaultConfig:    DefaultLoggerConfig(),
 		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
@@ -112,7 +114,15 @@ func DefaultLoggerConfig() *LoggerConfig {
 
 //LoadConfig loads the config to the current logger
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
-	logger.config = conf
+	logger.defaultConfig = conf
+	// load from file - if this is missing, then current config is the same as default
+	// Load config from file if it exists
+	err := logger.config.LoadConfigFromFile()
+	if err != nil {
+		logger.Warn("No existing config found - using default as current, err: %s\n", err)
+		logger.config = conf
+		logger.config.SaveConfig()
+	}
 }
 
 // GetConfig returns the logger config
@@ -127,11 +137,6 @@ func (logger *Logger) Startup() {
 	logger.launchTime = time.Now()
 
 	if logger.config != nil {
-		// Load config from file if it exists
-		err := logger.config.LoadConfigFromFile()
-		if err != nil {
-			logger.Err("Error loading config: %s", err)
-		}
 
 		// Set system logger to use our logger
 		if logger.config.OutputWriter != nil {
