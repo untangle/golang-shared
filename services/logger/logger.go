@@ -150,7 +150,7 @@ func (logger *Logger) Shutdown() {
 
 // Emerg is called for log level EMERG messages
 func (logger *Logger) Emerg(format string, args ...interface{}) {
-	logger.logMessage(LogLevelEmerg, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelEmerg, format, Ocname{}, args...)
 }
 
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
@@ -160,7 +160,7 @@ func (logger *Logger) IsEmergEnabled() bool {
 
 // Alert is called for log level ALERT messages
 func (logger *Logger) Alert(format string, args ...interface{}) {
-	logger.logMessage(LogLevelAlert, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelAlert, format, Ocname{}, args...)
 }
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
@@ -170,7 +170,7 @@ func (logger *Logger) IsAlertEnabled() bool {
 
 // Crit is called for log level CRIT messages
 func (logger *Logger) Crit(format string, args ...interface{}) {
-	logger.logMessage(LogLevelCrit, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelCrit, format, Ocname{}, args...)
 }
 
 // IsCritEnabled returns true if CRIT logging is enable for the caller
@@ -180,7 +180,7 @@ func (logger *Logger) IsCritEnabled() bool {
 
 // Err is called for log level ERR messages
 func (logger *Logger) Err(format string, args ...interface{}) {
-	logger.logMessage(LogLevelErr, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelErr, format, Ocname{}, args...)
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
@@ -190,7 +190,7 @@ func (logger *Logger) IsErrEnabled() bool {
 
 // Warn is called for log level WARNING messages
 func (logger *Logger) Warn(format string, args ...interface{}) {
-	logger.logMessage(LogLevelWarn, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelWarn, format, Ocname{}, args...)
 }
 
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
@@ -200,7 +200,7 @@ func (logger *Logger) IsWarnEnabled() bool {
 
 // Notice is called for log level NOTICE messages
 func (logger *Logger) Notice(format string, args ...interface{}) {
-	logger.logMessage(LogLevelNotice, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelNotice, format, Ocname{}, args...)
 }
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
@@ -210,7 +210,7 @@ func (logger *Logger) IsNoticeEnabled() bool {
 
 // Info is called for log level INFO messages
 func (logger *Logger) Info(format string, args ...interface{}) {
-	logger.logMessage(LogLevelInfo, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelInfo, format, Ocname{}, args...)
 }
 
 // IsInfoEnabled returns true if INFO logging is enable for the caller
@@ -220,7 +220,7 @@ func (logger *Logger) IsInfoEnabled() bool {
 
 // Debug is called for log level DEBUG messages
 func (logger *Logger) Debug(format string, args ...interface{}) {
-	logger.logMessage(LogLevelDebug, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelDebug, format, Ocname{}, args...)
 }
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
@@ -230,7 +230,7 @@ func (logger *Logger) IsDebugEnabled() bool {
 
 // Trace is called for log level TRACE messages
 func (logger *Logger) Trace(format string, args ...interface{}) {
-	logger.logMessage(LogLevelTrace, format, Ocname{"", 0}, args...)
+	logger.logMessage(LogLevelTrace, format, Ocname{}, args...)
 }
 
 // OCTrace is called for overseer messages
