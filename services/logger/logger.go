@@ -121,19 +121,15 @@ func (logger *Logger) Startup() {
 	logger.launchTime = time.Now()
 
 	if logger.config != nil {
-		// Load config from file - or save the current config to disk (Should this really happen in startup??)
-		data := logger.config.LoadConfigFromFile()
-		if data != nil {
-			logger.config.LoadConfigFromJSON(data)
-		} else {
-			logger.config.SaveConfig()
+		// Load config from file if it exists
+		err := logger.config.LoadConfigFromFile()
+		if err != nil {
+			logger.Err("Error loading config: %s", err)
 		}
 
 		// Set system logger to use our logger
 		if logger.config.OutputWriter != nil {
 			log.SetOutput(logger.config.OutputWriter)
-		} else {
-			log.SetOutput(DefaultLogWriter("system"))
 		}
 	}
 }

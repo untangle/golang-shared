@@ -15,9 +15,9 @@ type LoggerConfig struct {
 }
 
 // loadLoggerConfig loads the logger configuration file
-func (conf *LoggerConfig) LoadConfigFromFile() []byte {
+func (conf *LoggerConfig) LoadConfigFromFile() error {
 	if conf.FileLocation == "" {
-		return nil
+		return fmt.Errorf("Logger config FileLocation is missing")
 	}
 
 	var err error
@@ -30,7 +30,7 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 
 	// if there was an error - return nil
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// make sure the file gets closed
@@ -39,16 +39,17 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	// get the file status
 	info, err = file.Stat()
 	if err != nil {
-		return nil
+		return err
 	}
 	data := make([]byte, info.Size())
 	len, err := file.Read(data)
 
 	if (err != nil) || (len < 1) {
-		return nil
+		return err
 	}
 
-	return data
+	conf.LoadConfigFromJSON(data)
+	return nil
 }
 
 // split -> Mock Json pass to the function below
@@ -87,4 +88,9 @@ func (conf *LoggerConfig) SaveConfig() {
 		fmt.Printf("Unable to write to file: %s, error: %s", conf.FileLocation, err)
 		return
 	}
+}
+
+// SetLogLevel can set the log level in the log config
+func (conf *LoggerConfig) SetLogLevel(key string, newLevel LogLevel) {
+	conf.LogLevelMap[key] = newLevel
 }

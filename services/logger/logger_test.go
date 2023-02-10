@@ -3,6 +3,7 @@ package logger
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -169,15 +170,23 @@ func (suite *TestLogger) TestDefaultLogWriter() {
 
 func (suite *TestLogger) TestLoadConfigFromFile() {
 	logger := NewLogger()
+
 	//Test load from default file that may or may not exist
-	assert.Equal(suite.T(), []uint8([]byte(nil)), logger.config.LoadConfigFromFile())
+	assert.Error(suite.T(), fmt.Errorf("Logger config FileLocation is missing"), logger.config.LoadConfigFromFile())
+
 	// Test that load config from file works
 	logger.config.FileLocation = "LoggerConfig.json"
-	assert.Equal(suite.T(), 1548, len(logger.config.LoadConfigFromFile()))
+	err := logger.config.LoadConfigFromFile()
+	assert.NoError(suite.T(), err)
 
-	logger.getLogLevel("discovery", "discovery")
 	//Test that the LoggerConfig.json matches some properties
-	assert.Equal(suite.T(), int32(6), logger.getLogLevel("discovery", "discovery"))
+	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("discovery", "discovery"))
+
+	//conntrack is debug
+	assert.Equal(suite.T(), LogLevelTrace, logger.getLogLevel("conntrack", "conntrack"))
+
+	//classify is trace
+	assert.Equal(suite.T(), LogLevelDebug, logger.getLogLevel("classify", "classify"))
 
 }
 
