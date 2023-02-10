@@ -84,6 +84,12 @@ func GetLoggerInstance() *Logger {
 	return loggerSingleton
 }
 
+// SetLoggerInstance will override the singleton instance with a new instance reference
+// This is mostly used for testing concurrency
+func SetLoggerInstance(newSingleton *Logger) {
+	loggerSingleton = newSingleton
+}
+
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	return &Logger{

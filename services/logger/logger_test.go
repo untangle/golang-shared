@@ -2,9 +2,11 @@ package logger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -210,7 +212,7 @@ func (suite *TestLogger) TestLoadConfigFromJSON() {
 }
 
 func (suite *TestLogger) TestDefaultInstance() {
-	logInstance := GetLoggerInstance()
+	logInstance := NewLogger()
 
 	//Verify the pointers match
 	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
@@ -224,6 +226,9 @@ func (suite *TestLogger) TestDefaultInstance() {
 }
 
 func (suite *TestLogger) TestInstanceModifications() {
+
+	SetLoggerInstance(NewLogger())
+
 	logInstance := GetLoggerInstance()
 	testConfig := createTestConfig()
 
@@ -240,8 +245,48 @@ func (suite *TestLogger) TestInstanceModifications() {
 
 }
 
-func (suite *TestLogger) TestInstanceLoadFromDisk() {
+func (suite *TestLogger) TestMultiThreadAccess() {
+	currentCtx := context.Background()
+	SetLoggerInstance(NewLogger())
 	logInstance := GetLoggerInstance()
+	testingOutput := "Testing output for %s\n"
+	expectedConfig := createTestConfig()
+
+	go func(testingOutput string, expectedConfig *LoggerConfig, ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+
+				logInstance := GetLoggerInstance()
+				logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+				logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
+
+				time.Sleep(time.Second * 2)
+
+				// config pointer matches after waiting
+				assert.Equal(suite.T(), expectedConfig, logInstance.config)
+			}
+		}
+	}(testingOutput, &expectedConfig, currentCtx)
+
+	time.Sleep(time.Second * 1)
+	//Change config after routine starts to enable DEBUG
+	expectedConfig.SetLogLevel("runtime", NewLogLevel("DEBUG"))
+	expectedConfig.SetLogLevel("reflect", NewLogLevel("DEBUG"))
+
+	// Load new config to the instance
+	logInstance.LoadConfig(&expectedConfig)
+	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
+
+	time.Sleep(time.Second * 5)
+	currentCtx.Done()
+}
+
+func (suite *TestLogger) TestInstanceLoadFromDisk() {
+	logInstance := NewLogger()
 	testConfig := createTestConfig()
 
 	//overwrite default config
