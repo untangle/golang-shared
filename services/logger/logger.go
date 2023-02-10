@@ -274,20 +274,7 @@ func (logger *Logger) IsTraceEnabled() bool {
 // directly rather than determined from the call stack.
 func LogMessageSource(level int32, source string, format string, args ...interface{}) {
 	logger := GetLoggerInstance()
-
-	if level > logger.getLogLevel(source, "") {
-		return
-	}
-
-	if len(args) == 0 {
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], source, format)
-	} else {
-		buffer := logFormatter(format, Ocname{"", 0}, args...)
-		if len(buffer) == 0 {
-			return
-		}
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], source, buffer)
-	}
+	logger.logMessage(level, format, Ocname{}, args)
 }
 
 // IsLogEnabledSource returns true if logging is enabled at the argumented level for the argumented source
