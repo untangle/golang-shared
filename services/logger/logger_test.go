@@ -66,7 +66,7 @@ func (suite *TestLogger) TestStartup() {
 
 	//Startup on a new logger will use the default config options
 	logger.Startup()
-	assert.Equal(suite.T(), DefaultLogWriter("system"), logger.config.OutputWriter)
+	assert.Equal(suite.T(), nil, logger.config.OutputWriter)
 
 	logger.config.FileLocation = "LoggerConfig.json"
 	logger.Startup()
@@ -250,7 +250,7 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 }
 
 func (suite *TestLogger) TestSaveToDisk() {
-	logInstance := GetLoggerInstance()
+	logInstance := NewLogger()
 
 	//Verify we loaded the default config
 	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
@@ -263,4 +263,38 @@ func (suite *TestLogger) TestSaveToDisk() {
 
 	assert.Equal(suite.T(), &testConfig, logInstance.config)
 
+}
+
+func (suite *TestLogger) TestBasicWriters() {
+	logInstance := NewLogger()
+
+	testingOutput := "Testing output for %s\n"
+
+	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
+
+	//Change log writer to print to a buffer for us to analyze
+	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
+	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
+	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+	logInstance.Notice(testingOutput, logLevelName[LogLevelNotice])
+	logInstance.Warn(testingOutput, logLevelName[LogLevelWarn])
+
+	//Bump reflect config up
+	logInstance.config.SetLogLevel("reflect", NewLogLevel("DEBUG"))
+	//Change log writer to print to a buffer for us to analyze
+	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
+	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
+	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+	logInstance.Notice(testingOutput, logLevelName[LogLevelNotice])
+	logInstance.Warn(testingOutput, logLevelName[LogLevelWarn])
+}
+
+func (suite *TestLogger) TestFindCallingFunction() {
+
+	fileName, lineNumber, packageName, functionName := findCallingFunction()
+
+	assert.Contains(suite.T(), fileName, "suite.go")
+	assert.Greater(suite.T(), lineNumber, 0)
+	assert.Equal(suite.T(), "suite", packageName)
+	assert.Contains(suite.T(), functionName, "suite.Run")
 }
