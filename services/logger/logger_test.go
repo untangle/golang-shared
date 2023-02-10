@@ -263,7 +263,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 				logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 				logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
 
-				time.Sleep(time.Second * 2)
+				time.Sleep(time.Millisecond * 2)
 
 				// config pointer matches after waiting
 				assert.Equal(suite.T(), expectedConfig, logInstance.config)
@@ -271,7 +271,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 		}
 	}(testingOutput, &expectedConfig, currentCtx)
 
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Millisecond * 1)
 	//Change config after routine starts to enable DEBUG
 	expectedConfig.SetLogLevel("runtime", NewLogLevel("DEBUG"))
 	expectedConfig.SetLogLevel("reflect", NewLogLevel("DEBUG"))
@@ -281,7 +281,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
 
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Millisecond * 5)
 	currentCtx.Done()
 }
 
