@@ -354,3 +354,23 @@ func (suite *TestLogger) TestFindCallingFunction() {
 	assert.Equal(suite.T(), "suite", packageName)
 	assert.Contains(suite.T(), functionName, "suite.Run")
 }
+
+func (suite *TestLogger) TestGetInstanceWithConfig() {
+	SetLoggerInstance(NewLogger())
+	logInstance := GetLoggerInstance()
+
+	// Verify default config was loaded
+	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+
+	expectedConfig := createTestConfig()
+	expectedConfig.removeConfigFile()
+
+	newInstance := GetLoggerInstanceWithConfig(&expectedConfig)
+
+	//Verify new instance has proper config
+	assert.Equal(suite.T(), &expectedConfig, newInstance.config)
+
+	// Verify old instance has this config too
+	assert.Equal(suite.T(), &expectedConfig, logInstance.config)
+
+}

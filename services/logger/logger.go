@@ -85,6 +85,13 @@ func GetLoggerInstance() *Logger {
 	return loggerSingleton
 }
 
+// GetLoggerInstanceWithConfig returns a logger object, that's loaded with the config as well
+func GetLoggerInstanceWithConfig(conf *LoggerConfig) *Logger {
+	instance := GetLoggerInstance()
+	instance.LoadConfig(conf)
+	return instance
+}
+
 // SetLoggerInstance will override the singleton instance with a new instance reference
 // This is mostly used for testing concurrency
 func SetLoggerInstance(newSingleton *Logger) {
@@ -367,14 +374,20 @@ func (logger *Logger) isLogEnabled(level int32) bool {
 func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, args ...interface{}) {
 	_, _, packageName, functionName := findCallingFunction()
 
-	if level > logger.getLogLevel(packageName, functionName) {
+	testLevel := logger.getLogLevel(packageName, functionName)
+
+	//fmt.Printf("Log level check pkg: %s func: %s level: %d testlevel: %d configured level: %s message level: %s msg: %s \n", packageName, functionName, level, testLevel, logger.logLevelName[level], logger.logLevelName[testLevel], format)
+
+	if level > testLevel {
 		return
 	}
 
-	// Make sure we have struct variables populated
+	//fmt.Printf("Log level check pkg: %s func: %s level: %s msg: %s \n", packageName, functionName, logger.logLevelName[level], format)
+
+	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
 		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
-	} else { //Handle %OC
+	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
