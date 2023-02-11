@@ -115,19 +115,26 @@ func DefaultLoggerConfig() *LoggerConfig {
 //LoadConfig loads the config to the current logger
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 	logger.defaultConfig = conf
-	// load from file - if this is missing, then current config is the same as default
+	// load from file - if this is missing or errors - then save the new default config to OS
 	// Load config from file if it exists
-	err := logger.config.LoadConfigFromFile()
+	err := conf.LoadConfigFromFile()
 	if err != nil {
 		logger.Warn("No existing config found - using default as current, err: %s\n", err)
-		logger.config = conf
-		logger.config.SaveConfig()
+		conf.SaveConfig()
 	}
+
+	//Set the instance config to this config
+	logger.config = conf
 }
 
 // GetConfig returns the logger config
 func (logger *Logger) GetConfig() LoggerConfig {
 	return *logger.config
+}
+
+// GetConfig returns the logger config
+func (logger *Logger) GetDefaultConfig() LoggerConfig {
+	return *logger.defaultConfig
 }
 
 // Startup starts the logging service

@@ -48,23 +48,24 @@ func (conf *LoggerConfig) LoadConfigFromFile() error {
 		return err
 	}
 
-	conf.LoadConfigFromJSON(data)
-	return nil
+	return conf.LoadConfigFromJSON(data)
 }
 
 // split -> Mock Json pass to the function below
 // read the raw configuration json from the file
-func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
+func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) error {
 	conf.LogLevelMap = make(map[string]LogLevel)
 
 	// unmarshal the configuration into a map
 	err := json.Unmarshal(data, &conf.LogLevelMap)
 	if err != nil {
-		return
+		return err
 	}
+
+	return nil
 }
 
-// writeLoggerConfigToJSON will load the default config
+// SaveConfig will write the current loglevelmap to disk
 func (conf *LoggerConfig) SaveConfig() {
 
 	// convert the config map to a json object
@@ -93,4 +94,9 @@ func (conf *LoggerConfig) SaveConfig() {
 // SetLogLevel can set the log level in the log config
 func (conf *LoggerConfig) SetLogLevel(key string, newLevel LogLevel) {
 	conf.LogLevelMap[key] = newLevel
+}
+
+// removeConfigFile will remove the config file from disk
+func (conf *LoggerConfig) removeConfigFile() {
+	os.Remove(conf.FileLocation)
 }

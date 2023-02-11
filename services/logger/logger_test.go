@@ -231,6 +231,7 @@ func (suite *TestLogger) TestInstanceModifications() {
 
 	logInstance := GetLoggerInstance()
 	testConfig := createTestConfig()
+	testConfig.removeConfigFile()
 
 	//overwrite config
 	logInstance.LoadConfig(&testConfig)
@@ -251,6 +252,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 	logInstance := GetLoggerInstance()
 	testingOutput := "Testing output for %s\n"
 	expectedConfig := createTestConfig()
+	expectedConfig.removeConfigFile()
 
 	go func(testingOutput string, expectedConfig *LoggerConfig, ctx context.Context) {
 		for {
@@ -288,6 +290,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 func (suite *TestLogger) TestInstanceLoadFromDisk() {
 	logInstance := NewLogger()
 	testConfig := createTestConfig()
+	testConfig.removeConfigFile()
 
 	//overwrite default config
 	logInstance.LoadConfig(&testConfig)
@@ -311,8 +314,7 @@ func (suite *TestLogger) TestSaveToDisk() {
 
 	// Create the test config - save it, load it to the new instance and verify it loaded
 	testConfig := createTestConfig()
-	testConfig.SaveConfig()
-
+	testConfig.removeConfigFile()
 	logInstance.LoadConfig(&testConfig)
 
 	assert.Equal(suite.T(), &testConfig, logInstance.config)
