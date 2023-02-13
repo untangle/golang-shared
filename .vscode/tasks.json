@@ -2,9 +2,18 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Compile protocol buffers",
+            "label": "Build with musl",
             "type": "shell",
-            "command": "./build.sh",
+            "command": "./build.sh musl",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },         
+        {
+            "label": "Build with glibc",
+            "type": "shell",
+            "command": "./build.sh glibc",
             "group": {
                 "kind": "build",
                 "isDefault": true
