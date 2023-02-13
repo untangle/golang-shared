@@ -254,7 +254,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 	expectedConfig := createTestConfig()
 	expectedConfig.removeConfigFile()
 
-	go func(testingOutput string, expectedConfig *LoggerConfig, ctx context.Context) {
+	go func(testingOutput string, expectedConfig LoggerConfig, ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
@@ -268,10 +268,10 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 				time.Sleep(time.Millisecond * 2)
 
 				// config pointer matches after waiting
-				assert.Equal(suite.T(), expectedConfig, logInstance.config)
+				assert.Equal(suite.T(), expectedConfig, logInstance.GetConfig())
 			}
 		}
-	}(testingOutput, &expectedConfig, currentCtx)
+	}(testingOutput, expectedConfig, currentCtx)
 
 	time.Sleep(time.Millisecond * 1)
 	//Change config after routine starts to enable DEBUG

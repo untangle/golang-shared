@@ -140,6 +140,8 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 
 // GetConfig returns the logger config
 func (logger *Logger) GetConfig() LoggerConfig {
+	defer logger.configLocker.Unlock()
+	logger.configLocker.Lock()
 	return *logger.config
 }
 
@@ -387,6 +389,8 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	}
 
 	//fmt.Printf("Log level check pkg: %s func: %s level: %s msg: %s \n", packageName, functionName, logger.logLevelName[level], format)
+	defer logger.logLevelLocker.Unlock()
+	logger.logLevelLocker.Lock()
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
