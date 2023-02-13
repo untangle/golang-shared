@@ -120,7 +120,10 @@ func DefaultLoggerConfig() *LoggerConfig {
 	}
 }
 
-//LoadConfig loads the config to the current logger
+// LoadConfig loads the config to the current logger
+// the new config will be set to the defaultConfig
+// if we are able to load the config from file, we will
+// if the file does not exist, we will store the default config in the conf.FileLocation
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 	defer logger.configLocker.Unlock()
 	logger.configLocker.Lock()
