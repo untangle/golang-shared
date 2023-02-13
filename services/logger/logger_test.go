@@ -236,13 +236,16 @@ func (suite *TestLogger) TestInstanceModifications() {
 	//overwrite config
 	logInstance.LoadConfig(&testConfig)
 
-	assert.Equal(suite.T(), &testConfig, logInstance.config)
+	assert.Equal(suite.T(), testConfig, logInstance.GetConfig())
 
 	//new instance - should use singleton
 	logInstance2 := GetLoggerInstance()
 
+	// Assert singletons have the same pointer value
+	assert.Equal(suite.T(), logInstance, logInstance2)
+
 	//config matches
-	assert.Equal(suite.T(), &testConfig, logInstance2.config)
+	assert.Equal(suite.T(), testConfig, logInstance2.GetConfig())
 
 }
 
