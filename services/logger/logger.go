@@ -23,6 +23,7 @@ type Ocname struct {
 type Logger struct {
 	config           *LoggerConfig
 	defaultConfig    *LoggerConfig
+	configLocker     sync.Mutex
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
@@ -121,6 +122,9 @@ func DefaultLoggerConfig() *LoggerConfig {
 
 //LoadConfig loads the config to the current logger
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
+	defer logger.configLocker.Unlock()
+	logger.configLocker.Lock()
+
 	logger.defaultConfig = conf
 	// load from file - if this is missing or errors - then save the new default config to OS
 	// Load config from file if it exists
