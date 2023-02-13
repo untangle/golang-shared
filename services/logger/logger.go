@@ -301,7 +301,7 @@ func (logger *Logger) IsTraceEnabled() bool {
 // directly rather than determined from the call stack.
 func LogMessageSource(level int32, source string, format string, args ...interface{}) {
 	logger := GetLoggerInstance()
-	logger.logMessage(level, format, Ocname{}, args)
+	logger.logMessage(level, format, Ocname{}, args...)
 }
 
 // IsLogEnabledSource returns true if logging is enabled at the argumented level for the argumented source
