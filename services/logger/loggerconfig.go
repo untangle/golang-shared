@@ -28,7 +28,7 @@ func (conf *LoggerConfig) LoadConfigFromFile() error {
 	file, err = os.Open(conf.FileLocation)
 	fmt.Print(err)
 
-	// if there was an error - return nil
+	// return error if one exists
 	if err != nil {
 		return err
 	}
