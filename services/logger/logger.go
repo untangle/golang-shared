@@ -385,15 +385,12 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	testLevel := logger.getLogLevel(packageName, functionName)
 
-	//fmt.Printf("Log level check pkg: %s func: %s level: %d testlevel: %d configured level: %s message level: %s msg: %s \n", packageName, functionName, level, testLevel, logger.logLevelName[level], logger.logLevelName[testLevel], format)
-
 	if level > testLevel {
 		return
 	}
 
-	//fmt.Printf("Log level check pkg: %s func: %s level: %s msg: %s \n", packageName, functionName, logger.logLevelName[level], format)
-	defer logger.logLevelLocker.Unlock()
-	logger.logLevelLocker.Lock()
+	defer logger.logLevelLocker.RUnlock()
+	logger.logLevelLocker.RLock()
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
