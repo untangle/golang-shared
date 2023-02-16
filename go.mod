@@ -9,7 +9,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.8.0
 	github.com/pebbe/zmq4 v1.2.9
 	github.com/r3labs/diff/v2 v2.15.1
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	go.uber.org/dig v1.15.0
 	golang.org/x/net v0.0.0-20220728211354-c7608f3a8462 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
