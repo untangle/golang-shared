@@ -20,7 +20,7 @@ func TestCredntialsManager(t *testing.T) {
 	testNoValuesAfterShutdown(t, m)
 }
 
-// assert that a bad file path prevents startup
+// testBadFileStartup assert that a bad file path prevents startup
 func testBadFileStartup(t *testing.T, m *credentialsManager) {
 	m.fileLocation = "/some/path/that/should/not/exist.json"
 
@@ -28,7 +28,7 @@ func testBadFileStartup(t *testing.T, m *credentialsManager) {
 	assert.NotNil(t, err, "Startup bad file")
 }
 
-// assert that it starts when the file exists and is in the right format
+// testGoodFileStartup assert that it starts when the file exists and is in the right format
 func testGoodFileStartup(t *testing.T, m *credentialsManager) {
 	abs, err := filepath.Abs("./test_files/test_credentials.json")
 	assert.Nil(t, err)
@@ -39,21 +39,25 @@ func testGoodFileStartup(t *testing.T, m *credentialsManager) {
 	assert.Nil(t, err, "Startup good file")
 }
 
+// testAlertsToken assert it returns the alert token
 func testAlertsToken(t *testing.T, m *credentialsManager) {
 	token := m.GetAlertsAuthToken()
 	assert.Equal(t, "a13R-T5A-uTh-T0k-3N", token, "GetAlertsAuthToken")
 }
 
+// testCloudReportToken asert it returns the cloud reporting token
 func testCloudReportToken(t *testing.T, m *credentialsManager) {
 	token := m.GetCloudReportingAuthToken()
 	assert.Equal(t, "CL0UDR-3P0R-T1NG-AUTH-T0K3N", token, "GetAlertsAuthToken")
 }
 
+// testShutdown assert it shuts down properly
 func testShutdown(t *testing.T, m *credentialsManager) {
 	err := m.Shutdown()
 	assert.Nil(t, err, "Shutdown")
 }
 
+// testNoValuesAfterShutdown it should return no values after shutdown
 func testNoValuesAfterShutdown(t *testing.T, m *credentialsManager) {
 	at := m.GetAlertsAuthToken()
 	assert.Equal(t, "", at, "GetAlertsAuthToken after shutdown")
