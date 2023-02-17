@@ -3,6 +3,7 @@ package credentialsmanager
 import (
 	"sync"
 
+	"github.com/untangle/golang-shared/plugins"
 	"github.com/untangle/golang-shared/services/logger"
 )
 
@@ -10,11 +11,9 @@ const fileLocation = "/etc/config/credentials.json"
 
 // interface for the credentials manager service
 type CredentialsManager interface {
-	Startup() error
-	Shutdown() error
+	plugins.Plugin
 	GetAlertsAuthToken() string
 	GetCloudReportingAuthToken() string
-	Name() string
 }
 
 type credentialsManager struct {

@@ -15,11 +15,13 @@ type credentialsFile struct {
 func (cm *credentialsManager) readFile() error {
 	raw, err := ioutil.ReadFile(cm.fileLocation)
 	if err != nil {
+		cm.logger.Err("Error reading file at path %s: %s\n", cm.fileLocation, err)
 		return err
 	}
 
 	var credentials credentialsFile
 	if err := json.Unmarshal(raw, &credentials); err != nil {
+		cm.logger.Err("Error unmarshalling file at path %s: %s", cm.fileLocation, err)
 		return err
 	}
 
