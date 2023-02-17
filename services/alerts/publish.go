@@ -42,7 +42,7 @@ func NewZmqAlertPublisher(logger logger.LoggerLevels) *ZmqAlertPublisher {
 			messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 			zmqPublisherShutdown:    make(chan bool),
 			zmqPublisherStarted:     make(chan bool, 1),
-			socketAddress:           PublisherSocketAddressConnect,
+			socketAddress:           PublisherSocketAddress,
 		}
 	})
 
