@@ -1,35 +1,101 @@
 {
-    "certcache": "INFO",
-    "certfetch": "INFO",
-    "certmanager": "INFO",
-    "certsniff": "INFO",
-    "classify": "INFO",
-    "common": "INFO",
-    "conntrack": "INFO",
-    "device": "INFO",
-    "dict": "INFO",
-    "discovery": "INFO",
-    "dispatch": "INFO",
-    "dns": "INFO",
-    "example": "INFO",
-    "geoip": "INFO",
-    "gin": "INFO",
-    "kernel": "INFO",
-    "logger": "INFO",
-    "netlogger": "INFO",
-    "netspace": "INFO",
-    "nfqueue": "INFO",
-    "overseer": "INFO",
-    "predicttraffic": "INFO",
-    "predicttrafficsvc": "INFO",
-    "reporter": "INFO",
-    "reports": "INFO",
-    "revdns": "INFO",
-    "sni": "INFO",
-    "stats": "INFO",
-    "system": "INFO",
-    "threatprevention": "INFO",
-    "warehouse": "INFO",
-    "webfilter": "INFO",
-    "webroot": "INFO"
+    "certcache": {
+    "logname": "INFO"
+    },
+    "certfetch": {
+    "logname": "INFO"
+    },
+    "certmanager": {
+    "logname": "INFO"
+    },
+    "certsniff": {
+    "logname": "INFO"
+    },
+    "classify": {
+    "logname": "DEBUG"
+    },
+    "common": {
+    "logname": "INFO"
+    },
+    "conntrack": {
+    "logname": "TRACE"
+    },
+    "device": {
+    "logname": "INFO"
+    },
+    "dict": {
+    "logname": "INFO"
+    },
+    "discovery": {
+    "logname": "INFO"
+    },
+    "dispatch": {
+    "logname": "INFO"
+    },
+    "dns": {
+    "logname": "INFO"
+    },
+    "example": {
+    "logname": "INFO"
+    },
+    "geoip": {
+    "logname": "INFO"
+    },
+    "gin": {
+    "logname": "INFO"
+    },
+    "kernel": {
+    "logname": "INFO"
+    },
+    "logger": {
+    "logname": "INFO"
+    },
+    "netlogger": {
+    "logname": "INFO"
+    },
+    "netspace": {
+    "logname": "INFO"
+    },
+    "nfqueue": {
+    "logname": "INFO"
+    },
+    "overseer": {
+    "logname": "INFO"
+    },
+    "predicttraffic": {
+    "logname": "INFO"
+    },
+    "predicttrafficsvc": {
+    "logname": "INFO"
+    },
+    "reporter": {
+    "logname": "INFO"
+    },
+    "reports": {
+    "logname": "INFO"
+    },
+    "revdns": {
+    "logname": "INFO"
+    },
+    "sni": {
+    "logname": "INFO"
+    },
+    "stats": {
+    "logname": "INFO"
+    },
+    "system": {
+    "logname": "INFO"
+    },
+    "threatprevention": {
+    "logname": "INFO"
+    },
+    "warehouse": {
+    "logname": "INFO"
+    },
+    "webfilter": {
+    "logname": "INFO"
+    },
+    "webroot": {
+    "logname": "INFO"
     }
+}

@@ -15,10 +15,9 @@ type LoggerConfig struct {
 }
 
 // loadLoggerConfig loads the logger configuration file
-func (conf *LoggerConfig) LoadConfigFromFile() []byte {
+func (conf *LoggerConfig) LoadConfigFromFile() error {
 	if conf.FileLocation == "" {
-		GetLoggerInstance().Err("FileLocation must be set\n")
-		return nil
+		return fmt.Errorf("Logger config FileLocation is missing")
 	}
 
 	var err error
@@ -29,16 +28,9 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	file, err = os.Open(conf.FileLocation)
 	fmt.Print(err)
 
-	// if there was an error create the default config and try the open again
+	// return error if one exists
 	if err != nil {
-		conf.writeLoggerConfigToJSON()
-		file, err = os.Open(conf.FileLocation)
-
-		// if there is still an error we are out of options
-		if err != nil {
-			GetLoggerInstance().Err("Unable to load Log configuration file: %s\n", conf.FileLocation)
-			return nil
-		}
+		return err
 	}
 
 	// make sure the file gets closed
@@ -47,51 +39,64 @@ func (conf *LoggerConfig) LoadConfigFromFile() []byte {
 	// get the file status
 	info, err = file.Stat()
 	if err != nil {
-		GetLoggerInstance().Err("Unable to query file information\n")
-		return nil
+		return err
 	}
 	data := make([]byte, info.Size())
 	len, err := file.Read(data)
 
 	if (err != nil) || (len < 1) {
-		GetLoggerInstance().Err("Unable to read Log configuration\n")
-		return nil
+		return err
 	}
 
-	return data
+	return conf.LoadConfigFromJSON(data)
 }
 
 // split -> Mock Json pass to the function below
 // read the raw configuration json from the file
-func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) {
+func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) error {
 	conf.LogLevelMap = make(map[string]LogLevel)
 
 	// unmarshal the configuration into a map
 	err := json.Unmarshal(data, &conf.LogLevelMap)
 	if err != nil {
-		GetLoggerInstance().Err("Unable to parse Log configuration\n")
-		return
+		return err
 	}
+
+	return nil
 }
 
-// writeLoggerConfigToJSON will load the default config
-func (conf *LoggerConfig) writeLoggerConfigToJSON() {
-	GetLoggerInstance().Alert("Log configuration not found. Creating default File: %s\n", conf.FileLocation)
+// SaveConfig will write the current loglevelmap to disk
+func (conf *LoggerConfig) SaveConfig() {
 
 	// convert the config map to a json object
 	jstr, err := json.MarshalIndent(conf.LogLevelMap, "", "")
 	if err != nil {
-		GetLoggerInstance().Alert("Log failure creating default configuration: %s\n", err.Error())
+		fmt.Printf("Unable to unmarshal LogLevelMap: %s", err)
 		return
 	}
 
 	// create the logger configuration file
 	file, err := os.Create(conf.FileLocation)
 	if err != nil {
+		fmt.Printf("Unable to save file: %s, error: %s", conf.FileLocation, err)
 		return
 	}
+	defer file.Close()
 
 	// write the default configuration and close the file
-	file.Write(jstr)
-	file.Close()
+	_, err = file.Write(jstr)
+	if err != nil {
+		fmt.Printf("Unable to write to file: %s, error: %s", conf.FileLocation, err)
+		return
+	}
+}
+
+// SetLogLevel can set the log level in the log config
+func (conf *LoggerConfig) SetLogLevel(key string, newLevel LogLevel) {
+	conf.LogLevelMap[key] = newLevel
+}
+
+// removeConfigFile will remove the config file from disk
+func (conf *LoggerConfig) removeConfigFile() {
+	os.Remove(conf.FileLocation)
 }
