@@ -57,6 +57,9 @@ func (m *credentialsManager) Name() string {
 
 // GetToken returns the auth token found in the credentials file under the `key` field
 func (m *credentialsManager) GetToken(key string) string {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	token, ok := m.credentials[key]
 	if !ok {
 		m.logger.Err("Could not get token for key %s\n", key)
