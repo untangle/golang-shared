@@ -8,11 +8,9 @@ func NewMockCredentialsManager() credentialsmanager.CredentialsManager {
 	return &mockCredentialsManager{}
 }
 
-func (m *mockCredentialsManager) Startup() error                     { return nil }
-func (m *mockCredentialsManager) Shutdown() error                    { return nil }
-func (m *mockCredentialsManager) GetAlertsAuthToken() string         { return "" }
-func (m *mockCredentialsManager) GetCloudReportingAuthToken() string { return "" }
-
-func (cm *mockCredentialsManager) Name() string {
+func (m *mockCredentialsManager) Startup() error             { return nil }
+func (m *mockCredentialsManager) Shutdown() error            { return nil }
+func (m *mockCredentialsManager) GetToken(key string) string { return "" }
+func (m *mockCredentialsManager) Name() string {
 	return "Mocked Credentials Manager"
 }

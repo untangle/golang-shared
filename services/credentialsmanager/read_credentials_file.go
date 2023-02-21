@@ -5,12 +5,6 @@ import (
 	"io/ioutil"
 )
 
-// the type of the credential file's content
-type credentialsFile struct {
-	AlertsAuthToken         string `json:"alertsAuthToken"`
-	CloudReportingAuthToken string `json:"cloudReportingAuthToken"`
-}
-
 // readFile reads the credentials file and saves the values
 func (cm *credentialsManager) readFile() error {
 	raw, err := ioutil.ReadFile(cm.fileLocation)
@@ -19,7 +13,7 @@ func (cm *credentialsManager) readFile() error {
 		return err
 	}
 
-	var credentials credentialsFile
+	credentials := map[string]string{}
 	if err := json.Unmarshal(raw, &credentials); err != nil {
 		cm.logger.Err("Error unmarshalling file at path %s: %s", cm.fileLocation, err)
 		return err
@@ -28,7 +22,7 @@ func (cm *credentialsManager) readFile() error {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	cm.credentials = &credentials
+	cm.credentials = credentials
 
 	return nil
 }

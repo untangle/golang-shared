@@ -12,14 +12,13 @@ const fileLocation = "/etc/config/credentials.json"
 // interface for the credentials manager service
 type CredentialsManager interface {
 	plugins.Plugin
-	GetAlertsAuthToken() string
-	GetCloudReportingAuthToken() string
+	GetToken(key string) string
 }
 
 type credentialsManager struct {
 	fileLocation string
 	logger       logger.LoggerLevels
-	credentials  *credentialsFile
+	credentials  map[string]string
 	mutex        sync.Mutex
 }
 
@@ -33,51 +32,34 @@ func NewCredentialsManager(logger logger.LoggerLevels) CredentialsManager {
 }
 
 // Startup starts the credentials manager service by reading the credentials file
-func (cm *credentialsManager) Startup() error {
-	cm.logger.Info("Starting the credentials service\n")
+func (m *credentialsManager) Startup() error {
+	m.logger.Info("Starting the credentials service\n")
 
-	return cm.readFile()
+	return m.readFile()
 }
 
 // Shutdown shuts down the credentials manager service
-func (cm *credentialsManager) Shutdown() error {
-	cm.logger.Info("Shutting down the credentials service\n")
+func (m *credentialsManager) Shutdown() error {
+	m.logger.Info("Shutting down the credentials service\n")
 
-	cm.mutex.Lock()
-	defer cm.mutex.Unlock()
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 
-	cm.credentials = nil
+	m.credentials = nil
 
 	return nil
 }
 
 // Name returns the service name
-func (cm *credentialsManager) Name() string {
+func (m *credentialsManager) Name() string {
 	return "Credentials Manager"
 }
 
-// GetAlertsAuthToken returns the alerts authentication token, if present
-func (cm *credentialsManager) GetAlertsAuthToken() string {
-	cm.mutex.Lock()
-	defer cm.mutex.Unlock()
-
-	if cm.credentials == nil {
-		cm.logger.Err("GetAlertsAuthToken error: Credential configs are missing!\n")
-		return ""
+// GetToken returns the auth token found in the credentials file under the `key` field
+func (m *credentialsManager) GetToken(key string) string {
+	token, ok := m.credentials[key]
+	if !ok {
+		m.logger.Err("Could not get token for key %s\n", key)
 	}
-
-	return cm.credentials.AlertsAuthToken
-}
-
-// GetCloudReportingAuthToken returns the cloud reporting authentication token, if present
-func (cm *credentialsManager) GetCloudReportingAuthToken() string {
-	cm.mutex.Lock()
-	defer cm.mutex.Unlock()
-
-	if cm.credentials == nil {
-		cm.logger.Err("GetCloudReportingAuthToken error: Credential configs are missing!\n")
-		return ""
-	}
-
-	return cm.credentials.CloudReportingAuthToken
+	return token
 }
