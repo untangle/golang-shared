@@ -2,11 +2,13 @@ package alerts
 
 import (
 	"errors"
+	"sync"
+	"time"
+
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"google.golang.org/protobuf/proto"
-	"sync"
 )
 
 var alertPublisherSingleton *ZmqAlertPublisher
@@ -81,6 +83,11 @@ func (publisher *ZmqAlertPublisher) Shutdown() error {
 
 // Send publishes the alert to on the ZMQ publishing socket.
 func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
+	// 2 reasons to set the timestamp here:
+	// - the caller isn't responsible for setting the timestamp so we just need to set it in one place (here)
+	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
+	alert.Timestamp = time.Now().Unix()
+
 	logger.Debug("Publish alert %v\n", alert)
 	alertMessage, err := proto.Marshal(alert)
 	if err != nil {
