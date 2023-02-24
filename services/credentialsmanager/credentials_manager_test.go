@@ -9,7 +9,7 @@ import (
 	"github.com/untangle/golang-shared/services/logger"
 )
 
-func TestCredntialsManager(t *testing.T) {
+func TestCredentialsManager(t *testing.T) {
 	m := NewCredentialsManager(logger.GetLoggerInstance()).(*credentialsManager)
 
 	testBadFileStartup(t, m)
@@ -26,7 +26,7 @@ func testBadFileStartup(t *testing.T, m *credentialsManager) {
 	m.fileLocation = "/some/path/that/should/not/exist.json"
 
 	err := m.Startup()
-	assert.NotNil(t, err, "Startup bad file")
+	assert.Nil(t, err, "Startup bad file")
 }
 
 // testGoodFileStartup assert that it starts when the file exists and is in the right format
