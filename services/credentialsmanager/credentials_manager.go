@@ -35,7 +35,12 @@ func NewCredentialsManager(logger logger.LoggerLevels) CredentialsManager {
 func (m *credentialsManager) Startup() error {
 	m.logger.Info("Starting the credentials service\n")
 
-	return m.readFile()
+	if err := m.readFile(); err != nil {
+		logger.Err("Unable to start credentials service; assuming no credentials - %v\n", err)
+		m.credentials = nil
+	}
+
+	return nil
 }
 
 // Shutdown shuts down the credentials manager service
