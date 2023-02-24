@@ -36,7 +36,7 @@ func (m *credentialsManager) Startup() error {
 	m.logger.Info("Starting the credentials service\n")
 
 	if err := m.readFile(); err != nil {
-		logger.Err("Unable to start credentials service; assuming no credentials - %v\n", err)
+		m.logger.Err("Unable to start credentials service; assuming no credentials - %v\n", err)
 		m.credentials = nil
 	}
 
