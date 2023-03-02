@@ -46,7 +46,6 @@ type Confirmation struct {
 // InvalidItem represents the invalid item from sync-settings with child/parent id,
 // reason, value, and type
 type InvalidItem struct {
-	ChildID  string `json:"childId"`
 	Reason   string `json:"reason"`
 	Type     string `json:"type"`
 	Value    string `json:"value"`
@@ -129,9 +128,9 @@ func buildMessage(jsonSettingsOld map[string]interface{}, jsonSettings map[strin
 	}
 
 	if len(disableChanges) > 0 {
-		disableMessage, deleteMsgErr := determineMessage(settingsError, "disabled", "child", disableChanges, jsonSettingsOld)
-		if deleteMsgErr != nil {
-			return "", deleteMsgErr
+		disableMessage, disableMsgErr := determineMessage(settingsError, "disabled", "child", disableChanges, jsonSettingsOld)
+		if disableMsgErr != nil {
+			return "", disableMsgErr
 		}
 		messages = append(messages, disableMessage)
 	}
@@ -304,56 +303,65 @@ func getAffectedItemID(jsonSettingsOld map[string]interface{}, path []string) (s
 func buildIndividualMessage(id string, invalidReason string, buildFrom string, settingsError *SetSettingsError) ([]AffectedValue, error) {
 	affectedValues := make([]AffectedValue, 0)
 
-	// get the invalid item based on the id from the change
-	invalidItem, found := settingsError.Confirm.InvalidItems[id]
-	if !found {
-		logger.Warn("Could not find changed id: %s\n", id)
-		return affectedValues, errors.New("Could not find changed id")
-	}
-
 	// determine the nextId to use, the child/parent
-	nextID := determineNextID(invalidItem, buildFrom)
+	nextIds := determineNextID(settingsError.Confirm.InvalidItems, id, buildFrom)
 
-	// done
-	if len(nextID) <= 0 {
-		return affectedValues, nil
-	}
+	for _, nextID := range nextIds {
+		if len(nextID) <= 0 {
+			continue
+		}
 
-	// get the child/parent to add next to affectedValues
-	invalidItemToAdd, found := settingsError.Confirm.InvalidItems[nextID]
-	if !found {
-		logger.Warn("Could not find invalid id: %s\n", nextID)
-		return affectedValues, errors.New("Could not find invalid item id")
-	}
+		// get the child/parent to add next to affectedValues
+		invalidItemToAdd, found := settingsError.Confirm.InvalidItems[nextID]
+		if !found {
+			logger.Warn("Could not find invalid id: %s\n", nextID)
+			return affectedValues, errors.New("Could not find invalid item id")
+		}
 
-	affectedValue := AffectedValue{
-		AffectedType:  invalidItemToAdd.Type,
-		AffectedValue: invalidItemToAdd.Value,
-	}
-	affectedValues = append(affectedValues, affectedValue)
+		affectedValue := AffectedValue{
+			AffectedType:  invalidItemToAdd.Type,
+			AffectedValue: invalidItemToAdd.Value,
+		}
+		affectedValues = append(affectedValues, affectedValue)
 
-	// looks for children/parents of the newly added affected value and adds them
-	moreValues, buildErr := buildIndividualMessage(nextID, invalidReason, buildFrom, settingsError)
-	if buildErr != nil {
-		logger.Warn("Failed to create whole individual message: %s\n", buildErr.Error())
-		return affectedValues, buildErr
+		// looks for children/parents of the newly added affected value and adds them
+		moreValues, buildErr := buildIndividualMessage(nextID, invalidReason, buildFrom, settingsError)
+		if buildErr != nil {
+			logger.Warn("Failed to create whole individual message: %s\n", buildErr.Error())
+			return affectedValues, buildErr
+		}
+		affectedValues = append(affectedValues, moreValues...)
 	}
-	affectedValues = append(affectedValues, moreValues...)
 
 	return affectedValues, nil
 }
 
-// determineNextID determines the next id to look at, whether the childId or parentId
-// @param invalidItem InvalidItem - current invalidItem being processed
+// determineNextID determines the next ids to look at, whether the childIds or parentId
+// @param allInvalidItems map[string]InvalidItem - map [invalidItemId] invalidItem - contains all elements affected by the current operation
+// @param currentId string - the ID of the element we are currently processing
 // @param buildFrom string - how to build the message. Build based on parents of items (for enabled changes) or child (for deleted/disabled)
-// @return string - next id of invalidItems to be processed
-func determineNextID(invalidItem InvalidItem, buildFrom string) string {
-	if buildFrom == "child" { //disable/delete
-		return invalidItem.ChildID
-	} else if buildFrom == "parent" { // enable
-		return invalidItem.ParentID
+// @return []string - next ids of invalidItems to be processed
+func determineNextID(allInvalidItems map[string]InvalidItem, currentId string, buildFrom string) []string {
+	invalidItem, ok := allInvalidItems[currentId]
+	if !ok {
+		return make([]string, 0, 0)
 	}
-	return ""
+
+	if buildFrom == "child" { //disable/delete
+		// return []string{invalidItem.ChildID}
+		childIds := []string{}
+		for key, val := range allInvalidItems {
+			if val.ParentID == currentId {
+				childIds = append(childIds, key)
+			}
+		}
+		return childIds
+	}
+	if buildFrom == "parent" { // enable
+		return []string{invalidItem.ParentID}
+	}
+
+	return make([]string, 0, 0)
 }
 
 // determineID determines the id of a given affectedItem
