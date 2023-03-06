@@ -304,17 +304,17 @@ func buildIndividualMessage(id string, invalidReason string, buildFrom string, s
 	affectedValues := make([]AffectedValue, 0)
 
 	// determine the nextId to use, the child/parent
-	nextIds := determineNextID(settingsError.Confirm.InvalidItems, id, buildFrom)
+	nextIds := determineNextIds(settingsError.Confirm.InvalidItems, id, buildFrom)
 
-	for _, nextID := range nextIds {
-		if len(nextID) <= 0 {
+	for _, nextId := range nextIds {
+		if len(nextId) <= 0 {
 			continue
 		}
 
 		// get the child/parent to add next to affectedValues
-		invalidItemToAdd, found := settingsError.Confirm.InvalidItems[nextID]
+		invalidItemToAdd, found := settingsError.Confirm.InvalidItems[nextId]
 		if !found {
-			logger.Warn("Could not find invalid id: %s\n", nextID)
+			logger.Warn("Could not find invalid id: %s\n", nextId)
 			return affectedValues, errors.New("Could not find invalid item id")
 		}
 
@@ -325,7 +325,7 @@ func buildIndividualMessage(id string, invalidReason string, buildFrom string, s
 		affectedValues = append(affectedValues, affectedValue)
 
 		// looks for children/parents of the newly added affected value and adds them
-		moreValues, buildErr := buildIndividualMessage(nextID, invalidReason, buildFrom, settingsError)
+		moreValues, buildErr := buildIndividualMessage(nextId, invalidReason, buildFrom, settingsError)
 		if buildErr != nil {
 			logger.Warn("Failed to create whole individual message: %s\n", buildErr.Error())
 			return affectedValues, buildErr
@@ -336,12 +336,12 @@ func buildIndividualMessage(id string, invalidReason string, buildFrom string, s
 	return affectedValues, nil
 }
 
-// determineNextID determines the next ids to look at, whether the childIds or parentId
+// determineNextIds determines the next ids to look at, whether the childIds or parentId
 // @param allInvalidItems map[string]InvalidItem - map [invalidItemId] invalidItem - contains all elements affected by the current operation
 // @param currentId string - the ID of the element we are currently processing
 // @param buildFrom string - how to build the message. Build based on parents of items (for enabled changes) or child (for deleted/disabled)
 // @return []string - next ids of invalidItems to be processed
-func determineNextID(allInvalidItems map[string]InvalidItem, currentId string, buildFrom string) []string {
+func determineNextIds(allInvalidItems map[string]InvalidItem, currentId string, buildFrom string) []string {
 	invalidItem, ok := allInvalidItems[currentId]
 	if !ok {
 		return make([]string, 0, 0)
@@ -357,10 +357,15 @@ func determineNextID(allInvalidItems map[string]InvalidItem, currentId string, b
 		}
 		return childIds
 	}
+
 	if buildFrom == "parent" { // enable
-		return []string{invalidItem.ParentID}
+		if invalidItem.ParentID != "" {
+			return []string{invalidItem.ParentID}
+		}
+		return make([]string, 0, 0)
 	}
 
+	logger.Warn("determineNextIds called with unknown buildFrom: %s\n", buildFrom)
 	return make([]string, 0, 0)
 }
 

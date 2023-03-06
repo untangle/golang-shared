@@ -1,0 +1,60 @@
+{
+    "id": "19f663b1-bf73-4d8e-9728-9035d1130841",
+    "invalidReason": "deleted",
+    "buildFrom": "child",
+    "settingsError": {
+        "CONFIRM": {
+            "invalidItems": {
+                "19f663b1-bf73-4d8e-9728-9035d1130841": {
+                    "reason": "deleted",
+                    "type": "policy",
+                    "value": "19f663b1-bf73-4d8e-9728-9035d1130841",
+                    "parentId": ""
+                },
+                "449ec4ee-96c8-4a63-924f-2e7884a23682": {
+                    "reason": "disabled",
+                    "type": "rule",
+                    "value": "Send 192.168.4.0/24 via qewqewqew",
+                    "parentId": "19f663b1-bf73-4d8e-9728-9035d1130841"
+                },
+                "c36ac6b0-bbf3-4419-a0b9-79bba1fd4dd4": {
+                    "reason": "disabled",
+                    "type": "rule",
+                    "value": "Send 192.168.3.0/24 via qewqewqew",
+                    "parentId": "19f663b1-bf73-4d8e-9728-9035d1130841"
+                },
+                "e71cb0b9-55d6-48b8-ab70-07df86f1a617": {
+                    "reason": "disabled",
+                    "type": "rule",
+                    "value": "Send 192.168.4.0/24 via qewqewqew",
+                    "parentId": "19f663b1-bf73-4d8e-9728-9035d1130841"
+                },
+                "ed3d6727-4e65-443d-a950-c0921a378ab3": {
+                    "reason": "disabled",
+                    "type": "rule",
+                    "value": "Send 192.168.3.0/24 via qewqewqew",
+                    "parentId": "19f663b1-bf73-4d8e-9728-9035d1130841"
+                }
+            }
+        }
+    },
+    "expectError": false,
+    "expectedResult": [
+        {
+            "affectedType": "rule",
+            "affectedValue": "Send 192.168.3.0/24 via qewqewqew"
+        },
+        {
+            "affectedType": "rule",
+            "affectedValue": "Send 192.168.4.0/24 via qewqewqew"
+        },
+        {
+            "affectedType": "rule",
+            "affectedValue": "Send 192.168.3.0/24 via qewqewqew"
+        },
+        {
+            "affectedType": "rule",
+            "affectedValue": "Send 192.168.4.0/24 via qewqewqew"
+        }
+    ]
+}
