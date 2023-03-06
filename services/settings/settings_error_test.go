@@ -111,8 +111,8 @@ func TestDetermineSettingsError(t *testing.T) {
 		InvalidReason  string            `json:"invalidReason"`
 		BuildFrom      string            `json:"buildFrom"`
 		SettingsError  *SetSettingsError `json:"settingsError"`
-		ExpectError    bool              `json:"expectError"`
-		ExpectedResult []AffectedValue   `json:"expectedResult"`
+		ExpectError    bool              `json:"expectError,omitempty"`
+		ExpectedResult []AffectedValue   `json:"expectedResult,omitempty"`
 	}
 
 	testFiles := []string{

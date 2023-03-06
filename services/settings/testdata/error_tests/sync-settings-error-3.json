@@ -38,6 +38,5 @@
             }
         }
     },
-    "expectError": true,
-    "expectedResult": []
+    "expectError": true
 }
