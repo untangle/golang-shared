@@ -344,7 +344,7 @@ func buildIndividualMessage(id string, invalidReason string, buildFrom string, s
 func determineNextIds(allInvalidItems map[string]InvalidItem, currentId string, buildFrom string) []string {
 	invalidItem, ok := allInvalidItems[currentId]
 	if !ok {
-		return make([]string, 0, 0)
+		return []string{}
 	}
 
 	if buildFrom == "child" { //disable/delete
@@ -362,11 +362,11 @@ func determineNextIds(allInvalidItems map[string]InvalidItem, currentId string, 
 		if invalidItem.ParentID != "" {
 			return []string{invalidItem.ParentID}
 		}
-		return make([]string, 0, 0)
+		return []string{}
 	}
 
 	logger.Warn("determineNextIds called with unknown buildFrom: %s\n", buildFrom)
-	return make([]string, 0, 0)
+	return []string{}
 }
 
 // determineID determines the id of a given affectedItem
