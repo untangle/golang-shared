@@ -1,0 +1,43 @@
+{
+    "id": "1",
+    "invalidReason": "enable",
+    "buildFrom": "parent",
+    "settingsError": {
+        "CONFIRM": {
+            "invalidItems": {
+                "1": {
+                    "reason": "enable",
+                    "type": "policy",
+                    "value": "",
+                    "parentId": "OH_NO_THIS_ID_DOES_NOT_EXIST_HOPE_WE_GET_AN_ERROR"
+                },
+                "2": {
+                    "reason": "enable",
+                    "type": "rule",
+                    "value": "Send 192.168.4.0/24 via qewqewqew",
+                    "parentId": "1"
+                },
+                "3": {
+                    "reason": "enable",
+                    "type": "rule",
+                    "value": "Send 192.168.3.0/24 via qewqewqew",
+                    "parentId": "2"
+                },
+                "4": {
+                    "reason": "enable",
+                    "type": "rule",
+                    "value": "Send 192.168.4.0/24 via qewqewqew",
+                    "parentId": "3"
+                },
+                "5": {
+                    "reason": "enable",
+                    "type": "rule",
+                    "value": "Send 192.168.3.0/24 via qewqewqew",
+                    "parentId": "4"
+                }
+            }
+        }
+    },
+    "expectError": true,
+    "expectedResult": []
+}

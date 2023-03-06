@@ -118,6 +118,7 @@ func TestDetermineSettingsError(t *testing.T) {
 	testFiles := []string{
 		"./testdata/error_tests/sync-settings-error-1.json",
 		"./testdata/error_tests/sync-settings-error-2.json",
+		"./testdata/error_tests/sync-settings-error-3.json",
 	}
 
 	for _, testFile := range testFiles {
@@ -130,11 +131,13 @@ func TestDetermineSettingsError(t *testing.T) {
 		assert.Nil(t, err, fmt.Sprintf("Cannot unmarshal testFile %s", testFile))
 
 		result, err := buildIndividualMessage(test.Id, test.InvalidReason, test.BuildFrom, test.SettingsError)
+
 		if test.ExpectError {
 			assert.NotNil(t, err, testFile)
 			continue
 		}
 
+		assert.Nil(t, err, testFile)
 		assert.Equal(t, len(test.ExpectedResult), len(result), testFile)
 
 		getLessFunc := func(arr []AffectedValue) func(i, j int) bool {
