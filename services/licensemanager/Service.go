@@ -13,8 +13,9 @@ type Service struct {
 
 // setServiceState sets the desired state of an service
 // @param State newAllowedState - new allowed state
+// @param string executable - executable to use when enabling/disabling the service
 // @return error - associated errors
-func (s *Service) setServiceState(newAllowedState State) error {
+func (s *Service) setServiceState(newAllowedState State, executable string) error {
 	var err error
 
 	runInterrupt := false
@@ -35,7 +36,7 @@ func (s *Service) setServiceState(newAllowedState State) error {
 
 	// api called the sighup, so enable/disable service
 	if runInterrupt {
-		err := util.RunSighup(config.Executable)
+		err := util.RunSighup(executable)
 		if err != nil {
 			return err
 		}
