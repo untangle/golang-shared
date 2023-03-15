@@ -11,15 +11,16 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/plugins/util"
+	"github.com/untangle/golang-shared/services/logger"
 	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-var logger = logService.GetLoggerInstance()
-
 const (
 	// LicenseFileDoesNotExistStr is the string to check if licenses should be reloaded when status is returned
 	LicenseFileDoesNotExistStr string = "RELOAD_LICENSES"
+
+	pluginName string = "licensemanager"
 )
 
 var (
@@ -53,6 +54,11 @@ func NewLicenseManager(config *Config, logger logService.LoggerLevels) *LicenseM
 		cancelCtx: cancelCtx,
 	}
 
+}
+
+// Returns name of the service
+func (lm *LicenseManager) Name() string {
+	return pluginName
 }
 
 // Startup the license manager service.
@@ -128,13 +134,14 @@ func (lm *LicenseManager) clsWatchdog() {
 }
 
 // Shutdown is called when the service stops
-func (lm *LicenseManager) Shutdown() {
+func (lm *LicenseManager) Shutdown() error {
 	logger.Info("Shutting down the license service\n")
 	lm.cancelCtx()
 
 	lm.wg.Wait()
 
 	lm.shutdownServices(lm.config.LicenseLocation, lm.services)
+	return nil
 }
 
 // GetLicenseDefaults gets the default validServiceStates
