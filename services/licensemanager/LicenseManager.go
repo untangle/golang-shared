@@ -12,7 +12,6 @@ import (
 
 	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/logger"
-	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
 
@@ -35,13 +34,13 @@ type LicenseManager struct {
 	wg       *sync.WaitGroup
 	watchDog *time.Timer
 	services map[string]*Service
-	logger   logService.LoggerLevels
+	logger   logger.LoggerLevels
 
 	ctx       context.Context
 	cancelCtx context.CancelFunc
 }
 
-func NewLicenseManager(config *Config, logger logService.LoggerLevels) *LicenseManager {
+func NewLicenseManager(config *Config, logger logger.LoggerLevels) *LicenseManager {
 	ctx, cancelCtx := context.WithCancel(context.Background())
 
 	return &LicenseManager{
