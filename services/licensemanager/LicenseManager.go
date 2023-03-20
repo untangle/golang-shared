@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/untangle/golang-shared/plugins/util"
@@ -20,39 +19,50 @@ const (
 	LicenseFileDoesNotExistStr string = "RELOAD_LICENSES"
 
 	pluginName string = "licensemanager"
+
+	clientLicenseService string = "bin/client-license-service"
 )
 
 var (
-	// var for monkey patching in unit tests
-	clientLicenseService string = "bin/client-license-service"
-
 	errServiceNotFound error = errors.New("service_not_found")
 )
 
 type LicenseManager struct {
 	config   *Config
-	wg       *sync.WaitGroup
 	watchDog *time.Timer
 	services map[string]*Service
 	logger   logger.LoggerLevels
 
 	ctx       context.Context
 	cancelCtx context.CancelFunc
+
+	// Function to use when refreshing the CLI
+	// Can be swapped out for unit testing
+	RefreshLicenses func() error
 }
 
+// Returns a new LicenseManager instance pointer. If the provided config
+// is not valid, the function will return nil. Can't return an error since
+// this is being used by the GlobalPluginManager
 func NewLicenseManager(config *Config, logger logger.LoggerLevels) *LicenseManager {
+	if config == nil {
+		logger.Err("Invalid config used when creating the License Manager")
+		return nil
+	}
+
 	ctx, cancelCtx := context.WithCancel(context.Background())
 
 	return &LicenseManager{
 		config:   config,
-		wg:       &sync.WaitGroup{},
+		watchDog: time.NewTimer(config.WatchDogInterval),
 		services: make(map[string]*Service),
 		logger:   logger,
 
 		ctx:       ctx,
 		cancelCtx: cancelCtx,
-	}
 
+		RefreshLicenses: RefreshLicenses,
+	}
 }
 
 // Returns name of the service
@@ -101,15 +111,12 @@ func (lm *LicenseManager) Startup() error {
 		logger.Warn("Not able to restart CLS: %v\n", err)
 	}
 
-	lm.wg.Add(1)
 	go lm.clsWatchdog()
 	return nil
 }
 
 // Watchdog checking if CLS is alive
 func (lm *LicenseManager) clsWatchdog() {
-	defer lm.wg.Done()
-	lm.watchDog = time.NewTimer(lm.config.WatchDogInterval)
 	defer lm.watchDog.Stop()
 	for {
 		select {
@@ -123,7 +130,7 @@ func (lm *LicenseManager) clsWatchdog() {
 			refreshErr := lm.RefreshLicenses()
 			if refreshErr != nil {
 				logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
-				lm.shutdownServices(lm.config.LicenseLocation, lm.services)
+				lm.shutdownServices()
 			} else {
 				logger.Info("Restarted CLS from watchdog\n")
 			}
@@ -137,9 +144,7 @@ func (lm *LicenseManager) Shutdown() error {
 	logger.Info("Shutting down the license service\n")
 	lm.cancelCtx()
 
-	lm.wg.Wait()
-
-	lm.shutdownServices(lm.config.LicenseLocation, lm.services)
+	lm.shutdownServices()
 	return nil
 }
 
@@ -169,7 +174,7 @@ func (lm *LicenseManager) GetServices() map[string]*Service {
 }
 
 // RefreshLicenses restart the client licence service
-func (lm *LicenseManager) RefreshLicenses() error {
+func RefreshLicenses() error {
 	err := util.RunSigusr1(clientLicenseService)
 	return err
 }
@@ -313,19 +318,17 @@ func licenseFileExists(filename string) bool {
 }
 
 // shutdownServices iterates servicesToShutdown and calls the shutdown hook on them, and also removes the license file
-// @param licenseFile string - the license file location
-// @param servicesToShutdown map[string]Service - the services we want to shutdown
-func (lm *LicenseManager) shutdownServices(licenseFile string, servicesToShutdown map[string]*Service) {
-	err := os.Remove(licenseFile)
+func (lm *LicenseManager) shutdownServices() {
+	err := os.Remove(lm.config.LicenseLocation)
 	if err != nil {
 		logger.Err("Could not remove the license file when shutting down services: %v", err)
 	}
 
-	err = ioutil.WriteFile(licenseFile, []byte("{\"list\": []}"), 0444)
+	err = ioutil.WriteFile(lm.config.LicenseLocation, []byte("{\"list\": []}"), 0444)
 	if err != nil {
 		logger.Warn("Failure to write non-license file: %v\n", err)
 	}
-	for _, service := range servicesToShutdown {
+	for _, service := range lm.services {
 		service.setServiceState(StateDisable, lm.config.Executable)
 	}
 }

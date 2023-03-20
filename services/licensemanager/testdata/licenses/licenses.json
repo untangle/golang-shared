@@ -1,0 +1,91 @@
+{
+    "javaClass": "java.util.LinkedList",
+    "restricted": false,
+    "userMessages": [],
+    "list": [
+        {
+            "UID": "4a0c40f8-9d92-4172-a986-fe28d70c731d",
+            "type": "Subscription",
+            "end": 1758783600,
+            "start": 1663743600,
+            "seats": 1000000,
+            "displayName": "Throughput",
+            "key": "d42af10ae97694e4dc6a9725908a9297",
+            "keyVersion": 3,
+            "name": "untangle-node-throughput",
+            "javaClass": "com.untangle.uvm.node.License"
+        },
+        {
+            "UID": "4a0c40f8-9d92-4172-a986-fe28d70c731d",
+            "type": "Subscription",
+            "end": 1758783600,
+            "start": 1663743600,
+            "seats": 1000000,
+            "displayName": "Threat Prevention",
+            "key": "c81561333eb579accd31704cf73a4b40",
+            "keyVersion": 3,
+            "name": "untangle-node-threat-prevention",
+            "javaClass": "com.untangle.uvm.node.License"
+        },
+        {
+            "UID": "4a0c40f8-9d92-4172-a986-fe28d70c731d",
+            "type": "Subscription",
+            "end": 1758783600,
+            "start": 1663743600,
+            "seats": 1000000,
+            "displayName": "Web Filter",
+            "key": "ab12a0d5c541de2eeac6db3d7e3920dd",
+            "keyVersion": 3,
+            "name": "untangle-node-sitefilter",
+            "javaClass": "com.untangle.uvm.node.License"
+        },
+        {
+            "UID": "4a0c40f8-9d92-4172-a986-fe28d70c731d",
+            "type": "Subscription",
+            "end": 1758783600,
+            "start": 1663743600,
+            "seats": 1000000,
+            "displayName": "GeoIP Fencing",
+            "key": "16152114ef66d6de74ca20ecddfe14dc",
+            "keyVersion": 3,
+            "name": "untangle-node-geoip",
+            "javaClass": "com.untangle.uvm.node.License"
+        },
+        {
+            "UID": "4a0c40f8-9d92-4172-a986-fe28d70c731d",
+            "type": "Subscription",
+            "end": 1758783600,
+            "start": 1663743600,
+            "seats": 1000000,
+            "displayName": "Application Control",
+            "key": "ccba3673e5e0c28b0c8909caafc1f6a0",
+            "keyVersion": 3,
+            "name": "untangle-node-classd",
+            "javaClass": "com.untangle.uvm.node.License"
+        },
+        {
+            "UID": "4a0c40f8-9d92-4172-a986-fe28d70c731d",
+            "type": "Subscription",
+            "end": 1758783600,
+            "start": 1663743600,
+            "seats": 1000000,
+            "displayName": "Database Services",
+            "key": "0c2d8d05cb005427d25e47c0ce73c498",
+            "keyVersion": 3,
+            "name": "untangle-node-dboffload",
+            "javaClass": "com.untangle.uvm.node.License"
+        },
+        {
+            "UID": "4a0c40f8-9d92-4172-a986-fe28d70c731d",
+            "type": "Subscription",
+            "end": 1758783600,
+            "start": 1663743600,
+            "seats": 1000000,
+            "displayName": "Device Discovery",
+            "key": "7e2064f449f90b1496ce7f231ef38acc",
+            "keyVersion": 3,
+            "name": "untangle-node-discovery",
+            "javaClass": "com.untangle.uvm.node.License"
+        }
+    ]
+}
