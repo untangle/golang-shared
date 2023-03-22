@@ -3,12 +3,13 @@ package licensemanager
 import (
 	"encoding/json"
 	"io/ioutil"
+
+	"github.com/untangle/golang-shared/services/logger"
 )
 
-const (
-	// ServicesAllowedStatesLocation is the location where we put where services are enabled/disabled
-	ServicesAllowedStatesLocation = "/etc/config/"
-)
+// ServicesAllowedStatesLocation is the location where we put where services are enabled/disabled
+// Keep it as a var to be used for monkey patching in unit tests
+var ServicesAllowedStatesLocation = "/etc/config"
 
 // ServiceState is used for setting the service state
 type ServiceState struct {

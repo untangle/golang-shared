@@ -1,44 +1,80 @@
 package licensemanager
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/untangle/golang-shared/plugins/util"
-	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
-
-var logger = logService.GetLoggerInstance()
 
 const (
 	// LicenseFileDoesNotExistStr is the string to check if licenses should be reloaded when status is returned
 	LicenseFileDoesNotExistStr string = "RELOAD_LICENSES"
+
+	pluginName string = "licensemanager"
+
+	clientLicenseService string = "bin/client-license-service"
 )
 
-var config Config
-var services map[string]*Service
+var (
+	errServiceNotFound error = errors.New("service_not_found")
+)
 
-var errServiceNotFound error = errors.New("service_not_found")
-var shutdownChannelLicense chan bool
-var wg sync.WaitGroup
-var watchDog *time.Timer
+type LicenseManager struct {
+	config   *Config
+	watchDog *time.Timer
+	services map[string]*Service
+	logger   logger.LoggerLevels
+
+	ctx       context.Context
+	cancelCtx context.CancelFunc
+
+	// Function to use when refreshing the CLI
+	// Can be swapped out for unit testing
+	RefreshLicenses func() error
+}
+
+// Returns a new LicenseManager instance pointer. If the provided config
+// is not valid, the function will return nil. Can't return an error since
+// this is being used by the GlobalPluginManager
+func NewLicenseManager(config *Config, logger logger.LoggerLevels) *LicenseManager {
+	if config == nil {
+		logger.Err("Invalid config used when creating the License Manager")
+		return nil
+	}
+
+	ctx, cancelCtx := context.WithCancel(context.Background())
+
+	return &LicenseManager{
+		config:   config,
+		watchDog: time.NewTimer(config.WatchDogInterval),
+		services: make(map[string]*Service),
+		logger:   logger,
+
+		ctx:       ctx,
+		cancelCtx: cancelCtx,
+
+		RefreshLicenses: RefreshLicenses,
+	}
+}
+
+// Returns name of the service
+func (lm *LicenseManager) Name() string {
+	return pluginName
+}
 
 // Startup the license manager service.
-// @param configOptions LicenseManagerConfig - a license manager config object used for configuring the service
-func Startup(configOptions Config) {
-	shutdownChannelLicense = make(chan bool)
-	services = make(map[string]*Service)
-
-	config = configOptions
-
+func (lm *LicenseManager) Startup() error {
 	logger.Info("Starting the license service\n")
 
-	serviceStates, err := loadServiceStates(config.ServiceStateLocation)
+	serviceStates, err := loadServiceStates(lm.config.ServiceStateLocation)
 	if err != nil {
 		logger.Warn("Unable to retrieve previous service state. %v\n", err)
 	}
@@ -46,20 +82,19 @@ func Startup(configOptions Config) {
 	if serviceStates == nil {
 		// Gen a new state file with services set to StateDisable
 		blankServiceStates := make([]ServiceState, 0)
-		for name := range config.ValidServiceHooks {
+		for name := range lm.config.ValidServiceHooks {
 			newServiceState := ServiceState{Name: name, AllowedState: StateDisable}
 			blankServiceStates = append(blankServiceStates, newServiceState)
 		}
-		err = saveServiceStates(config.ServiceStateLocation, blankServiceStates)
+		err = saveServiceStates(lm.config.ServiceStateLocation, blankServiceStates)
 		if err != nil {
-			logger.Warn("Unable to initialize service states file. %v\n", err)
-			return
+			return fmt.Errorf("unable to initialize service states file. %w", err)
 		}
 	}
 
 	// Create each service
 	logger.Debug("States %+v\n", serviceStates)
-	for name, o := range config.ValidServiceHooks {
+	for name, o := range lm.config.ValidServiceHooks {
 		var serviceState ServiceState
 		var found bool
 		serviceState, found = findServiceState(name, serviceStates)
@@ -67,90 +102,89 @@ func Startup(configOptions Config) {
 			serviceState = ServiceState{Name: name, AllowedState: StateDisable}
 		}
 		service := Service{Name: name, Hook: o, State: serviceState}
-		services[name] = &service
+		lm.services[name] = &service
 	}
 
 	// restart licenses
-	err = RefreshLicenses()
+	err = lm.RefreshLicenses()
 	if err != nil {
 		logger.Warn("Not able to restart CLS: %v\n", err)
 	}
 
-	// watchdog for if CLS is alive
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		watchDog = time.NewTimer(config.WatchDogInterval)
-		defer watchDog.Stop()
-		for {
-			select {
-			case <-shutdownChannelLicense:
-				logger.Info("Shutdown CLS watchdog\n")
-				return
-			case <-watchDog.C:
-				// on watch dog seen, restart license server
-				// shutdown license items if restart did not work
-				logger.Warn("Watch seen\n")
-				refreshErr := RefreshLicenses()
-				if refreshErr != nil {
-					logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
-					shutdownServices(config.LicenseLocation, services)
-				} else {
-					logger.Info("Restarted CLS from watchdog\n")
-				}
-				watchDog.Reset(config.WatchDogInterval)
+	go lm.clsWatchdog()
+	return nil
+}
+
+// Watchdog checking if CLS is alive
+func (lm *LicenseManager) clsWatchdog() {
+	defer lm.watchDog.Stop()
+	for {
+		select {
+		case <-lm.ctx.Done():
+			logger.Info("Shutdown CLS watchdog\n")
+			return
+		case <-lm.watchDog.C:
+			// on watch dog seen, restart license server
+			// shutdown license items if restart did not work
+			logger.Warn("Watch seen\n")
+			refreshErr := lm.RefreshLicenses()
+			if refreshErr != nil {
+				logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
+				lm.shutdownServices()
+			} else {
+				logger.Info("Restarted CLS from watchdog\n")
 			}
+			lm.watchDog.Reset(lm.config.WatchDogInterval)
 		}
-	}()
+	}
 }
 
 // Shutdown is called when the service stops
-func Shutdown() {
+func (lm *LicenseManager) Shutdown() error {
 	logger.Info("Shutting down the license service\n")
-	if shutdownChannelLicense != nil {
-		close(shutdownChannelLicense)
-		wg.Wait()
-	}
-	shutdownServices(config.LicenseLocation, services)
+	lm.cancelCtx()
+
+	lm.shutdownServices()
+	return nil
 }
 
 // GetLicenseDefaults gets the default validServiceStates
 // @return []string - string array of service keys for CLS to use
-func GetLicenseDefaults() []string {
+func (lm *LicenseManager) GetLicenseDefaults() []string {
 	logger.Debug("GetLicenseDefaults()\n")
-	keys := make([]string, len(config.ValidServiceHooks))
+	keys := make([]string, len(lm.config.ValidServiceHooks))
 	i := 0
-	for k := range config.ValidServiceHooks {
+	for k := range lm.config.ValidServiceHooks {
 		keys[i] = k
 		i++
 	}
-	watchDog.Reset(config.WatchDogInterval)
+	lm.watchDog.Reset(lm.config.WatchDogInterval)
 	return keys
 }
 
 // ClsIsAlive resets the watchdog interval for license <> service synchronization
-func ClsIsAlive() {
-	watchDog.Reset(config.WatchDogInterval)
+func (lm *LicenseManager) ClsIsAlive() {
+	lm.watchDog.Reset(lm.config.WatchDogInterval)
 }
 
 // GetServices gets the current Service
 // @return []Service - array of current services
-func GetServices() map[string]*Service {
-	return services
+func (lm *LicenseManager) GetServices() map[string]*Service {
+	return lm.services
 }
 
 // RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
-	err := util.RunSigusr1("bin/client-license-service")
+	err := util.RunSigusr1(clientLicenseService)
 	return err
 }
 
 // IsLicenseEnabled is called from API to see if service is currently enabled.
 // @param serviceName string - the name of the service to check Enabled status of
-func IsLicenseEnabled(serviceName string) (bool, error) {
+func (lm *LicenseManager) IsLicenseEnabled(serviceName string) (bool, error) {
 	var serv *Service
 	var err error
-	if serv, err = findService(serviceName); err != nil {
+	if serv, err = lm.findService(serviceName); err != nil {
 		return false, errServiceNotFound
 	}
 	return serv.State.getAllowedState() == StateEnable, nil
@@ -159,18 +193,18 @@ func IsLicenseEnabled(serviceName string) (bool, error) {
 // GetLicenseDetails will use the current license location to load and return the license file
 // @return LicenseInfo - the license info, containing license details
 // @return error - associated errors
-func GetLicenseDetails() (LicenseInfo, error) {
+func (lm *LicenseManager) GetLicenseDetails() (LicenseInfo, error) {
 
 	var retLicense LicenseInfo
 
 	// Load file
-	licenseFileExists := licenseFileExists(config.LicenseLocation)
+	licenseFileExists := licenseFileExists(lm.config.LicenseLocation)
 	if !licenseFileExists {
 		logger.Warn("License file does not exist\n")
 		return retLicense, errors.New(LicenseFileDoesNotExistStr)
 	}
 
-	jsonLicense, err := ioutil.ReadFile(config.LicenseLocation)
+	jsonLicense, err := ioutil.ReadFile(lm.config.LicenseLocation)
 	if err != nil {
 		logger.Warn("Error opening license file: %s\n", err.Error())
 		return retLicense, err
@@ -194,14 +228,14 @@ func GetLicenseFileDoesNotExistStr() string {
 }
 
 // SetServices will disable any disabled services to un-enabled in settings
-func SetServices(enabledServices map[string]bool) error {
+func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 	var err error = nil
 	for serviceName, valid := range enabledServices {
 		if !valid {
 			// find service, get disabled hook, and run it
 			var service *Service
 			logger.Debug("Set %s to invalid\n", serviceName)
-			service, err = findService(serviceName)
+			service, err = lm.findService(serviceName)
 			if err != nil {
 				logger.Warn("Failed to set un-enabled for service %s\n", serviceName)
 				continue
@@ -228,7 +262,7 @@ func SetServices(enabledServices map[string]bool) error {
 		if valid {
 			cmd = "enable"
 		}
-		err = setServiceState(serviceName, cmd, true)
+		err = lm.setServiceState(serviceName, cmd, true)
 
 		if err != nil {
 			logger.Warn("Failed to set service: %s: %s\n", serviceName, err.Error())
@@ -244,8 +278,8 @@ func SetServices(enabledServices map[string]bool) error {
 // @param string newAllowedState - new allowed state such as enabled or disabled
 // @param bool saveStates - whether ServiceState file should be saved
 // @return any error
-func setServiceState(serviceName string, newAllowedState string, saveStates bool) error {
-	service, err := findService(serviceName)
+func (lm *LicenseManager) setServiceState(serviceName string, newAllowedState string, saveStates bool) error {
+	service, err := lm.findService(serviceName)
 	if err != nil {
 		logger.Warn("Failure to find service: %s\n", err.Error())
 		return err
@@ -258,14 +292,15 @@ func setServiceState(serviceName string, newAllowedState string, saveStates bool
 		return err
 	}
 
-	err = service.setServiceState(newState)
+	err = service.setServiceState(newState, lm.config.Executable)
 	if err != nil {
 		logger.Warn("Failure setting service state: %s\n", err.Error())
 		return err
 	}
 
 	if saveStates {
-		err = saveServiceStatesFromServices(config.ServiceStateLocation, services)
+		err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
+		return err
 	}
 
 	return nil
@@ -283,16 +318,18 @@ func licenseFileExists(filename string) bool {
 }
 
 // shutdownServices iterates servicesToShutdown and calls the shutdown hook on them, and also removes the license file
-// @param licenseFile string - the license file location
-// @param servicesToShutdown map[string]Service - the services we want to shutdown
-func shutdownServices(licenseFile string, servicesToShutdown map[string]*Service) {
-	err := os.Remove(licenseFile)
-	err = ioutil.WriteFile(licenseFile, []byte("{\"list\": []}"), 0444)
+func (lm *LicenseManager) shutdownServices() {
+	err := os.Remove(lm.config.LicenseLocation)
+	if err != nil {
+		logger.Err("Could not remove the license file when shutting down services: %v", err)
+	}
+
+	err = ioutil.WriteFile(lm.config.LicenseLocation, []byte("{\"list\": []}"), 0444)
 	if err != nil {
 		logger.Warn("Failure to write non-license file: %v\n", err)
 	}
-	for _, service := range servicesToShutdown {
-		service.setServiceState(StateDisable)
+	for _, service := range lm.services {
+		service.setServiceState(StateDisable, lm.config.Executable)
 	}
 }
 
@@ -300,8 +337,8 @@ func shutdownServices(licenseFile string, servicesToShutdown map[string]*Service
 // @param string serviceName - service to find
 // @return *Service - the service found, nil if not found
 // @return error such as errServiceNotFound
-func findService(serviceName string) (*Service, error) {
-	service, ok := services[serviceName]
+func (lm *LicenseManager) findService(serviceName string) (*Service, error) {
+	service, ok := lm.services[serviceName]
 	if !ok {
 		return nil, errServiceNotFound
 	}
@@ -313,7 +350,9 @@ func findService(serviceName string) (*Service, error) {
 // @param []ServiceState serviceStates - array of ServiceState to search through
 // @return ServiceState of the state found, blank ServiceState if not found
 // @return bool on if found
-func findServiceState(serviceName string, serviceStates []ServiceState) (ServiceState, bool) {
+func findServiceState(
+	serviceName string,
+	serviceStates []ServiceState) (ServiceState, bool) {
 	for _, o := range serviceStates {
 		if o.Name == serviceName {
 			return o, true
