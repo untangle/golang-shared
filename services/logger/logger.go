@@ -116,7 +116,7 @@ func SetLoggerInstance(newSingleton *Logger) {
 
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
-	logger := &Logger{
+	return &Logger{
 		defaultConfig:    DefaultLoggerConfig(),
 		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
@@ -124,10 +124,6 @@ func NewLogger() *Logger {
 		timestampEnabled: false,
 		logLevelName:     logLevelName,
 	}
-
-	logger.alerts = alerts.Publisher(logger)
-
-	return logger
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
@@ -177,6 +173,7 @@ func (logger *Logger) Startup() {
 
 	// capture startup time
 	logger.launchTime = time.Now()
+	logger.alerts = alerts.Publisher(logger)
 
 	if logger.config != nil {
 
@@ -194,6 +191,7 @@ func (logger *Logger) Name() string {
 
 // Shutdown stops the logging service
 func (logger *Logger) Shutdown() {
+	alerts.Shutdown()
 	fmt.Println("Shutting down the logger service")
 }
 
@@ -426,7 +424,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	fmt.Print(logMessage)
 
-	if alert, ok := AlertSetup[level]; ok {
+	if alert, ok := AlertSetup[level]; ok && logger.alerts != nil {
 		logger.alerts.Send(&Alerts.Alert{
 			Type:     alert.logType,
 			Severity: alert.severity,
