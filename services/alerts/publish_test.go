@@ -4,7 +4,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	zmq "github.com/pebbe/zmq4"
 	"github.com/stretchr/testify/assert"
-	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"testing"
 )
@@ -78,10 +77,55 @@ func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
 
 func newTestAlertHandler() *ZmqAlertPublisher {
 	return &ZmqAlertPublisher{
-		logger:                  logger.NewLogger(),
+		logger:                  &MockLogger{},
 		messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 		zmqPublisherShutdown:    make(chan bool),
-		zmqPublisherStarted:     make(chan bool, 1),
+		zmqPublisherStarted:     make(chan int32, 1),
 		socketAddress:           testSocketAddress,
 	}
+}
+
+// Mocks
+
+type MockLogger struct {
+}
+
+func (m *MockLogger) Emerg(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Alert(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Crit(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Err(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Warn(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Notice(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Info(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Debug(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) Trace(format string, args ...interface{}) {
+
+}
+
+func (m *MockLogger) OCWarn(format string, name string, limit int64, args ...interface{}) {
+
 }

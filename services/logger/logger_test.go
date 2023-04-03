@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
+	"github.com/untangle/golang-shared/testing/mocks"
 	"testing"
 	"time"
 
@@ -346,6 +348,36 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Notice(testingOutput, logLevelName[LogLevelNotice])
 	logInstance.Warn(testingOutput, logLevelName[LogLevelWarn])
+}
+
+func (suite *TestLogger) TestSendAlertToCMD() {
+	logInstance := NewLogger()
+
+	mockAlertsPublisher := &mocks.MockAlertPublisher{}
+	logInstance.alerts = mockAlertsPublisher
+
+	testingOutput := "Testing output for %s\n"
+
+	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
+
+	// Test alert is sent for critical level logs
+	logInstance.Crit(testingOutput, logLevelName[LogLevelCrit])
+
+	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
+	assert.Equal(suite.T(), Alerts.AlertSeverity_CRITICAL, mockAlertsPublisher.LastAlert.Severity)
+	assert.Equal(suite.T(), "CRIT              reflect: Testing output for CRIT\n", mockAlertsPublisher.LastAlert.Message)
+
+	// Set alerts for error level logs
+	AlertSetup[LogLevelErr] = AlertDetail{
+		severity: Alerts.AlertSeverity_ERROR,
+		logType:  Alerts.AlertType_CRITICALERROR,
+	}
+
+	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
+
+	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
+	assert.Equal(suite.T(), Alerts.AlertSeverity_ERROR, mockAlertsPublisher.LastAlert.Severity)
+	assert.Equal(suite.T(), "ERROR             reflect: Testing output for ERROR\n", mockAlertsPublisher.LastAlert.Message)
 }
 
 func (suite *TestLogger) TestFindCallingFunction() {

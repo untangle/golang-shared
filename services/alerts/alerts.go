@@ -8,15 +8,11 @@
 
 package alerts
 
-import logService "github.com/untangle/golang-shared/services/logger"
-
 // AlertZMQTopic Topic name to be used when sending alerts.
 const AlertZMQTopic string = "arista:alertd:alert"
 
 const PublisherSocketAddress = "ipc:///var/zmq_alert_publisher"
 const SubscriberSocketAddress = "ipc:///var/zmq_alert_subscriber"
-
-const messageBuffer = 1000
 
 // ZmqMessage is a message sent over a zmq bus for us to consume.
 type ZmqMessage struct {
@@ -24,13 +20,12 @@ type ZmqMessage struct {
 	Message []byte
 }
 
-var loggerInstance = logService.GetLoggerInstance()
 var publisher AlertPublisher
 
 // Publisher returns the Publisher singleton.
-func Publisher() AlertPublisher {
+func Publisher(logger AlertsLogger) AlertPublisher {
 	if publisher == nil {
-		zmqPublisher := NewZmqAlertPublisher(loggerInstance)
+		zmqPublisher := NewZmqAlertPublisher(logger)
 		_ = zmqPublisher.Startup()
 
 		publisher = zmqPublisher
@@ -40,19 +35,18 @@ func Publisher() AlertPublisher {
 }
 
 // Startup is called when the service that uses alerts starts
-func Startup() {
-	loggerInstance.Info("Starting up the Alerts service\n")
-	Publisher()
+func Startup(logger AlertsLogger) {
+	logger.Info("Starting up the Alerts service\n")
+	Publisher(logger)
 }
 
 // Shutdown is called when the service that uses alerts stops
 func Shutdown() {
-	loggerInstance.Info("Shutting down the Alerts service\n")
 	if publisher == nil {
 		return
 	}
 
-	var zmqPublisher interface{} = Publisher()
+	var zmqPublisher interface{} = Publisher(nil)
 	_ = zmqPublisher.(*ZmqAlertPublisher).Shutdown()
 	publisher = nil
 }

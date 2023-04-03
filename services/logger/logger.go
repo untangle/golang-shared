@@ -2,6 +2,8 @@ package logger
 
 import (
 	"fmt"
+	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"log"
 	"runtime"
 	"strings"
@@ -28,6 +30,7 @@ type Logger struct {
 	launchTime       time.Time
 	timestampEnabled bool
 	logLevelName     [9]string
+	alerts           alerts.AlertPublisher
 }
 
 // Interface to the logger API.
@@ -76,6 +79,18 @@ const LogLevelTrace int32 = 8
 var loggerSingleton *Logger
 var once sync.Once
 
+var AlertSetup = map[int32]AlertDetail{
+	LogLevelCrit: {
+		severity: Alerts.AlertSeverity_CRITICAL,
+		logType:  Alerts.AlertType_CRITICALERROR,
+	},
+}
+
+type AlertDetail struct {
+	severity Alerts.AlertSeverity
+	logType  Alerts.AlertType
+}
+
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
@@ -101,7 +116,7 @@ func SetLoggerInstance(newSingleton *Logger) {
 
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
-	return &Logger{
+	logger := &Logger{
 		defaultConfig:    DefaultLoggerConfig(),
 		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
@@ -109,6 +124,10 @@ func NewLogger() *Logger {
 		timestampEnabled: false,
 		logLevelName:     logLevelName,
 	}
+
+	logger.alerts = alerts.Publisher(logger)
+
+	return logger
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
@@ -392,15 +411,27 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	defer logger.logLevelLocker.RUnlock()
 	logger.logLevelLocker.RLock()
 
+	var logMessage string
+
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, buffer)
+	}
+
+	fmt.Print(logMessage)
+
+	if alert, ok := AlertSetup[level]; ok {
+		logger.alerts.Send(&Alerts.Alert{
+			Type:     alert.logType,
+			Severity: alert.severity,
+			Message:  logMessage,
+		})
 	}
 }
 
