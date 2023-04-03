@@ -79,18 +79,6 @@ const LogLevelTrace int32 = 8
 var loggerSingleton *Logger
 var once sync.Once
 
-var AlertSetup = map[int32]AlertDetail{
-	LogLevelCrit: {
-		severity: Alerts.AlertSeverity_CRITICAL,
-		logType:  Alerts.AlertType_CRITICALERROR,
-	},
-}
-
-type AlertDetail struct {
-	severity Alerts.AlertSeverity
-	logType  Alerts.AlertType
-}
-
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
@@ -132,6 +120,12 @@ func DefaultLoggerConfig() *LoggerConfig {
 		FileLocation: "",
 		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
 		OutputWriter: DefaultLogWriter("system"),
+		CmdAlertSetup: map[int32]CmdAlertDetail{
+			LogLevelCrit: {
+				severity: Alerts.AlertSeverity_CRITICAL,
+				logType:  Alerts.AlertType_CRITICALERROR,
+			},
+		},
 	}
 }
 
@@ -424,7 +418,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	fmt.Print(logMessage)
 
-	if alert, ok := AlertSetup[level]; ok && logger.alerts != nil {
+	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
 		logger.alerts.Send(&Alerts.Alert{
 			Type:     alert.logType,
 			Severity: alert.severity,

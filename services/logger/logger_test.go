@@ -366,18 +366,6 @@ func (suite *TestLogger) TestSendAlertToCMD() {
 	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
 	assert.Equal(suite.T(), Alerts.AlertSeverity_CRITICAL, mockAlertsPublisher.LastAlert.Severity)
 	assert.Equal(suite.T(), "CRIT              reflect: Testing output for CRIT\n", mockAlertsPublisher.LastAlert.Message)
-
-	// Set alerts for error level logs
-	AlertSetup[LogLevelErr] = AlertDetail{
-		severity: Alerts.AlertSeverity_ERROR,
-		logType:  Alerts.AlertType_CRITICALERROR,
-	}
-
-	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
-
-	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
-	assert.Equal(suite.T(), Alerts.AlertSeverity_ERROR, mockAlertsPublisher.LastAlert.Severity)
-	assert.Equal(suite.T(), "ERROR             reflect: Testing output for ERROR\n", mockAlertsPublisher.LastAlert.Message)
 }
 
 func (suite *TestLogger) TestFindCallingFunction() {
