@@ -134,8 +134,6 @@ func DefaultLoggerConfig() *LoggerConfig {
 // if we are able to load the config from file, we will
 // if the file does not exist, we will store the default config in the conf.FileLocation
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
-	defer logger.configLocker.Unlock()
-	logger.configLocker.Lock()
 
 	logger.defaultConfig = conf
 	// load from file - if this is missing or errors - then save the new default config to OS
@@ -146,6 +144,8 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 		conf.SaveConfig()
 	}
 
+	logger.configLocker.Lock()
+	defer logger.configLocker.Unlock()
 	//Set the instance config to this config
 	logger.config = conf
 }
@@ -417,6 +417,9 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	}
 
 	fmt.Print(logMessage)
+
+	logger.configLocker.Lock()
+	defer logger.configLocker.Unlock()
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
 		logger.alerts.Send(&Alerts.Alert{
