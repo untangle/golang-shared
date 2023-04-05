@@ -13,6 +13,13 @@ type CmdAlertDetail struct {
 	logType  Alerts.AlertType
 }
 
+var CmdAlertDefaultSetup = map[int32]CmdAlertDetail{
+	LogLevelCrit: {
+		severity: Alerts.AlertSeverity_CRITICAL,
+		logType:  Alerts.AlertType_CRITICALERROR,
+	},
+}
+
 // LoggerConfig struct retains information about the where the log level map is stored, default log levels and writer that should be used
 type LoggerConfig struct {
 	FileLocation  string

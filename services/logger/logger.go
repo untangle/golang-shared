@@ -116,16 +116,12 @@ func NewLogger() *Logger {
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
 func DefaultLoggerConfig() *LoggerConfig {
+
 	return &LoggerConfig{
-		FileLocation: "",
-		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
-		OutputWriter: DefaultLogWriter("system"),
-		CmdAlertSetup: map[int32]CmdAlertDetail{
-			LogLevelCrit: {
-				severity: Alerts.AlertSeverity_CRITICAL,
-				logType:  Alerts.AlertType_CRITICALERROR,
-			},
-		},
+		FileLocation:  "",
+		LogLevelMap:   map[string]LogLevel{"*": {Name: "INFO"}},
+		OutputWriter:  DefaultLogWriter("system"),
+		CmdAlertSetup: CmdAlertDefaultSetup,
 	}
 }
 
