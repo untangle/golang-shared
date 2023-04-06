@@ -125,6 +125,7 @@ func TestGetLicenseDetails(t *testing.T) {
 		config: &Config{
 			LicenseLocation: licenseWithData,
 		},
+		logger: mocks.NewMockLogger(),
 	}
 	licenses, err := lm.GetLicenseDetails()
 

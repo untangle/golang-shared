@@ -33,20 +33,6 @@ type Logger struct {
 	alerts           alerts.AlertPublisher
 }
 
-// Interface to the logger API.
-type LoggerLevels interface {
-	Emerg(format string, args ...interface{})
-	Alert(format string, args ...interface{})
-	Crit(format string, args ...interface{})
-	Err(format string, args ...interface{})
-	Warn(format string, args ...interface{})
-	Notice(format string, args ...interface{})
-	Info(format string, args ...interface{})
-	Debug(format string, args ...interface{})
-	Trace(format string, args ...interface{})
-	OCWarn(format string, name string, limit int64, args ...interface{})
-}
-
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
 
 // LogLevelEmerg = syslog.h/LOG_EMERG
@@ -419,9 +405,10 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
 		logger.alerts.Send(&Alerts.Alert{
-			Type:     alert.logType,
-			Severity: alert.severity,
-			Message:  logMessage,
+			Type:          alert.logType,
+			Severity:      alert.severity,
+			Message:       logMessage,
+			IsLoggerAlert: true,
 		})
 	}
 }

@@ -1,12 +1,14 @@
 // Package alerts provides a service for alert publishing on a ZMQ socket.
 // Usage:
-// 		alerts.Startup() // this is just so it initializes the publisher on service Startup, not on the first call
+// 		alerts.Startup(logger) // this is just so it initializes the publisher on service Startup, not on the first call
 // 		alerts.Publisher().Send(alert1)
 // 		alerts.Publisher().Send(alert2)
 //		...
 //		alerts.Shutdown()
 
 package alerts
+
+import "github.com/untangle/golang-shared/logger"
 
 // AlertZMQTopic Topic name to be used when sending alerts.
 const AlertZMQTopic string = "arista:alertd:alert"
@@ -23,7 +25,7 @@ type ZmqMessage struct {
 var publisher AlertPublisher
 
 // Publisher returns the Publisher singleton.
-func Publisher(logger AlertsLogger) AlertPublisher {
+func Publisher(logger logger.LoggerLevels) AlertPublisher {
 	if publisher == nil {
 		zmqPublisher := NewZmqAlertPublisher(logger)
 		_ = zmqPublisher.Startup()
@@ -35,7 +37,7 @@ func Publisher(logger AlertsLogger) AlertPublisher {
 }
 
 // Startup is called when the service that uses alerts starts
-func Startup(logger AlertsLogger) {
+func Startup(logger logger.LoggerLevels) {
 	logger.Info("Starting up the Alerts service\n")
 	Publisher(logger)
 }

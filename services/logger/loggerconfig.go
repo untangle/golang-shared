@@ -18,6 +18,10 @@ var CmdAlertDefaultSetup = map[int32]CmdAlertDetail{
 		severity: Alerts.AlertSeverity_CRITICAL,
 		logType:  Alerts.AlertType_CRITICALERROR,
 	},
+	LogLevelErr: {
+		severity: Alerts.AlertSeverity_ERROR,
+		logType:  Alerts.AlertType_CRITICALERROR,
+	},
 }
 
 // LoggerConfig struct retains information about the where the log level map is stored, default log levels and writer that should be used

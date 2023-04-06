@@ -33,4 +33,5 @@ message Alert {
     string message = 3;
     map<string, string> params = 4;
     int64 timestamp = 5;
+    bool isLoggerAlert = 6;
 }

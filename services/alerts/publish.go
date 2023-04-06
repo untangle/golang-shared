@@ -1,7 +1,7 @@
 package alerts
 
 import (
-	"errors"
+	loggerModel "github.com/untangle/golang-shared/logger"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -15,27 +15,9 @@ const messageBuffer = 1000
 
 var alertPublisherSingleton *ZmqAlertPublisher
 var once sync.Once
-var ErrPublisherStarted = errors.New("publisher already running")
 
 type AlertPublisher interface {
 	Send(alert *Alerts.Alert)
-}
-
-// AlertsLogger defines a logger API for the alerts.
-// This is and should be compatible with the github.com/untangle/golang-shared/services/logger::LoggerLevels
-// It allows using the alert package inside the logger package by dependency inversion, this way the alerts
-// do not depend on the logger, so we will not get circular dependency issues.
-type AlertsLogger interface {
-	Emerg(format string, args ...interface{})
-	Alert(format string, args ...interface{})
-	Crit(format string, args ...interface{})
-	Err(format string, args ...interface{})
-	Warn(format string, args ...interface{})
-	Notice(format string, args ...interface{})
-	Info(format string, args ...interface{})
-	Debug(format string, args ...interface{})
-	Trace(format string, args ...interface{})
-	OCWarn(format string, name string, limit int64, args ...interface{})
 }
 
 // ZmqAlertPublisher runs a ZMQ publisher socket in the background.
@@ -43,7 +25,7 @@ type AlertsLogger interface {
 // ZMQ socket using a chanel and the message is published to ZMQ
 // using the alert specific topic.
 type ZmqAlertPublisher struct {
-	logger                  AlertsLogger
+	logger                  loggerModel.LoggerLevels
 	messagePublisherChannel chan ZmqMessage
 	zmqPublisherShutdown    chan bool
 	zmqPublisherStarted     chan int32
@@ -56,7 +38,7 @@ func (publisher *ZmqAlertPublisher) Name() string {
 }
 
 // NewZmqAlertPublisher Gets the singleton instance of ZmqAlertPublisher.
-func NewZmqAlertPublisher(logger AlertsLogger) *ZmqAlertPublisher {
+func NewZmqAlertPublisher(logger loggerModel.LoggerLevels) *ZmqAlertPublisher {
 	once.Do(func() {
 		alertPublisherSingleton = &ZmqAlertPublisher{
 			logger:                  logger,
@@ -70,7 +52,7 @@ func NewZmqAlertPublisher(logger AlertsLogger) *ZmqAlertPublisher {
 	return alertPublisherSingleton
 }
 
-func NewDefaultAlertPublisher(logger AlertsLogger) AlertPublisher {
+func NewDefaultAlertPublisher(logger loggerModel.LoggerLevels) AlertPublisher {
 	return NewZmqAlertPublisher(logger)
 }
 
