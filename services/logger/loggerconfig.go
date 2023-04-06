@@ -3,15 +3,33 @@ package logger
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"io"
 	"os"
 )
 
+type CmdAlertDetail struct {
+	severity Alerts.AlertSeverity
+	logType  Alerts.AlertType
+}
+
+var CmdAlertDefaultSetup = map[int32]CmdAlertDetail{
+	LogLevelCrit: {
+		severity: Alerts.AlertSeverity_CRITICAL,
+		logType:  Alerts.AlertType_CRITICALERROR,
+	},
+	LogLevelErr: {
+		severity: Alerts.AlertSeverity_ERROR,
+		logType:  Alerts.AlertType_CRITICALERROR,
+	},
+}
+
 // LoggerConfig struct retains information about the where the log level map is stored, default log levels and writer that should be used
 type LoggerConfig struct {
-	FileLocation string
-	LogLevelMap  map[string]LogLevel
-	OutputWriter io.Writer
+	FileLocation  string
+	LogLevelMap   map[string]LogLevel
+	OutputWriter  io.Writer
+	CmdAlertSetup map[int32]CmdAlertDetail
 }
 
 // loadLoggerConfig loads the logger configuration file

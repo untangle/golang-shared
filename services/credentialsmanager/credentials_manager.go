@@ -3,8 +3,8 @@ package credentialsmanager
 import (
 	"sync"
 
+	"github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins"
-	"github.com/untangle/golang-shared/services/logger"
 )
 
 const fileLocation = "/etc/config/credentials.json"

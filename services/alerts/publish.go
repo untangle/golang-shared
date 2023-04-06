@@ -1,19 +1,20 @@
 package alerts
 
 import (
-	"errors"
+	loggerModel "github.com/untangle/golang-shared/logger"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	zmq "github.com/pebbe/zmq4"
-	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"google.golang.org/protobuf/proto"
 )
 
+const messageBuffer = 1000
+
 var alertPublisherSingleton *ZmqAlertPublisher
 var once sync.Once
-var ErrPublisherStarted = errors.New("publisher already running")
 
 type AlertPublisher interface {
 	Send(alert *Alerts.Alert)
@@ -24,12 +25,12 @@ type AlertPublisher interface {
 // ZMQ socket using a chanel and the message is published to ZMQ
 // using the alert specific topic.
 type ZmqAlertPublisher struct {
-	logger                  logger.LoggerLevels
+	logger                  loggerModel.LoggerLevels
 	messagePublisherChannel chan ZmqMessage
 	zmqPublisherShutdown    chan bool
-	zmqPublisherStarted     chan bool
+	zmqPublisherStarted     chan int32
 	socketAddress           string
-	started                 bool
+	started                 int32
 }
 
 func (publisher *ZmqAlertPublisher) Name() string {
@@ -37,13 +38,13 @@ func (publisher *ZmqAlertPublisher) Name() string {
 }
 
 // NewZmqAlertPublisher Gets the singleton instance of ZmqAlertPublisher.
-func NewZmqAlertPublisher(logger logger.LoggerLevels) *ZmqAlertPublisher {
+func NewZmqAlertPublisher(logger loggerModel.LoggerLevels) *ZmqAlertPublisher {
 	once.Do(func() {
 		alertPublisherSingleton = &ZmqAlertPublisher{
 			logger:                  logger,
 			messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 			zmqPublisherShutdown:    make(chan bool),
-			zmqPublisherStarted:     make(chan bool, 1),
+			zmqPublisherStarted:     make(chan int32, 1),
 			socketAddress:           PublisherSocketAddress,
 		}
 	})
@@ -51,32 +52,36 @@ func NewZmqAlertPublisher(logger logger.LoggerLevels) *ZmqAlertPublisher {
 	return alertPublisherSingleton
 }
 
-func NewDefaultAlertPublisher(logger logger.LoggerLevels) AlertPublisher {
+func NewDefaultAlertPublisher(logger loggerModel.LoggerLevels) AlertPublisher {
 	return NewZmqAlertPublisher(logger)
 }
 
 // Startup starts the ZMQ publisher in the background.
 func (publisher *ZmqAlertPublisher) Startup() error {
+	publisher.logger.Info("Starting up the Alerts service\n")
+
 	// Make sure it is not started twice.
-	if publisher.started {
-		return ErrPublisherStarted
+	if atomic.LoadInt32(&publisher.started) > 0 {
+		return nil
 	}
 
 	go publisher.zmqPublisher()
 
 	// Blocks until the publisher starts.
-	publisher.started = <-publisher.zmqPublisherStarted
+	atomic.AddInt32(&publisher.started, <-publisher.zmqPublisherStarted)
 
 	return nil
 }
 
 // Shutdown stops the goroutine running the ZMQ subscriber and closes the channels used in the service.
 func (publisher *ZmqAlertPublisher) Shutdown() error {
+	publisher.logger.Info("Shutting down the Alerts service\n")
+
 	publisher.zmqPublisherShutdown <- true
 	close(publisher.zmqPublisherShutdown)
 	close(publisher.zmqPublisherStarted)
 	close(publisher.messagePublisherChannel)
-	publisher.started = false
+	atomic.StoreInt32(&publisher.started, 0)
 
 	return nil
 }
@@ -88,10 +93,10 @@ func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
 	alert.Timestamp = time.Now().Unix()
 
-	logger.Debug("Publish alert %v\n", alert)
+	publisher.logger.Debug("Publish alert %v\n", alert)
 	alertMessage, err := proto.Marshal(alert)
 	if err != nil {
-		logger.Err("Unable to marshal alert entry: %s\n", err)
+		publisher.logger.Err("Unable to marshal alert entry: %s\n", err)
 		return
 	}
 
@@ -107,24 +112,24 @@ func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 func (publisher *ZmqAlertPublisher) zmqPublisher() {
 	socket, err := publisher.setupZmqPubSocket()
 	if err != nil {
-		logger.Warn("Unable to setup ZMQ publisher socket: %s\n", err)
+		publisher.logger.Warn("Unable to setup ZMQ publisher socket: %s\n", err)
 		return
 	}
 	defer socket.Close()
 
-	publisher.zmqPublisherStarted <- true
+	publisher.zmqPublisherStarted <- 1
 
 	for {
 		select {
 		case msg := <-publisher.messagePublisherChannel:
 			sentBytes, err := socket.SendMessage(msg.Topic, msg.Message)
 			if err != nil {
-				logger.Err("Publisher Send error: %s\n", err)
+				publisher.logger.Err("Publisher Send error: %s\n", err)
 				continue
 			}
-			logger.Debug("Message sent: %v bytes\n", sentBytes)
+			publisher.logger.Debug("Message sent: %v bytes\n", sentBytes)
 		case <-publisher.zmqPublisherShutdown:
-			logger.Info("ZMQ Publisher shutting down\n")
+			publisher.logger.Info("ZMQ Publisher shutting down\n")
 			return
 		}
 	}

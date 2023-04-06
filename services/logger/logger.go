@@ -2,6 +2,8 @@ package logger
 
 import (
 	"fmt"
+	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"log"
 	"runtime"
 	"strings"
@@ -28,20 +30,7 @@ type Logger struct {
 	launchTime       time.Time
 	timestampEnabled bool
 	logLevelName     [9]string
-}
-
-// Interface to the logger API.
-type LoggerLevels interface {
-	Emerg(format string, args ...interface{})
-	Alert(format string, args ...interface{})
-	Crit(format string, args ...interface{})
-	Err(format string, args ...interface{})
-	Warn(format string, args ...interface{})
-	Notice(format string, args ...interface{})
-	Info(format string, args ...interface{})
-	Debug(format string, args ...interface{})
-	Trace(format string, args ...interface{})
-	OCWarn(format string, name string, limit int64, args ...interface{})
+	alerts           alerts.AlertPublisher
 }
 
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
@@ -113,10 +102,12 @@ func NewLogger() *Logger {
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
 func DefaultLoggerConfig() *LoggerConfig {
+
 	return &LoggerConfig{
-		FileLocation: "",
-		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
-		OutputWriter: DefaultLogWriter("system"),
+		FileLocation:  "",
+		LogLevelMap:   map[string]LogLevel{"*": {Name: "INFO"}},
+		OutputWriter:  DefaultLogWriter("system"),
+		CmdAlertSetup: CmdAlertDefaultSetup,
 	}
 }
 
@@ -125,8 +116,6 @@ func DefaultLoggerConfig() *LoggerConfig {
 // if we are able to load the config from file, we will
 // if the file does not exist, we will store the default config in the conf.FileLocation
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
-	defer logger.configLocker.Unlock()
-	logger.configLocker.Lock()
 
 	logger.defaultConfig = conf
 	// load from file - if this is missing or errors - then save the new default config to OS
@@ -137,6 +126,8 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 		conf.SaveConfig()
 	}
 
+	logger.configLocker.Lock()
+	defer logger.configLocker.Unlock()
 	//Set the instance config to this config
 	logger.config = conf
 }
@@ -158,6 +149,7 @@ func (logger *Logger) Startup() {
 
 	// capture startup time
 	logger.launchTime = time.Now()
+	logger.alerts = alerts.Publisher(logger)
 
 	if logger.config != nil {
 
@@ -175,6 +167,7 @@ func (logger *Logger) Name() string {
 
 // Shutdown stops the logging service
 func (logger *Logger) Shutdown() {
+	alerts.Shutdown()
 	fmt.Println("Shutting down the logger service")
 }
 
@@ -392,15 +385,31 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	defer logger.logLevelLocker.RUnlock()
 	logger.logLevelLocker.RLock()
 
+	var logMessage string
+
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		fmt.Printf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, buffer)
+	}
+
+	fmt.Print(logMessage)
+
+	logger.configLocker.Lock()
+	defer logger.configLocker.Unlock()
+
+	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
+		logger.alerts.Send(&Alerts.Alert{
+			Type:          alert.logType,
+			Severity:      alert.severity,
+			Message:       logMessage,
+			IsLoggerAlert: true,
+		})
 	}
 }
 

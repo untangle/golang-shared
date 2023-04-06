@@ -4,8 +4,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	zmq "github.com/pebbe/zmq4"
 	"github.com/stretchr/testify/assert"
-	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
+	"github.com/untangle/golang-shared/testing/mocks"
 	"testing"
 )
 
@@ -78,10 +78,10 @@ func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
 
 func newTestAlertHandler() *ZmqAlertPublisher {
 	return &ZmqAlertPublisher{
-		logger:                  logger.NewLogger(),
+		logger:                  mocks.NewMockLogger(),
 		messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
 		zmqPublisherShutdown:    make(chan bool),
-		zmqPublisherStarted:     make(chan bool, 1),
+		zmqPublisherStarted:     make(chan int32, 1),
 		socketAddress:           testSocketAddress,
 	}
 }
