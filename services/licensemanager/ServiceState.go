@@ -9,7 +9,7 @@ import (
 
 // ServicesAllowedStatesLocation is the location where we put where services are enabled/disabled
 // Keep it as a var to be used for monkey patching in unit tests
-var ServicesAllowedStatesLocation = "/etc/config"
+var ServicesAllowedStatesLocation = "/etc/config/"
 
 // ServiceState is used for setting the service state
 type ServiceState struct {
