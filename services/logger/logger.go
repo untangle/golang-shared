@@ -2,13 +2,14 @@ package logger
 
 import (
 	"fmt"
-	"github.com/untangle/golang-shared/services/alerts"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"log"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
 )
@@ -168,7 +169,7 @@ func (logger *Logger) Name() string {
 // Shutdown stops the logging service
 func (logger *Logger) Shutdown() {
 	alerts.Shutdown()
-	fmt.Println("Shutting down the logger service")
+	log.Println("Shutting down the logger service")
 }
 
 // Emerg is called for log level EMERG messages
@@ -265,25 +266,25 @@ func (logger *Logger) OCTrace(format string, name string, limit int64, args ...i
 // OCWarn is called for overseer warn messages
 func (logger *Logger) OCWarn(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+	logger.logMessage(LogLevelWarn, format, newOcname, args...)
 }
 
 // OCDebug is called for overseer warn messages
 func (logger *Logger) OCDebug(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+	logger.logMessage(LogLevelDebug, format, newOcname, args...)
 }
 
 // OCErr is called for overseer err messages
 func (logger *Logger) OCErr(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+	logger.logMessage(LogLevelErr, format, newOcname, args...)
 }
 
 // OCCrit is called for overseer crit messages
 func (logger *Logger) OCCrit(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelTrace, format, newOcname, args...)
+	logger.logMessage(LogLevelCrit, format, newOcname, args...)
 }
 
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
@@ -304,6 +305,11 @@ func LogMessageSource(level int32, source string, format string, args ...interfa
 func (logger *Logger) IsLogEnabledSource(level int32, source string) bool {
 	lvl := logger.getLogLevel(source, "")
 	return (lvl >= level)
+}
+
+// EnableTimestamp enable the elapsed time in output
+func (logger *Logger) EnableTimestamp() {
+	logger.timestampEnabled = true
 }
 
 // DisableTimestamp disable the elapsed time in output
@@ -344,7 +350,7 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 // logFormatter creats a log message using the format and arguments provided
 // We look for and handle special format verbs that trigger additional processing
 func logFormatter(format string, newOcname Ocname, args ...interface{}) string {
-
+	overseer.Startup()
 	total := overseer.AddCounter(newOcname.name, 1)
 
 	// only format the message on the first and every nnn messages thereafter
