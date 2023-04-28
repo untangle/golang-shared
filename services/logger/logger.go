@@ -2,13 +2,14 @@ package logger
 
 import (
 	"fmt"
-	"github.com/untangle/golang-shared/services/alerts"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"log"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
 )
@@ -243,7 +244,9 @@ func (logger *Logger) IsInfoEnabled() bool {
 
 // Debug is called for log level DEBUG messages
 func (logger *Logger) Debug(format string, args ...interface{}) {
-	logger.logMessage(LogLevelDebug, format, Ocname{}, args...)
+	if logger.IsDebugEnabled() {
+		logger.logMessage(LogLevelDebug, format, Ocname{}, args...)
+	}
 }
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
