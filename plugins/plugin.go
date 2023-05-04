@@ -150,10 +150,14 @@ func (control *PluginControl) Startup() {
 
 }
 
+// LogStartupErrors sets the PluginControl to just log errors when
+// plugins start rather than panicking.
 func (control *PluginControl) LogStartupErrors() {
 	control.enableStartupPanic = false
 }
 
+// PanicOnStartupErrors sets the PluginControl to panic() when a
+// Startup() method returns an error.
 func (control *PluginControl) PanicOnStartupErrors() {
 	control.enableStartupPanic = true
 }
