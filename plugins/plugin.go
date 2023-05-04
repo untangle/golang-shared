@@ -37,18 +37,18 @@ type consumer struct {
 // keeps track of a list of plugins to send method calls to.
 type PluginControl struct {
 	dig.Container
-	plugins                   []Plugin
-	saverFuncs                []reflect.Value
-	consumers                 []consumer
-	shouldPanicOnStartupError bool
+	plugins            []Plugin
+	saverFuncs         []reflect.Value
+	consumers          []consumer
+	enableStartupPanic bool
 }
 
 // NewPluginControl creates an empty PluginControl
 func NewPluginControl() *PluginControl {
 	container := dig.New()
 	return &PluginControl{
-		Container:                 *container,
-		shouldPanicOnStartupError: true}
+		Container:          *container,
+		enableStartupPanic: true}
 }
 
 var pluginControl *PluginControl
@@ -133,7 +133,7 @@ func (control *PluginControl) Startup() {
 	for _, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
-			if control.shouldPanicOnStartupError {
+			if control.enableStartupPanic {
 				panic(fmt.Sprintf("couldn't startup plugin %s: %s",
 					plugin.Name(),
 					err))
@@ -151,11 +151,11 @@ func (control *PluginControl) Startup() {
 }
 
 func (control *PluginControl) LogStartupErrors() {
-	control.shouldPanicOnStartupError = false
+	control.enableStartupPanic = false
 }
 
 func (control *PluginControl) PanicOnStartupErrors() {
-	control.shouldPanicOnStartupError = true
+	control.enableStartupPanic = true
 }
 
 // find and call the consumer functions that consume plugins.
