@@ -37,61 +37,61 @@ const (
 // }
 
 type PolicyManager struct {
-	id                 string
-	Enabled            bool
-	name               string
-	description        string
+	id                 string `json:"id"`
+	Enabled            bool   `json:"enabled"`
+	name               string `json:"name"`
+	description        string `json:"description"`
 	policySettingsLock sync.RWMutex
 	settingsFile       *settings.SettingsFile
 	settings           map[string]interface{}
 	interfaceSettings  *interfaces.InterfaceSettings
-	configurations     map[string]*PolicyConfiguration
-	flowCategories     map[string]*PolicyFlowCategory
-	conditions         map[string]*PolicyCondition
-	policies           map[string]*Policy
+	configurations     map[string]*PolicyConfiguration `json:"configurations"`
+	flowCategories     map[string]*PolicyFlowCategory  `json:"flows"`
+	conditions         map[string]*PolicyCondition     `json:"conditions"`
+	policies           map[string]*Policy              `json:"policies"`
 	alertsPublisher    alerts.AlertPublisher
 	logger             logger.Logger
 }
 
 type PolicyFlowCategory struct {
-	id          string
-	name        string
-	description string
-	conditions  []*PolicyCondition
+	id          string             `json:"id"`
+	name        string             `json:"name"`
+	description string             `json:description"`
+	conditions  []*PolicyCondition `json:"conditions"`
 }
 
 type PolicyCondition struct {
-	cType string
-	op    string
-	value []string
+	cType string   `json:"type"`
+	op    string   `json:"op"`
+	value []string `json:"value"`
 }
 
 type PolicyConfiguration struct {
-	id          string
-	name        string
-	description string
-	plugins     []*PolicyPluginCategory
+	id          string                  `json:"id"`
+	name        string                  `json:"name"`
+	description string                  `json:"description"`
+	plugins     []*PolicyPluginCategory `json:"plugins"`
 }
 
 // PolicyPlugin needs to be an interface which
 // can be implemented by a "geoip", "threatprevention", or "webfilter" configuration
 type PolicyPluginCategory struct {
-	id          string
-	name        string
-	description string
-	conditions  []*PolicyPlugin
+	id          string          `json:"id"`
+	name        string          `json:"name"`
+	description string          `json:"description"`
+	conditions  []*PolicyPlugin `json:"conditions"`
 }
 
 type PolicyPlugin interface {
 }
 
 type Policy struct {
-	id             string
-	name           string
-	description    string
-	enabled        bool
-	configurations map[string]*PolicyConfiguration
-	flows          map[string]*PolicyFlowCategory
+	id             string                          `json:"id"`
+	name           string                          `json:"name"`
+	description    string                          `json:"description"`
+	enabled        bool                            `json:"enabled"`
+	configurations map[string]*PolicyConfiguration `json:"configurations"`
+	flows          map[string]*PolicyFlowCategory  `json:"flows"`
 }
 
 // Returns a new policy instance
