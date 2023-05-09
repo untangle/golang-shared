@@ -1,7 +1,6 @@
 package policy
 
 import (
-	"fmt"
 	"sync"
 	"syscall"
 
@@ -20,59 +19,45 @@ const (
 	policyPriority = 1
 )
 
-// // Hard coded policy settings
-// var Policies = []*policySettingsType{
-// 	&policySettingsType{
-// 		Enabled: true,
-// 		Name:    "Teachers",
-// 		Source: []string{
-// 			"192.168.56.30/32", "192.168.56.31/32",
-// 		},
-// 	},
-// 	&policySettingsType{
-// 		Enabled: true,
-// 		Name:    "Students",
-// 		Source: []string{
-// 			"192.168.56.20/32", "192.168.56.21/32",
-// 		},
-// 	},
-// }
-
 type PolicyManager struct {
-	id                 string `json:"id"`
-	Enabled            bool   `json:"enabled"`
-	name               string `json:"name"`
-	description        string `json:"description"`
+	Id                 string                `json:"id"`
+	Enabled            bool                  `json:"enabled"`
+	NameField          string                `json:"name"`
+	Description        string                `json:"description"`
+	ConfigurationArray []PolicyConfiguration `json:"configurations"`
+	FlowArray          []PolicyFlowCategory  `json:"flows"`
+	PolicyArray        []Policy              `json:"policies"`
+	configurations     map[string]*PolicyConfiguration
+	flowCategories     map[string]*PolicyFlowCategory
+	conditions         map[string]*PolicyCondition
+	policies           map[string]*Policy
 	policySettingsLock sync.RWMutex
 	settingsFile       *settings.SettingsFile
 	settings           map[string]interface{}
 	interfaceSettings  *interfaces.InterfaceSettings
-	configurations     map[string]*PolicyConfiguration `json:"configurations"`
-	flowCategories     map[string]*PolicyFlowCategory  `json:"flows"`
-	conditions         map[string]*PolicyCondition     `json:"conditions"`
-	policies           map[string]*Policy              `json:"policies"`
 	alertsPublisher    alerts.AlertPublisher
 	logger             logger.Logger
 }
 
 type PolicyFlowCategory struct {
-	id          string             `json:"id"`
-	name        string             `json:"name"`
-	description string             `json:description"`
-	conditions  []*PolicyCondition `json:"conditions"`
+	Id             string            `json:"id"`
+	Name           string            `json:"name"`
+	Description    string            `json:description"`
+	ConditionArray []PolicyCondition `json:"conditions"`
+	conditions     []*PolicyCondition
 }
 
 type PolicyCondition struct {
-	cType string   `json:"type"`
-	op    string   `json:"op"`
-	value []string `json:"value"`
+	CType string   `json:"type"`
+	Op    string   `json:"op"`
+	Value []string `json:"value"`
 }
 
 type PolicyConfiguration struct {
-	id          string                  `json:"id"`
-	name        string                  `json:"name"`
-	description string                  `json:"description"`
-	plugins     []*PolicyPluginCategory `json:"plugins"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	plugins     []*PolicyPluginCategory
 }
 
 // PolicyPlugin needs to be an interface which
@@ -88,12 +73,14 @@ type PolicyPlugin interface {
 }
 
 type Policy struct {
-	id             string                          `json:"id"`
-	name           string                          `json:"name"`
-	description    string                          `json:"description"`
-	enabled        bool                            `json:"enabled"`
-	configurations map[string]*PolicyConfiguration `json:"configurations"`
-	flows          map[string]*PolicyFlowCategory  `json:"flows"`
+	Id             string   `json:"id"`
+	Name           string   `json:"name"`
+	Description    string   `json:"description"`
+	Enabled        bool     `json:"enabled"`
+	Configurations []string `json:"configurations"`
+	Flows          []string `json:"flows"`
+	configurations map[string]*PolicyConfiguration
+	flows          map[string]*PolicyFlowCategory
 }
 
 // Returns a new policy instance
@@ -112,6 +99,20 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 
 	if err := p.readPolicyManagerSettings(); err != nil {
 		return err
+	}
+	decoderConfig := mapstructure.DecoderConfig{
+		TagName:     "json",
+		Result:      p,
+		ErrorUnused: true,
+		Squash:      true,
+	}
+	mapstructdecoder, err := mapstructure.NewDecoder(&decoderConfig)
+	if err != nil {
+		p.logger.Err("policymanager: could not cerate mapstructure decoder", err)
+		return err
+	}
+	if err := mapstructdecoder.Decode(&p.settings); err != nil {
+		p.logger.Warn("policymanager: could not decode json:", err)
 	}
 	if p.settings["enabled"] != nil {
 		p.Enabled = p.settings["enabled"].(bool)
@@ -153,7 +154,7 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 			if err != nil {
 				return err
 			}
-			p.flowCategories[fc.id] = fc
+			p.flowCategories[fc.Id] = fc
 		}
 	}
 	p.configurations = make(map[string]*PolicyConfiguration)
@@ -166,7 +167,7 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 			if err != nil {
 				return err
 			}
-			p.configurations[conf.id] = conf
+			p.configurations[conf.Id] = conf
 		}
 	}
 	p.policies = make(map[string]*Policy)
@@ -180,7 +181,7 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 			if err != nil {
 				return err
 			}
-			p.policies[policy.id] = policy
+			p.policies[policy.Id] = policy
 		}
 	}
 	return nil
@@ -190,20 +191,6 @@ func (p *PolicyManager) readPolicyManagerSettings() error {
 	if err := p.settingsFile.UnmarshalSettingsAtPath(&p.settings, "policy_manager"); err != nil {
 		p.logger.Err("Could not read Policy Manager Settings from", p.settingsFile)
 		return err
-	}
-	decoderConfig := mapstructure.DecoderConfig{
-		TagName:     "json",
-		Result:      &p.settings,
-		ErrorUnused: true,
-		Squash:      true,
-	}
-	mapstructdecoder, err := mapstructure.NewDecoder(&decoderConfig)
-	if err != nil {
-		p.logger.Err("policymanager: could not cerate mapstructure decoder", err)
-		return err
-	}
-	if err := mapstructdecoder.Decode(&p.settings); err != nil {
-		return fmt.Errorf("policymanager: could not decode json: %w", err)
 	}
 	return nil
 }

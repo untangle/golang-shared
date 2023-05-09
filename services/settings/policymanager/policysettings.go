@@ -51,10 +51,10 @@ func (policyMgr *PolicyManager) validateWithModel(amap map[string]interface{}, k
 func (policyMgr *PolicyManager) NewPolicyCondition(value interface{}) (*PolicyCondition, error) {
 	amap := value.(map[string]interface{})
 	cond := PolicyCondition{}
-	if result, err := policyMgr.validateWithModel(amap, "type", cond.cType); err == nil {
-		cond.cType = result.(string)
-		if _, ok := policyConditionTypeMap[cond.cType]; !ok {
-			err := fmt.Errorf("found invalid condition type %s in PolicyCondition", cond.op)
+	if result, err := policyMgr.validateWithModel(amap, "type", cond.CType); err == nil {
+		cond.CType = result.(string)
+		if _, ok := policyConditionTypeMap[cond.CType]; !ok {
+			err := fmt.Errorf("found invalid condition type %s in PolicyCondition", cond.Op)
 			policyMgr.logger.Err("NewPolicyCondition error:", err)
 			return nil, err
 		}
@@ -62,10 +62,10 @@ func (policyMgr *PolicyManager) NewPolicyCondition(value interface{}) (*PolicyCo
 		policyMgr.logger.Err("NewPolicyCondition error:", err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "op", cond.op); err == nil {
-		cond.op = result.(string)
-		if _, ok := policyConditionOpsMap[cond.op]; !ok {
-			err := fmt.Errorf("found invalid op %s in PolicyCondition", cond.op)
+	if result, err := policyMgr.validateWithModel(amap, "op", cond.Op); err == nil {
+		cond.Op = result.(string)
+		if _, ok := policyConditionOpsMap[cond.Op]; !ok {
+			err := fmt.Errorf("found invalid op %s in PolicyCondition", cond.Op)
 			policyMgr.logger.Err("NewPolicyCondition error:", err)
 			return nil, err
 		}
@@ -76,13 +76,13 @@ func (policyMgr *PolicyManager) NewPolicyCondition(value interface{}) (*PolicyCo
 	if _, ok := amap["value"]; ok {
 		switch amap["value"].(type) {
 		case string:
-			cond.value = make([]string, 1)
-			cond.value[0] = amap["value"].(string)
+			cond.Value = make([]string, 1)
+			cond.Value[0] = amap["value"].(string)
 		case []interface{}:
 			carray := amap["value"].([]interface{})
-			cond.value = make([]string, len(carray))
+			cond.Value = make([]string, len(carray))
 			for i, v := range carray {
-				cond.value[i] = v.(string)
+				cond.Value[i] = v.(string)
 			}
 		default:
 			err := fmt.Errorf("invalid type %T for value in PolicyCondition: ", amap["type"])
@@ -100,22 +100,22 @@ func (policyMgr *PolicyManager) NewPolicyCondition(value interface{}) (*PolicyCo
 func (policyMgr *PolicyManager) NewPolicyFlowCategory(value interface{}) (*PolicyFlowCategory, error) {
 	amap := value.(map[string]interface{})
 	flow := PolicyFlowCategory{}
-	if result, err := policyMgr.validateWithModel(amap, "id", flow.id); err == nil {
-		flow.id = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "id", flow.Id); err == nil {
+		flow.Id = result.(string)
 	} else {
 		policyMgr.logger.Err("NewPolicyFlowCategory id:", err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "name", flow.name); err == nil {
-		flow.name = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "name", flow.Name); err == nil {
+		flow.Name = result.(string)
 	} else {
-		policyMgr.logger.Err("NewPolicyFlowCategory with id: %s error on name:", flow.id, err)
+		policyMgr.logger.Err("NewPolicyFlowCategory with id: %s error on name:", flow.Id, err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "description", flow.description); err == nil {
-		flow.description = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "description", flow.Description); err == nil {
+		flow.Description = result.(string)
 	} else {
-		policyMgr.logger.Err("NewPolicyFlowCategory with id: %s error on description:", flow.id, err)
+		policyMgr.logger.Err("NewPolicyFlowCategory with id: %s error on description:", flow.Id, err)
 		return nil, err
 	}
 	cmap := make([]interface{}, 1)
@@ -125,7 +125,7 @@ func (policyMgr *PolicyManager) NewPolicyFlowCategory(value interface{}) (*Polic
 		for i, v := range cmap {
 			var err error
 			if flow.conditions[i], err = policyMgr.NewPolicyCondition(v); err != nil {
-				policyMgr.logger.Err("Failed loading PolicyCondition %d for PolicyFlowCategory %s", i, flow.id)
+				policyMgr.logger.Err("Failed loading PolicyCondition %d for PolicyFlowCategory %s", i, flow.Id)
 				return &flow, err
 			}
 		}
@@ -139,22 +139,22 @@ func (policyMgr *PolicyManager) NewPolicyFlowCategory(value interface{}) (*Polic
 func (policyMgr *PolicyManager) NewPolicyConfiguration(value interface{}) (*PolicyConfiguration, error) {
 	amap := value.(map[string]interface{})
 	conf := PolicyConfiguration{}
-	if result, err := policyMgr.validateWithModel(amap, "id", conf.id); err == nil {
-		conf.id = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "id", conf.Id); err == nil {
+		conf.Id = result.(string)
 	} else {
 		policyMgr.logger.Err("NewPolicyConiguration with invalid id", err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "name", conf.name); err == nil {
-		conf.name = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "name", conf.Name); err == nil {
+		conf.Name = result.(string)
 	} else {
-		policyMgr.logger.Err("NewPolicyConiguration with id %s has invalid\\ name", conf.id, err)
+		policyMgr.logger.Err("NewPolicyConiguration with id %s has invalid\\ name", conf.Id, err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "description", conf.description); err == nil {
-		conf.description = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "description", conf.Description); err == nil {
+		conf.Description = result.(string)
 	} else {
-		policyMgr.logger.Err("NewPolicyConiguration with id %s has invalid description", conf.id, err)
+		policyMgr.logger.Err("NewPolicyConiguration with id %s has invalid description", conf.Id, err)
 		return nil, err
 	}
 	/* 	for i, v := range amap["plugins"].([]string) {
@@ -168,28 +168,28 @@ func (policyMgr *PolicyManager) NewPolicy(value interface{}) (*Policy, error) {
 	amap := value.(map[string]interface{})
 	policy := Policy{}
 
-	if result, err := policyMgr.validateWithModel(amap, "id", policy.id); err == nil {
-		policy.id = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "id", policy.Id); err == nil {
+		policy.Id = result.(string)
 	} else {
 		policyMgr.logger.Err("NewPolicy with has invalid id", err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "name", policy.name); err == nil {
-		policy.name = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "name", policy.Name); err == nil {
+		policy.Name = result.(string)
 	} else {
-		policyMgr.logger.Err("NewPolicy with id %s has invalid name", policy.id, err)
+		policyMgr.logger.Err("NewPolicy with id %s has invalid name", policy.Id, err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "description", policy.description); err == nil {
-		policy.description = result.(string)
+	if result, err := policyMgr.validateWithModel(amap, "description", policy.Description); err == nil {
+		policy.Description = result.(string)
 	} else {
-		policyMgr.logger.Err("NewPolicy with id %s has invalid description", policy.id, err)
+		policyMgr.logger.Err("NewPolicy with id %s has invalid description", policy.Id, err)
 		return nil, err
 	}
-	if result, err := policyMgr.validateWithModel(amap, "enabled", policy.enabled); err == nil {
-		policy.enabled = result.(bool)
+	if result, err := policyMgr.validateWithModel(amap, "enabled", policy.Enabled); err == nil {
+		policy.Enabled = result.(bool)
 	} else {
-		policyMgr.logger.Err("NewPolicy with id %s has invalid enabled", policy.id, err)
+		policyMgr.logger.Err("NewPolicy with id %s has invalid enabled", policy.Id, err)
 		return nil, err
 	}
 	policy.configurations = make(map[string]*PolicyConfiguration)
@@ -202,14 +202,14 @@ func (policyMgr *PolicyManager) NewPolicy(value interface{}) (*Policy, error) {
 				policy.configurations[id] = policyMgr.configurations[id]
 			} else {
 				err := fmt.Errorf("invalid Policy %s(%s) with unknown configuration: %s",
-					policy.id, policy.name, id)
+					policy.Id, policy.Name, id)
 				policyMgr.logger.Err("NewPolicy error", err)
 				return nil, err
 			}
 		}
 	} else {
 		err := fmt.Errorf("invalid Policy %s(%s) with nil configuration",
-			policy.id, policy.name)
+			policy.Id, policy.Name)
 		policyMgr.logger.Err("NewPolicy error", err)
 		return nil, err
 	}
@@ -223,13 +223,13 @@ func (policyMgr *PolicyManager) NewPolicy(value interface{}) (*Policy, error) {
 				policy.flows[id] = policyMgr.flowCategories[id]
 			} else {
 				err := fmt.Errorf("invalid Policy %s(%s) with unknown flow: %s",
-					policy.id, policy.name, id)
+					policy.Id, policy.Name, id)
 				policyMgr.logger.Err("NewPolicy error", err)
 				return nil, err
 			}
 		}
 	} else {
-		err := fmt.Errorf("invalid Policy %s(%s) with no flows", policy.id, policy.name)
+		err := fmt.Errorf("invalid Policy %s(%s) with no flows", policy.Id, policy.Name)
 		policyMgr.logger.Err("NewPolicy error", err)
 		return nil, err
 	}
