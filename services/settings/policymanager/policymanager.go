@@ -27,6 +27,7 @@ type PolicyManager struct {
 	ConfigurationArray []PolicyConfiguration `json:"configurations"`
 	FlowArray          []PolicyFlowCategory  `json:"flows"`
 	PolicyArray        []Policy              `json:"policies"`
+
 	configurations     map[string]*PolicyConfiguration
 	flowCategories     map[string]*PolicyFlowCategory
 	conditions         map[string]*PolicyCondition
@@ -48,15 +49,17 @@ type PolicyFlowCategory struct {
 }
 
 type PolicyCondition struct {
-	CType string   `json:"type"`
-	Op    string   `json:"op"`
-	Value []string `json:"value"`
+	CType string `json:"type"`
+	Op    string `json:"op"`
+	Value string `json:"value"`
+	value []string
 }
 
 type PolicyConfiguration struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Id          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Other       map[string]interface{} `json:",remain"`
 	plugins     []*PolicyPluginCategory
 }
 

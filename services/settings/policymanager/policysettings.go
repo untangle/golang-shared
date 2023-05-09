@@ -76,13 +76,13 @@ func (policyMgr *PolicyManager) NewPolicyCondition(value interface{}) (*PolicyCo
 	if _, ok := amap["value"]; ok {
 		switch amap["value"].(type) {
 		case string:
-			cond.Value = make([]string, 1)
-			cond.Value[0] = amap["value"].(string)
+			cond.value = make([]string, 1)
+			cond.value[0] = amap["value"].(string)
 		case []interface{}:
 			carray := amap["value"].([]interface{})
-			cond.Value = make([]string, len(carray))
+			cond.value = make([]string, len(carray))
 			for i, v := range carray {
-				cond.Value[i] = v.(string)
+				cond.value[i] = v.(string)
 			}
 		default:
 			err := fmt.Errorf("invalid type %T for value in PolicyCondition: ", amap["type"])
