@@ -9,25 +9,26 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-const (
-	pluginName         = "policy"
-	licensePluginName  = "untangle-node-policy"
-	defaultSensitivity = 20
-
-	policyPriority = 1
-)
-
+// PolicyManager is the main data structure for Policy Management.
+// It contains an array of PolicyConfigurations, an array of PolicyFlowCategory's
+// and an array of Policy which reference the Configurations and FlowCategories by id.
+// Those arrays are loaded from the json primarily by mapstructure.
+// PolicyManager also maintains map[string]'s based on those arrays to
+// facilitate lookup.
+// Id, NameField and Description may not be needed at this level.
 type PolicyManager struct {
 	// Fields populated using mapstructure
-	Id                 string                `json:"id"`
-	Enabled            bool                  `json:"enabled"`
-	NameField          string                `json:"name"`
-	Description        string                `json:"description"`
+	Id          string `json:"id"`
+	Enabled     bool   `json:"enabled"`
+	NameField   string `json:"name"`
+	Description string `json:"description"`
+
+	// These arrays are loaded directly by mapstructure Decode
 	ConfigurationArray []PolicyConfiguration `json:"configurations"`
 	FlowArray          []PolicyFlowCategory  `json:"flows"`
 	PolicyArray        []Policy              `json:"policies"`
 
-	// Fields resolved after loading the arrays above
+	// These maps resolved after loading the arrays above
 	configurations map[string]*PolicyConfiguration
 	flowCategories map[string]*PolicyFlowCategory
 	policies       map[string]*Policy
@@ -38,6 +39,12 @@ type PolicyManager struct {
 	logger             *logger.Logger
 }
 
+// The PolicyFlowCategory captures a set of PolicyConditions
+// that determine whether the containing Policy applies to
+// traffic as it is seen.
+// Each PolicyFlowCategory is identifed by its unique ID.
+// The data model does not support charing PolicyConditions
+// between Policy's although PolicyConfigurations can be shared.
 type PolicyFlowCategory struct {
 	Id             string            `json:"id"`
 	Name           string            `json:"name"`
@@ -45,6 +52,8 @@ type PolicyFlowCategory struct {
 	ConditionArray []PolicyCondition `json:"conditions"`
 }
 
+// PolicyCondition contains the criteria to test packets against
+// to detemine whether the associated PolicyFlowCategor and Policy apply.
 type PolicyCondition struct {
 	CType string `json:"type"`
 	Op    string `json:"op"`
@@ -55,9 +64,10 @@ type PolicyCondition struct {
 	// Having it be either an []string or string is not trivial AFAICT with mapstructure
 	// although it is easy if we parse the map[string]interface{}
 	// as initially done.
-	value []string
+	value []string // not currently used
 }
 
+// PolicyConfiguration
 type PolicyConfiguration struct {
 	Id          string `json:"id"`
 	Name        string `json:"name"`
@@ -120,7 +130,8 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 		return err
 	}
 	if err := mapstructdecoder.Decode(&p.settings); err != nil {
-		p.logger.Warn("policymanager: could not decode json:", err)
+		p.logger.Err("policymanager: could not decode json:", err)
+		return err
 	}
 	// Now populate the maps in PolicyManager and p.policies
 	// to facilitate lookup at runtime
@@ -143,12 +154,14 @@ func (p *PolicyManager) validatePolicies() error {
 	for _, policy := range p.policies {
 		for _, configId := range policy.Configurations {
 			if _, ok := p.configurations[configId]; !ok {
-				return fmt.Errorf("validatePolicies: found invalid configuration Id: %s", configId)
+				return fmt.Errorf("validatePolicies: found invalid configuration Id: %s in Policy %s",
+					configId, policy.Id)
 			}
 		}
 		for _, flowId := range policy.Flows {
 			if _, ok := p.flowCategories[flowId]; !ok {
-				return fmt.Errorf("validatePolicies: found invalid flow Id: %s", flowId)
+				return fmt.Errorf("validatePolicies: found invalid flow Id: %s in Policy %s",
+					flowId, policy.Id)
 			}
 			for _, cond := range p.flowCategories[flowId].ConditionArray {
 				if _, ok := policyConditionTypeMap[cond.CType]; !ok {
