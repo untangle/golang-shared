@@ -192,46 +192,5 @@ func (policyMgr *PolicyManager) NewPolicy(value interface{}) (*Policy, error) {
 		policyMgr.logger.Err("NewPolicy with id %s has invalid enabled", policy.Id, err)
 		return nil, err
 	}
-	policy.configurations = make(map[string]*PolicyConfiguration)
-	configMap := make([]interface{}, 1)
-	if result, err := policyMgr.validateWithModel(amap, "configurations", configMap); err == nil {
-		configMap = result.([]interface{})
-		for _, v := range configMap {
-			id := v.(string)
-			if _, ok := policyMgr.configurations[id]; ok {
-				policy.configurations[id] = policyMgr.configurations[id]
-			} else {
-				err := fmt.Errorf("invalid Policy %s(%s) with unknown configuration: %s",
-					policy.Id, policy.Name, id)
-				policyMgr.logger.Err("NewPolicy error", err)
-				return nil, err
-			}
-		}
-	} else {
-		err := fmt.Errorf("invalid Policy %s(%s) with nil configuration",
-			policy.Id, policy.Name)
-		policyMgr.logger.Err("NewPolicy error", err)
-		return nil, err
-	}
-	policy.flows = make(map[string]*PolicyFlowCategory)
-	flowMap := make([]interface{}, 1)
-	if result, err := policyMgr.validateWithModel(amap, "flows", flowMap); err == nil {
-		pfmap := result.([]interface{})
-		for _, v := range pfmap {
-			id := v.(string)
-			if _, ok := policyMgr.flowCategories[id]; ok {
-				policy.flows[id] = policyMgr.flowCategories[id]
-			} else {
-				err := fmt.Errorf("invalid Policy %s(%s) with unknown flow: %s",
-					policy.Id, policy.Name, id)
-				policyMgr.logger.Err("NewPolicy error", err)
-				return nil, err
-			}
-		}
-	} else {
-		err := fmt.Errorf("invalid Policy %s(%s) with no flows", policy.Id, policy.Name)
-		policyMgr.logger.Err("NewPolicy error", err)
-		return nil, err
-	}
 	return &policy, nil
 }

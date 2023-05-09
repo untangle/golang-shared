@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"fmt"
 	"sync"
 	"syscall"
 
@@ -20,6 +21,7 @@ const (
 )
 
 type PolicyManager struct {
+	// Fields populated using mapstructure
 	Id                 string                `json:"id"`
 	Enabled            bool                  `json:"enabled"`
 	NameField          string                `json:"name"`
@@ -28,22 +30,24 @@ type PolicyManager struct {
 	FlowArray          []PolicyFlowCategory  `json:"flows"`
 	PolicyArray        []Policy              `json:"policies"`
 
-	configurations     map[string]*PolicyConfiguration
-	flowCategories     map[string]*PolicyFlowCategory
-	conditions         map[string]*PolicyCondition
-	policies           map[string]*Policy
+	// Fields resolved after loading the arrays above
+	configurations map[string]*PolicyConfiguration
+	flowCategories map[string]*PolicyFlowCategory
+	conditions     map[string]*PolicyCondition
+	policies       map[string]*Policy
+
 	policySettingsLock sync.RWMutex
 	settingsFile       *settings.SettingsFile
 	settings           map[string]interface{}
 	interfaceSettings  *interfaces.InterfaceSettings
 	alertsPublisher    alerts.AlertPublisher
-	logger             logger.Logger
+	logger             *logger.Logger
 }
 
 type PolicyFlowCategory struct {
 	Id             string            `json:"id"`
 	Name           string            `json:"name"`
-	Description    string            `json:description"`
+	Description    string            `json:"description"`
 	ConditionArray []PolicyCondition `json:"conditions"`
 	conditions     []*PolicyCondition
 }
@@ -52,26 +56,36 @@ type PolicyCondition struct {
 	CType string `json:"type"`
 	Op    string `json:"op"`
 	Value string `json:"value"`
+	// There was a discussion about allowing value to be an array.
+	// For now, I am assuming that it is only a string
+	// with a comma-separated list if need be.
+	// Having it be either an []string or string is not trivial AFAICT with mapstructure
+	// although it is easy if we parse the map[string]interface{}
+	// as initially done.
 	value []string
 }
 
 type PolicyConfiguration struct {
-	Id          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Other       map[string]interface{} `json:",remain"`
-	plugins     []*PolicyPluginCategory
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// This doesn't parse completely with mapstructure
+	// so we need to resolve this after the initial load
+	Other   map[string]interface{} `json:",remain"`
+	plugins []*PolicyPluginCategory
 }
 
+// TODO WIP
 // PolicyPlugin needs to be an interface which
 // can be implemented by a "geoip", "threatprevention", or "webfilter" configuration
 type PolicyPluginCategory struct {
-	id          string          `json:"id"`
-	name        string          `json:"name"`
-	description string          `json:"description"`
-	conditions  []*PolicyPlugin `json:"conditions"`
+	Id          string          `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Conditions  []*PolicyPlugin `json:"conditions"`
 }
 
+// TODO WIP
 type PolicyPlugin interface {
 }
 
@@ -82,14 +96,12 @@ type Policy struct {
 	Enabled        bool     `json:"enabled"`
 	Configurations []string `json:"configurations"`
 	Flows          []string `json:"flows"`
-	configurations map[string]*PolicyConfiguration
-	flows          map[string]*PolicyFlowCategory
 }
 
 // Returns a new policy instance
 func NewPolicyManager(
 	settingsFile *settings.SettingsFile,
-	logger logger.Logger) *PolicyManager {
+	logger *logger.Logger) *PolicyManager {
 	return &PolicyManager{
 		logger:       logger,
 		settingsFile: settingsFile,
@@ -117,74 +129,37 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 	if err := mapstructdecoder.Decode(&p.settings); err != nil {
 		p.logger.Warn("policymanager: could not decode json:", err)
 	}
-	if p.settings["enabled"] != nil {
-		p.Enabled = p.settings["enabled"].(bool)
-	}
 	p.conditions = make(map[string]*PolicyCondition)
-	// Load all PolicyFlowCategories
-	// and create a map based on id// findPolicy returns matching polices.
-	// func (p *PolicyManager) findPolicy(s net.IP) *string {
-	// 	for _, pol := range p.policySettings {
-	// 		if p.matchPolicy(s, pol) {
-	// 			return &pol.Name
-	// 		}
-	// 	}
-	// 	return nil
-	// }
+	// Not handling conditions yet
 
-	// func (p *PolicyManager) matchPolicy(sourceAddr net.IP, pol *policySettingsType) bool {
-	// 	// Check if source matches.
-
-	// 	for _, pSrc := range pol.Source {
-	// 		if _, psource, err := net.ParseCIDR(pSrc); err == nil {
-	// 			if psource.Contains(sourceAddr) {
-	// 				p.logger.Debug("Policy match: %v", pol.Name)
-	// 				return true
-	// 			}
-	// 		} else {
-	// 			p.logger.Err("Error parsing policy source: %v\n", err)
-	// 		}
-	// 	}
-	// 	return false
-	// }
-
-	p.flowCategories = make(map[string]*PolicyFlowCategory)
-	if p.settings["flows"] != nil {
-		// and also populate the conditions based on configured id's
-		for _, v := range p.settings["flows"].([]interface{}) {
-			// Populate
-			fc, err := p.NewPolicyFlowCategory(v)
-			if err != nil {
-				return err
-			}
-			p.flowCategories[fc.Id] = fc
-		}
+	// Now populate the maps in PolicyManager and p.policies
+	// to facilitate lookup at runtime
+	p.configurations = make(map[string]*PolicyConfiguration, len(p.ConfigurationArray))
+	for _, config := range p.ConfigurationArray {
+		p.configurations[config.Id] = &config
 	}
-	p.configurations = make(map[string]*PolicyConfiguration)
-	if p.settings["configurations"] != nil {
-		// Load all PolicyConfigurations
-		// and create a map based on id
-		for _, v := range p.settings["configurations"].([]interface{}) {
-			// Populate
-			conf, err := p.NewPolicyConfiguration(v)
-			if err != nil {
-				return err
-			}
-			p.configurations[conf.Id] = conf
-		}
+	p.flowCategories = make(map[string]*PolicyFlowCategory, len(p.FlowArray))
+	for _, flow := range p.FlowArray {
+		p.flowCategories[flow.Id] = &flow
 	}
-	p.policies = make(map[string]*Policy)
-	if p.settings["policies"] != nil {
-		// Load all Policies
-		// and populate with references to the other structures
-		// based on the configured id's
-		for _, v := range p.settings["policies"].([]interface{}) {
-			// Populate
-			policy, err := p.NewPolicy(v)
-			if err != nil {
-				return err
+	p.policies = make(map[string]*Policy, len(p.PolicyArray))
+	for _, policy := range p.PolicyArray {
+		p.policies[policy.Id] = &policy
+	}
+	return p.validatePolicies()
+}
+
+func (p *PolicyManager) validatePolicies() error {
+	for _, policy := range p.policies {
+		for _, configId := range policy.Configurations {
+			if _, ok := p.configurations[configId]; !ok {
+				return fmt.Errorf("validatePolicies: found invalid configuration Id: %s", configId)
 			}
-			p.policies[policy.Id] = policy
+		}
+		for _, flowId := range policy.Flows {
+			if _, ok := p.flowCategories[flowId]; !ok {
+				return fmt.Errorf("validatePolicies: found invalid flow Id: %s", flowId)
+			}
 		}
 	}
 	return nil
@@ -281,6 +256,33 @@ func (p *PolicyManager) Signal(message syscall.Signal) error {
 // }
 
 // // findPolicy returns matching polices.
+// func (p *PolicyManager) findPolicy(s net.IP) *string {
+// 	for _, pol := range p.policySettings {
+// 		if p.matchPolicy(s, pol) {
+// 			return &pol.Name
+// 		}
+// 	}
+// 	return nil
+// }
+
+// func (p *PolicyManager) matchPolicy(sourceAddr net.IP, pol *policySettingsType) bool {
+// 	// Check if source matches.
+
+// 	for _, pSrc := range pol.Source {
+// 		if _, psource, err := net.ParseCIDR(pSrc); err == nil {
+// 			if psource.Contains(sourceAddr) {
+// 				p.logger.Debug("Policy match: %v", pol.Name)
+// 				return true
+// 			}
+// 		} else {
+// 			p.logger.Err("Error parsing policy source: %v\n", err)
+// 		}
+// 	}
+// 	return false
+// }
+
+// Load all PolicyFlowCategories
+// and create a map based on id// findPolicy returns matching polices.
 // func (p *PolicyManager) findPolicy(s net.IP) *string {
 // 	for _, pol := range p.policySettings {
 // 		if p.matchPolicy(s, pol) {
