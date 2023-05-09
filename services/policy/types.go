@@ -22,23 +22,25 @@ type PolicyConditionType struct {
 }
 
 type PolicyConfigurationType struct {
-	ID             string      `json:"id"`
-	Name           string      `json:"name"`
-	Description    string      `json:"description"`
-	PluginSettings interface{} `json:"service"`
+	ID          string      `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	TPSettings  interface{} `json:"threatprevention", optional:"true"`
+	WFSettings  interface{} `json:"webfilter", optional:"true"`
+	GEOSettings interface{} `json:"geoip", optional:"true"`
 }
 
 type PolicyType struct {
-	Defaults      bool                       `json:"defaults"`
-	ID            string                     `json:"id"`
-	Name          string                     `json:"name"`
-	Description   string                     `json:"description"`
-	Enabled       bool                       `json:"enabled"`
-	Configuration []*PolicyConfigurationType `json:"policyConfigurations"`
-	Flows         []*PolicyFlowType          `json:"flowCategories"`
+	Defaults      bool      `json:"defaults"`
+	ID            string    `json:"id"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	Enabled       bool      `json:"enabled"`
+	Configuration []*string `json:"policyConfigurations"`
+	Flows         []*string `json:"flowCategories"`
 }
 
-func (p *PolicyType) GetFlows() []*PolicyFlowType {
+func (p *PolicyType) GetFlows() []*string {
 	return p.Flows
 }
 

@@ -24,13 +24,10 @@ func getAllPolicyConfigurationSettings() (map[string]map[string]interface{}, err
 	logger.Info("There are %i polices\n", len(policySettings.Policies))
 	logger.Info("There are %i flows\n", len(policySettings.Flows))
 	logger.Info("There are %i configurations\n", len(policySettings.Configurations))
-	logger.Info("Name of policy: %v\n", policySettings.Policies[0].Name)
+	logger.Info("Configuration: %+v\n", policySettings.Configurations[0])
 
-	for _, policy := range policySettings.Policies {
-		logger.Info("Parsing policy: %v\n", policy.Name)
-		for _, config := range policy.Configuration {
-			logger.Info("Plugin: %+v", config.PluginSettings)
-		}
+	for _, config := range policySettings.Configurations {
+		logger.Info("Plugin: %+v", config.TPSettings)
 	}
 	return nil, nil
 }
