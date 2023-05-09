@@ -33,7 +33,6 @@ type PolicyManager struct {
 	// Fields resolved after loading the arrays above
 	configurations map[string]*PolicyConfiguration
 	flowCategories map[string]*PolicyFlowCategory
-	conditions     map[string]*PolicyCondition
 	policies       map[string]*Policy
 
 	policySettingsLock sync.RWMutex
@@ -49,7 +48,6 @@ type PolicyFlowCategory struct {
 	Name           string            `json:"name"`
 	Description    string            `json:"description"`
 	ConditionArray []PolicyCondition `json:"conditions"`
-	conditions     []*PolicyCondition
 }
 
 type PolicyCondition struct {
@@ -129,9 +127,6 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 	if err := mapstructdecoder.Decode(&p.settings); err != nil {
 		p.logger.Warn("policymanager: could not decode json:", err)
 	}
-	p.conditions = make(map[string]*PolicyCondition)
-	// Not handling conditions yet
-
 	// Now populate the maps in PolicyManager and p.policies
 	// to facilitate lookup at runtime
 	p.configurations = make(map[string]*PolicyConfiguration, len(p.ConfigurationArray))
@@ -159,6 +154,16 @@ func (p *PolicyManager) validatePolicies() error {
 		for _, flowId := range policy.Flows {
 			if _, ok := p.flowCategories[flowId]; !ok {
 				return fmt.Errorf("validatePolicies: found invalid flow Id: %s", flowId)
+			}
+			for _, cond := range p.flowCategories[flowId].ConditionArray {
+				if _, ok := policyConditionTypeMap[cond.CType]; !ok {
+					return fmt.Errorf("validatePolicies: found invalid CType: %s in Policy %s, Flow %s",
+						cond.CType, policy.Id, flowId)
+				}
+				if _, ok := policyConditionOpsMap[cond.Op]; !ok {
+					return fmt.Errorf("validatePolicies: found invalid Op: %s in Policy %s, Flow %s",
+						cond.Op, policy.Id, flowId)
+				}
 			}
 		}
 	}

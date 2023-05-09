@@ -28,15 +28,14 @@ import (
 
 func TestPolicyManager(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("test_settings_empty.json")
-	logger := logger.GetLoggerInstance()
-	policyMgr := policy.NewPolicyManager(settingsFile, *logger)
+	policyMgr := policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
 		t.Fail()
 	}
 
 	settingsFile = settings.NewSettingsFile("test_settings.json")
-	policyMgr = policy.NewPolicyManager(settingsFile, *logger)
+	policyMgr = policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
 		t.Fail()

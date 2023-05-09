@@ -121,13 +121,14 @@ func (policyMgr *PolicyManager) NewPolicyFlowCategory(value interface{}) (*Polic
 	cmap := make([]interface{}, 1)
 	if result, err := policyMgr.validateWithModel(amap, "conditions", cmap); err == nil {
 		cmap = result.([]interface{})
-		flow.conditions = make([]*PolicyCondition, len(cmap))
+		flow.ConditionArray = make([]PolicyCondition, len(cmap))
 		for i, v := range cmap {
-			var err error
-			if flow.conditions[i], err = policyMgr.NewPolicyCondition(v); err != nil {
+			pcond, err := policyMgr.NewPolicyCondition(v)
+			if err != nil {
 				policyMgr.logger.Err("Failed loading PolicyCondition %d for PolicyFlowCategory %s", i, flow.Id)
-				return &flow, err
+				return nil, err
 			}
+			flow.ConditionArray[i] = *pcond
 		}
 	} else {
 		policyMgr.logger.Err("NewPolicyFlowCategory errror:", err)
