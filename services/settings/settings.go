@@ -436,12 +436,24 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	return output, nil
 }
 
+// this runs the `sync` command so the OS writes the cached file changes
+func syncSystemFiles() {
+	if err := exec.Command("sync").Run(); err != nil {
+		logger.Err("Failed to run `sync` command with error: %+v\n", err)
+		return
+	}
+	logger.Info("System files synced.\n")
+}
+
 // syncAndSave writes the jsonObject to a tmp file
 // calls sync-settings on the tmp file, and if the sync-settings returns 0
 // it copies the tmp file to the destination specified in filename
 // if sync-settings does not succeed it returns the error and output
 // returns stdout, stderr, and an error
 func syncAndSave(jsonObject map[string]interface{}, filename string, force bool) (string, error) {
+	// we want this to run after all files have been closed, so we defer it as soon as possible
+	defer syncSystemFiles()
+
 	tmpfile, err := tempFile("", "settings.json.")
 	if err != nil {
 		logger.Warn("Failed to generate tmpfile: %v\n", err.Error())
