@@ -28,8 +28,8 @@ func getAllPolicyConfigurationSettings() (map[string]map[string]interface{}, err
 		if !p.Enabled {
 			continue
 		}
-		for _, config := p.Configurations {
-			config := policySettings.findConfiguration(config)
+		for _, config := range p.Configurations {
+			config := policySettings.findConfiguration(*config)
 			if config == nil {
 				// No matching configuration found, skip. Although this should never happen.
 				continue

@@ -32,13 +32,13 @@ type PolicyConfigurationType struct {
 }
 
 type PolicyType struct {
-	Defaults      bool      `json:"defaults"`
-	ID            string    `json:"id"`
-	Name          string    `json:"name"`
-	Description   string    `json:"description"`
-	Enabled       bool      `json:"enabled"`
-	Configuration []*string `json:"policyConfigurations"`
-	Flows         []*string `json:"flowCategories"`
+	Defaults       bool      `json:"defaults"`
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	Enabled        bool      `json:"enabled"`
+	Configurations []*string `json:"policyConfigurations"`
+	Flows          []*string `json:"flowCategories"`
 }
 
 func (p *PolicyType) GetFlows() []*string {
