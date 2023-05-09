@@ -3,13 +3,10 @@ package policy
 import (
 	"fmt"
 	"sync"
-	"syscall"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/untangle/golang-shared/services/alerts"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
-	"github.com/untangle/golang-shared/util/net/interfaces"
 )
 
 const (
@@ -38,8 +35,6 @@ type PolicyManager struct {
 	policySettingsLock sync.RWMutex
 	settingsFile       *settings.SettingsFile
 	settings           map[string]interface{}
-	interfaceSettings  *interfaces.InterfaceSettings
-	alertsPublisher    alerts.AlertPublisher
 	logger             *logger.Logger
 }
 
@@ -177,138 +172,3 @@ func (p *PolicyManager) readPolicyManagerSettings() error {
 	}
 	return nil
 }
-
-func (p *PolicyManager) loadPolicyConditions() error {
-	p.logger.Err("loadPolicyConditions Not ready yet")
-	return nil
-}
-
-// Returns the priority that policy can process packets from Nfqueue
-func (p *PolicyManager) PacketProcessorPriority() uint {
-	return policyPriority
-}
-
-// Startup function is called to allow plugin specific initialization.
-func (p *PolicyManager) Startup() error {
-	p.logger.Info("Plugin %v stating\n", p.Name())
-	p.syncCallbackHandler()
-	return nil
-}
-
-// Shutdown function called when the daemon is shutting down
-func (p *PolicyManager) Shutdown() error {
-	p.logger.Info("Plugin Shutdown(%s) has been called\n", pluginName)
-	return nil
-}
-
-// Returns name of the plugin
-func (p *PolicyManager) Name() string {
-	return pluginName
-}
-
-// syncCallbackHandler is called when the settings are changed.
-// Needs to load all policy settings.
-func (p *PolicyManager) syncCallbackHandler() error {
-	// Do nothing for now.
-	return nil
-}
-
-// PluginEnabled function returns the status (if plugin is enabled (true) or disabled (false) currently)
-func (p *PolicyManager) PluginEnabled() bool {
-	p.policySettingsLock.RLock()
-	defer p.policySettingsLock.RUnlock()
-
-	return p.Enabled
-}
-
-// Handles a syscall
-func (p *PolicyManager) Signal(message syscall.Signal) error {
-	p.logger.Info("PluginSignal(%s) has been called \n", pluginName)
-	switch message {
-	case syscall.SIGHUP:
-		return p.syncCallbackHandler()
-	}
-
-	return nil
-}
-
-// // HandleNfqueuePacket receives a PacketMessage which includes a Tuple and
-// // a gopacket.Packet, along with the IP and TCP or UDP layer already extracted.
-// // We do whatever we like with the data, and when finished, we return an
-// // integer via the argumented channel with interface{} bits set that we want added to
-// // the packet mark.
-// func (p *PolicyManager) HandleNfqueuePacket(
-// 	mess dispatch.PacketMessage,
-// 	newSession bool) dispatch.PacketProcessingResult {
-
-// 	srcAddr := mess.Session.GetClientSideTuple().ClientAddress
-
-// 	// See if this sessions should have it policy enforced.
-// 	if pol := p.findPolicy(srcAddr); pol != nil {
-// 		if err := p.dict.AddSessionEntry(
-// 			mess.Session.GetConntrackID(),
-// 			"policy",
-// 			pol); err != nil {
-// 			// Log something appropriate.
-// 		}
-// 	}
-
-// 	// More logic probably needed in case we can't determine policy based on first packet.
-// 	return dispatch.PacketProcessingResult{
-// 		SessionRelease: true,
-// 	}
-
-// }
-
-// // findPolicy returns matching polices.
-// func (p *PolicyManager) findPolicy(s net.IP) *string {
-// 	for _, pol := range p.policySettings {
-// 		if p.matchPolicy(s, pol) {
-// 			return &pol.Name
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func (p *PolicyManager) matchPolicy(sourceAddr net.IP, pol *policySettingsType) bool {
-// 	// Check if source matches.
-
-// 	for _, pSrc := range pol.Source {
-// 		if _, psource, err := net.ParseCIDR(pSrc); err == nil {
-// 			if psource.Contains(sourceAddr) {
-// 				p.logger.Debug("Policy match: %v", pol.Name)
-// 				return true
-// 			}
-// 		} else {
-// 			p.logger.Err("Error parsing policy source: %v\n", err)
-// 		}
-// 	}
-// 	return false
-// }
-
-// Load all PolicyFlowCategories
-// and create a map based on id// findPolicy returns matching polices.
-// func (p *PolicyManager) findPolicy(s net.IP) *string {
-// 	for _, pol := range p.policySettings {
-// 		if p.matchPolicy(s, pol) {
-// 			return &pol.Name
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func (p *PolicyManager) matchPolicy(sourceAddr net.IP, pol *policySettingsType) bool {
-// 	// Check if source matches.
-
-// 	for _, pSrc := range pol.Source {
-// 		if _, psource, err := net.ParseCIDR(pSrc); err == nil {
-// 			if psource.Contains(sourceAddr) {
-// 				p.logger.Debug("Policy match: %v", pol.Name)
-// 				return true
-// 			}
-// 		} else {
-// 			p.logger.Err("Error parsing policy source: %v\n", err)
-// 		}
-// 	}
-// 	return false
-// }
