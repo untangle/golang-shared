@@ -20,16 +20,38 @@ func getAllPolicyConfigurationSettings() (map[string]map[string]interface{}, err
 		return nil, err
 	}
 
-	logger.Info("Found policy manager settings %+v\n", policySettings)
-	logger.Info("There are %i polices\n", len(policySettings.Policies))
-	logger.Info("There are %i flows\n", len(policySettings.Flows))
-	logger.Info("There are %i configurations\n", len(policySettings.Configurations))
-	logger.Info("Configuration: %+v\n", policySettings.Configurations[0])
+	// Process into a map of maps
+	pluginSettings := make(map[string]map[string]interface{})
 
-	for _, config := range policySettings.Configurations {
-		logger.Info("Plugin: %+v", config.TPSettings)
+	// Go through each Policy and find matching configurations.
+	for _, p := range policySettings.Policies {
+		if !p.Enabled {
+			continue
+		}
+		for _, config := p.Configurations {
+			config := policySettings.findConfiguration(config)
+			if config == nil {
+				// No matching configuration found, skip. Although this should never happen.
+				continue
+			}
+			// Add the plugins into the map. Wish there was a better way to do this
+			if config.TPSettings != nil {
+				pluginSettings[p.Name]["threatprevention"] = config.TPSettings
+			}
+			if config.WFSettings != nil {
+				pluginSettings[p.Name]["webfilter"] = config.WFSettings
+			}
+			if config.GEOSettings != nil {
+				pluginSettings[p.Name]["geoip"] = config.GEOSettings
+			}
+			if config.AppControlSettings != nil {
+				pluginSettings[p.Name]["application_control"] = config.AppControlSettings
+			}
+		}
 	}
+
 	return nil, nil
+
 }
 
 // Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is

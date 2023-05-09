@@ -22,12 +22,13 @@ type PolicyConditionType struct {
 }
 
 type PolicyConfigurationType struct {
-	ID          string      `json:"id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	TPSettings  interface{} `json:"threatprevention", optional:"true"`
-	WFSettings  interface{} `json:"webfilter", optional:"true"`
-	GEOSettings interface{} `json:"geoip", optional:"true"`
+	ID                 string      `json:"id"`
+	Name               string      `json:"name"`
+	Description        string      `json:"description"`
+	TPSettings         interface{} `json:"threatprevention", optional:"true"`
+	WFSettings         interface{} `json:"webfilter", optional:"true"`
+	GEOSettings        interface{} `json:"geoip", optional:"true"`
+	AppControlSettings interface{} `json:"application_control", optional:"true"`
 }
 
 type PolicyType struct {
@@ -66,4 +67,23 @@ func (c *PolicyConditionType) GetOp() string {
 
 func (c *PolicyConditionType) GetValue() string {
 	return c.Value
+}
+
+func (p *PolicySettingsType) findConfiguration(c string) *PolicyConfigurationType {
+	for _, config := range p.Configurations {
+		if config.ID == c {
+			return config
+		}
+	}
+	return nil
+}
+
+// Returns the policy flow given the ID.
+func (p *PolicySettingsType) FindFlow(id string) *PolicyFlowType {
+	for _, flow := range p.Flows {
+		if flow.ID == id {
+			return flow
+		}
+	}
+	return nil
 }
