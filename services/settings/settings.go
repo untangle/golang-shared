@@ -451,7 +451,8 @@ func syncSystemFiles() {
 // if sync-settings does not succeed it returns the error and output
 // returns stdout, stderr, and an error
 func syncAndSave(jsonObject map[string]interface{}, filename string, force bool) (string, error) {
-	// we want this to run after all files have been closed, so we defer it as soon as possible
+	// we want this to run after all files have been closed
+	// so we defer it as soon as possible
 	defer syncSystemFiles()
 
 	tmpfile, err := tempFile("", "settings.json.")
