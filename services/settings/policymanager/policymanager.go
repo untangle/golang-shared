@@ -1,9 +1,11 @@
 package policy
 
 import (
+	"fmt"
 	"sync"
 	"syscall"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/untangle/golang-shared/services/alerts"
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
@@ -188,6 +190,20 @@ func (p *PolicyManager) readPolicyManagerSettings() error {
 	if err := p.settingsFile.UnmarshalSettingsAtPath(&p.settings, "policy_manager"); err != nil {
 		p.logger.Err("Could not read Policy Manager Settings from", p.settingsFile)
 		return err
+	}
+	decoderConfig := mapstructure.DecoderConfig{
+		TagName:     "json",
+		Result:      &p.settings,
+		ErrorUnused: true,
+		Squash:      true,
+	}
+	mapstructdecoder, err := mapstructure.NewDecoder(&decoderConfig)
+	if err != nil {
+		p.logger.Err("policymanager: could not cerate mapstructure decoder", err)
+		return err
+	}
+	if err := mapstructdecoder.Decode(&p.settings); err != nil {
+		return fmt.Errorf("policymanager: could not decode json: %w", err)
 	}
 	return nil
 }
