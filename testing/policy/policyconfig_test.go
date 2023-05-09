@@ -13,12 +13,14 @@ func TestPolicyManager(t *testing.T) {
 	logger := logger.GetLoggerInstance()
 	policyMgr := policy.NewPolicyManager(settingsFile, *logger)
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
+		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
 		t.Fail()
 	}
 
 	settingsFile = settings.NewSettingsFile("test_settings.json")
 	policyMgr = policy.NewPolicyManager(settingsFile, *logger)
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
+		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
 		t.Fail()
 	}
 }
