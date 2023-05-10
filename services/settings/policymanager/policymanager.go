@@ -154,14 +154,17 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 	for _, policy := range p.PolicyArray {
 		p.policies[policy.Id] = &policy
 	}
-	return p.validatePolicies()
+	return nil
 }
 
 // Basic validation to make sure that constrained fields are valid
 // and id fields can be looked up in the appropriate maps
 // Not sure whether we need/want to validate id, name, description as
 // not empty.
-func (p *PolicyManager) validatePolicies() error {
+func (p *PolicyManager) ValidatePolicies() error {
+	p.policySettingsLock.RLock()
+	defer p.policySettingsLock.RUnlock()
+
 	for _, policy := range p.policies {
 		for _, configId := range policy.Configurations {
 			if _, ok := p.configurations[configId]; !ok {
