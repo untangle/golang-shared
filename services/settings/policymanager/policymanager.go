@@ -54,6 +54,8 @@ type PolicyFlowCategory struct {
 
 // PolicyCondition contains the criteria to test packets against
 // to detemine whether the associated PolicyFlowCategor and Policy apply.
+// Valid CTypes are specified in policysettings.go policyConditionTypeMap.
+// VAlid Ops are specified in policysettings.go policyConditionOpsMap.
 type PolicyCondition struct {
 	CType string `json:"type"`
 	Op    string `json:"op"`
@@ -67,7 +69,9 @@ type PolicyCondition struct {
 	value []string // not currently used
 }
 
-// PolicyConfiguration
+// PolicyConfiguration configures which plugins are applied when
+// the PolicyFlowCategory/PolicyConditions are met
+// Typical plugins would be threatprevention, geoip or webfilter
 type PolicyConfiguration struct {
 	Id          string `json:"id"`
 	Name        string `json:"name"`
@@ -78,9 +82,9 @@ type PolicyConfiguration struct {
 	plugins []*PolicyPluginCategory
 }
 
-// TODO WIP
 // PolicyPlugin needs to be an interface which
 // can be implemented by a "geoip", "threatprevention", or "webfilter" configuration
+// This has not been implemented yet.
 type PolicyPluginCategory struct {
 	Id          string          `json:"id"`
 	Name        string          `json:"name"`
@@ -88,10 +92,13 @@ type PolicyPluginCategory struct {
 	Conditions  []*PolicyPlugin `json:"conditions"`
 }
 
-// TODO WIP
+// This has not been implemented yet.
 type PolicyPlugin interface {
 }
 
+// This is the main Policy object which is contained in an array in PolicyManager
+// Each policy contains a set of configuration id's and a set of flow id's
+// which are resolved by look up in the arrays in PolicyManager.
 type Policy struct {
 	Id             string   `json:"id"`
 	Name           string   `json:"name"`
@@ -150,6 +157,10 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 	return p.validatePolicies()
 }
 
+// Basic validation to make sure that constrained fields are valid
+// and id fields can be looked up in the appropriate maps
+// Not sure whether we need/want to validate id, name, description as
+// not empty.
 func (p *PolicyManager) validatePolicies() error {
 	for _, policy := range p.policies {
 		for _, configId := range policy.Configurations {

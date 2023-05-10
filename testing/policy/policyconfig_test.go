@@ -35,7 +35,6 @@ func TestPolicyManager(t *testing.T) {
 		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
 		t.Fail()
 	}
-
 	// Good settings file expect it to work
 	settingsFile = settings.NewSettingsFile("test_settings.json")
 	policyMgr = policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
@@ -43,26 +42,33 @@ func TestPolicyManager(t *testing.T) {
 		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
 		t.Fail()
 	}
-
 	// Bad settings files expect errors
 	settingsFile = settings.NewSettingsFile("test_settings_ctype.json")
 	policyMgr = policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		fmt.Printf("LoadPolicyManagerSettings() failed(expected): %s\n", err)
+	} else {
+		t.Errorf("LoadPolicyManagerSettings() succeeded when it should fail on bad ctype\n")
 	}
 	settingsFile = settings.NewSettingsFile("test_settings_badop.json")
 	policyMgr = policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		fmt.Printf("LoadPolicyManagerSettings() failed(expected): %s\n", err)
+	} else {
+		t.Errorf("LoadPolicyManagerSettings() succeeded when it should fail on bad op\n")
 	}
 	settingsFile = settings.NewSettingsFile("test_settings_cfgid.json")
 	policyMgr = policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		fmt.Printf("LoadPolicyManagerSettings() failed(expected): %s\n", err)
+	} else {
+		t.Errorf("LoadPolicyManagerSettings() succeeded when it should fail on bad cfgid\n")
 	}
 	settingsFile = settings.NewSettingsFile("test_settings_flowid.json")
 	policyMgr = policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		fmt.Printf("LoadPolicyManagerSettings() failed(expected): %s\n", err)
+	} else {
+		t.Errorf("LoadPolicyManagerSettings() succeeded when it should fail on bad flowid\n")
 	}
 }
