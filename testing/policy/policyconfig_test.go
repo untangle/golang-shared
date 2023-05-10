@@ -27,8 +27,8 @@ import (
 // }
 
 func TestPolicyManager(t *testing.T) {
-	// Empty settings file expect it to work
-	settingsFile := settings.NewSettingsFile("test_settings_empty.json")
+	// Good settings file expect it to work
+	settingsFile := settings.NewSettingsFile("test_settings.json")
 	policyMgr := policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
@@ -36,8 +36,8 @@ func TestPolicyManager(t *testing.T) {
 	if err := policyMgr.ValidatePolicies(); err != nil {
 		t.Errorf("ValidatePolicies() failed: %s", err)
 	}
-	// Good settings file expect it to work
-	settingsFile = settings.NewSettingsFile("test_settings.json")
+	// Empty settings file expect it to work
+	settingsFile = settings.NewSettingsFile("test_settings_empty.json")
 	policyMgr = policy.NewPolicyManager(settingsFile, logger.GetLoggerInstance())
 	if err := policyMgr.LoadPolicyManagerSettings(); err != nil {
 		t.Errorf("LoadPolicyManagerSettings() failed: %s", err)
