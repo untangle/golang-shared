@@ -15,18 +15,14 @@ import (
 // Those arrays are loaded from the json primarily by mapstructure.
 // PolicyManager also maintains map[string]'s based on those arrays to
 // facilitate lookup.
-// Id, NameField and Description may not be needed at this level.
 type PolicyManager struct {
 	// Fields populated using mapstructure
-	Id          string `json:"id"`
-	Enabled     bool   `json:"enabled"`
-	NameField   string `json:"name"`
-	Description string `json:"description"`
+	Enabled bool `json:"enabled"`
 
 	// These arrays are loaded directly by mapstructure Decode
-	ConfigurationArray []PolicyConfiguration `json:"configurations"`
-	FlowArray          []PolicyFlowCategory  `json:"flows"`
-	PolicyArray        []Policy              `json:"policies"`
+	ConfigurationArray []*PolicyConfiguration `json:"configurations"`
+	FlowArray          []*PolicyFlowCategory  `json:"flows"`
+	PolicyArray        []*Policy              `json:"policies"`
 
 	// These maps resolved after loading the arrays above
 	configurations map[string]*PolicyConfiguration
@@ -57,16 +53,9 @@ type PolicyFlowCategory struct {
 // Valid CTypes are specified in policysettings.go policyConditionTypeMap.
 // VAlid Ops are specified in policysettings.go policyConditionOpsMap.
 type PolicyCondition struct {
-	CType string `json:"type"`
-	Op    string `json:"op"`
-	Value string `json:"value"`
-	// There was a discussion about allowing value to be an array.
-	// For now, I am assuming that it is only a string
-	// with a comma-separated list if need be.
-	// Having it be either an []string or string is not trivial AFAICT with mapstructure
-	// although it is easy if we parse the map[string]interface{}
-	// as initially done.
-	value []string // not currently used
+	CType string   `json:"type"`
+	Op    string   `json:"op"`
+	Value []string `json:"value"`
 }
 
 // PolicyConfiguration configures which plugins are applied when
@@ -144,15 +133,15 @@ func (p *PolicyManager) LoadPolicyManagerSettings() error {
 	// to facilitate lookup at runtime
 	p.configurations = make(map[string]*PolicyConfiguration, len(p.ConfigurationArray))
 	for _, config := range p.ConfigurationArray {
-		p.configurations[config.Id] = &config
+		p.configurations[config.Id] = config
 	}
 	p.flowCategories = make(map[string]*PolicyFlowCategory, len(p.FlowArray))
 	for _, flow := range p.FlowArray {
-		p.flowCategories[flow.Id] = &flow
+		p.flowCategories[flow.Id] = flow
 	}
 	p.policies = make(map[string]*Policy, len(p.PolicyArray))
 	for _, policy := range p.PolicyArray {
-		p.policies[policy.Id] = &policy
+		p.policies[policy.Id] = policy
 	}
 	return nil
 }
