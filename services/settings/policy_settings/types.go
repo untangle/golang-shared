@@ -1,4 +1,4 @@
-package policy
+package policy_settings
 
 // policyManager config.
 type PolicySettingsType struct {
