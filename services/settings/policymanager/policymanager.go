@@ -62,27 +62,15 @@ type PolicyCondition struct {
 // the PolicyFlowCategory/PolicyConditions are met
 // Typical plugins would be threatprevention, geoip or webfilter
 type PolicyConfiguration struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// This doesn't parse completely with mapstructure
-	// so we need to resolve this after the initial load
-	Other   map[string]interface{} `json:",remain"`
-	plugins []*PolicyPluginCategory
-}
-
-// PolicyPlugin needs to be an interface which
-// can be implemented by a "geoip", "threatprevention", or "webfilter" configuration
-// This has not been implemented yet.
-type PolicyPluginCategory struct {
-	Id          string          `json:"id"`
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Conditions  []*PolicyPlugin `json:"conditions"`
-}
-
-// This has not been implemented yet.
-type PolicyPlugin interface {
+	Id          string      `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	TPSettings  interface{} `json:"threatprevention",optional:"true"`
+	WFSettings  interface{} `json:"webfilter",optional:"true"`
+	GEOSettings interface{} `json:"geoip",optional:"true"`
+	// This probably doesn't belong here but keep it here for now
+	// to support some settings files that have it
+	DiscoverySettings interface{} `json:"discovery",optional:"true"`
 }
 
 // This is the main Policy object which is contained in an array in PolicyManager
