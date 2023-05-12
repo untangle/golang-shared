@@ -30,7 +30,6 @@ type PolicyManager struct {
 
 	policySettingsLock sync.RWMutex
 	settingsFile       *settings.SettingsFile
-	settings           map[string]interface{}
 	logger             *logger.Logger
 }
 
