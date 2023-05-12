@@ -7,8 +7,27 @@ import (
 
 var logger = logService.GetLoggerInstance()
 
+// Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
+// the policy name and interface{} is the plugin settings.
+func GetPolicyPluginSettings(pluginName string) map[string]interface{} {
+
+	var pluginSettings map[string]map[string]interface{}
+	var err error
+
+	if pluginSettings, err = getAllPolicyConfigurationSettings(); err != nil {
+		return nil
+	}
+
+	if pluginSettings[pluginName] == nil {
+		return nil
+	}
+
+	return pluginSettings[pluginName]
+}
+
 // Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
 // plugin and policyare a strings. This will allow for easy access to policy settings for a plugin.
+// Each plugin is still responsible for adding the default entry.
 func getAllPolicyConfigurationSettings() (map[string]map[string]interface{}, error) {
 
 	f := settings.GetSettingsFileSingleton()
@@ -16,12 +35,15 @@ func getAllPolicyConfigurationSettings() (map[string]map[string]interface{}, err
 	policySettings := &PolicySettingsType{}
 
 	if err := f.UnmarshalSettingsAtPath(&policySettings, "policy_manager"); err != nil {
-		logger.Info("getAllPolicyConfigurationSettings failed : %v\n", err)
 		return nil, err
 	}
 
 	// Process into a map of maps
 	pluginSettings := make(map[string]map[string]interface{})
+	pluginSettings["threatprevention"] = make(map[string]interface{})
+	pluginSettings["webfilter"] = make(map[string]interface{})
+	pluginSettings["geoip"] = make(map[string]interface{})
+	pluginSettings["application_control"] = make(map[string]interface{})
 
 	// Go through each Policy and find matching configurations.
 	for _, p := range policySettings.Policies {
@@ -35,41 +57,22 @@ func getAllPolicyConfigurationSettings() (map[string]map[string]interface{}, err
 				continue
 			}
 			// Add the plugins into the map. Wish there was a better way to do this
+			logger.Info("getAllPolicyConfigurationSettings: %v, %+v\n", p.Name, config)
 			if config.TPSettings != nil {
-				pluginSettings[p.Name]["threatprevention"] = config.TPSettings
+				pluginSettings["threatprevention"][p.Name] = config.TPSettings
 			}
 			if config.WFSettings != nil {
-				pluginSettings[p.Name]["webfilter"] = config.WFSettings
+				pluginSettings["webfilter"][p.Name] = config.WFSettings
 			}
 			if config.GEOSettings != nil {
-				pluginSettings[p.Name]["geoip"] = config.GEOSettings
+				pluginSettings["geoip"][p.Name] = config.GEOSettings
 			}
 			if config.AppControlSettings != nil {
-				pluginSettings[p.Name]["application_control"] = config.AppControlSettings
+				pluginSettings["application_control"][p.Name] = config.AppControlSettings
 			}
 		}
 	}
 
-	return nil, nil
+	return pluginSettings, nil
 
-}
-
-// Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
-// the policy name and interface{} is the plugin settings.
-func GetPolicyPluginSettings(pluginName string) map[string]interface{} {
-
-	var pluginSettings map[string]map[string]interface{}
-	var err error
-
-	if pluginSettings, err = getAllPolicyConfigurationSettings(); err != nil {
-		logger.Info("GetPolicyPluginSettings: %v\n", err)
-		return nil
-	}
-
-	if pluginSettings[pluginName] == nil {
-		logger.Info("GetPolicyPluginSettings: %v\n", "Plugin not found")
-		return nil
-	}
-
-	return pluginSettings[pluginName]
 }
