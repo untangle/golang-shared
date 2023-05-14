@@ -9,12 +9,12 @@ var logger = logService.GetLoggerInstance()
 
 // Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
 // the policy name and interface{} is the plugin settings.
-func GetPolicyPluginSettings(pluginName string) map[string]interface{} {
+func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName string) map[string]interface{} {
 
 	var pluginSettings map[string]map[string]interface{}
 	var err error
 
-	if pluginSettings, err = getAllPolicyConfigurationSettings(); err != nil {
+	if pluginSettings, err = getAllPolicyConfigurationSettings(settingsFile); err != nil {
 		return nil
 	}
 
@@ -28,13 +28,11 @@ func GetPolicyPluginSettings(pluginName string) map[string]interface{} {
 // Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
 // plugin and policyare a strings. This will allow for easy access to policy settings for a plugin.
 // Each plugin is still responsible for adding the default entry.
-func getAllPolicyConfigurationSettings() (map[string]map[string]interface{}, error) {
-
-	f := settings.GetSettingsFileSingleton()
+func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map[string]map[string]interface{}, error) {
 
 	policySettings := &PolicySettingsType{}
 
-	if err := f.UnmarshalSettingsAtPath(&policySettings, "policy_manager"); err != nil {
+	if err := settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"); err != nil {
 		return nil, err
 	}
 
