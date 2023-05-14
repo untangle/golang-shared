@@ -21,9 +21,9 @@ type PolicyFlowType struct {
 }
 
 type PolicyConditionType struct {
-	Op    string `json:"op"`
-	CType string `json:"type"`
-	Value string `json:"value"`
+	Op    string   `json:"op"`
+	CType string   `json:"type"`
+	Value []string `json:"value"`
 }
 
 type PolicyConfigurationType struct {
