@@ -70,7 +70,7 @@ func (c *PolicyConditionType) GetOp() string {
 	return c.Op
 }
 
-func (c *PolicyConditionType) GetValue() string {
+func (c *PolicyConditionType) GetValue() []string {
 	return c.Value
 }
 
