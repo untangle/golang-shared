@@ -34,10 +34,10 @@ type PolicyConfigurationType struct {
 	ID                 string      `json:"id"`
 	Name               string      `json:"name"`
 	Description        string      `json:"description"`
-	TPSettings         interface{} `json:"threatprevention",optional:"true"`
-	WFSettings         interface{} `json:"webfilter",optional:"true"`
-	GEOSettings        interface{} `json:"geoip",optional:"true"`
-	AppControlSettings interface{} `json:"application_control",optional:"true"`
+	TPSettings         interface{} `json:"threatprevention", optional:"true"`
+	WFSettings         interface{} `json:"webfilter", optional:"true"`
+	GEOSettings        interface{} `json:"geoip", optional:"true"`
+	AppControlSettings interface{} `json:"application_control", optional:"true"`
 }
 
 type PolicyType struct {
@@ -46,7 +46,7 @@ type PolicyType struct {
 	Name           string    `json:"name"`
 	Description    string    `json:"description"`
 	Enabled        bool      `json:"enabled"`
-	Configurations []*string `json:"policyConfigurations"`
+	Configurations []*string `json:"configurations"`
 	Flows          []*string `json:"flows"`
 }
 

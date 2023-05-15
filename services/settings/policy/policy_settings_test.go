@@ -13,7 +13,7 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 	policySettings, err := getAllPolicyConfigurationSettings(settingsFile)
 	assert.Nil(t, err)
 	assert.NotNil(t, policySettings)
-	assert.Equal(t, 2, len(policySettings["threatprevention"]))
+	assert.Equal(t, 3, len(policySettings["threatprevention"]))
 	assert.Equal(t, 1, len(policySettings["webfilter"]))
 	assert.Equal(t, 1, len(policySettings["geoip"]))
 }
@@ -21,7 +21,7 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 func TestGetPolicyPluginSettings(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
 	tpPolicies := GetPolicyPluginSettings(settingsFile, "threatprevention")
-	assert.Equal(t, 2, len(tpPolicies))
+	assert.Equal(t, 3, len(tpPolicies))
 	webFilterPolicies := GetPolicyPluginSettings(settingsFile, "webfilter")
 	assert.Equal(t, 1, len(webFilterPolicies))
 	geoIPPolicies := GetPolicyPluginSettings(settingsFile, "geoip")
