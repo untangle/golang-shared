@@ -1,5 +1,9 @@
 package policy_settings
 
+import (
+	"net"
+)
+
 // PolicySettingsType is the main data structure for Policy Management.
 // It contains an array of PolicyConfigurations, an array of PolicyFlowCategory's
 // and an array of Policy which reference the Configurations and FlowCategories by id.
@@ -43,7 +47,7 @@ type PolicyType struct {
 	Description    string    `json:"description"`
 	Enabled        bool      `json:"enabled"`
 	Configurations []*string `json:"policyConfigurations"`
-	Flows          []*string `json:"flowCategories"`
+	Flows          []*string `json:"flows"`
 }
 
 func (p *PolicyType) GetFlows() []*string {
@@ -74,6 +78,28 @@ func (c *PolicyConditionType) GetValue() []string {
 	return c.Value
 }
 
+// Equal compares the leftSide to the PolicyConditionType
+// and returns true if the leftSide matches the condition.
+func (c *PolicyConditionType) Equals(leftSide *string) bool {
+	switch c.CType {
+	case "CLIENT_ADDRESS", "SERVER_ADDRESS":
+		// convert to net.IPNet
+		for _, v := range c.Value {
+			_, cidr, _ := net.ParseCIDR(v)
+			if cidr.Contains(net.ParseIP(*leftSide)) {
+				return true
+			}
+		}
+	case "CLIENT_PORT", "SERVER_PORT", "FAMILY":
+		for _, v := range c.Value {
+			if *leftSide == v {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (p *PolicySettingsType) findConfiguration(c string) *PolicyConfigurationType {
 	for _, config := range p.Configurations {
 		if config.ID == c {
@@ -91,31 +117,4 @@ func (p *PolicySettingsType) FindFlow(id string) *PolicyFlowType {
 		}
 	}
 	return nil
-}
-
-var policyConditionTypeMap = map[string]bool{
-	"CLIENT_ADDRESS": true,
-	"CLIENT_PORT":    true,
-	"DAY_OF_WEEK":    true,
-	"DEST_ADDRESS":   true,
-	"INTERFACE":      true,
-	"SERVER_ADDRESS": true,
-	"SERVER_PORT":    true,
-	"SOURCE_ADDRESS": true,
-	"PROTOCOL_TYPE":  true,
-	"TIME_OF_DAY":    true,
-	"VLAN_ID":        true,
-}
-
-// Valid PolicyCondition Ops - there may be more at some point
-// == implies an OR operation between the different entries in the value arrray
-// != implies an AND operation between the different entries in the value array
-// all other operations assume a single entry in the value array (or string)
-var policyConditionOpsMap = map[string]bool{
-	"==": true,
-	"!=": true,
-	"<":  true,
-	">":  true,
-	"<=": true,
-	">=": true,
 }
