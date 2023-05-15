@@ -1,4 +1,4 @@
-package policy_settings
+package policy
 
 import (
 	logService "github.com/untangle/golang-shared/services/logger"
