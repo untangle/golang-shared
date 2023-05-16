@@ -5,6 +5,11 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
+const (
+	// Defines the name of the settings properties for policy manager
+	PolicyConfigName = "policy_manager"
+)
+
 var logger = logService.GetLoggerInstance()
 
 // Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
@@ -30,18 +35,35 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 // Each plugin is still responsible for adding the default entry.
 func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map[string]map[string]interface{}, error) {
 
-	policySettings := &PolicySettingsType{}
+	policySettings := &PolicySettings{}
 
-	if err := settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"); err != nil {
+	if err := settingsFile.UnmarshalSettingsAtPath(&policySettings, PolicyConfigName); err != nil {
 		return nil, err
+	}
+
+	// Populate the Configurations.
+	for _, p := range policySettings.TempConfigurations.([]interface{}) {
+		data := p.(map[string]interface{})
+
+		newConfig := &PolicyConfiguration{}
+		newConfig.AppSettings = make(map[string]interface{})
+		for pName, pValue := range data {
+			switch pName {
+			case "description":
+				newConfig.Description = pValue.(string)
+			case "name":
+				newConfig.Name = pValue.(string)
+			case "id":
+				newConfig.ID = pValue.(string)
+			default: // Everything else is an app setting
+				newConfig.AppSettings[pName] = pValue
+			}
+		}
+		policySettings.Configurations = append(policySettings.Configurations, newConfig)
 	}
 
 	// Process into a map of maps
 	pluginSettings := make(map[string]map[string]interface{})
-	pluginSettings["threatprevention"] = make(map[string]interface{})
-	pluginSettings["webfilter"] = make(map[string]interface{})
-	pluginSettings["geoip"] = make(map[string]interface{})
-	pluginSettings["application_control"] = make(map[string]interface{})
 
 	// Go through each Policy and find matching configurations.
 	for _, p := range policySettings.Policies {
@@ -55,18 +77,13 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 				continue
 			}
 			// Add the plugins into the map. Wish there was a better way to do this
-			logger.Info("getAllPolicyConfigurationSettings: %v, %+v\n", p.Name, config)
-			if config.TPSettings != nil {
-				pluginSettings["threatprevention"][p.Name] = config.TPSettings
-			}
-			if config.WFSettings != nil {
-				pluginSettings["webfilter"][p.Name] = config.WFSettings
-			}
-			if config.GEOSettings != nil {
-				pluginSettings["geoip"][p.Name] = config.GEOSettings
-			}
-			if config.AppControlSettings != nil {
-				pluginSettings["application_control"][p.Name] = config.AppControlSettings
+			logger.Debug("getAllPolicyConfigurationSettings: %v, %+v\n", p.Name, config)
+
+			for name, settings := range config.AppSettings {
+				if pluginSettings[name] == nil {
+					pluginSettings[name] = make(map[string]interface{})
+				}
+				pluginSettings[name][p.Name] = settings
 			}
 		}
 	}

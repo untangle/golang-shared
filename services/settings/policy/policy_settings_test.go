@@ -8,7 +8,19 @@ import (
 )
 
 func TestGetAllPolicyConfigurationSettings(t *testing.T) {
-	// Good settings file expect it to work
+
+	var result = map[string]interface{}{
+		"enabled": true,
+		"passList": []interface{}{
+			map[string]interface{}{
+				"description": "some test",
+				"host":        "3.4.5.6/32",
+			},
+		},
+		"redirect":    false,
+		"sensitivity": float64(60),
+	}
+
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
 	policySettings, err := getAllPolicyConfigurationSettings(settingsFile)
 	assert.Nil(t, err)
@@ -16,6 +28,9 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 	assert.Equal(t, 3, len(policySettings["threatprevention"]))
 	assert.Equal(t, 1, len(policySettings["webfilter"]))
 	assert.Equal(t, 1, len(policySettings["geoip"]))
+
+	// Spot check a plugin setting.
+	assert.EqualValues(t, result, policySettings["threatprevention"]["Teachers"])
 }
 
 func TestGetPolicyPluginSettings(t *testing.T) {
