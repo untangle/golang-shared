@@ -1,4 +1,4 @@
-FROM golang:1.19.9-alpine3.18
+FROM golang:1.19.9
 LABEL maintainer="Sebastien Delafond <sdelafond@gmail.com>"
 
 USER root
