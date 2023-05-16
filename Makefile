@@ -39,7 +39,7 @@ modules: environment
 
 lint: modules
 	$(call LOG_FUNCTION,"Running golang linter...")
-	cd /tmp; GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	cd /tmp; GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 	$(shell go env GOPATH)/bin/golangci-lint --version
         # IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
 	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
