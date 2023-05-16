@@ -1,107 +1,263 @@
 package booleval
 
 import (
+	"net"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestInts(t *testing.T) {
-	i := IntegerComparable{32}
-
-	tests := []struct {
-		value  any
-		iserr  bool
-		result bool
-	}{
-		{"32", false, true},
-		{32, false, true},
-		{32.0, false, true},
-		{33, false, false},
-		{"33", false, false},
-		{"32.0", false, true},
-		{"32.01", true, false},
-		{"dood", true, false},
-	}
-
-	for _, test := range tests {
-		wasEqual, err := i.Equal(test.value)
-		if test.iserr {
-			assert.NotNil(
-				t,
-				err,
-				"this value should result in an error: %v\n",
-				test.value)
-		} else if err != nil {
-			assert.Fail(t, "i.Equal(%v) returned an error: %v and should not have\n",
-				err)
-		}
-		assert.Equal(t, test.result, wasEqual,
-			"should get %v for wasEqual of %v and %v(%T)", test.result, i.theInteger, test.value, test.value)
-	}
-}
-
-func TestSimpleConds(t *testing.T) {
-	i := IntegerComparable{22}
-	i2 := IntegerComparable{21}
-
-	s := StringComparable{"toodle"}
-	tests := []struct {
-		cond   Condition
-		iserr  bool
-		result bool
-	}{
-		{Condition{"==", []Comparable{i}, "22"}, false, true},
-		{Condition{"==", []Comparable{i}, "23"}, false, false},
-		{Condition{"==", []Comparable{i, i2}, "21"}, false, true},
-
-		// (i > 21) OR (i2 > 21)
-		{Condition{">", []Comparable{i, i2}, "21"}, false, true},
-
-		{Condition{"<", []Comparable{i, i2}, 0}, false, false},
-		{Condition{">", []Comparable{i, i2}, 0}, false, true},
-		{Condition{"==", []Comparable{s}, "toodle"}, false, true},
-	}
-	for _, test := range tests {
-		result, err := EvalCondition(test.cond)
-		if err != nil && !test.iserr {
-			assert.Fail(t,
-				"Received error from evaluating condition %v: %v\n",
-				test.cond, err)
-			continue
-		} else if err != nil {
-			continue
-		}
-		assert.Equal(t, test.result, result)
-	}
-}
-
 func TestExprs(t *testing.T) {
-	i := IntegerComparable{22}
-
-	s := StringComparable{"toodle"}
+	intComp := IntegerComparable{22}
+	stringComp := StringComparable{"toodle"}
+	ip := IPComparable{ipaddr: net.ParseIP("192.168.22.22")}
+	_, network, err := net.ParseCIDR("192.168.22.2/24")
+	require.Nil(t, err)
+	ipNet := IPNetComparable{ipnet: *network}
+	location, err := time.LoadLocation("")
+	assert.Nil(t, err)
+	time1 := time.Date(1999, time.April, int(time.Monday), 0, 0, 0, 0, location)
+	timeComparable1999 := TimeComparable{time: time1}
+	time2 := time.Date(2000, time.April, int(time.Monday), 0, 0, 0, 0, location)
+	timeComparable2000 := TimeComparable{time: time2}
 	tests := []struct {
-		cond   []Condition
-		iserr  bool
+		expr   Expression
 		result bool
+		iserr  bool
 	}{
-		// (22 > 2) AND ("toodle" == "toodle")
-		{[]Condition{
-			Condition{">", []Comparable{i}, "2"},
-			Condition{"==", []Comparable{s}, "toodle"}},
+		// (192.168.22.22 == 192.168.22.22 AND 192.168.22.22 in 192.168.22.2/24 ) OR (1999 == 2000)
+		{NewSimpleExpression(
+			OrOfAndsMode,
+			[][]*AtomicExpression{
+				{
+					{"==", ip, "192.168.22.22"},
+					{"==", ipNet, "192.168.22.22"},
+				},
+				{
+					{"==", timeComparable2000, time1},
+				},
+			},
+		),
+			true,
 			false,
-			true},
+		},
+		{NewSimpleExpression(
+			OrOfAndsMode,
+			[][]*AtomicExpression{
+				{
+					{"==", ip, "192.168.22.22"},
+					{"==", ipNet, "192.168.22.22"},
+				},
+
+				{
+					{">=", timeComparable2000, time1},
+				},
+			},
+		),
+			true,
+			false,
+		},
+
+		{NewSimpleExpression(
+			OrOfAndsMode,
+			[][]*AtomicExpression{
+				{
+					{"==", ip, "192.168.55.22"},
+					{"==", ipNet, "192.168.55.22"},
+				},
+				{
+					{"==", timeComparable2000, time1},
+				},
+			},
+		),
+			false,
+			false,
+		},
+		{NewSimpleExpression(
+			OrOfAndsMode,
+			[][]*AtomicExpression{
+				{
+					{"!=", ip, "192.168.55.22"},
+					{"!=", ipNet, "192.168.55.22"},
+				},
+				{
+					{"<", timeComparable1999, time2},
+				},
+			},
+		),
+			true,
+			false,
+		},
+
+		{NewSimpleExpression(
+			OrOfAndsMode,
+			[][]*AtomicExpression{
+				{
+					{"!=", ip, "192.168.55.22"},
+					{"!=", ipNet, "192.168.55.22"},
+				},
+				{
+					{">", timeComparable1999, time2},
+				},
+			},
+		),
+			true,
+			false,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{"!=", ip, "192.168.55.23"},
+					{"!=", ipNet, "192.168.55.23"},
+				},
+				{
+					{"<", timeComparable1999, time2},
+				},
+			},
+		),
+			true,
+			false,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{"<=", IntegerComparable{25}, 24},
+					{"<=", IntegerComparable{27}, 24},
+					{"<=", IntegerComparable{24}, 24},
+				},
+				{
+					{"<=", timeComparable1999, time2},
+				},
+			},
+		),
+			true,
+			false,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{"<=", IntegerComparable{25}, 24},
+					{"<=", IntegerComparable{27}, 24},
+					{"<=", IntegerComparable{24}, 24},
+				},
+				{
+					{"<=", timeComparable1999, time2},
+				},
+				{
+					{"<=", StringComparable{"dood"}, "doodle"},
+				},
+				{
+					{"==", ip, "192.168.22.23"},
+					{"==", ipNet, "192.168.22.23"},
+				},
+			},
+		),
+			true,
+			false,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{"<=", IntegerComparable{25}, 24},
+					{"<=", IntegerComparable{27}, 24},
+				},
+				{
+					{"<=", timeComparable1999, time2},
+				},
+				{
+					{"<=", StringComparable{"dood"}, "doodle"},
+				},
+				{
+					{"==", ip, "192.168.22.23"},
+					{"==", ipNet, "192.168.22.23"},
+				},
+			},
+		),
+			false,
+			false,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{">", intComp, "2"},
+				},
+				{
+					{"==", stringComp, "toodle"},
+				},
+			},
+		),
+			true,
+			false,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{">=", intComp, 88},
+				},
+				{
+					{"==", stringComp, "toodle"},
+				},
+			},
+		),
+			false,
+			false,
+		},
+		{NewExpressionWithLookupFunc(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{"<=", IntegerComparable{25}, "myInt"},
+					{"<=", IntegerComparable{27}, "myInt"},
+				},
+				{
+					{"<=", timeComparable1999, time2},
+				},
+				{
+					{"<=", StringComparable{"dood"}, "myString"},
+				},
+				{
+					{"==", ip, "myIp"},
+					{"==", ipNet, "myIp"},
+				},
+			},
+			func(v any) any {
+				stringVal := v.(string)
+				vars := map[string]any{
+					"myIp":     "192.168.22.23",
+					"myString": "doodle",
+					"myInt":    24,
+				}
+				return vars[stringVal]
+			},
+		),
+			false,
+			false,
+		},
 	}
+
 	for _, test := range tests {
-		result, err := EvalConditions(test.cond)
+
+		result, err := test.expr.Evaluate()
 		if err != nil && !test.iserr {
 			assert.Fail(t,
+				"failure",
 				"Received error from evaluating condition %v: %v\n",
-				test.cond, err)
+				test.expr, err)
 			continue
 		} else if err != nil {
 			continue
 		}
-		assert.Equal(t, test.result, result)
+		assert.Equal(t,
+			test.result,
+			result,
+			"comparison for test %#v failed.", test)
 	}
 }

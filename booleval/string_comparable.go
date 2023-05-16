@@ -9,6 +9,10 @@ type StringComparable struct {
 	theString string
 }
 
+func NewStringComparable(val string) StringComparable {
+	return StringComparable{val}
+}
+
 func (s StringComparable) Greater(other any) (bool, error) {
 	switch val := other.(type) {
 	case string:

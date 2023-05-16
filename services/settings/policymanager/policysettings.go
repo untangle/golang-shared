@@ -1,4 +1,4 @@
-package policy
+package policymanager
 
 var policyConditionTypeMap = map[string]bool{
 	"CLIENT_ADDRESS": true,
