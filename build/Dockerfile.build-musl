@@ -21,7 +21,7 @@ RUN apk add zeromq-dev
 RUN apk add protobuf-dev
 
 # Install protoc-gen-go
-RUN go get google.golang.org/protobuf/cmd/protoc-gen-go
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
 # build anything here
 RUN mkdir -p /go/untangle-shared
