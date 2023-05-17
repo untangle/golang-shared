@@ -186,6 +186,29 @@ func TestExprs(t *testing.T) {
 			AndOfOrsMode,
 			[][]*AtomicExpression{
 				{
+					{"<=", IntegerComparable{25}, 24},
+					{"<=", IntegerComparable{27}, 24},
+					{"<=", IntegerComparable{24}, 24},
+				},
+				{
+					{"<=", timeComparable1999, time2},
+				},
+				{
+					{"<=", StringComparable{"dood"}, "doodle"},
+				},
+				{
+					{"<=", ip, "192.168.22.23"},
+					{"<=", ipNet, "192.168.22.23"},
+				},
+			},
+		),
+			false,
+			true,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
 					{">", intComp, "2"},
 				},
 				{
@@ -209,6 +232,34 @@ func TestExprs(t *testing.T) {
 		),
 			false,
 			false,
+		},
+		{NewSimpleExpression(
+			33, // invalid mode, test for error.
+			[][]*AtomicExpression{
+				{
+					{">=", intComp, 88},
+				},
+				{
+					{"==", stringComp, "toodle"},
+				},
+			},
+		),
+			false,
+			true,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{"oogabooga", intComp, 88},
+				},
+				{
+					{"==", stringComp, "toodle"},
+				},
+			},
+		),
+			false,
+			true,
 		},
 		{NewExpressionWithLookupFunc(
 			AndOfOrsMode,
@@ -252,12 +303,19 @@ func TestExprs(t *testing.T) {
 				"Received error from evaluating condition %v: %v\n",
 				test.expr, err)
 			continue
-		} else if err != nil {
+		} else if test.iserr && err == nil {
+			assert.Fail(t,
+				"failure",
+				"Did not receive expected failure %v\n", test.expr)
 			continue
+		} else if err != nil {
+			// okay, we got expected error.
+			continue
+		} else {
+			assert.Equal(t,
+				test.result,
+				result,
+				"comparison for test %#v failed.", test)
 		}
-		assert.Equal(t,
-			test.result,
-			result,
-			"comparison for test %#v failed.", test)
 	}
 }

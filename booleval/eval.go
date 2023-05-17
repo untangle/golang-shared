@@ -51,6 +51,16 @@ func NewSimpleExpression(
 		LookupFunc:           nil}
 }
 
+func ExpressionCopyWithLookupFunc(
+	expr Expression,
+	lookupFunc func(any) any) Expression {
+	return Expression{
+		ExpressionConnective: expr.ExpressionConnective,
+		AtomicExpressions:    expr.AtomicExpressions,
+		LookupFunc:           lookupFunc,
+	}
+}
+
 func NewExpressionWithLookupFunc(
 	connective EvaluatorMode,
 	exprs [][]*AtomicExpression,
@@ -106,14 +116,6 @@ func noneOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
 		return false, err
 	} else {
 		return !wasOneOf, nil
-	}
-}
-
-func notCond(param func(AtomicExpression) (bool, error), condition AtomicExpression) (bool, error) {
-	if wasTrue, err := param(condition); err != nil {
-		return false, err
-	} else {
-		return !wasTrue, nil
 	}
 }
 

@@ -19,7 +19,9 @@ func (s StringComparable) Greater(other any) (bool, error) {
 		return s.theString > val, nil
 
 	}
-	return false, nil
+	return false, fmt.Errorf(
+		"booleval: StringComparable: string does not support ordering with respect to %v(%T)",
+		other, other)
 }
 
 func (s StringComparable) Equal(other any) (bool, error) {
