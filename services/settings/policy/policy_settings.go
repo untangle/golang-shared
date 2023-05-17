@@ -50,11 +50,17 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 		for pName, pValue := range data {
 			switch pName {
 			case "description":
-				newConfig.Description = pValue.(string)
+				if _, ok := pValue.(string); ok {
+					newConfig.Description = pValue.(string)
+				}
 			case "name":
-				newConfig.Name = pValue.(string)
+				if _, ok := pValue.(string); ok {
+					newConfig.Name = pValue.(string)
+				}
 			case "id":
-				newConfig.ID = pValue.(string)
+				if _, ok := pValue.(string); ok {
+					newConfig.ID = pValue.(string)
+				}
 			default: // Everything else is an app setting
 				newConfig.AppSettings[pName] = pValue
 			}
