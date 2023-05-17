@@ -64,31 +64,6 @@
                     "redirect": true,
                     "sensitivity": 40
                 }
-            },
-            {
-                "description": "default discovery",
-                "id": "95922aef-3968-4de5-9385-3f426fb32b99",
-                "name": "Discovery common",
-                "discovery": {
-                    "enabled": true,
-                    "plugins": [
-                        {
-                            "autoInterval": 86400,
-                            "enabled": true,
-                            "type": "lldp"
-                        },
-                        {
-                            "autoInterval": 86400,
-                            "enabled": true,
-                            "type": "nmap"
-                        },
-                        {
-                            "autoInterval": 86400,
-                            "enabled": false,
-                            "type": "neighbour"
-                        }
-                    ]
-                }
             }
         ],
         "enabled": true,
@@ -97,13 +72,13 @@
                 "conditions": [
                     {
                         "op": "==",
-                        "type": "SOURCE_ADDRESS",
+                        "type": "CLIENT_ADDRESS",
                         "value": ["192.168.5.1/24"]
                     },
                     {
                         "op": "!=",
                         "type": "CLIENT_ADDRESS",
-                        "value": ["1.2.3.4","3.4.5.6"]
+                        "value": ["1.2.3.4/32","3.4.5.6/32"]
                     }
                 ],
                 "description": "Dedicated to students",
@@ -126,8 +101,8 @@
                 "conditions": [
                     {
                         "op": "==",
-                        "type": "SOURCE_ADDRESS",
-                        "value": ["192.168.5.6"]
+                        "type": "CLIENT_ADDRESS",
+                        "value": ["192.168.5.6/32"]
                     },
                     {
                         "op": "==",
@@ -161,8 +136,7 @@
             {
                 "configurations": [
                     "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
-                    "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
-                    "95922aef-3968-4de5-9385-3f426fb32b99"
+                    "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
                 ],
                 "description": "For students config",
                 "enabled": true,
@@ -199,8 +173,7 @@
             },
             {
                 "configurations": [
-                    "7ed1558e-ae30-4699-beab-77e09babecb3",
-                    "95922aef-3968-4de5-9385-3f426fb32b99"
+                    "7ed1558e-ae30-4699-beab-77e09babecb3"
                 ],
                 "description": "test123",
                 "enabled": true,
