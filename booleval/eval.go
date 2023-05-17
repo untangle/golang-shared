@@ -32,10 +32,7 @@ const (
 )
 
 type EvaluatorMode int
-type Evaluator struct {
-	mode       EvaluatorMode
-	lookupFunc func(any) any
-}
+
 type Expression struct {
 	ExpressionConnective EvaluatorMode
 	AtomicExpressions    [][]*AtomicExpression
@@ -48,7 +45,8 @@ func NewSimpleExpression(
 	return Expression{
 		ExpressionConnective: connective,
 		AtomicExpressions:    exprs,
-		LookupFunc:           nil}
+		LookupFunc:           func(v any) any { return v },
+	}
 }
 
 func ExpressionCopyWithLookupFunc(
@@ -95,20 +93,9 @@ func allOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
 	return true, nil
 
 }
-func NewEvaluator(mode EvaluatorMode, lookupFunc func(any) any) Evaluator {
-	if lookupFunc != nil {
-		return Evaluator{
-			mode:       mode,
-			lookupFunc: lookupFunc}
-	}
-	return Evaluator{
-		mode:       mode,
-		lookupFunc: func(v any) any { return v }}
-}
 
 func (expr Expression) Evaluate() (bool, error) {
-	eval := NewEvaluator(expr.ExpressionConnective, expr.LookupFunc)
-	return eval.EvalExpressionClauses(expr.AtomicExpressions)
+	return expr.EvalExpressionClauses(expr.AtomicExpressions)
 }
 
 func noneOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
@@ -127,48 +114,48 @@ func notOfResult(result bool, err error) (bool, error) {
 	}
 
 }
-func (e Evaluator) EvalExpressionClauses(expr [][]*AtomicExpression) (bool, error) {
-	switch e.mode {
+func (e Expression) EvalExpressionClauses(expr [][]*AtomicExpression) (bool, error) {
+	switch e.ExpressionConnective {
 	case AndOfOrsMode:
 		return allOf(e.EvalClause, expr)
 	case OrOfAndsMode:
 		return anyOf(e.EvalClause, expr)
 	}
-	return false, fmt.Errorf("booleval: unknown mode passed to evaluator: %v", e.mode)
+	return false, fmt.Errorf("booleval: unknown mode passed to evaluator: %v", e.ExpressionConnective)
 }
 
-func (e Evaluator) EvalClause(clause []*AtomicExpression) (bool, error) {
-	switch e.mode {
+func (e Expression) EvalClause(clause []*AtomicExpression) (bool, error) {
+	switch e.ExpressionConnective {
 	case AndOfOrsMode:
 		return anyOf(e.EvalAtomicExpression, clause)
 	case OrOfAndsMode:
 		return allOf(e.EvalAtomicExpression, clause)
 	}
-	return false, fmt.Errorf("booleval: unknown mode passed to evaluator: %v", e.mode)
+	return false, fmt.Errorf("booleval: unknown mode passed to evaluator: %v", e.ExpressionConnective)
 }
 
-func (e Evaluator) EvalAtomicExpression(cond *AtomicExpression) (bool, error) {
+func (e Expression) EvalAtomicExpression(cond *AtomicExpression) (bool, error) {
 	switch cond.Operator {
 	case "==":
-		return cond.CompareValue.Equal(e.lookupFunc(cond.ActualValue))
+		return cond.CompareValue.Equal(e.LookupFunc(cond.ActualValue))
 	case "!=":
-		return notOfResult(cond.CompareValue.Equal(e.lookupFunc(cond.ActualValue)))
+		return notOfResult(cond.CompareValue.Equal(e.LookupFunc(cond.ActualValue)))
 	case "<":
 		return noneOf(
 			func(evaluator boolEvaler) (bool, error) {
-				return evaluator(e.lookupFunc(cond.ActualValue))
+				return evaluator(e.LookupFunc(cond.ActualValue))
 			},
 			[]boolEvaler{cond.CompareValue.Equal, cond.CompareValue.Greater},
 		)
 
 	case ">":
-		return cond.CompareValue.Greater(e.lookupFunc(cond.ActualValue))
+		return cond.CompareValue.Greater(e.LookupFunc(cond.ActualValue))
 	case "<=":
-		return notOfResult(cond.CompareValue.Greater(e.lookupFunc(cond.ActualValue)))
+		return notOfResult(cond.CompareValue.Greater(e.LookupFunc(cond.ActualValue)))
 	case ">=":
 		return anyOf(
 			func(evaluator boolEvaler) (bool, error) {
-				return evaluator(e.lookupFunc(cond.ActualValue))
+				return evaluator(e.LookupFunc(cond.ActualValue))
 			},
 			[]boolEvaler{cond.CompareValue.Greater, cond.CompareValue.Greater})
 	}
