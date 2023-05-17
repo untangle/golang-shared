@@ -6,15 +6,25 @@ import (
 	"strconv"
 )
 
+// IntegerComparable is a Comparable for any integer or integer-like
+// object.
 type IntegerComparable struct {
 	theInteger int64
 }
 
+// NewIntegerComparableFromIntType returns an IntegerComparable for any integer type.
 func NewIntegerComparableFromIntType[T int | int64 | uint | int16 | uint16 | uint32 | int32 | uint64 | int8 | uint8](val T) IntegerComparable {
 	newIntVal, _ := getInt(val)
 	return IntegerComparable{newIntVal}
 }
 
+// NewIntegerComparableFromAny returns an IntegerComparable for
+//
+// a.) any int type or
+// b.) it will parse a string if given one, and try to make that an int.
+//
+// it returns an error if val was a string an could not be parsed, or
+// some other value we don't know what to do with.
 func NewIntegerComparableFromAny(val any) (IntegerComparable, error) {
 	intVal, err := getInt(val)
 	return IntegerComparable{intVal}, err
@@ -62,6 +72,7 @@ func getInt(other any) (int64, error) {
 		"booleval getInt(): value: %v(%T) is not an integer and cannot be made one", other, other)
 }
 
+// Greater -- tue if other can be coerced to an integer and i is greater than other.
 func (i IntegerComparable) Greater(other any) (bool, error) {
 	if intval, err := getInt(other); err != nil {
 		return false, err
@@ -70,6 +81,7 @@ func (i IntegerComparable) Greater(other any) (bool, error) {
 	}
 }
 
+// Equal -- true of other can be coerced to an integer and is equal to i.
 func (i IntegerComparable) Equal(other any) (bool, error) {
 	if intval, err := getInt(other); err != nil {
 		return false, err
