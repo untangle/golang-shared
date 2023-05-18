@@ -77,6 +77,39 @@ func TestInts(t *testing.T) {
 	assert.EqualValues(t, i3.theInteger, 33)
 }
 
+func TestTimeOfDay(t *testing.T) {
+	tod := TimeOfDayComparable{
+		timeSinceDayStart: 12*time.Hour + 30*time.Minute,
+	}
+
+	tests := []valueCondTest{
+		{eq, "12:30PM", true, false},
+		{eq, "12:30:00pm", true, false},
+		{eq, "bloohblahblah", false, true},
+		{eq, 12*time.Hour + 30*time.Minute, true, false},
+		{gt, 12*time.Hour + 29*time.Minute, true, false},
+		{gt, 12*time.Hour + 31*time.Minute, false, false},
+	}
+	testDriver(t, tod, tests)
+
+}
+
+func TestDayOfWeek(t *testing.T) {
+	weekday := DayOfWeekComparable{
+		dayOfWeek: time.Monday,
+	}
+
+	tests := []valueCondTest{
+		{eq, "monday", true, false},
+		{eq, time.Monday, true, false},
+		{eq, "bloohblahblah", false, true},
+		{gt, "sunday", true, false},
+		{gt, "tuesday", false, false},
+	}
+	testDriver(t, weekday, tests)
+
+}
+
 func TestIPs(t *testing.T) {
 	ip := IPComparable{ipaddr: net.ParseIP("23.23.1.1")}
 	tests := []valueCondTest{
@@ -133,15 +166,15 @@ func TestIPNets(t *testing.T) {
 }
 
 func TestTimeComparable(t *testing.T) {
-	location, err := time.LoadLocation("")
-	assert.Nil(t, err)
-	time1 := time.Date(1999, time.April, int(time.Monday), 0, 0, 0, 0, location)
+	time1 := time.Date(1999, time.April, 1, 0, 0, 0, 0, time.Local)
 	timeComparable := TimeComparable{time: time1}
 	tests := []valueCondTest{
 		{eq, time1.Unix(), true, false},
 		{eq, time1, true, false},
 		{eq, "foop", false, true},
 		{gt, "foop", false, true},
+		{eq, "01 Apr 99 00:00 MST", true, false},
+		{gt, "01 Apr 98 00:00 MST", true, false},
 		{gt, time1.Add(time.Hour), false, false},
 		{gt, time1.Add(-time.Hour), true, false},
 		{gt, time1.Unix() - 1, true, false},
