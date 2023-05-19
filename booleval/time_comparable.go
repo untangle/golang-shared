@@ -9,6 +9,7 @@ import (
 func tryToParseTimeString(timeOfDay string) (time.Time, error) {
 	formats := []string{
 		time.Kitchen,
+		"15:04",
 		"3:04:00PM",
 		time.UnixDate,
 		time.Stamp,
@@ -89,6 +90,8 @@ var dayMap = map[string]time.Weekday{
 	"SATURDAY":  time.Saturday,
 }
 
+// NewDayOfWeekFromString returns a new DayOfWeekComparable for the
+// string, which should be a weekday (caps insensitive).
 func NewDayOfWeekFromString(val string) (DayOfWeekComparable, error) {
 	if day, dayFound := dayMap[strings.ToUpper(val)]; dayFound {
 		return DayOfWeekComparable{dayOfWeek: day}, nil
@@ -96,6 +99,7 @@ func NewDayOfWeekFromString(val string) (DayOfWeekComparable, error) {
 	return DayOfWeekComparable{}, fmt.Errorf("booleval.NewDayOfWeekFromString: %s is a bad day of week",
 		val)
 }
+
 func (t DayOfWeekComparable) dowCompare(comp func(lhs time.Weekday, rhs time.Weekday) bool, other any) (bool, error) {
 	switch val := other.(type) {
 	case int, uint32, uint64, int64, uint, int32:
@@ -117,9 +121,12 @@ func (t DayOfWeekComparable) dowCompare(comp func(lhs time.Weekday, rhs time.Wee
 		other, other)
 }
 
-// Equal returns true if other is an integer and, if interpreted as a
-// unix timestamp, it is equal to t.time, or if other is a time object
-// and is equal to t.time
+// Equal will try to convert other to a weekday and return true when
+// that weekday is the same as the one contained in t. Supported types are:
+// - int types: interpreted as unix epoch timestamp in seconds, gets weekday.
+// - time.Weekday -- obvious
+// - string: we upcase the string and compare it to English weekdays.
+// - time.Time -- get the weekday of the time represented by other.
 func (t DayOfWeekComparable) Equal(other any) (bool, error) {
 	return t.dowCompare(
 		func(lhs time.Weekday, rhs time.Weekday) bool {
@@ -128,9 +135,14 @@ func (t DayOfWeekComparable) Equal(other any) (bool, error) {
 		other)
 }
 
-// Greater is true if other is an integer and t.time is greater than its value interpreted as
-// a unix timestamp, or if other is a time.Time
-// and t.time is greater than it.
+// Greater will try to convert other to a weekday and compare our
+// weekday to that one.  Sunday is the 'smallest', and Saturday is the
+// 'largest'. We return true if t is a 'larger' weekday.
+//
+// - int types: interpreted as unix epoch timestamp in seconds, gets weekday.
+// - time.Weekday -- obvious
+// - string: we upcase the string and compare it to English weekdays.
+// - time.Time -- get the weekday of the time represented by other.
 func (t DayOfWeekComparable) Greater(other any) (bool, error) {
 	return t.dowCompare(
 		func(lhs time.Weekday, rhs time.Weekday) bool {
@@ -139,17 +151,27 @@ func (t DayOfWeekComparable) Greater(other any) (bool, error) {
 		other)
 }
 
+// TimeOfDayComparable is used to compare the current time of day
+// (e.g. 24-hour time irrespective of month, year, &c.).
 type TimeOfDayComparable struct {
 	timeSinceDayStart time.Duration
 }
 
+// NewTimeOfDayFromTimeString tries to parse str as some kind of timestamp.
+// Good times are:
+// -- 3:04pm
+// -- 12:05PM
+// -- 12:00AM
+// -- 12:00 (24-hour assumed).
+// returns an error if we can't convert/parse str as a time of day.
+// if str is some sort of absolute timestamp, and we can parse it, we return
+// that relative time of day.
 func NewTimeOfDayFromTimeString(str string) (TimeOfDayComparable, error) {
 	if parsedTime, err := tryToParseTimeString(str); err == nil {
 		return TimeOfDayComparable{timeToTimeOfDay(parsedTime)}, nil
 	} else {
 		return TimeOfDayComparable{}, err
 	}
-
 }
 
 func timeToTimeOfDay(t time.Time) time.Duration {
@@ -180,6 +202,7 @@ func (t TimeOfDayComparable) todCompare(comp func(time.Duration, time.Duration) 
 	return false, fmt.Errorf("booleval TimeComparable.todCompare: can't convert %v to a time", other)
 }
 
+// Equal returns true if other is the same time of day (ignoring seconds).
 func (t TimeOfDayComparable) Equal(other any) (bool, error) {
 	return t.todCompare(
 		func(lhs time.Duration, rhs time.Duration) bool {
@@ -188,6 +211,8 @@ func (t TimeOfDayComparable) Equal(other any) (bool, error) {
 		other)
 }
 
+// Equal returns true if the time of day represented by t is greater
+// than the time of day represented by other (ignoring seconds).
 func (t TimeOfDayComparable) Greater(other any) (bool, error) {
 	return t.todCompare(
 		func(lhs time.Duration, rhs time.Duration) bool {

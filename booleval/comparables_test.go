@@ -85,8 +85,10 @@ func TestTimeOfDay(t *testing.T) {
 	tests := []valueCondTest{
 		{eq, "12:30PM", true, false},
 		{eq, "12:30:00pm", true, false},
+		{eq, "12:30", true, false},
 		{eq, "bloohblahblah", false, true},
 		{eq, 12*time.Hour + 30*time.Minute, true, false},
+		{gt, "13:00", false, false},
 		{gt, 12*time.Hour + 29*time.Minute, true, false},
 		{gt, 12*time.Hour + 31*time.Minute, false, false},
 	}
