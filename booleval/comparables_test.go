@@ -16,10 +16,17 @@ const (
 )
 
 type valueCondTest struct {
-	op     OpType
-	value  any
+	// op -- one of eq/gt, which operation to try, eq -> Equal(), gt -> Greater()
+	op OpType
+
+	// value -- the 'actual' value.
+	value any
+
+	// result -- result of comparison.
 	result bool
-	iserr  bool
+
+	// iserr -- should we expect an error from the method call to Equal/Greater?
+	iserr bool
 }
 
 func testDriver(t *testing.T, comparable Comparable, tests []valueCondTest) {
@@ -48,6 +55,17 @@ func testDriver(t *testing.T, comparable Comparable, tests []valueCondTest) {
 	}
 }
 
+/*
+Below are table-driven tests for all the Comparable objects in this package.
+We generally:
+
+1. Construct some comparable
+
+2. Give a table of potential comparisons (Equal/Greater) and
+'actual' values that we may want to compare against the Comparable.
+
+3. Pass the comparable from (1) and the table to testDriver which conducts the tests.
+*/
 func TestInts(t *testing.T) {
 	i := IntegerComparable{32}
 

@@ -1,3 +1,14 @@
+/*
+	Package booleval
+
+This package is indended to function as a 'generic' boolean
+rule-evaluator for various kinds of rules.
+
+Instead of re-writing some custom rule evaluation for something,
+consider using this as a backend and translating your rules to this
+format of a double-list of AtomicExpression. See commentary on
+Expression for more.
+*/
 package booleval
 
 import (
