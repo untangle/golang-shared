@@ -35,10 +35,10 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 
 func TestGetPolicyPluginSettings(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
-	tpPolicies := GetPolicyPluginSettings(settingsFile, "threatprevention")
-	assert.Equal(t, 3, len(tpPolicies))
-	webFilterPolicies := GetPolicyPluginSettings(settingsFile, "webfilter")
-	assert.Equal(t, 1, len(webFilterPolicies))
-	geoIPPolicies := GetPolicyPluginSettings(settingsFile, "geoip")
-	assert.Equal(t, 1, len(geoIPPolicies))
+	tpPolicies, _ := GetPolicyPluginSettings(settingsFile, "threatprevention")
+	assert.Equal(t, 4, len(tpPolicies))
+	webFilterPolicies, _ := GetPolicyPluginSettings(settingsFile, "webfilter")
+	assert.Equal(t, 2, len(webFilterPolicies))
+	geoIPPolicies, _ := GetPolicyPluginSettings(settingsFile, "geoip")
+	assert.Equal(t, 2, len(geoIPPolicies))
 }
