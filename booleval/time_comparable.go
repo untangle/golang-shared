@@ -33,6 +33,8 @@ type TimeComparable struct {
 
 func (t TimeComparable) timeCompare(comp func(lhs time.Time, rhs time.Time) bool, other any) (bool, error) {
 	switch val := other.(type) {
+	case time.Time:
+		return comp(t.time, val), nil
 	case int, uint32, uint64, int64, uint, int32:
 		int64Val, _ := getInt(val)
 		return comp(t.time, time.Unix(int64Val, 0)), nil
@@ -44,8 +46,6 @@ func (t TimeComparable) timeCompare(comp func(lhs time.Time, rhs time.Time) bool
 				"booleval TimeComparable.timeCompare: unable to parse date string: %s",
 				val)
 		}
-	case time.Time:
-		return comp(t.time, val), nil
 	}
 	return false, fmt.Errorf("booleval TimeComparable.timeCompare: can't convert %v(%T) to a time",
 		other, other)
@@ -102,6 +102,8 @@ func NewDayOfWeekFromString(val string) (DayOfWeekComparable, error) {
 
 func (t DayOfWeekComparable) dowCompare(comp func(lhs time.Weekday, rhs time.Weekday) bool, other any) (bool, error) {
 	switch val := other.(type) {
+	case time.Time:
+		return comp(t.dayOfWeek, val.Weekday()), nil
 	case int, uint32, uint64, int64, uint, int32:
 		intval, _ := getInt(val)
 		return comp(t.dayOfWeek, time.Unix(intval, 0).Weekday()), nil
@@ -114,8 +116,7 @@ func (t DayOfWeekComparable) dowCompare(comp func(lhs time.Weekday, rhs time.Wee
 		return false, fmt.Errorf(
 			"booleval DayOfWeekComparable.dowCompare: not a valid weekday: %s",
 			val)
-	case time.Time:
-		return comp(val.Weekday(), t.dayOfWeek), nil
+
 	}
 	return false, fmt.Errorf("booleval DayOfWeekComparable.dowCompare: can't convert %v(%T) to a day of the week",
 		other, other)

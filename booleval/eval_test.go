@@ -319,3 +319,56 @@ func TestExprs(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkEvaller(b *testing.B) {
+	ip := IPComparable{ipaddr: net.ParseIP("192.168.22.22")}
+	_, network, _ := net.ParseCIDR("192.168.22.2/24")
+	ipNet := IPNetComparable{ipnet: *network}
+	location := time.Local
+	time1 := time.Date(1999, time.April, 1, 0, 0, 0, 0, location)
+	timeComparable1999 := TimeComparable{time: time1}
+	time2 := time.Date(2000, time.April, int(time.Monday), 0, 0, 0, 0, location)
+	timeComparable2000 := TimeComparable{time: time2}
+	middleTime := time.Date(1999, time.December, 1, 0, 0, 0, 0, location)
+	vars := map[string]any{
+		"myIp":     net.IPv4(192, 168, 22, 42),
+		"myString": "doodle",
+		"time":     middleTime,
+		"myInt":    29,
+	}
+	expr := NewExpressionWithLookupFunc(
+		AndOfOrsMode,
+		[][]*AtomicExpression{
+			{
+				{"==", IntegerComparable{25}, "myInt"},
+				{"<=", IntegerComparable{27}, "myInt"},
+			},
+			{
+				{"<=", timeComparable1999, "time"},
+			},
+			{
+				{">=", timeComparable2000, "time"},
+			},
+			{
+				{"<=", StringComparable{"dood"}, "myString"},
+			},
+			{
+				{"==", ip, "myIp"},
+				{"==", ipNet, "myIp"},
+			},
+		},
+		func(v any) any {
+			stringVal := v.(string)
+
+			return vars[stringVal]
+		},
+	)
+	b.ResetTimer()
+	b.StartTimer()
+	for n := 0; n < b.N; n++ {
+		if val, _ := expr.Evaluate(); !val {
+			b.FailNow()
+		}
+	}
+	b.StopTimer()
+}
