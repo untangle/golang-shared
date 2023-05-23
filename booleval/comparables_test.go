@@ -112,6 +112,14 @@ func TestTimeOfDay(t *testing.T) {
 	}
 	testDriver(t, tod, tests)
 
+	tod, err := NewTimeOfDayFromTimeString("9:00AM")
+	assert.Nil(t, err)
+	tests = []valueCondTest{
+		{eq, time.Date(1999, time.April, 5, 9, 0, 1, 0, time.Local), true, false},
+		{eq, time.Date(1999, time.April, 5, 9, 1, 1, 0, time.Local), false, false},
+		{gt, time.Date(1999, time.April, 5, 8, 1, 1, 0, time.Local), false, false},
+	}
+	testDriver(t, tod, tests)
 }
 
 func TestDayOfWeek(t *testing.T) {
@@ -122,11 +130,26 @@ func TestDayOfWeek(t *testing.T) {
 	tests := []valueCondTest{
 		{eq, "monday", true, false},
 		{eq, time.Monday, true, false},
+		{eq, time.Date(1999, time.April, 5, 1, 0, 0, 0, time.Local), true, false},
+		{eq, time.Date(1999, time.April, 5, 1, 0, 0, 0, time.Local).Unix(), true, false},
 		{eq, "bloohblahblah", false, true},
 		{gt, "sunday", true, false},
 		{gt, "tuesday", false, false},
 	}
 	testDriver(t, weekday, tests)
+
+	weekday, err := NewDayOfWeekFromString("thursday")
+	assert.Nil(t, err)
+	tests = []valueCondTest{
+		{eq, "monday", false, false},
+		{eq, time.Monday, false, false},
+		{eq, "thursday", true, false},
+	}
+
+	testDriver(t, weekday, tests)
+
+	weekday, err = NewDayOfWeekFromString("fakeday")
+	assert.NotNil(t, err)
 
 }
 
