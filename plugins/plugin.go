@@ -42,7 +42,7 @@ type consumer struct {
 // keeps track of a list of plugins to send method calls to.
 type PluginControl struct {
 	dig.Container
-	wrappers           []PluginWrapper
+	wrapper            Wrapper
 	plugins            []Plugin
 	saverFuncs         []reflect.Value
 	consumers          []consumer
@@ -68,6 +68,38 @@ func GlobalPluginControl() *PluginControl {
 	return pluginControl
 }
 
+type Wrapper interface {
+	Matches(PluginConstructor) bool
+	GetConstructorReturn() any
+	SetWrappedConstructor(reflect.Value)
+	SetConstructorDependencies([]reflect.Value)
+}
+
+func WrapperConstructor(
+	wrapper Wrapper) func(any) reflect.Value {
+	return func(ctor any) reflect.Value {
+		ctorType := reflect.TypeOf(ctor)
+		wrapper.SetWrappedConstructor(reflect.ValueOf(ctor))
+		wrapperCtorReturn := wrapper.GetConstructorReturn()
+		outputTypes := []reflect.Type{reflect.TypeOf(wrapperCtorReturn)}
+		inputTypes := make([]reflect.Type, ctorType.NumIn(), ctorType.NumIn())
+		for t := 0; t < ctorType.NumIn(); t++ {
+			inputTypes[t] = ctorType.In(t)
+		}
+		ourFunc := reflect.MakeFunc(
+			reflect.FuncOf(inputTypes, outputTypes, false),
+			func(inputs []reflect.Value) []reflect.Value {
+				wrapper.SetConstructorDependencies(inputs)
+				return []reflect.Value{reflect.ValueOf(wrapperCtorReturn)}
+			})
+		return ourFunc
+	}
+}
+
+func (control *PluginControl) RegisterWrapper(wrapper Wrapper) {
+	control.wrapper = wrapper
+}
+
 // RegisterPlugin registers a plugin that will be created during the
 // Startup() method and provided with its dependencies. constructor is
 // a function that takes arbitrary types of arguments to be provided
@@ -81,25 +113,19 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 		inputs = append(inputs, constructorType.In(i))
 	}
 
+	if control.wrapper != nil && control.wrapper.Matches(constructor) {
+		constructorVal = WrapperConstructor(control.wrapper)(constructor)
+	}
 	// create a func at runtime that we can invoke that calls the
 	// constructor and appends the return value to the list of plugins.
 	saverFunc := reflect.MakeFunc(
 		reflect.FuncOf(inputs, []reflect.Type{}, false),
 		func(vals []reflect.Value) []reflect.Value {
-			if len(control.wrappers) > 0 {
-				for _, wrapper := range control.wrappers {
-					if wrapper.Matches(constructor) {
-					}pw
-				}
-				wrapperReflectVal := reflect.ValueOf(control.wrapper)
-				wrapperReflectVal.Call(vals)
-			} else {
-				output := constructorVal.Call(vals)
-				plugin := output[0].Interface()
-				pluginIntf := plugin.(Plugin)
-				control.plugins = append(control.plugins, pluginIntf)
-				return []reflect.Value{}
-			}
+			output := constructorVal.Call(vals)
+			plugin := output[0].Interface()
+			pluginIntf := plugin.(Plugin)
+			control.plugins = append(control.plugins, pluginIntf)
+			return []reflect.Value{}
 		})
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
 }

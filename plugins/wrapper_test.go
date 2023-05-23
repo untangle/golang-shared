@@ -1,71 +1,60 @@
 package plugins
 
 import (
-	"reflect"
-	"syscall"
 	"testing"
-	"time"
 )
 
-type Wrapper struct {
-	SubPlugins   []Plugin
-	Constructor  reflect.Value
-	Dependencies []reflect.Value
+type wrapperTest struct {
+	WrapperHelper
 }
 
-func NewPluginWrapper() *Wrapper {
-	return &Wrapper{}
+type decorator struct {
+	decorated         map[string]Plugin
+	newPluginCallback func() Plugin
 }
 
-func (w *Wrapper) Startup() error {
+func (d *decorator) Startup() error {
+	return nil
 }
 
-func (w *Wrapper) Signal(sig syscall.Signal) error {
+func (d *decorator) Name() string {
+	return "decorator"
 }
 
-func (w *Wrapper) Name() string {
+func (d *decorator) Shutdown() error {
+	return nil
 }
 
-func (w *Wrapper) Shutdown() error {
-}
-
-func (w *Wrapper) GenNewPlugin() Plugin {
-	outputs := w.Constructor.Call(w.Dependencies)
-	return outputs[0].Interface().(Plugin)
-}
-
-func (w *Wrapper) InstantiateNew() {
-	w.SubPlugins = append(
-		w.SubPlugins,
-		w.GenNewPlugin())
-}
-
-func (w *Wrapper) GetWrapperConstructor() any {
-	return func(ctor any) any {
-		ctorType := reflect.TypeOf(ctor)
-		w.Constructor = reflect.ValueOf(ctor)
-		outputTypes := []reflect.Type{ctorType.Out(0)}
-		inputTypes := []reflect.Type{ctorType.In(0)}
-		ourFunc := reflect.MakeFunc(
-			reflect.FuncOf(inputTypes, outputTypes, false),
-			func(inputs []reflect.Value) []reflect.Value {
-				w.Dependencies = inputs
-				return []reflect.Value{reflect.ValueOf(w)}
-			})
-		return ourFunc
+func (d *decorator) NotifyNewPolicy(pol string) {
+	if old, found := d.decorated[pol]; found {
+		old.Shutdown()
 	}
+	d.decorated[pol] = d.newPluginCallback()
+	d.decorated[pol].Startup()
 }
+
+func newWrapperTest(d *decorator) *wrapperTest {
+	w := &wrapperTest{}
+	w.SetConstructorReturn(d)
+	d.newPluginCallback = w.GenNewPlugin
+	return w
+}
+
+func (w *wrapperTest) Matches(val PluginConstructor) bool {
+	return true
+}
+
 func TestWrapper(t *testing.T) {
-	time1 := time.Parse("", "")
 	controller := NewPluginControl()
-	wrapper := NewPluginWrapper()
-	controller.RegisterWrapper(wrapper.GetWrapperConstructor())
+	decorator := &decorator{decorated: map[string]Plugin{}}
+	wrapper := newWrapperTest(decorator)
+	controller.RegisterWrapper(wrapper)
 	controller.Provide(func() *Config {
 		return &Config{}
 	})
 	controller.RegisterPlugin(NewPlugin)
 	controller.Startup()
-	wrapper.GenNewPlugin()
-	wrapper.GenNewPlugin()
+	decorator.NotifyNewPolicy("policy1")
+	decorator.NotifyNewPolicy("policy2")
 
 }
