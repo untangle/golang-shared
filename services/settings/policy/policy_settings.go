@@ -79,6 +79,9 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 		for _, config := range p.Configurations {
 			config := policySettings.findConfiguration(config)
 			if config == nil {
+				logger.Warn("Can't find configuration in settings: %s(%s)\n",
+					config.ID,
+					config.Name)
 				// No matching configuration found, skip. Although this should never happen.
 				continue
 			}
