@@ -50,3 +50,13 @@ func (plugin *MockPlugin) Shutdown() error {
 	returns := plugin.Called()
 	return returns.Error(0)
 }
+
+func (plugin *MockPlugin) GetNewSettings() any {
+	return &Config{}
+}
+
+func (plugin *MockPlugin) SetSettings(val any) {
+	if configValue, ok := val.(*Config); ok {
+		plugin.config = configValue
+	}
+}

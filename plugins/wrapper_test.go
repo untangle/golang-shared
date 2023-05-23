@@ -11,7 +11,7 @@ type wrapperTest struct {
 }
 
 type decorator struct {
-	decorated         map[string]Plugin
+	decorated         map[string]SettingsInjectablePlugin
 	newPluginCallback func() Plugin
 }
 
@@ -33,8 +33,13 @@ func (d *decorator) NotifyNewPolicy(pol string) {
 	if old, found := d.decorated[pol]; found {
 		old.Shutdown()
 	}
-	d.decorated[pol] = d.newPluginCallback()
+	policyPlugin := d.newPluginCallback().(SettingsInjectablePlugin)
+	d.decorated[pol] = policyPlugin
 	d.decorated[pol].Startup()
+	settings := d.decorated[pol].GetNewSettings()
+	conf := settings.(*Config)
+	conf.Name = pol
+	policyPlugin.SetSettings(conf)
 }
 
 func newWrapperTest(d *decorator) *wrapperTest {
@@ -52,7 +57,7 @@ func (w *wrapperTest) Matches(val PluginConstructor) bool {
 
 func TestWrapper(t *testing.T) {
 	controller := NewPluginControl()
-	decorator := &decorator{decorated: map[string]Plugin{}}
+	decorator := &decorator{decorated: map[string]SettingsInjectablePlugin{}}
 	wrapper := newWrapperTest(decorator)
 	controller.RegisterWrapper(wrapper)
 	controller.Provide(func() *Config {
@@ -64,4 +69,5 @@ func TestWrapper(t *testing.T) {
 	decorator.NotifyNewPolicy("policy2")
 	assert.NotNil(t, decorator.decorated["policy1"])
 	assert.NotNil(t, decorator.decorated["policy2"])
+	assert.Equal(t, decorator.decorated["policy1"].(*MockPlugin).config.Name, "policy1")
 }
