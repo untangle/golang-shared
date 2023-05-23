@@ -1,5 +1,5 @@
  # this is based on alpine:3.16
-FROM golang:1.17.11-alpine3.16
+FROM golang:1.19.9-alpine3.18
 LABEL maintainer="Sebastien Delafond <sdelafond@gmail.com>"
 
 RUN apk update
@@ -21,7 +21,7 @@ RUN apk add zeromq-dev
 RUN apk add protobuf-dev
 
 # Install protoc-gen-go
-RUN go get google.golang.org/protobuf/cmd/protoc-gen-go
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
 # build anything here
 RUN mkdir -p /go/untangle-shared
