@@ -17,6 +17,11 @@ type Plugin interface {
 	Shutdown() error
 }
 
+type PluginWrapper interface {
+	Matches(any)
+	GetWrapperConstructor(any) any
+}
+
 // PluginConstructor is a function that generates a plugin.
 type PluginConstructor interface{}
 
@@ -37,6 +42,7 @@ type consumer struct {
 // keeps track of a list of plugins to send method calls to.
 type PluginControl struct {
 	dig.Container
+	wrappers           []PluginWrapper
 	plugins            []Plugin
 	saverFuncs         []reflect.Value
 	consumers          []consumer
@@ -80,11 +86,20 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 	saverFunc := reflect.MakeFunc(
 		reflect.FuncOf(inputs, []reflect.Type{}, false),
 		func(vals []reflect.Value) []reflect.Value {
-			output := constructorVal.Call(vals)
-			plugin := output[0].Interface()
-			pluginIntf := plugin.(Plugin)
-			control.plugins = append(control.plugins, pluginIntf)
-			return []reflect.Value{}
+			if len(control.wrappers) > 0 {
+				for _, wrapper := range control.wrappers {
+					if wrapper.Matches(constructor) {
+					}pw
+				}
+				wrapperReflectVal := reflect.ValueOf(control.wrapper)
+				wrapperReflectVal.Call(vals)
+			} else {
+				output := constructorVal.Call(vals)
+				plugin := output[0].Interface()
+				pluginIntf := plugin.(Plugin)
+				control.plugins = append(control.plugins, pluginIntf)
+				return []reflect.Value{}
+			}
 		})
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
 }
