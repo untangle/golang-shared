@@ -125,6 +125,14 @@ func NewExpressionWithLookupFunc(
 
 type boolEvaler func(any) (bool, error)
 
+// anyOf/allOf/noneOf evaluate the given function eval, of type F, on
+// each of the params, unless they can short-circuit.
+//
+// Really, you can think of anOf as boolean OR, allOf as boolean AND
+// and noneOf as the not of boolean OR. The difference is that they
+// take some evaluator function rather than just values, and they
+// handle errors -- if eval(p) returns an error for any of the p it
+// evaluates, we stop and return false, error.
 func anyOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
 	for _, item := range params {
 		if val, err := eval(item); err != nil {
@@ -148,12 +156,6 @@ func allOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
 
 }
 
-// Evaluate() returns the value of the expression, or an error if
-// something was malformed.
-func (expr Expression) Evaluate() (bool, error) {
-	return expr.evalExpressionClauses(expr.AtomicExpressions)
-}
-
 func noneOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
 	if wasOneOf, err := anyOf(eval, params); err != nil {
 		return false, err
@@ -162,6 +164,14 @@ func noneOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
 	}
 }
 
+// Evaluate() returns the value of the expression, or an error if
+// something was malformed.
+func (expr Expression) Evaluate() (bool, error) {
+	return expr.evalExpressionClauses(expr.AtomicExpressions)
+}
+
+// notOfResult -- just the not of result (!result, err), unless err is
+// non-nil, in which case return false, err.
 func notOfResult(result bool, err error) (bool, error) {
 	if err != nil {
 		return false, err
