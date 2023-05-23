@@ -2,6 +2,8 @@ package plugins
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type wrapperTest struct {
@@ -26,6 +28,8 @@ func (d *decorator) Shutdown() error {
 }
 
 func (d *decorator) NotifyNewPolicy(pol string) {
+	// This mimicks what happens on policy change -- we look
+	// through our map, and instantiate new plugins.
 	if old, found := d.decorated[pol]; found {
 		old.Shutdown()
 	}
@@ -41,6 +45,8 @@ func newWrapperTest(d *decorator) *wrapperTest {
 }
 
 func (w *wrapperTest) Matches(val PluginConstructor) bool {
+	// ideally this should examine 'val' to decide if it's the
+	// type of plugin we want to wrap.
 	return true
 }
 
@@ -56,5 +62,6 @@ func TestWrapper(t *testing.T) {
 	controller.Startup()
 	decorator.NotifyNewPolicy("policy1")
 	decorator.NotifyNewPolicy("policy2")
-
+	assert.NotNil(t, decorator.decorated["policy1"])
+	assert.NotNil(t, decorator.decorated["policy2"])
 }
