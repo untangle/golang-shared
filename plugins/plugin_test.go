@@ -18,7 +18,7 @@ func TestPlugin(t *testing.T) {
 	baseMockPluginSave.On("Shutdown").Return(nil)
 	pluginController := NewPluginControl()
 	pluginController.RegisterPlugin(
-		NewPlugin)
+		NewMockSingletonPlugin)
 	assert.Nil(t, pluginController.Provide(
 		func() *Config {
 			return &Config{Name: configName}

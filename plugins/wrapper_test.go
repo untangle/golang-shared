@@ -3,6 +3,7 @@ package plugins
 import (
 	"testing"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,19 +28,35 @@ func (d *decorator) Shutdown() error {
 	return nil
 }
 
-func (d *decorator) NotifyNewPolicy(pol string) {
+func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 	// This mimicks what happens on policy change -- we look
 	// through our map, and instantiate new plugins.
-	if old, found := d.decorated[pol]; found {
-		old.Shutdown()
+	var policyPlugin SettingsInjectablePlugin
+	if _, found := d.decorated[pol]; !found {
+		policyPlugin = d.newPluginCallback().(SettingsInjectablePlugin)
+		d.decorated[pol] = policyPlugin
+		d.decorated[pol].Startup()
+	} else {
+		policyPlugin = d.decorated[pol].(SettingsInjectablePlugin)
 	}
-	policyPlugin := d.newPluginCallback().(SettingsInjectablePlugin)
-	d.decorated[pol] = policyPlugin
-	d.decorated[pol].Startup()
+
+	// Here is where we would do settings injection.  The
+	// GetNewSettings method returns a new, blank object that we
+	// can unmarshall into. Here, we use mapstructure, we could
+	// also use the regular JSON unmarshaller to unmarshal into
+	// this object.  Later, we call SetSettings, which tells the
+	// object about the new settings. Real plugins would lock
+	// their settings and set their internal settings object they
+	// are using to this new one. See how the MockPlugin
+	// SetSettings() works.
 	settings := d.decorated[pol].GetNewSettings()
-	conf := settings.(*Config)
-	conf.Name = pol
-	policyPlugin.SetSettings(conf)
+	config := &mapstructure.DecoderConfig{
+		TagName: "json",
+		Result:  settings,
+	}
+	decoder, _ := mapstructure.NewDecoder(config)
+	decoder.Decode(fakeSettings)
+	policyPlugin.SetSettings(settings)
 }
 
 func newWrapperTest(d *decorator) *wrapperTest {
@@ -55,6 +72,12 @@ func (w *wrapperTest) Matches(val PluginConstructor) bool {
 	return true
 }
 
+func NewMockPlugin(config *Config) *MockPlugin {
+	m := &MockPlugin{config: config}
+	m.On("Startup").Maybe().Return(nil)
+	m.On("Shutdown").Maybe().Return(nil)
+	return m
+}
 func TestWrapper(t *testing.T) {
 	controller := NewPluginControl()
 	decorator := &decorator{decorated: map[string]SettingsInjectablePlugin{}}
@@ -63,11 +86,34 @@ func TestWrapper(t *testing.T) {
 	controller.Provide(func() *Config {
 		return &Config{}
 	})
-	controller.RegisterPlugin(NewPlugin)
+	controller.RegisterPlugin(NewMockPlugin)
 	controller.Startup()
-	decorator.NotifyNewPolicy("policy1")
-	decorator.NotifyNewPolicy("policy2")
+	decorator.NotifyNewPolicy("policy1", map[string]any{
+		"name": "policy1settings",
+		"id":   "myIDpolicy1plugin",
+	})
+	decorator.NotifyNewPolicy("policy2", map[string]any{
+		"name": "policy2settings",
+		"id":   "myIDpolicy2plugin",
+	})
 	assert.NotNil(t, decorator.decorated["policy1"])
 	assert.NotNil(t, decorator.decorated["policy2"])
-	assert.Equal(t, decorator.decorated["policy1"].(*MockPlugin).config.Name, "policy1")
+
+	assert.Equal(t, decorator.decorated["policy1"].(*MockPlugin).config.Name,
+		"policy1settings")
+	assert.Equal(t,
+		decorator.decorated["policy1"].(*MockPlugin).config.ID,
+		"myIDpolicy1plugin")
+
+	assert.Equal(t, decorator.decorated["policy2"].(*MockPlugin).config.Name,
+		"policy2settings")
+	assert.Equal(t, decorator.decorated["policy2"].(*MockPlugin).config.ID,
+		"myIDpolicy2plugin")
+
+	decorator.NotifyNewPolicy("policy2", map[string]any{
+		"name": "policy2settingsSecondTime",
+		"id":   "myIDpolicy2plugin",
+	})
+	assert.Equal(t, decorator.decorated["policy2"].(*MockPlugin).config.Name,
+		"policy2settingsSecondTime")
 }

@@ -9,7 +9,8 @@ import (
 
 // Fake configuration to check DI works.
 type Config struct {
-	Name string
+	Name string `json:"name"`
+	ID   string `json:"id"`
 }
 
 // Mock plugin to check method calls.
@@ -21,7 +22,7 @@ type MockPlugin struct {
 // global instance of the MockPlugin, to be returned by NewPlugin.
 var baseMockPluginSave *MockPlugin = &MockPlugin{}
 
-func NewPlugin(config *Config) *MockPlugin {
+func NewMockSingletonPlugin(config *Config) *MockPlugin {
 	baseMockPluginSave.config = config
 	return baseMockPluginSave
 }
@@ -29,7 +30,7 @@ func NewPlugin(config *Config) *MockPlugin {
 func GetMockPluginConstructor() (*MockPlugin, *mock.Mock, func(config *Config) *MockPlugin) {
 	baseMockPluginSave = &MockPlugin{}
 	fmt.Printf("plugin save: %v (intf: %v)\n", baseMockPluginSave, (interface{}(baseMockPluginSave)).(Plugin))
-	return baseMockPluginSave, &baseMockPluginSave.Mock, NewPlugin
+	return baseMockPluginSave, &baseMockPluginSave.Mock, NewMockSingletonPlugin
 }
 
 func (plugin *MockPlugin) Startup() error {
