@@ -88,6 +88,9 @@ func TestWrapper(t *testing.T) {
 	})
 	controller.RegisterPlugin(NewMockPlugin)
 	controller.Startup()
+
+	// NotifyNewPolicy will create a new instance of the wrapped
+	// plugin, and inject the settings into it.
 	decorator.NotifyNewPolicy("policy1", map[string]any{
 		"name": "policy1settings",
 		"id":   "myIDpolicy1plugin",
