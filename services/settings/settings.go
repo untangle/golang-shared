@@ -500,6 +500,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 
 	logger.Debug("Sighup: %v\n", ShouldRunSighup)
 	logger.Debug("Executables: %v\n", SighupExecutables)
+	//Check if network discovery is enabled
 	isDiscoveryEnabled, err := getSettingsFromJSON(jsonObject, []string{"discovery", "enabled"})
 	if err != nil {
 		logger.Warn("Failed to get discovery status from settings: %v\n", err.Error())
