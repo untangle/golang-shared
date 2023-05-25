@@ -13,7 +13,7 @@ type wrapperTest struct {
 
 type decorator struct {
 	decorated         map[string]SettingsInjectablePlugin
-	newPluginCallback func() Plugin
+	newPluginCallback PluginGeneratorCallback
 }
 
 func (d *decorator) Startup() error {
@@ -61,14 +61,15 @@ func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 
 func newWrapperTest(d *decorator) *wrapperTest {
 	w := &wrapperTest{}
-	w.SetConstructorReturn(func(gen func() Plugin) Plugin {
-		d.newPluginCallback = gen
-		return d
-	})
+	w.SetConstructorReturn(
+		ConstructorWrapperPluginFactory(func(gen PluginGeneratorCallback, _ ...any) Plugin {
+			d.newPluginCallback = gen
+			return d
+		}))
 	return w
 }
 
-func (w *wrapperTest) Matches(val PluginConstructor) bool {
+func (w *wrapperTest) Matches(val PluginConstructor, metadata ...any) bool {
 	// ideally this should examine 'val' to decide if it's the
 	// type of plugin we want to wrap.
 	return true
@@ -83,7 +84,7 @@ func NewMockPlugin(config *Config) *MockPlugin {
 func TestWrapper(t *testing.T) {
 	controller := NewPluginControl()
 	decorator := &decorator{decorated: map[string]SettingsInjectablePlugin{}}
-	controller.RegisterWrapper(func() Wrapper {
+	controller.RegisterConstructorWrapper(func() ConstructorWrapper {
 		return newWrapperTest(decorator)
 	})
 	controller.Provide(func() *Config {

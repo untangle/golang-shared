@@ -24,8 +24,6 @@ type PluginConstructor interface{}
 // that a plugin may fulfill that it is interested in.
 type PluginConsumer interface{}
 
-type WrapperConstructor any
-
 type consumer struct {
 	consumedType reflect.Type
 	consumerFunc reflect.Value
@@ -39,7 +37,7 @@ type consumer struct {
 // keeps track of a list of plugins to send method calls to.
 type PluginControl struct {
 	dig.Container
-	wrapper            Wrapper
+	wrapper            ConstructorWrapper
 	plugins            []Plugin
 	saverFuncs         []reflect.Value
 	consumers          []consumer
@@ -65,13 +63,22 @@ func GlobalPluginControl() *PluginControl {
 	return pluginControl
 }
 
-type Wrapper interface {
-	Matches(PluginConstructor) bool
-	GetConstructorReturn(wrappedConstructor reflect.Value, deps []reflect.Value) Plugin
+type ConstructorWrapper interface {
+	// Matches returns true if we'd like to wrap this plugin.
+	Matches(PluginConstructor, ...any) bool
+
+	// GetConstructorReturn returns the plugin you'd like to use
+	// _instead_ of the plugin that the wrappedConstructor
+	// argument would return.
+	GetConstructorReturn(wrappedConstructor reflect.Value, deps []reflect.Value, metadata ...any) Plugin
 }
 
+// ConstructorWrapperFactory is a function that takes any number of
+// arguments of some type, and returns a wrapper.
+type ConstructorWrapperFactory any
+
 func makeWrapperConstructor(
-	wrapper Wrapper, ctor any) reflect.Value {
+	wrapper ConstructorWrapper, ctor any, metadata []any) reflect.Value {
 	ctorType := reflect.TypeOf(ctor)
 	inputTypes := make([]reflect.Type, ctorType.NumIn(), ctorType.NumIn())
 	for t := 0; t < ctorType.NumIn(); t++ {
@@ -82,18 +89,32 @@ func makeWrapperConstructor(
 		reflect.FuncOf(inputTypes, []reflect.Type{reflect.TypeOf((*Plugin)(nil)).Elem()}, false),
 		func(inputs []reflect.Value) []reflect.Value {
 			returnvalue := reflect.ValueOf(wrapper.GetConstructorReturn(
-				reflect.ValueOf(ctor), inputs))
+				reflect.ValueOf(ctor), inputs, metadata...))
 			return []reflect.Value{returnvalue}
 
 		})
 	return ourFunc
 }
 
-func (control *PluginControl) RegisterWrapper(wrapper WrapperConstructor) {
+// RegisterConstructorWrapper registers the 'constructor
+// wrapper'. wrapper must be a function returning a
+// ConstructorWrapper. It is instantiated using the objects available
+// to the DI currently (i.e. the constructor passed can take
+// Provide()-ed objects).  Once registered, all new registered plugins
+// registered via RegisterPlugin() will have their constructors passed
+// to the Matches() function of the ConstructorWrapper returned by
+// wrapper, if they match, then instead of that constructor getting
+// called when that plugin would normally be instantiated, first its
+// constructor reflect.Value, then its dependencies (constructor
+// arguments) are instead passed to the GetConstructorReturn()
+// function, and the plugin returned by that function will be used
+// instead of what would have been returned by the regular
+// constructor.
+func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrapperFactory) {
 	if err := control.Provide(wrapper); err != nil {
 		panic(fmt.Sprintf("couldn't provide wrapper: %s", err))
 	}
-	if err := control.Invoke(func(w Wrapper) {
+	if err := control.Invoke(func(w ConstructorWrapper) {
 		control.wrapper = w
 	}); err != nil {
 		panic(fmt.Sprintf("couldn't instantiate wrapper: %s", err))
@@ -105,7 +126,7 @@ func (control *PluginControl) RegisterWrapper(wrapper WrapperConstructor) {
 // a function that takes arbitrary types of arguments to be provided
 // by the DI container and returns a plugin object. This function will
 // not provide the plugin as a potential dependency for other plugins.
-func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
+func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, metadata ...any) {
 	constructorType := reflect.TypeOf(constructor)
 	constructorVal := reflect.ValueOf(constructor)
 	inputs := []reflect.Type{}
@@ -113,8 +134,8 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor) {
 		inputs = append(inputs, constructorType.In(i))
 	}
 
-	if control.wrapper != nil && control.wrapper.Matches(constructor) {
-		constructorVal = makeWrapperConstructor(control.wrapper, constructor)
+	if control.wrapper != nil && control.wrapper.Matches(constructor, metadata...) {
+		constructorVal = makeWrapperConstructor(control.wrapper, constructor, metadata)
 	}
 	// create a func at runtime that we can invoke that calls the
 	// constructor and appends the return value to the list of plugins.
