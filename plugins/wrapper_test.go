@@ -37,7 +37,7 @@ func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 		d.decorated[pol] = policyPlugin
 		d.decorated[pol].Startup()
 	} else {
-		policyPlugin = d.decorated[pol].(SettingsInjectablePlugin)
+		policyPlugin = d.decorated[pol]
 	}
 
 	// Here is where we would do settings injection.  The
@@ -61,8 +61,10 @@ func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 
 func newWrapperTest(d *decorator) *wrapperTest {
 	w := &wrapperTest{}
-	w.SetConstructorReturn(d)
-	d.newPluginCallback = w.GenNewPlugin
+	w.SetConstructorReturn(func(gen func() Plugin) Plugin {
+		d.newPluginCallback = gen
+		return d
+	})
 	return w
 }
 
@@ -81,11 +83,13 @@ func NewMockPlugin(config *Config) *MockPlugin {
 func TestWrapper(t *testing.T) {
 	controller := NewPluginControl()
 	decorator := &decorator{decorated: map[string]SettingsInjectablePlugin{}}
-	wrapper := newWrapperTest(decorator)
-	controller.RegisterWrapper(wrapper)
+	controller.RegisterWrapper(func() Wrapper {
+		return newWrapperTest(decorator)
+	})
 	controller.Provide(func() *Config {
 		return &Config{}
 	})
+
 	controller.RegisterPlugin(NewMockPlugin)
 	controller.Startup()
 

@@ -5,15 +5,11 @@ import "reflect"
 type WrapperHelper struct {
 	Constructor  reflect.Value
 	Dependencies []reflect.Value
-	ctorReturn   any
+	ctorReturn   func(func() Plugin) Plugin
 }
 
 func NewPluginWrapperHelper() *WrapperHelper {
 	return &WrapperHelper{}
-}
-
-func (w *WrapperHelper) SetConstructorDependencies(deps []reflect.Value) {
-	w.Dependencies = deps
 }
 
 func (w *WrapperHelper) GenNewPlugin() Plugin {
@@ -21,13 +17,16 @@ func (w *WrapperHelper) GenNewPlugin() Plugin {
 	return outputs[0].Interface().(Plugin)
 }
 
-func (w *WrapperHelper) SetConstructorReturn(val any) {
-	w.ctorReturn = val
+func (w *WrapperHelper) SetConstructorReturn(f func(func() Plugin) Plugin) {
+	w.ctorReturn = f
 }
 
-func (w *WrapperHelper) GetConstructorReturn() any {
-	return w.ctorReturn
-
+func (w *WrapperHelper) GetConstructorReturn(wrappedCtor reflect.Value, deps []reflect.Value) Plugin {
+	return w.ctorReturn(
+		func() Plugin {
+			outputs := wrappedCtor.Call(deps)
+			return outputs[0].Interface().(Plugin)
+		})
 }
 
 func (w *WrapperHelper) SetWrappedConstructor(val reflect.Value) {
