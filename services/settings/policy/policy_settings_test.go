@@ -29,8 +29,9 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 	assert.Equal(t, 1, len(policySettings["webfilter"]))
 	assert.Equal(t, 1, len(policySettings["geoip"]))
 
+	teachersUID := "60a9e031-4188-4d06-8083-108ebec63a9e"
 	// Spot check a plugin setting.
-	assert.EqualValues(t, result, policySettings["threatprevention"]["Teachers"])
+	assert.EqualValues(t, result, policySettings["threatprevention"][teachersUID])
 }
 
 func TestGetPolicyPluginSettings(t *testing.T) {
