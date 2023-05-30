@@ -92,7 +92,7 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 				if pluginSettings[name] == nil {
 					pluginSettings[name] = make(map[string]interface{})
 				}
-				pluginSettings[name][p.Name] = settings
+				pluginSettings[name][p.ID] = settings
 			}
 		}
 	}
