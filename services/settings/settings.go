@@ -500,8 +500,18 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 
 	logger.Debug("Sighup: %v\n", ShouldRunSighup)
 	logger.Debug("Executables: %v\n", SighupExecutables)
+	//Check if network discovery is enabled
+	isDiscoveryEnabled, err := getSettingsFromJSON(jsonObject, []string{"discovery", "enabled"})
+	if err != nil {
+		logger.Warn("Failed to get discovery status from settings: %v\n", err.Error())
+		return output, err
+	}
 	if ShouldRunSighup {
 		for _, executable := range SighupExecutables {
+			if executable == "discoverd" && isDiscoveryEnabled.(bool) == false {
+				logger.Info("Discovery is not enabled hence skipping sighup\n")
+				continue
+			}
 			err = util.RunSighup(executable)
 			if err != nil {
 				logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
