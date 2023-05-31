@@ -10,6 +10,10 @@ const (
 	PolicyConfigName = "policy_manager"
 )
 
+const (
+	defaultSettingUUID = "00000000-0000-0000-0000-000000000000"
+)
+
 var logger = logService.GetLoggerInstance()
 
 // Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
@@ -28,7 +32,7 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, pluginName); err != nil {
 		return nil, err
 	}
-	pluginSettings[pluginName]["default"] = defaultPluginSettings
+	pluginSettings[pluginName][defaultSettingUUID] = defaultPluginSettings
 	return pluginSettings[pluginName], nil
 }
 
