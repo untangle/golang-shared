@@ -42,3 +42,9 @@ func TestGetPolicyPluginSettings(t *testing.T) {
 	geoIPPolicies, _ := GetPolicyPluginSettings(settingsFile, "geoip")
 	assert.Equal(t, 2, len(geoIPPolicies))
 }
+
+func TestErrorGetPolicyPluginSettings(t *testing.T) {
+	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
+	_, err := GetPolicyPluginSettings(settingsFile, "notapolicy")
+	assert.NotNil(t, err)
+}
