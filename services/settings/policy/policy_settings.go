@@ -7,27 +7,30 @@ import (
 
 const (
 	// Defines the name of the settings properties for policy manager
-	PolicyConfigName = "policy_manager"
+	PolicyConfigName   = "policy_manager"
+	DefaultSettingUUID = "00000000-0000-0000-0000-000000000000"
 )
 
 var logger = logService.GetLoggerInstance()
 
 // Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
 // the policy name and interface{} is the plugin settings.
-func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName string) map[string]interface{} {
+func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName string) (map[string]interface{}, error) {
 
 	var pluginSettings map[string]map[string]interface{}
+	var defaultPluginSettings interface{}
 	var err error
 
 	if pluginSettings, err = getAllPolicyConfigurationSettings(settingsFile); err != nil {
-		return nil
+		return nil, err
 	}
 
-	if pluginSettings[pluginName] == nil {
-		return nil
+	// Add default settings into map with key default.
+	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, pluginName); err != nil {
+		return nil, err
 	}
-
-	return pluginSettings[pluginName]
+	pluginSettings[pluginName][DefaultSettingUUID] = defaultPluginSettings
+	return pluginSettings[pluginName], nil
 }
 
 // Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where

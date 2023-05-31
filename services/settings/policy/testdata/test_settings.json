@@ -1,4 +1,73 @@
 {
+    "threatprevention": {                                                       
+        "enabled": false,                                  
+        "passList": [],                                                         
+        "redirect": false,                             
+        "sensitivity": 20             
+    },
+    "webfilter": {                                                              
+        "blockList": [],                                                        
+        "categories": [                                                         
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 11                                                        
+            },                                                                  
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 44                                                        
+            },                                                                  
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 49                                                        
+            },                                                                  
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 56                                                        
+            },                                                                  
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 57                                                        
+            },                                                                  
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 58                                                        
+            },                                                                  
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 59                                                        
+            },                                                                  
+            {                                                                   
+                "enabled": true,                                                
+                "flagged": true,                                                
+                "id": 67                                                        
+            }                                                                   
+        ],                                                                      
+        "enabled": false,                                                       
+        "passList": []                                                          
+    },
+    "application_control": {                                                    
+        "actions": {                                                            
+            "block": [],                                                        
+            "flag": [],                                                         
+            "reject": []                                                        
+        },                                                                      
+        "cloud_classification": true,                                           
+        "custom_rules": [],                                                     
+        "enabled": false                                                        
+    },
+    "geoip": {                                                                  
+        "blockedCountries": [],                                                 
+        "enabled": false,                                                       
+        "enabledLog": false,                                                    
+        "passedNetworks": []                                                    
+    },
     "policy_manager": {
         "configurations": [
             {
