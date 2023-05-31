@@ -7,11 +7,8 @@ import (
 
 const (
 	// Defines the name of the settings properties for policy manager
-	PolicyConfigName = "policy_manager"
-)
-
-const (
-	defaultSettingUUID = "00000000-0000-0000-0000-000000000000"
+	PolicyConfigName   = "policy_manager"
+	DefaultSettingUUID = "00000000-0000-0000-0000-000000000000"
 )
 
 var logger = logService.GetLoggerInstance()
@@ -32,7 +29,7 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, pluginName); err != nil {
 		return nil, err
 	}
-	pluginSettings[pluginName][defaultSettingUUID] = defaultPluginSettings
+	pluginSettings[pluginName][DefaultSettingUUID] = defaultPluginSettings
 	return pluginSettings[pluginName], nil
 }
 
