@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/untangle/golang-shared/testing/util/settingsutil"
 )
 
 const testSettingsFilePath = "./testdata/settings.json"
@@ -48,6 +49,30 @@ func TestGetAllSettings(t *testing.T) {
 	if !assert.Contains(t, b, "foo") || !assert.Contains(t, b, "bar") {
 		return
 	}
+}
+
+func TestSetSettingsNoSync(t *testing.T) {
+	tempfile, cleanup := settingsutil.CopySettingsToTemp(t, "testdata/writes.json")
+	defer cleanup()
+	sf := NewSettingsFile(tempfile)
+	type example struct {
+		Name  string `json:"name"`
+		Value int    `json:"value"`
+	}
+	x := example{
+		Name:  "hello",
+		Value: 1,
+	}
+	assert.Nil(t, sf.SetSettingsNoSync([]string{"some", "path"}, x))
+	y := example{}
+	assert.Nil(t, sf.UnmarshalSettingsAtPath(&y, "some", "path"))
+	assert.EqualValues(t,
+		example{
+			Name:  "hello",
+			Value: 1,
+		},
+		y)
+
 }
 
 // Uses a script that just points at the testdata/settings.json to generate a backup

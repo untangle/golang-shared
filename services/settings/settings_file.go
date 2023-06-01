@@ -91,6 +91,47 @@ func (file *SettingsFile) GetAllSettings() (map[string]interface{}, error) {
 	return nil, errors.New("invalid settings file format")
 }
 
+// SetSettingsNoSync writes the settings to the settings file but does
+// not call sync-settings. Likely _not_ what you want most of the time.
+func (file *SettingsFile) SetSettingsNoSync(segments []string, value any) error {
+	var ok bool
+	var err error
+	var jsonSettings map[string]interface{}
+	var newSettings interface{}
+
+	jsonSettings, err = file.GetAllSettings()
+	if err != nil {
+		return err
+	}
+
+	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
+	if err != nil {
+		return err
+	}
+	jsonSettings, ok = newSettings.(map[string]interface{})
+	if !ok {
+		err = errors.New("invalid settings object returned from setSetingsInJSON")
+		return err
+	}
+	file.mutex.Lock()
+	defer file.mutex.Unlock()
+
+	var openedFile *os.File
+	var marshalled []byte
+	defer openedFile.Close()
+	if openedFile, err = os.Create(file.filename); err != nil {
+		return err
+	}
+	if marshalled, err = json.Marshal(jsonSettings); err != nil {
+		return err
+	}
+	if _, err := openedFile.Write(marshalled); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SetSettings updates the settings. Calls lock/unlock on the SettingsFile's mutex
 func (file *SettingsFile) SetSettings(segments []string, value interface{}, force bool) (interface{}, error) {
 	var ok bool
@@ -172,10 +213,11 @@ func (file *SettingsFile) RestoreSettingsFromFile(fileData []byte, exceptions ..
 }
 
 // Updates settings with the new settings passed in. newSettings needs to be a valid
-// 	Json structure(map[string]interface{}) of all the settings. For each exception, the current settings will be
-// 	used instead of the what was in newSettings. Returns an error if something went wrong, along
-// 	with an error JSON. If the settings were set, no error will be returned and a JSON response
-//  object will be. !!!Only works for settings at the highest level in the settings json
+//
+//		Json structure(map[string]interface{}) of all the settings. For each exception, the current settings will be
+//		used instead of the what was in newSettings. Returns an error if something went wrong, along
+//		with an error JSON. If the settings were set, no error will be returned and a JSON response
+//	 object will be. !!!Only works for settings at the highest level in the settings json
 func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]interface{}, exceptions ...string) (interface{}, error) {
 	currentSettings, err := file.GetAllSettings()
 	if err != nil {
@@ -193,7 +235,8 @@ func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]in
 // Returns the file name as the full path to it, the settings file data as []byte, and an error. If any error occurs
 // "", nil, err will be returned.
 // The script provided must output a line specifying the location of the generated backup file in the format:
-// 	Backup location: <full path of file> \n
+//
+//	Backup location: <full path of file> \n
 func (file *SettingsFile) GenerateBackupFile(backupGenerationScript string, scriptArgs ...string) (string, []byte, error) {
 	file.mutex.RLock()
 	defer file.mutex.RUnlock()
