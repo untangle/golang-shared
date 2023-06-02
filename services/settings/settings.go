@@ -27,9 +27,6 @@ const currentFile = "/etc/config/current.json"
 
 var syncCallbacks []func()
 
-// OSForSyncSettings is the os sync-settings should use
-var OSForSyncSettings string = "openwrt"
-
 // ShouldRunSighup is if sighup should be run after sync-settings callbacks
 var ShouldRunSighup bool = false
 
@@ -46,11 +43,6 @@ func Startup() {
 // Shutdown settings service
 func Shutdown() {
 
-}
-
-// SetOS sets the os for settings to use
-func SetOS(newOS string) {
-	OSForSyncSettings = newOS
 }
 
 // SetSighupProperties sets the properties of running sighup, such as if it should and the processes to sighup
@@ -422,7 +414,7 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 
 // runSyncSettings runs sync-settings on the specified filename
 func runSyncSettings(filename string, force bool) (string, error) {
-	cmd := exec.Command("/usr/bin/sync-settings", "-o", OSForSyncSettings, "-f", filename, "-v", "force="+strconv.FormatBool(force))
+	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
 	outbytes, err := cmd.CombinedOutput()
 	output := string(outbytes)
 	if err != nil {
