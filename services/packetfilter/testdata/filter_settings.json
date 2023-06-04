@@ -1,0 +1,21 @@
+{
+    "packetfilters": [
+        {
+            "name": "Block all traffic to google DNS",
+            "enabled": true,
+            "action": "block",
+            "conditions": [
+                {
+                    "property": "ServerAddress",
+                    "operator": "==",
+                    "value": "8.8.8.8"
+                },
+                {
+                    "property": "ServerPort",
+                    "operator": "==",
+                    "value": "53"
+                }
+            ]
+        }
+    ]
+}

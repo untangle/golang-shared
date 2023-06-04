@@ -1,8 +1,6 @@
 package packetfilter
 
-import (
-	"github.com/untangle/golang-shared/booleval"
-)
+import "github.com/untangle/golang-shared/booleval"
 
 const (
 	// Actions
@@ -33,7 +31,17 @@ const (
 	ServerPort
 )
 
+// PacketFilter is a set of conditions and an action to take if the conditions are true
 type PacketFilter struct {
-	Conditions []booleval.AtomicExpression // Conditions to evaluate
-	Action     int                         // Action to take if the condition is true
+	Name              string                      // Name of the filter
+	Enabled           bool                        // Whether the filter is enabled
+	Conditions        []PacketCondition           // Conditions to evaluate
+	AtomicExpressions []booleval.AtomicExpression // Expression translated from conditions
+	Action            string                      // Action to take if the conditions is true
+}
+
+type PacketCondition struct {
+	Property string
+	Operator string
+	Value    string
 }
