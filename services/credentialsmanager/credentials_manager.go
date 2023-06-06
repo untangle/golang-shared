@@ -67,7 +67,7 @@ func (m *credentialsManager) GetToken(key string) string {
 
 	token, ok := m.credentials[key]
 	if !ok {
-		m.logger.Err("Could not get token for key %s\n", key)
+		m.logger.OCWarn("Could not get token for key %s\n", "getTokenFailure", 100, key)
 	}
 	return token
 }
