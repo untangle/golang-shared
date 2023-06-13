@@ -23,14 +23,25 @@ type PolicySettings struct {
 	Groups             []*Group  `json:"groups"`
 }
 
+// GroupType is the type of group that a Group is, used to demux the
+// Items field.
 type GroupType string
 
 const (
-	GeoIPListType       GroupType = "GeoIPLocation"
-	IPAddrListType      GroupType = "IPAddrList"
+	// GeoIPListType means that the Items of a Group are geoip countries.
+	GeoIPListType GroupType = "GeoIPLocation"
+
+	// IPAddrListType means that the Items of the Group are ip
+	// specifications (ranges, CIDRs, or single IPs).
+	IPAddrListType GroupType = "IPAddrList"
+
+	// ServiceEndpointType means that the Items of a Group are
+	// service endpoints.
 	ServiceEndpointType GroupType = "ServiceEndpoint"
 )
 
+// Group is a way to generically re-use certain lists of attributes
+// that may be true for a session.
 type Group struct {
 	Type        GroupType
 	Description string
@@ -38,12 +49,15 @@ type Group struct {
 	Items       any
 }
 
+// ServiceEndpoint is a particular group type, a group may be
+// identified by a list of these.
 type ServiceEndpoint struct {
 	Protocol    string `json:"protocol"`
 	IPSpecifier string `json:"IPSpecifier"`
 	Port        uint   `json:"port"`
 }
 
+// UnmarshalJSON is a custom json unmarshaller for a Group.
 func (g *Group) UnmarshalJSON(data []byte) error {
 	var rawvalue map[string]interface{}
 
@@ -152,15 +166,25 @@ func (g *Group) parseServiceEndpointList(raw map[string]interface{}) error {
 	return nil
 }
 
+// ItemsStringList returns the Items of the group as a slice of
+// strings if they can be interpreted this way, or an empty slice and
+// false if not.
 func (g *Group) ItemsStringList() ([]string, bool) {
 	val, ok := g.Items.([]string)
 	return val, ok
 }
 
+// ItemsIPSpecList returns the Items of a group as a slice of
+// net.IPSpecifierString and true if they can be interpreted this way,
+// or an empty slice and false otherwise.
 func (g *Group) ItemsIPSpecList() ([]net.IPSpecifierString, bool) {
 	val, ok := g.Items.([]net.IPSpecifierString)
 	return val, ok
 }
+
+// ItemsServiceEndpointList returns the Items of a group as a slice of
+// ServiceEndpoint and true if they can be interpreted this way, nil
+// and false otherwise.
 func (g *Group) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
 	val, ok := g.Items.([]ServiceEndpoint)
 	return val, ok

@@ -32,17 +32,25 @@ func CheckIPAddressType(ip net.IP) (string, error) {
 // IPSpecifierString is a string in the form of an IP range, CIDR address, or regular IP.
 type IPSpecifierString string
 
+// IPRange is a range of IPs, from Start to End inclusive.
 type IPRange struct {
 	Start net.IP
 	End   net.IP
 }
 
+// Contains returns true if the ip is between the Start and End of r,
+// inclusive.
 func (r IPRange) Contains(ip net.IP) bool {
 	return bytes.Compare(r.Start, ip) <= 0 &&
 		bytes.Compare(r.End, ip) >= 0
 
 }
 
+// Parse returns the parsed specifier as one of:
+// -- net.IP : regular IP.
+// -- *net.IPNet: CIDR net, the specifier contained a slash (/).
+// -- IPRange -- IPRange, if the specifier was a range <IP>-<IP>.
+// -- error -- if the ip specifier was none of these we return an error object.
 func (ss IPSpecifierString) Parse() any {
 	if strings.Contains(string(ss), "-") {
 		parts := strings.Split(string(ss), "-")
@@ -77,6 +85,7 @@ func (ss IPSpecifierString) Parse() any {
 	}
 }
 
+// NetToRange converts a *net.IPNet to an IPRange.
 func NetToRange(network *net.IPNet) IPRange {
 	masked := network.IP.Mask(network.Mask)
 	lower := make(net.IP, len(network.IP), len(network.IP))

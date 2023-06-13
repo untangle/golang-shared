@@ -1,72 +1,72 @@
 {
-    "threatprevention": {                                                       
-        "enabled": false,                                  
-        "passList": [],                                                         
-        "redirect": false,                             
-        "sensitivity": 20             
+    "threatprevention": {
+        "enabled": false,
+        "passList": [],
+        "redirect": false,
+        "sensitivity": 20
     },
-    "webfilter": {                                                              
-        "blockList": [],                                                        
-        "categories": [                                                         
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 11                                                        
-            },                                                                  
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 44                                                        
-            },                                                                  
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 49                                                        
-            },                                                                  
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 56                                                        
-            },                                                                  
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 57                                                        
-            },                                                                  
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 58                                                        
-            },                                                                  
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 59                                                        
-            },                                                                  
-            {                                                                   
-                "enabled": true,                                                
-                "flagged": true,                                                
-                "id": 67                                                        
-            }                                                                   
-        ],                                                                      
-        "enabled": false,                                                       
-        "passList": []                                                          
+    "webfilter": {
+        "blockList": [],
+        "categories": [
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 11
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 44
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 49
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 56
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 57
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 58
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 59
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 67
+            }
+        ],
+        "enabled": false,
+        "passList": []
     },
-    "application_control": {                                                    
-        "actions": {                                                            
-            "block": [],                                                        
-            "flag": [],                                                         
-            "reject": []                                                        
-        },                                                                      
-        "cloud_classification": true,                                           
-        "custom_rules": [],                                                     
-        "enabled": false                                                        
+    "application_control": {
+        "actions": {
+            "block": [],
+            "flag": [],
+            "reject": []
+        },
+        "cloud_classification": true,
+        "custom_rules": [],
+        "enabled": false
     },
-    "geoip": {                                                                  
-        "blockedCountries": [],                                                 
-        "enabled": false,                                                       
-        "enabledLog": false,                                                    
-        "passedNetworks": []                                                    
+    "geoip": {
+        "blockedCountries": [],
+        "enabled": false,
+        "enabledLog": false,
+        "passedNetworks": []
     },
     "policy_manager": {
 	"groups": [
@@ -127,6 +127,38 @@
                     "enabled": false,
                     "enabledLog": false,
                     "passedNetworks": []
+                }
+            },
+            {
+                "description": "bad students filter",
+                "id": "30a95c8e-0000-ffff-984b-05c7ae300131",
+                "name": "bad students filter",
+                "geoip": {
+                    "blockedCountries": [
+                        "AE",
+                        "AF",
+                        "RU"
+                    ],
+                    "enabled": true,
+                    "enabledLog": true,
+                    "passedNetworks": []
+                },
+                "webfilter": {
+                    "blockList": [],
+                    "categories": [
+                        {
+                            "enabled": true,
+                            "flagged": true,
+                            "id": 49
+                        },
+                        {
+                            "enabled": true,
+                            "flagged": true,
+                            "id": 67
+                        }
+                    ],
+                    "enabled": true,
+                    "passList": []
                 }
             },
             {
@@ -210,6 +242,18 @@
                 "id": "7bb85306-c823-48d2-ad86-a41868d1de82",
                 "name": "Teachers Flow"
             },
+	    {
+		"conditions": [
+		    {
+			"op": "==",
+			"type": "SERVER_ADDRESS",
+			"groupId": "702d4c99-9599-455f-8271-215e5680f038"
+		    }
+		],
+		"description": "4 the bad students",
+                "id": "7bb85306-c823-0000-ffff-a41868d1de82",
+                "name": "Teachers Flow"
+	    },
             {
                 "conditions": [
                     {
@@ -260,6 +304,18 @@
                 "id": "30a95c8e-594c-4530-984b-05c7ae300138",
                 "name": "Students"
             },
+	    {
+		"configurations": [
+		    "30a95c8e-0000-ffff-984b-05c7ae300131"
+		],
+		"description": "4 bad students config",
+		"enabled": true,
+		"flows": [
+		    "7bb85306-c823-0000-ffff-a41868d1de82"
+		],
+		"id": "7bb85306-c823-0001-ffff-a41868d1de82",
+		"name": "bad students"
+	    },
             {
                 "configurations": [
                     "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
@@ -299,4 +355,3 @@
         ]
     }
 }
-
