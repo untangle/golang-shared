@@ -18,7 +18,7 @@ const (
 	InvalidIPStr = "Invalid IP"
 )
 
-// CheckIpAddressType returns the type of the IP address.
+// CheckIPAddressType returns the type of the IP address.
 func CheckIPAddressType(ip net.IP) (string, error) {
 	if ip.To4() != nil {
 		return IPv4Str, nil
@@ -88,8 +88,8 @@ func (ss IPSpecifierString) Parse() any {
 // NetToRange converts a *net.IPNet to an IPRange.
 func NetToRange(network *net.IPNet) IPRange {
 	masked := network.IP.Mask(network.Mask)
-	lower := make(net.IP, len(network.IP), len(network.IP))
-	upper := make(net.IP, len(network.IP), len(network.IP))
+	lower := make(net.IP, len(network.IP))
+	upper := make(net.IP, len(network.IP))
 	copy(lower, masked)
 	copy(upper, masked)
 	ones, bits := network.Mask.Size()
