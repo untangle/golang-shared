@@ -1,0 +1,357 @@
+{
+    "threatprevention": {
+        "enabled": false,
+        "passList": [],
+        "redirect": false,
+        "sensitivity": 20
+    },
+    "webfilter": {
+        "blockList": [],
+        "categories": [
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 11
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 44
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 49
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 56
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 57
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 58
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 59
+            },
+            {
+                "enabled": true,
+                "flagged": true,
+                "id": 67
+            }
+        ],
+        "enabled": false,
+        "passList": []
+    },
+    "application_control": {
+        "actions": {
+            "block": [],
+            "flag": [],
+            "reject": []
+        },
+        "cloud_classification": true,
+        "custom_rules": [],
+        "enabled": false
+    },
+    "geoip": {
+        "blockedCountries": [],
+        "enabled": false,
+        "enabledLog": false,
+        "passedNetworks": []
+    },
+    "policy_manager": {
+	"groups": [
+	    {
+                "name": "IPAddrList Student IP",
+                "id": "702d4c99-9599-455f-8271-215e5680f038",
+                "type": "IPAddrList",
+                "items": [
+                    "1.2.3.4",
+                    "1.2.3.5/24",
+                    "1.2.3.4-1.2.3.20"
+                ]
+            },
+            {
+                "name": "Geo IP Location Test Group",
+                "id": "702d4c99-9599-455f-8271-315e5680f038",
+                "type": "GeoIPLocation",
+                "items": [
+                    "AE",
+                    "AF",
+                    "AG"
+                ]
+            },
+            {
+                "name": "Service Endpoint Test Group",
+                "id": "702d4c99-9599-455f-8271-415e5680f038",
+                "type": "ServiceEndpoint",
+                "items": [
+                    {
+                        "protocol": "TCP",
+                        "ipspecifier": "12.34.56.78",
+                        "port": "12345"
+                    },
+                    {
+                        "protocol": "UDP",
+                        "ipspecifier": "12.34.56.0/24",
+                        "port": "12345"
+                    },
+                    {
+                        "protocol": "UDP",
+                        "ipspecifier": "1.2.3.4-1.2.3.5",
+                        "port": "12345"
+                    }
+                ]
+            }
+	],
+        "configurations": [
+            {
+                "description": "Students",
+                "id": "30a95c8e-594c-4530-984b-05c7ae300131",
+                "name": "Geoip fencing",
+                "geoip": {
+                    "blockedCountries": [
+                        "AE",
+                        "AF",
+                        "AG"
+                    ],
+                    "enabled": false,
+                    "enabledLog": false,
+                    "passedNetworks": []
+                }
+            },
+            {
+                "description": "bad students filter",
+                "id": "30a95c8e-0000-ffff-984b-05c7ae300131",
+                "name": "bad students filter",
+                "geoip": {
+                    "blockedCountries": [
+                        "AE",
+                        "AF",
+                        "RU"
+                    ],
+                    "enabled": true,
+                    "enabledLog": true,
+                    "passedNetworks": []
+                },
+                "webfilter": {
+                    "blockList": [],
+                    "categories": [
+                        {
+                            "enabled": true,
+                            "flagged": true,
+                            "id": 49
+                        },
+                        {
+                            "enabled": true,
+                            "flagged": true,
+                            "id": 67
+                        }
+                    ],
+                    "enabled": true,
+                    "passList": []
+                }
+            },
+            {
+                "description": "Filtering for students",
+                "id": "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
+                "name": "WebFilter students",
+                "webfilter": {
+                    "blockList": [],
+                    "categories": [
+                        {
+                            "enabled": true,
+                            "flagged": true,
+                            "id": 49
+                        },
+                        {
+                            "enabled": true,
+                            "flagged": true,
+                            "id": 67
+                        }
+                    ],
+                    "enabled": true,
+                    "passList": []
+                }
+            },
+            {
+                "description": "TP students",
+                "id": "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
+                "name": "TP for students",
+                "threatprevention": {
+                    "enabled": true,
+                    "passList": [
+                        {
+                            "description": "some test",
+                            "host": "3.4.5.6/32"
+                        }
+                    ],
+                    "redirect": false,
+                    "sensitivity": 60
+                }
+            },
+            {
+                "description": "prevention for teachers",
+                "id": "7ed1558e-ae30-4699-beab-77e09babecb3",
+                "name": "TP Teachers",
+                "threatprevention": {
+                    "enabled": true,
+                    "passList": [],
+                    "redirect": true,
+                    "sensitivity": 40
+                }
+            }
+        ],
+        "enabled": true,
+        "flows": [
+            {
+                "conditions": [
+                    {
+                        "op": "==",
+                        "type": "CLIENT_ADDRESS",
+                        "value": ["192.168.5.1/24"]
+                    },
+                    {
+                        "op": "!=",
+                        "type": "CLIENT_ADDRESS",
+                        "value": ["1.2.3.4/32","3.4.5.6/32"]
+                    }
+                ],
+                "description": "Dedicated to students",
+                "id": "30a95c8e-594c-4530-984b-05c7ae300132",
+                "name": "Students Flow"
+            },
+            {
+                "conditions": [
+                    {
+                        "op": "==",
+                        "type": "CLIENT_PORT",
+                        "value": ["23"]
+                    }
+                ],
+                "description": "For teachers",
+                "id": "7bb85306-c823-48d2-ad86-a41868d1de82",
+                "name": "Teachers Flow"
+            },
+	    {
+		"conditions": [
+		    {
+			"op": "==",
+			"type": "SERVER_ADDRESS",
+			"groupId": "702d4c99-9599-455f-8271-215e5680f038"
+		    }
+		],
+		"description": "4 the bad students",
+                "id": "7bb85306-c823-0000-ffff-a41868d1de82",
+                "name": "Teachers Flow"
+	    },
+            {
+                "conditions": [
+                    {
+                        "op": "==",
+                        "type": "CLIENT_ADDRESS",
+                        "value": ["192.168.5.6/32"]
+                    },
+                    {
+                        "op": "==",
+                        "type": "CLIENT_PORT",
+                        "value": ["23"]
+                    },
+                    {
+                        "op": "==",
+                        "type": "SERVER_PORT",
+                        "value": ["123"]
+                    }
+                ],
+                "description": "Flow used in multiple policies",
+                "id": "f5766de4-64a3-48b9-9a43-c91125406e93",
+                "name": "Common Flow"
+            },
+            {
+                "conditions": [
+                    {
+                        "op": "==",
+                        "type": "CLIENT_PORT",
+                        "value": ["34"]
+                    }
+                ],
+                "description": "123",
+                "id": "b34671cb-5e08-484d-aad6-72d3500efcda",
+                "name": "test"
+            }
+        ],
+        "policies": [
+            {
+                "configurations": [
+                    "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
+                    "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
+                ],
+                "description": "For students config",
+                "enabled": true,
+                "flows": [
+                    "30a95c8e-594c-4530-984b-05c7ae300132",
+                    "f5766de4-64a3-48b9-9a43-c91125406e93"
+                ],
+                "id": "30a95c8e-594c-4530-984b-05c7ae300138",
+                "name": "Students"
+            },
+	    {
+		"configurations": [
+		    "30a95c8e-0000-ffff-984b-05c7ae300131"
+		],
+		"description": "4 bad students config",
+		"enabled": true,
+		"flows": [
+		    "7bb85306-c823-0000-ffff-a41868d1de82"
+		],
+		"id": "7bb85306-c823-0001-ffff-a41868d1de82",
+		"name": "bad students"
+	    },
+            {
+                "configurations": [
+                    "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
+                ],
+                "description": "For teachers",
+                "enabled": true,
+                "flows": [
+                    "7bb85306-c823-48d2-ad86-a41868d1de82"
+                ],
+                "id": "60a9e031-4188-4d06-8083-108ebec63a9e",
+                "name": "Teachers"
+            },
+            {
+                "configurations": [
+                    "30a95c8e-594c-4530-984b-05c7ae300131"
+                ],
+                "description": "test",
+                "enabled": true,
+                "flows": [
+                    "f5766de4-64a3-48b9-9a43-c91125406e93"
+                ],
+                "id": "fa5a811e-a0eb-45e2-8f48-e20e16baabec",
+                "name": "Aux"
+            },
+            {
+                "configurations": [
+                    "7ed1558e-ae30-4699-beab-77e09babecb3"
+                ],
+                "description": "test123",
+                "enabled": true,
+                "flows": [
+                    "f5766de4-64a3-48b9-9a43-c91125406e93"
+                ],
+                "id": "5690e8b8-c0e2-4cf4-9350-e8378cc96053",
+                "name": "test"
+            }
+        ]
+    }
+}
