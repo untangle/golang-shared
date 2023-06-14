@@ -92,12 +92,14 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 	}{
 		{name: "emptyjson", json: ``, expectedErr: true, expected: Group{}},
 		{
+			name: "Basic bad type test",
 			json: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
                          "type": "badType",
                           "items:" []}`,
 			expectedErr: true,
-			expected:    Group{}},
+			expected:    Group{},
+		},
 		{
 			name: "okay ip list",
 			json: `{"name": "someBogus",
@@ -202,9 +204,24 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
                          "type": "ServiceEndpoint",
-                          "items": [{"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": "2222"]}`,
-			expectedErr: true,
-			expected:    Group{},
+                          "items": [
+                              {"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": "2222"},
+                              {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": "2223"}]}`,
+			expectedErr: false,
+			expected: Group{
+				Type: ServiceEndpointType,
+				ID:   "702d4c99-9599-455f-8271-215e5680f038",
+				Items: []ServiceEndpoint{
+					{Protocol: "UDP",
+						IPSpecifier: "123.123.123.123",
+						Port:        2222,
+					},
+					{Protocol: "TCP",
+						IPSpecifier: "123.123.123.124",
+						Port:        2223,
+					},
+				},
+			},
 		},
 	}
 
