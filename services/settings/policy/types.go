@@ -15,12 +15,11 @@ import (
 // PolicyManager also maintains map[string]'s based on those arrays to
 // facilitate lookup.
 type PolicySettings struct {
-	Enabled            bool          `json:"enabled"`
-	Flows              []*PolicyFlow `json:"flows"`
-	TempConfigurations interface{}   `json:"configurations"` // Config is dynamic so need temp place to store it.
-	Configurations     []*PolicyConfiguration
-	Policies           []*Policy `json:"policies"`
-	Groups             []*Group  `json:"groups"`
+	Enabled        bool                   `json:"enabled"`
+	Flows          []*PolicyFlow          `json:"flows"`
+	Configurations []*PolicyConfiguration `json:"configurations"`
+	Policies       []*Policy              `json:"policies"`
+	Groups         []*Group               `json:"groups"`
 }
 
 // GroupType is the type of group that a Group is, used to demux the
