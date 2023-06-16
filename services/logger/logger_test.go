@@ -42,6 +42,7 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 		"Debugtest":  {"DEBUG", 7},
 		"Tracetest":  {"TRACE", 8},
 	}
+	logger.config.LogLevelMask = logLevelMask[LogLevelInfo]
 }
 
 // createTestConfig creates the logger config

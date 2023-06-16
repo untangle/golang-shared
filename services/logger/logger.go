@@ -197,6 +197,9 @@ func (logger *Logger) Emerg(format string, args ...interface{}) {
 
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
 func (logger *Logger) IsEmergEnabled() bool {
+	if logLevelMask[LogLevelEmerg] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelEmerg)
 }
 
@@ -207,6 +210,9 @@ func (logger *Logger) Alert(format string, args ...interface{}) {
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
 func (logger *Logger) IsAlertEnabled() bool {
+	if logLevelMask[LogLevelAlert] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelAlert)
 }
 
@@ -217,6 +223,9 @@ func (logger *Logger) Crit(format string, args ...interface{}) {
 
 // IsCritEnabled returns true if CRIT logging is enable for the caller
 func (logger *Logger) IsCritEnabled() bool {
+	if logLevelMask[LogLevelCrit] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelCrit)
 }
 
@@ -227,6 +236,9 @@ func (logger *Logger) Err(format string, args ...interface{}) {
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
 func (logger *Logger) IsErrEnabled() bool {
+	if logLevelMask[LogLevelErr] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelErr)
 }
 
@@ -237,6 +249,9 @@ func (logger *Logger) Warn(format string, args ...interface{}) {
 
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
 func (logger *Logger) IsWarnEnabled() bool {
+	if logLevelMask[LogLevelWarn] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelWarn)
 }
 
@@ -247,6 +262,9 @@ func (logger *Logger) Notice(format string, args ...interface{}) {
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
 func (logger *Logger) IsNoticeEnabled() bool {
+	if logLevelMask[LogLevelNotice] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelNotice)
 }
 
@@ -257,6 +275,9 @@ func (logger *Logger) Info(format string, args ...interface{}) {
 
 // IsInfoEnabled returns true if INFO logging is enable for the caller
 func (logger *Logger) IsInfoEnabled() bool {
+	if logLevelMask[LogLevelInfo] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelInfo)
 }
 
@@ -267,6 +288,9 @@ func (logger *Logger) Debug(format string, args ...interface{}) {
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
 func (logger *Logger) IsDebugEnabled() bool {
+	if logLevelMask[LogLevelDebug] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelDebug)
 }
 
