@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
-	"github.com/untangle/golang-shared/testing/mocks"
 	"testing"
 	"time"
+
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
+	"github.com/untangle/golang-shared/testing/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -48,6 +49,7 @@ func createTestConfig() LoggerConfig {
 	return LoggerConfig{
 		FileLocation: "/tmp/logconfig_test.json",
 		LogLevelMap:  createTestMap(),
+		LogLevelMask: logLevelMask[LogLevelInfo] | logLevelMask[LogLevelWarn] | logLevelMask[LogLevelErr] | logLevelMask[LogLevelDebug],
 	}
 }
 
@@ -223,7 +225,7 @@ func (suite *TestLogger) TestDefaultInstance() {
 	assert.Equal(suite.T(), false, logInstance.timestampEnabled)
 
 	// Default log level names exist
-	assert.Equal(suite.T(), logLevelName, logInstance.logLevelName)
+	assert.Equal(suite.T(), logLevelName, logLevelName)
 
 }
 

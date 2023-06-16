@@ -2,13 +2,14 @@ package logger
 
 import (
 	"fmt"
-	"github.com/untangle/golang-shared/services/alerts"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"log"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
 )
@@ -29,10 +30,11 @@ type Logger struct {
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
-	logLevelName     [9]string
 	alerts           alerts.AlertPublisher
 }
 
+// This is only used inernally.
+// This was originally stored in every Logger structure which seems wasteful
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
 
 // LogLevelEmerg = syslog.h/LOG_EMERG
@@ -61,6 +63,22 @@ const LogLevelDebug int32 = 7
 
 // LogLevelTrace = custom value
 const LogLevelTrace int32 = 8
+
+// These are only used internally to try to optimize
+// escape from logMessage for logs at a low level.
+// At some point, it may make sense to take advantage of the
+// bitmask but it works as is with logMessage().
+var logLevelMask = [...]int32{
+	1 << LogLevelEmerg,
+	1 << LogLevelAlert,
+	1 << LogLevelCrit,
+	1 << LogLevelErr,
+	1 << LogLevelWarn,
+	1 << LogLevelNotice,
+	1 << LogLevelInfo,
+	1 << LogLevelDebug,
+	1 << LogLevelTrace,
+}
 
 var loggerSingleton *Logger
 var once sync.Once
@@ -96,7 +114,6 @@ func NewLogger() *Logger {
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
-		logLevelName:     logLevelName,
 	}
 }
 
@@ -104,8 +121,10 @@ func NewLogger() *Logger {
 func DefaultLoggerConfig() *LoggerConfig {
 
 	return &LoggerConfig{
-		FileLocation:  "",
-		LogLevelMap:   map[string]LogLevel{"*": {Name: "INFO"}},
+		FileLocation: "",
+		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
+		// Default logLevelMask is set to LogLevelInfo
+		LogLevelMask:  logLevelMask[LogLevelInfo],
 		OutputWriter:  DefaultLogWriter("system"),
 		CmdAlertSetup: CmdAlertDefaultSetup,
 	}
@@ -374,6 +393,12 @@ func (logger *Logger) isLogEnabled(level int32) bool {
 
 // logMessage is called to write messages to the system log
 func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, args ...interface{}) {
+	// logger.config.LogLevelMask keeps track of the logger levels that have been
+	// requested across the entire logger confguration so that we can drop out of this
+	// function quickly if the log is for something unlikely like a trace or debug.
+	if (1 << level) > logger.config.LogLevelMask {
+		return
+	}
 	_, _, packageName, functionName := findCallingFunction()
 
 	testLevel := logger.getLogLevel(packageName, functionName)
@@ -389,13 +414,13 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
 	}
 
 	fmt.Print(logMessage)

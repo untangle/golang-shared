@@ -13,18 +13,34 @@ type LogLevel struct {
 	id   uint8
 }
 
+var logLevelMap = map[string]int32{
+	strings.ToUpper(logLevelName[LogLevelEmerg]):  LogLevelEmerg,
+	strings.ToUpper(logLevelName[LogLevelAlert]):  LogLevelAlert,
+	strings.ToUpper(logLevelName[LogLevelCrit]):   LogLevelCrit,
+	strings.ToUpper(logLevelName[LogLevelErr]):    LogLevelErr,
+	strings.ToUpper(logLevelName[LogLevelWarn]):   LogLevelWarn,
+	strings.ToUpper(logLevelName[LogLevelNotice]): LogLevelNotice,
+	strings.ToUpper(logLevelName[LogLevelInfo]):   LogLevelInfo,
+	strings.ToUpper(logLevelName[LogLevelDebug]):  LogLevelDebug,
+	strings.ToUpper(logLevelName[LogLevelTrace]):  LogLevelTrace,
+}
+
 // GetId returns the numeric log level for the arugmented name
 // or a negative value if the level is not valid
 func (lvl *LogLevel) GetId() int32 {
-	for levelvalue, levelname := range logLevelName {
-		if strings.Compare(strings.ToUpper(levelname), strings.ToUpper(lvl.Name)) == 0 {
-			return (int32(levelvalue))
-		}
+	// Originally, this was iterating through the logLevelName array
+	// repeatedly doing strings.ToUpper() so this should be an improvement
+	if retval, ok := logLevelMap[strings.ToUpper(lvl.Name)]; ok {
+		return retval
 	}
-
 	return -1
 }
 
 func NewLogLevel(name string) LogLevel {
-	return LogLevel{Name: name}
+	loglevel := LogLevel{Name: name}
+	if logid, ok := logLevelMap[name]; ok {
+		loglevel.id = uint8(logid)
+	}
+	// loglevel.id will not be set if an unrecognized name is passed in
+	return loglevel
 }
