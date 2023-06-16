@@ -74,32 +74,37 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 	// Process into a map of maps
 	pluginSettings := make(map[string]map[string]interface{})
 
-	// Go through each Policy and find matching configurations.
-	for _, p := range policySettings.Policies {
-		if !p.Enabled {
-			continue
-		}
-		for _, config := range p.Configurations {
-			config := policySettings.findConfiguration(config)
-			if config == nil {
-				logger.Warn("Can't find configuration in settings: %s(%s)\n",
-					config.ID,
-					config.Name)
-				// No matching configuration found, skip. Although this should never happen.
-				continue
-			}
-			// Add the plugins into the map. Wish there was a better way to do this
-			logger.Debug("getAllPolicyConfigurationSettings: %v, %+v\n", p.Name, config)
-
-			for name, settings := range config.AppSettings {
-				if pluginSettings[name] == nil {
-					pluginSettings[name] = make(map[string]interface{})
-				}
-				pluginSettings[name][p.ID] = settings
-			}
-		}
-	}
+	// Update configurations from the marchalled settings.
+	UpdateConfigurations(policySettings)
 
 	return pluginSettings, nil
+}
 
+// Loop the temp configurations and update the Configurations.
+func UpdateConfigurations(settings *PolicySettings) {
+	for _, p := range settings.TempConfigurations.([]interface{}) {
+		data := p.(map[string]interface{})
+
+		newConfig := &PolicyConfiguration{}
+		newConfig.AppSettings = make(map[string]interface{})
+		for pName, pValue := range data {
+			switch pName {
+			case "description":
+				if _, ok := pValue.(string); ok {
+					newConfig.Description = pValue.(string)
+				}
+			case "name":
+				if _, ok := pValue.(string); ok {
+					newConfig.Name = pValue.(string)
+				}
+			case "id":
+				if _, ok := pValue.(string); ok {
+					newConfig.ID = pValue.(string)
+				}
+			default: // Everything else is an app setting
+				newConfig.AppSettings[pName] = pValue
+			}
+		}
+		settings.Configurations = append(settings.Configurations, newConfig)
+	}
 }
