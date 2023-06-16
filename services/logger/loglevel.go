@@ -38,9 +38,6 @@ func (lvl *LogLevel) GetId() int32 {
 
 func NewLogLevel(name string) LogLevel {
 	loglevel := LogLevel{Name: name}
-	if logid, ok := logLevelMap[name]; ok {
-		loglevel.id = uint8(logid)
-	}
-	// loglevel.id will not be set if an unrecognized name is passed in
+	loglevel.id = uint8(loglevel.GetId())
 	return loglevel
 }
