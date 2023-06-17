@@ -213,12 +213,12 @@ type PolicyConfiguration struct {
 	AppSettings map[string]interface{} `json:"-"` // map of plugin settings, key is the plugin name.
 }
 
-func (pConfig *PolicyConfiguration) MarshalJSON() ([]byte, error) {
+func (pConfig PolicyConfiguration) MarshalJSON() ([]byte, error) {
 	// alias to make use of tags but avoid recursion
 	type aliasPolicyConfiguration PolicyConfiguration
 
 	// marshal PolicyConfiguration using struct tags
-	fieldJSON, err := json.Marshal((*aliasPolicyConfiguration)(pConfig))
+	fieldJSON, err := json.Marshal((*aliasPolicyConfiguration)(&pConfig))
 	if err != nil || len(pConfig.AppSettings) == 0 {
 		// return if there was an error or nothing else needs to be marshalled
 		return fieldJSON, err
