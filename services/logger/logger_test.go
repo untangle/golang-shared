@@ -420,11 +420,31 @@ func (suite *TestLogger) TestGetInstanceWithConfig() {
 func (suite *TestLogger) TestPerformance() {
 	iterations := 100
 	logInstance := NewLogger()
+
 	startTime := time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Debug("This is a test debug string %d\n", i)
+	}
+	durationTrace := time.Since(startTime)
+	fmt.Printf("Optimized Duration for unlogged %d Debug() calls was %s\n", iterations, durationTrace)
+
+	// Artificially defeat the optimization
+	logInstance.config.LogLevelMask = logLevelMask[LogLevelDebug]
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Debug("This is a test debug string %d\n", i)
+	}
+	durationInfo := time.Since(startTime)
+	fmt.Printf("Unoptimized duration for unlogged %d Debug() was %s\n", iterations, durationInfo)
+
+	assert.Equal(suite.T(), true, durationInfo > durationTrace)
+
+	startTime = time.Now()
 	for i := 0; i < iterations; i++ {
 		logInstance.Trace("This is a test trace string %d\n", i)
 	}
-	durationTrace := time.Since(startTime)
+	durationTrace = time.Since(startTime)
 	fmt.Printf("Optimized Duration for unlogged %d Trace() calls was %s\n", iterations, durationTrace)
 
 	// Artificially defeat the optimization
@@ -434,7 +454,7 @@ func (suite *TestLogger) TestPerformance() {
 	for i := 0; i < iterations; i++ {
 		logInstance.Trace("This is a test trace string %d\n", i)
 	}
-	durationInfo := time.Since(startTime)
+	durationInfo = time.Since(startTime)
 	fmt.Printf("Unoptimized duration for unlogged %d Trace() was %s\n", iterations, durationInfo)
 
 	assert.Equal(suite.T(), true, durationInfo > durationTrace)
