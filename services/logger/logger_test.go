@@ -42,7 +42,9 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 		"Debugtest":  {"DEBUG", 7},
 		"Tracetest":  {"TRACE", 8},
 	}
-	logger.config.LogLevelMask = logLevelMask[LogLevelInfo]
+	logger.config.LogLevelMask = logLevelMask[LogLevelInfo] | logLevelMask[LogLevelNotice] |
+		logLevelMask[LogLevelWarn] | logLevelMask[LogLevelErr] | logLevelMask[LogLevelCrit] |
+		logLevelMask[LogLevelAlert] | logLevelMask[LogLevelEmerg]
 }
 
 // createTestConfig creates the logger config
@@ -413,4 +415,27 @@ func (suite *TestLogger) TestGetInstanceWithConfig() {
 	// Verify old instance has this config too
 	assert.Equal(suite.T(), &expectedConfig, logInstance.config)
 
+}
+
+func (suite *TestLogger) TestPerformance() {
+	iterations := 100
+	logInstance := NewLogger()
+	startTime := time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Trace("This is a test trace string %d\n", i)
+	}
+	durationTrace := time.Since(startTime)
+	fmt.Printf("Optimized Duration for unlogged %d Trace() calls was %s\n", iterations, durationTrace)
+
+	// Artificially defeat the optimization
+	logInstance.config.LogLevelMask = logLevelMask[LogLevelTrace]
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Trace("This is a test trace string %d\n", i)
+	}
+	durationInfo := time.Since(startTime)
+	fmt.Printf("Unoptimized duration for unlogged %d Trace() was %s\n", iterations, durationInfo)
+
+	assert.Equal(suite.T(), true, durationInfo > durationTrace)
 }

@@ -331,6 +331,9 @@ func (logger *Logger) OCCrit(format string, name string, limit int64, args ...in
 
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
 func (logger *Logger) IsTraceEnabled() bool {
+	if logLevelMask[LogLevelTrace] > logger.config.LogLevelMask {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelTrace)
 }
 
