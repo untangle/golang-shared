@@ -449,6 +449,13 @@ func (suite *TestLogger) TestPerformance() {
 	durationUnopt = time.Since(startTime)
 	fmt.Printf("Unoptimized duration with IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
 
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Debug("This is a test debug string %d\n", i)
+	}
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration without IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
+
 	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
 
 	startTime = time.Now()
@@ -478,6 +485,13 @@ func (suite *TestLogger) TestPerformance() {
 	}
 	durationUnopt = time.Since(startTime)
 	fmt.Printf("Unoptimized duration with IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Trace("This is a test trace string %d\n", i)
+	}
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration without IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
 
 	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
 }
