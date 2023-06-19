@@ -1,10 +1,11 @@
 package alerts
 
 import (
-	loggerModel "github.com/untangle/golang-shared/logger"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	loggerModel "github.com/untangle/golang-shared/logger"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
@@ -62,6 +63,7 @@ func (publisher *ZmqAlertPublisher) Startup() error {
 
 	// Make sure it is not started twice.
 	if atomic.LoadInt32(&publisher.started) > 0 {
+		publisher.logger.Debug("Alerts service is already running.\n")
 		return nil
 	}
 
@@ -76,6 +78,12 @@ func (publisher *ZmqAlertPublisher) Startup() error {
 // Shutdown stops the goroutine running the ZMQ subscriber and closes the channels used in the service.
 func (publisher *ZmqAlertPublisher) Shutdown() error {
 	publisher.logger.Info("Shutting down the Alerts service\n")
+
+	// Make sure it is not shutdown twice.
+	if atomic.LoadInt32(&publisher.started) == 0 {
+		publisher.logger.Debug("Alerts service is already shutdown.\n")
+		return nil
+	}
 
 	publisher.zmqPublisherShutdown <- true
 	close(publisher.zmqPublisherShutdown)
