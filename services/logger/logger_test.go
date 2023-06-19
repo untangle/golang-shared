@@ -423,39 +423,61 @@ func (suite *TestLogger) TestPerformance() {
 
 	startTime := time.Now()
 	for i := 0; i < iterations; i++ {
+		if logInstance.IsDebugEnabled() {
+			logInstance.Debug("This is a test debug string %d\n", i)
+		}
+	}
+	durationOpt := time.Since(startTime)
+	fmt.Printf("Optimized duration with IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationOpt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
 		logInstance.Debug("This is a test debug string %d\n", i)
 	}
-	durationTrace := time.Since(startTime)
-	fmt.Printf("Optimized Duration for unlogged %d Debug() calls was %s\n", iterations, durationTrace)
+	durationUnopt := time.Since(startTime)
+	fmt.Printf("Optimized duration without IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
 
 	// Artificially defeat the optimization
 	logInstance.config.LogLevelMask = logLevelMask[LogLevelDebug]
 
 	startTime = time.Now()
 	for i := 0; i < iterations; i++ {
-		logInstance.Debug("This is a test debug string %d\n", i)
+		if logInstance.IsDebugEnabled() {
+			logInstance.Debug("This is a test debug string %d\n", i)
+		}
 	}
-	durationInfo := time.Since(startTime)
-	fmt.Printf("Unoptimized duration for unlogged %d Debug() was %s\n", iterations, durationInfo)
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration with IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
 
-	assert.Equal(suite.T(), true, durationInfo > durationTrace)
+	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		if logInstance.IsTraceEnabled() {
+			logInstance.Trace("This is a test trace string %d\n", i)
+		}
+	}
+	durationOpt = time.Since(startTime)
+	fmt.Printf("Optimized duration with IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationOpt)
 
 	startTime = time.Now()
 	for i := 0; i < iterations; i++ {
 		logInstance.Trace("This is a test trace string %d\n", i)
 	}
-	durationTrace = time.Since(startTime)
-	fmt.Printf("Optimized Duration for unlogged %d Trace() calls was %s\n", iterations, durationTrace)
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Optimized duration without IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
 
 	// Artificially defeat the optimization
 	logInstance.config.LogLevelMask = logLevelMask[LogLevelTrace]
 
 	startTime = time.Now()
 	for i := 0; i < iterations; i++ {
-		logInstance.Trace("This is a test trace string %d\n", i)
+		if logInstance.IsTraceEnabled() {
+			logInstance.Trace("This is a test trace string %d\n", i)
+		}
 	}
-	durationInfo = time.Since(startTime)
-	fmt.Printf("Unoptimized duration for unlogged %d Trace() was %s\n", iterations, durationInfo)
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration with IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
 
-	assert.Equal(suite.T(), true, durationInfo > durationTrace)
+	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
 }
