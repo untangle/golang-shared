@@ -73,6 +73,5 @@ message Session {
   string client_dns_hint = 65;
   uint32 client_port = 66;
   uint32 client_port_new = 67;
-    
   uint32 policy_flow_category_id = 68;
 }
