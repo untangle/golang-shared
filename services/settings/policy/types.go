@@ -12,7 +12,6 @@ import (
 // It contains an array of PolicyConfigurations, an array of PolicyFlowCategory's
 // and an array of Policy which reference the Configurations and FlowCategories by id.
 // Those arrays are loaded from the json primarily by mapstructure.
-// PolicyManager also maintains map[string]'s based on those arrays to
 // facilitate lookup.
 type PolicySettings struct {
 	Enabled            bool          `json:"enabled"`
@@ -242,4 +241,21 @@ func (p *PolicySettings) FindFlow(id string) *PolicyFlow {
 		}
 	}
 	return nil
+}
+
+// Returns a list of disabled app services for a given policy ID.
+func (p *PolicySettings) FindDisabledConfigs(pol *Policy) []string {
+
+	disabledConfigs := []string{}
+	for _, configID := range pol.Configurations {
+		config := p.findConfiguration(configID)
+		if config != nil && config.AppSettings != nil {
+			for pluginName, pluginSettings := range config.AppSettings {
+				if pluginSettings.(map[string]interface{})["enabled"] == false {
+					disabledConfigs = append(disabledConfigs, pluginName)
+				}
+			}
+		}
+	}
+	return disabledConfigs
 }
