@@ -212,6 +212,55 @@ func (file *SettingsFile) RestoreSettingsFromFile(fileData []byte, exceptions ..
 	return file.SetAllSettingsWithExceptions(settingsJson, exceptions...)
 }
 
+// Update access rule condition to update the port
+func UpdateAccessRuleCondition(conditions interface{}, port string) interface{} {
+	var returnConditions []interface{}
+	for _, condition := range conditions.([]interface{}) {
+		condType := condition.(map[string]interface{})["type"].(string)
+		if condType == "DESTINATION_PORT" {
+			value := condition.(map[string]interface{})["value"]
+			// Update the rule only if the port has changed
+			if value != port {
+				logger.Info("Need to update access rule to port %v\n", port)
+				condition.(map[string]interface{})["value"] = port
+			} else {
+				logger.Info("Access rule for port %v already exists\n", port)
+			}
+		}
+		returnConditions = append(returnConditions, condition)
+	}
+	return returnConditions
+}
+
+// Update access rule for web admin ports
+func UpdateAccessRules(settings map[string]interface{}, httpPort string, httpsPort string) {
+	chains, _ := getSettingsFromJSON(settings, []string{"firewall", "tables", "access", "chains"})
+	var updatedChains []interface{}
+
+	for _, chain := range chains.([]interface{}) {
+		chainName := chain.(map[string]interface{})["name"].(string)
+
+		if chainName == "access-rules" {
+			chainRules := chain.(map[string]interface{})["rules"]
+			var updatedRules []interface{}
+			for _, rule := range chainRules.([]interface{}) {
+				description := rule.(map[string]interface{})["description"].(string)
+				if description == "Accept HTTP on LANs" {
+					conditions := rule.(map[string]interface{})["conditions"]
+					rule.(map[string]interface{})["conditions"] = UpdateAccessRuleCondition(conditions, httpPort)
+				}
+				if description == "Accept HTTPS on LANs" {
+					conditions := rule.(map[string]interface{})["conditions"]
+					rule.(map[string]interface{})["conditions"] = UpdateAccessRuleCondition(conditions, httpsPort)
+				}
+				updatedRules = append(updatedRules, rule)
+			}
+		}
+		updatedChains = append(updatedChains, chain)
+	}
+	setSettingsInJSON(settings, []string{"firewall", "tables", "access", "chains"}, updatedChains)
+}
+
 // Updates settings with the new settings passed in. newSettings needs to be a valid
 //
 //		Json structure(map[string]interface{}) of all the settings. For each exception, the current settings will be
@@ -228,6 +277,14 @@ func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]in
 		newSettings[exception] = currentSettings[exception]
 	}
 
+	// Default exception: Web admin ports will be set to current settings
+	httpPort := currentSettings["system"].(map[string]interface{})["httpPort"].(string)
+	httpsPort := currentSettings["system"].(map[string]interface{})["httpsPort"].(string)
+	newSettings["system"].(map[string]interface{})["httpPort"] = httpPort
+	newSettings["system"].(map[string]interface{})["httpsPort"] = httpsPort
+	//UpdateAccessRules(newSettings, httpPort, httpsPort)
+
+	logger.Info("System settings in restore %s", newSettings["system"])
 	return file.SetSettings(nil, newSettings, true)
 }
 
