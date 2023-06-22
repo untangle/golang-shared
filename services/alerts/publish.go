@@ -79,7 +79,7 @@ func (publisher *ZmqAlertPublisher) Startup() error {
 func (publisher *ZmqAlertPublisher) Shutdown() error {
 	publisher.logger.Info("Shutting down the Alerts service\n")
 
-	// Make sure it is not shutdown twice.
+	// Make sure the publisher is not shutdown twice.
 	if atomic.LoadInt32(&publisher.started) == 0 {
 		publisher.logger.Debug("Alerts service is already shutdown.\n")
 		return nil
