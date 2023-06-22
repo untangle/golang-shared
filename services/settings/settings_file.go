@@ -233,7 +233,6 @@ func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]in
 	newSettings["system"].(map[string]interface{})["httpPort"] = currentSettings["system"].(map[string]interface{})["httpPort"].(string)
 	newSettings["system"].(map[string]interface{})["httpsPort"] = currentSettings["system"].(map[string]interface{})["httpsPort"].(string)
 
-	logger.Info("System settings in restore %s", newSettings["system"])
 	return file.SetSettings(nil, newSettings, true)
 }
 
