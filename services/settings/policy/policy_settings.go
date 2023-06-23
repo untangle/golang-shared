@@ -72,7 +72,5 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 			}
 		}
 	}
-
 	return pluginSettings, nil
-
 }
