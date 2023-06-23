@@ -237,3 +237,80 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 		})
 	}
 }
+
+func TestPolicyConfigurationJSON(t *testing.T) {
+	type args struct {
+		data string
+	}
+	tests := []struct {
+		name                   string
+		args                   args
+		wantErr                bool
+		wantUnmarshalledConfig PolicyConfiguration
+		wantMarshalledJson     string
+	}{
+		{
+			name: "validJsonWithAppSettings",
+			args: args{
+				data: `{
+					"id": "A1",
+					"name": "B2",
+					"description": "C3",
+					"key": "value",
+					"setting_field": "D4"
+				}`,
+			},
+			wantUnmarshalledConfig: PolicyConfiguration{
+				ID:          "A1",
+				Name:        "B2",
+				Description: "C3",
+				AppSettings: map[string]any{
+					"setting_field": "D4",
+					"key":           "value",
+				},
+			},
+			wantMarshalledJson: `{
+				"id": "A1",
+				"name": "B2",
+				"description": "C3",
+				"key": "value",
+				"setting_field": "D4"
+			}`,
+		},
+		{
+			name: "validJsonWithoutAppSettings",
+			args: args{
+				data: `{
+					"id": "A1",
+					"name": "B2",
+					"description": "C3"
+				}`,
+			},
+			wantUnmarshalledConfig: PolicyConfiguration{
+				ID:          "A1",
+				Name:        "B2",
+				Description: "C3",
+				AppSettings: map[string]any{},
+			},
+			wantMarshalledJson: `{
+				"id": "A1",
+				"name": "B2",
+				"description": "C3"
+			}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var pConfig PolicyConfiguration
+			err := json.Unmarshal(([]byte)(tt.args.data), &pConfig)
+			assert.NoError(t, err)
+
+			assert.EqualValues(t, &tt.wantUnmarshalledConfig, &pConfig)
+
+			jsonValue, err := json.Marshal(tt.wantUnmarshalledConfig)
+			assert.NoError(t, err)
+
+			assert.JSONEq(t, tt.wantMarshalledJson, string(jsonValue))
+		})
+	}
+}
