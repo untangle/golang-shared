@@ -20,5 +20,9 @@ type LoggerLevels interface {
 	Info(format string, args ...interface{})
 	Debug(format string, args ...interface{})
 	Trace(format string, args ...interface{})
+	OCDebug(format string, name string, limit int64, args ...interface{})
+	OCTrace(format string, name string, limit int64, args ...interface{})
 	OCWarn(format string, name string, limit int64, args ...interface{})
+	OCErr(format string, name string, limit int64, args ...interface{})
+	OCCrit(format string, name string, limit int64, args ...interface{})
 }
