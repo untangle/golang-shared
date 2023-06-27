@@ -43,7 +43,7 @@ const (
 type Group struct {
 	Name        string    `json:"name"`
 	Type        GroupType `json:"type"`
-	Description string    `json:"description,omitempty"`
+	Description string    `json:"description"`
 	ID          string    `json:"id"`
 	Items       any       `json:"items"`
 }
