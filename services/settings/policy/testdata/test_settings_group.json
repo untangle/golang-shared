@@ -97,18 +97,15 @@
                 "items": [
                     {
                         "protocol": 6,
-                        "ipspecifier": "12.34.56.78",
-                        "port": "12345"
+                        "port": 12345
                     },
                     {
                         "protocol": 17,
-                        "ipspecifier": "12.34.56.0/24",
-                        "port": "12345"
+                        "port": 12345
                     },
                     {
                         "protocol": 17,
-                        "ipspecifier": "1.2.3.4-1.2.3.5",
-                        "port": "12345"
+                        "port": 12345
                     }
                 ]
             }

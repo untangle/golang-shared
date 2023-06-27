@@ -2,6 +2,7 @@ package policy
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/google/gopacket/layers"
@@ -56,6 +57,8 @@ func TestErrorGetPolicyPluginSettings(t *testing.T) {
 func TestGroupUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
 	policySettings := PolicySettings{}
+	err := settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager")
+	fmt.Printf("err: %s\n", err)
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
 	strlist, ok := policySettings.Groups[0].ItemsIPSpecList()
 	assert.True(t, ok)
