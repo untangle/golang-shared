@@ -67,19 +67,16 @@ func TestGroupUnmarshal(t *testing.T) {
 	assert.True(t, ok)
 	assert.EqualValues(t, []ServiceEndpoint{
 		{
-			Protocol:    uint(layers.IPProtocolTCP),
-			IPSpecifier: "12.34.56.78",
-			Port:        12345,
+			Protocol: uint(layers.IPProtocolTCP),
+			Port:     12345,
 		},
 		{
-			Protocol:    uint(layers.IPProtocolUDP),
-			IPSpecifier: "12.34.56.0/24",
-			Port:        12345,
+			Protocol: uint(layers.IPProtocolUDP),
+			Port:     12345,
 		},
 		{
-			Protocol:    uint(layers.IPProtocolUDP),
-			IPSpecifier: "1.2.3.4-1.2.3.5",
-			Port:        12345,
+			Protocol: uint(layers.IPProtocolUDP),
+			Port:     12345,
 		},
 	}, endpointList)
 }
@@ -213,13 +210,13 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Type: ServiceEndpointType,
 				ID:   "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
-					{Protocol: uint(layers.IPProtocolUDP),
-						IPSpecifier: "123.123.123.123",
-						Port:        2222,
+					{
+						Protocol: uint(layers.IPProtocolUDP),
+						Port:     2222,
 					},
-					{Protocol: uint(layers.IPProtocolTCP),
-						IPSpecifier: "123.123.123.124",
-						Port:        2223,
+					{
+						Protocol: uint(layers.IPProtocolTCP),
+						Port:     2223,
 					},
 				},
 			},
