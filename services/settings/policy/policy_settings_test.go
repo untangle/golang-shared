@@ -239,27 +239,22 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 }
 
 func TestPolicyConfigurationJSON(t *testing.T) {
-	type args struct {
-		data string
-	}
 	tests := []struct {
 		name                   string
-		args                   args
+		inputData              string
 		wantErr                bool
 		wantUnmarshalledConfig PolicyConfiguration
 		wantMarshalledJson     string
 	}{
 		{
 			name: "validJsonWithAppSettings",
-			args: args{
-				data: `{
+			inputData: `{
 					"id": "A1",
 					"name": "B2",
 					"description": "C3",
 					"key": "value",
 					"setting_field": "D4"
 				}`,
-			},
 			wantUnmarshalledConfig: PolicyConfiguration{
 				ID:          "A1",
 				Name:        "B2",
@@ -279,13 +274,11 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 		},
 		{
 			name: "validJsonWithoutAppSettings",
-			args: args{
-				data: `{
+			inputData: `{
 					"id": "A1",
 					"name": "B2",
 					"description": "C3"
 				}`,
-			},
 			wantUnmarshalledConfig: PolicyConfiguration{
 				ID:          "A1",
 				Name:        "B2",
@@ -302,7 +295,7 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var pConfig PolicyConfiguration
-			err := json.Unmarshal(([]byte)(tt.args.data), &pConfig)
+			err := json.Unmarshal(([]byte)(tt.inputData), &pConfig)
 			assert.NoError(t, err)
 
 			assert.EqualValues(t, &tt.wantUnmarshalledConfig, &pConfig)
