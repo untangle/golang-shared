@@ -66,7 +66,6 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
 	}
 
-	fmt.Printf("here, val: %#v\n", rawvalue)
 	g.ID = rawvalue.ID
 	g.Description = rawvalue.Description
 	g.Type = rawvalue.Type

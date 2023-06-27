@@ -2,7 +2,6 @@ package policy
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/google/gopacket/layers"
@@ -57,8 +56,6 @@ func TestErrorGetPolicyPluginSettings(t *testing.T) {
 func TestGroupUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
 	policySettings := PolicySettings{}
-	err := settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager")
-	fmt.Printf("err: %s\n", err)
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
 	strlist, ok := policySettings.Groups[0].ItemsIPSpecList()
 	assert.True(t, ok)
@@ -206,7 +203,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
                          "type": "ServiceEndpoint",
                           "items": [    
-                              {"protocol": 17, "port": "2222"},
+                              {"protocol": 17, "port": 2222},
                               {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
 			expected: Group{
