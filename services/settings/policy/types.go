@@ -51,7 +51,7 @@ type Group struct {
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
 type ServiceEndpoint struct {
-	Protocol    string `json:"protocol"`
+	Protocol    uint   `json:"protocol"`
 	IPSpecifier string `json:"IPSpecifier"`
 	Port        uint   `json:"port"`
 }
