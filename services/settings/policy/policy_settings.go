@@ -44,6 +44,9 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 		return nil, err
 	}
 
+	// Update configurations from the marchalled settings.
+	UpdateConfigurations(policySettings)
+
 	// Process into a map of maps
 	pluginSettings := make(map[string]map[string]interface{})
 
@@ -73,4 +76,36 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 		}
 	}
 	return pluginSettings, nil
+}
+
+// Loop the temp configurations and update the Configurations.
+func UpdateConfigurations(settings *PolicySettings) {
+	if settings.TempConfigurations == nil {
+		return
+	}
+	for _, p := range settings.TempConfigurations.([]interface{}) {
+		data := p.(map[string]interface{})
+
+		newConfig := &PolicyConfiguration{}
+		newConfig.AppSettings = make(map[string]interface{})
+		for pName, pValue := range data {
+			switch pName {
+			case "description":
+				if _, ok := pValue.(string); ok {
+					newConfig.Description = pValue.(string)
+				}
+			case "name":
+				if _, ok := pValue.(string); ok {
+					newConfig.Name = pValue.(string)
+				}
+			case "id":
+				if _, ok := pValue.(string); ok {
+					newConfig.ID = pValue.(string)
+				}
+			default: // Everything else is an app setting
+				newConfig.AppSettings[pName] = pValue
+			}
+		}
+		settings.Configurations = append(settings.Configurations, newConfig)
+	}
 }
