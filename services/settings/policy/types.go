@@ -37,6 +37,15 @@ const (
 	// ServiceEndpointType means that the Items of a Group are
 	// service endpoints.
 	ServiceEndpointType GroupType = "ServiceEndpoint"
+
+	// WebFilterCategoryType means that the Items of the Group are web filter categories.
+	WebFilterCategoryType GroupType = "WebFilterCategory"
+
+	// ClassifyType means that the Items of the Group are classifications.
+	ClassifyType GroupType = "Classify" // TBD Not implemented.
+
+	// ThreatPreventionType means that the Items of the Group are threat prevention score.
+	ThreatPreventionType GroupType = "ThreatPrevention"
 )
 
 // Group is a way to generically re-use certain lists of attributes
@@ -82,13 +91,41 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	switch g.Type {
 	case IPAddrListType:
 		return g.parseIPSpecList(rawvalue)
-	case GeoIPListType:
+	case GeoIPListType, WebFilterCategoryType:
 		return g.parseStringList(rawvalue)
 	case ServiceEndpointType:
 		return g.parseServiceEndpointList(rawvalue)
+	case ThreatPreventionType:
+		return g.parseIntList(rawvalue)
+	case ClassifyType: // TBD Not implemented.
+		return nil
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", theType)
 	}
+}
+
+func parseIntList[T any](raw map[string]interface{}, conv func(int) T) ([]T, error) {
+	items, ok := raw["items"]
+	if !ok {
+		return nil, fmt.Errorf("error unmarshalling policy group: no items")
+	}
+	values, ok := items.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf(
+			"error unmarshalling policy group: not a string list: %v(type is: %T)",
+			values, values)
+	}
+	intList := make([]T, len(values), len(values))
+	for i, val := range values {
+		intConversion, ok := val.(int)
+		if !ok {
+			return nil, fmt.Errorf(
+				"not a valid string in list of strings: %v(type is: %T)",
+				val, val)
+		}
+		intList[i] = conv(intConversion)
+	}
+	return intList, nil
 }
 
 func parseStringableList[T any](raw map[string]interface{}, conv func(string) T) ([]T, error) {
@@ -113,6 +150,15 @@ func parseStringableList[T any](raw map[string]interface{}, conv func(string) T)
 		stringList[i] = conv(stringConversion)
 	}
 	return stringList, nil
+}
+
+func (g *Group) parseIntList(raw map[string]interface{}) error {
+	if items, err := parseIntList(raw, func(x int) int { return x }); err != nil {
+		return err
+	} else {
+		g.Items = items
+	}
+	return nil
 }
 
 func (g *Group) parseStringList(raw map[string]interface{}) error {
