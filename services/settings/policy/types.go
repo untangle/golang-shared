@@ -41,10 +41,11 @@ const (
 // Group is a way to generically re-use certain lists of attributes
 // that may be true for a session.
 type Group struct {
-	Type        GroupType
-	Description string
-	ID          string
-	Items       any
+	Name        string    `json:"name"`
+	Type        GroupType `json:"type"`
+	Description string    `json:"description,omitempty"`
+	ID          string    `json:"id"`
+	Items       any       `json:"items"`
 }
 
 // ServiceEndpoint is a particular group type, a group may be
@@ -57,37 +58,81 @@ type ServiceEndpoint struct {
 
 // UnmarshalJSON is a custom json unmarshaller for a Group.
 func (g *Group) UnmarshalJSON(data []byte) error {
-	var rawvalue map[string]interface{}
 
-	if err := json.Unmarshal(data, &rawvalue); err != nil {
+	type GroupTypeField struct {
+		Type GroupType `json:"type"`
+	}
+	var typeField GroupTypeField
+
+	if err := json.Unmarshal(data, &typeField); err != nil {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
 	}
 
-	var theType string
-	var ok bool
-	if theType, ok = rawvalue["type"].(string); !ok {
-		return fmt.Errorf("malformed group: does not contain a 'type' field: %v", rawvalue)
-
-	}
-
-	desc, _ := rawvalue["description"].(string)
-	g.Description = desc
-
-	ID, _ := rawvalue["id"].(string)
-	g.ID = ID
-
-	g.Type = GroupType(theType)
-
-	switch g.Type {
+	switch typeField.Type {
 	case IPAddrListType:
-		return g.parseIPSpecList(rawvalue)
+		list := []net.IPSpecifierString{}
+		g.Items = &list
+		defer func() { g.Items = list }()
 	case GeoIPListType:
-		return g.parseStringList(rawvalue)
+		list := []string{}
+		g.Items = &list
+		defer func() { g.Items = list }()
 	case ServiceEndpointType:
-		return g.parseServiceEndpointList(rawvalue)
+		list := []ServiceEndpoint{}
+		g.Items = &list
+		defer func() { g.Items = list }()
 	default:
-		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", theType)
+		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
+
+	// alias to make use of tags but avoid recursion
+	type aliasGroup Group
+
+	// unmarshal PolicyConfiguration using struct tags
+	return json.Unmarshal(data, (*aliasGroup)(g))
+}
+
+// UnmarshalJSON required since "port" is a string in settings but a uint in the ServiceEndpoint
+func (se *ServiceEndpoint) UnmarshalJSON(data []byte) error {
+	var rawvalue map[string]interface{}
+
+	if err := json.Unmarshal(data, &rawvalue); err != nil {
+		return fmt.Errorf("unable to unmarshal endpoint: %w", err)
+	}
+
+	config := mapstructure.DecoderConfig{
+		TagName:          "json",
+		Result:           se,
+		WeaklyTypedInput: true,
+	}
+
+	d, err := mapstructure.NewDecoder(&config)
+	if err != nil {
+		return fmt.Errorf("unable to decode service endpoint: %w", err)
+	}
+	if err = d.Decode(rawvalue); err != nil {
+		return fmt.Errorf("error while trying to unmarshal policy group service endpoint values: %w",
+			err)
+	}
+	return nil
+}
+
+// MarshalJSON for a ServiceEndpoint
+func (se ServiceEndpoint) MarshalJSON() ([]byte, error) {
+	type alias ServiceEndpoint
+
+	// use struct to write port field as a string
+	type fieldOverwrite struct {
+		*alias
+		Port string `json:"port"`
+	}
+
+	overwrite := &fieldOverwrite{
+		alias: (*alias)(&se),
+		Port:  fmt.Sprint(se.Port),
+	}
+
+	return json.Marshal(overwrite)
 }
 
 func parseStringableList[T any](raw map[string]interface{}, conv func(string) T) ([]T, error) {
