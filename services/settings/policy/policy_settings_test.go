@@ -108,6 +108,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["132.123.123"]}`,
 			expectedErr: false,
 			expected: Group{
+				Name:  "someBogus",
 				Type:  "IPAddrList",
 				Items: []net.IPSpecifierString{"132.123.123"},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
@@ -120,6 +121,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["AE", "AF"]}`,
 			expectedErr: false,
 			expected: Group{
+				Name:  "someBogus",
 				Type:  "GeoIPLocation",
 				Items: []string{"AE", "AF"},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
@@ -185,6 +187,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": []}`,
 			expectedErr: false,
 			expected: Group{
+				Name:  "ServiceEndpointTest",
 				Type:  "ServiceEndpoint",
 				Items: []ServiceEndpoint{},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
@@ -209,6 +212,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                               {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": "2223"}]}`,
 			expectedErr: false,
 			expected: Group{
+				Name: "ServiceEndpointTest",
 				Type: ServiceEndpointType,
 				ID:   "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
