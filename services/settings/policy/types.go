@@ -52,7 +52,7 @@ type Group struct {
 // identified by a list of these.
 type ServiceEndpoint struct {
 	Protocol    string `json:"protocol"`
-	IPSpecifier string `json:"IPSpecifier"`
+	IPSpecifier string `json:"ipspecifier"`
 	Port        uint   `json:"port"`
 }
 
@@ -133,80 +133,6 @@ func (se ServiceEndpoint) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(overwrite)
-}
-
-func parseStringableList[T any](raw map[string]interface{}, conv func(string) T) ([]T, error) {
-	items, ok := raw["items"]
-	if !ok {
-		return nil, fmt.Errorf("error unmarshalling policy group: no items")
-	}
-	values, ok := items.([]interface{})
-	if !ok {
-		return nil, fmt.Errorf(
-			"error unmarshalling policy group: not a string list: %v(type is: %T)",
-			values, values)
-	}
-	stringList := make([]T, len(values), len(values))
-	for i, val := range values {
-		stringConversion, ok := val.(string)
-		if !ok {
-			return nil, fmt.Errorf(
-				"not a valid string in list of strings: %v(type is: %T)",
-				val, val)
-		}
-		stringList[i] = conv(stringConversion)
-	}
-	return stringList, nil
-}
-
-func (g *Group) parseStringList(raw map[string]interface{}) error {
-	if items, err := parseStringableList(raw, func(x string) string { return x }); err != nil {
-		return err
-	} else {
-		g.Items = items
-	}
-	return nil
-}
-
-func (g *Group) parseIPSpecList(raw map[string]interface{}) error {
-	if items, err := parseStringableList(raw,
-		func(x string) net.IPSpecifierString { return net.IPSpecifierString(x) }); err != nil {
-		return err
-	} else {
-		g.Items = items
-	}
-	return nil
-}
-
-func (g *Group) parseServiceEndpointList(raw map[string]interface{}) error {
-	items, ok := raw["items"]
-	if !ok {
-		return fmt.Errorf("error unmarshalling policy group: no items")
-	}
-	values, ok := items.([]interface{})
-	if !ok {
-		return fmt.Errorf(
-			"error unmarshalling policy group: not a list of objects: %v(%T)",
-			values, items)
-	}
-
-	decoded := []ServiceEndpoint{}
-	config := mapstructure.DecoderConfig{
-		TagName:          "json",
-		Result:           &decoded,
-		WeaklyTypedInput: true,
-	}
-
-	d, err := mapstructure.NewDecoder(&config)
-	if err != nil {
-		return fmt.Errorf("unable to decode service endpoint: %w", err)
-	}
-	if err = d.Decode(values); err != nil {
-		return fmt.Errorf("error while trying to unmarshal policy group service endpoint values: %w",
-			err)
-	}
-	g.Items = decoded
-	return nil
 }
 
 // ItemsStringList returns the Items of the group as a slice of
