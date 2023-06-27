@@ -193,7 +193,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
                          "type": "ServiceEndpoint",
-                          "items": [{"protocol": 17, "ipspoocifier": ""]}`,
+                          "items": [{"protocol": 17, "ipspecifier": ""]}`,
 			expectedErr: true,
 			expected:    Group{},
 		},
@@ -203,8 +203,8 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
                          "type": "ServiceEndpoint",
                           "items": [    
-                              {"protocol": 17, "ipspecifier": "123.123.123.123", "port": "2222"},
-                              {"protocol": 6, "ipspecifier": "123.123.123.124", "port": 2223}]}`,
+                              {"protocol": 17, "port": "2222"},
+                              {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
 			expected: Group{
 				Type: ServiceEndpointType,
