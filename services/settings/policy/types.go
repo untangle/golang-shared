@@ -88,7 +88,6 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 
 	// unmarshal PolicyConfiguration using struct tags
 	return json.Unmarshal(data, (*aliasGroup)(g))
-
 }
 
 // ItemsStringList returns the Items of the group as a slice of
