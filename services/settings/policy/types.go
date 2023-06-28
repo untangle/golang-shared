@@ -38,13 +38,18 @@ const (
 	ServiceEndpointType GroupType = "ServiceEndpoint"
 )
 
+type GroupJSON struct {
+	Type        GroupType `json:"type"`
+	Description string    `json:"description"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+}
+
 // Group is a way to generically re-use certain lists of attributes
 // that may be true for a session.
 type Group struct {
-	Type        GroupType
-	Description string
-	ID          string
-	Items       any
+	GroupJSON
+	Items any
 }
 
 // ServiceEndpoint is a particular group type, a group may be
@@ -56,19 +61,10 @@ type ServiceEndpoint struct {
 
 // UnmarshalJSON is a custom json unmarshaller for a Group.
 func (g *Group) UnmarshalJSON(data []byte) error {
-	var rawvalue struct {
-		Type        GroupType `json:"type"`
-		Description string    `json:"description"`
-		ID          string    `json:"id"`
-	}
-
-	if err := json.Unmarshal(data, &rawvalue); err != nil {
+	var rawvalue Group
+	if err := json.Unmarshal(data, &rawvalue.GroupJSON); err != nil {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
 	}
-
-	g.ID = rawvalue.ID
-	g.Description = rawvalue.Description
-	g.Type = rawvalue.Type
 
 	switch g.Type {
 	case IPAddrListType:
