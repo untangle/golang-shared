@@ -37,13 +37,6 @@ const (
 	ServiceEndpointType GroupType = "ServiceEndpoint"
 )
 
-type GroupJSON struct {
-	Type        GroupType `json:"type"`
-	Description string    `json:"description"`
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-}
-
 // Group is a way to generically re-use certain lists of attributes
 // that may be true for a session.
 type Group struct {
