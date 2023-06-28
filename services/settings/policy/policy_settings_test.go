@@ -106,6 +106,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["132.123.123"]}`,
 			expectedErr: false,
 			expected: Group{
+				Name:  "someBogus",
 				Type:  "IPAddrList",
 				Items: []net.IPSpecifierString{"132.123.123"},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
@@ -118,6 +119,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["AE", "AF"]}`,
 			expectedErr: false,
 			expected: Group{
+				Name:  "someBogus",
 				Type:  "GeoIPLocation",
 				Items: []string{"AE", "AF"},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
@@ -183,6 +185,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": []}`,
 			expectedErr: false,
 			expected: Group{
+				Name:  "ServiceEndpointTest",
 				Type:  "ServiceEndpoint",
 				Items: []ServiceEndpoint{},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
@@ -201,14 +204,17 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			name: "good sg endpoint list",
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
+						 "description": "Description",
                          "type": "ServiceEndpoint",
                           "items": [    
                               {"protocol": 17, "port": 2222},
                               {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
 			expected: Group{
-				Type: ServiceEndpointType,
-				ID:   "702d4c99-9599-455f-8271-215e5680f038",
+				Name:        "ServiceEndpointTest",
+				Description: "Description",
+				Type:        ServiceEndpointType,
+				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
 						Protocol: uint(layers.IPProtocolUDP),
@@ -232,6 +238,149 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			} else {
 				assert.NotNil(t, json.Unmarshal([]byte(tt.json), &actual))
 			}
+		})
+	}
+}
+
+func TestGroupMarshal(t *testing.T) {
+	tests := []struct {
+		name         string
+		group        Group
+		expectedJSON string
+	}{
+		{
+			name: "okay ip list",
+			group: Group{
+				Name:        "someBogus",
+				Description: "Description",
+				Type:        "IPAddrList",
+				Items:       []net.IPSpecifierString{"132.123.123"},
+				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+			},
+			expectedJSON: `{"name": "someBogus",
+                         "id": "702d4c99-9599-455f-8271-215e5680f038",
+						 "description": "Description",
+                         "type": "IPAddrList",
+                          "items": ["132.123.123"]}`,
+		},
+		{
+			name: "okay geoip list",
+			group: Group{
+				Name:        "someBogus",
+				Description: "Description",
+				Type:        "GeoIPLocation",
+				Items:       []string{"AE", "AF"},
+				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+			},
+			expectedJSON: `{"name": "someBogus",
+			"id": "702d4c99-9599-455f-8271-215e5680f038",
+			"description": "Description",
+			"type": "GeoIPLocation",
+			"items": ["AE", "AF"]}`,
+		},
+		{
+			name: "good sg endpoint list",
+			group: Group{
+				Name:        "ServiceEndpointTest",
+				Description: "Description",
+				Type:        ServiceEndpointType,
+				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				Items: []ServiceEndpoint{
+					{Protocol: "UDP",
+						IPSpecifier: "123.123.123.123",
+						Port:        2222,
+					},
+					{Protocol: "TCP",
+						IPSpecifier: "123.123.123.124",
+						Port:        2223,
+					},
+				},
+			},
+			expectedJSON: `{"name": "ServiceEndpointTest",
+                         "id": "702d4c99-9599-455f-8271-215e5680f038",
+						 "description": "Description",
+                         "type": "ServiceEndpoint",
+                          "items": [
+                              {"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": 2222},
+                              {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": 2223}]}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(&tt.group)
+			assert.Nil(t, err)
+			assert.JSONEq(t, tt.expectedJSON, string(data))
+		})
+	}
+}
+
+func TestPolicyConfigurationJSON(t *testing.T) {
+	tests := []struct {
+		name                   string
+		inputData              string
+		wantErr                bool
+		wantUnmarshalledConfig PolicyConfiguration
+		wantMarshalledJson     string
+	}{
+		{
+			name: "validJsonWithAppSettings",
+			inputData: `{
+					"id": "A1",
+					"name": "B2",
+					"description": "C3",
+					"key": "value",
+					"setting_field": "D4"
+				}`,
+			wantUnmarshalledConfig: PolicyConfiguration{
+				ID:          "A1",
+				Name:        "B2",
+				Description: "C3",
+				AppSettings: map[string]any{
+					"setting_field": "D4",
+					"key":           "value",
+				},
+			},
+			wantMarshalledJson: `{
+				"id": "A1",
+				"name": "B2",
+				"description": "C3",
+				"key": "value",
+				"setting_field": "D4"
+			}`,
+		},
+		{
+			name: "validJsonWithoutAppSettings",
+			inputData: `{
+					"id": "A1",
+					"name": "B2",
+					"description": "C3"
+				}`,
+			wantUnmarshalledConfig: PolicyConfiguration{
+				ID:          "A1",
+				Name:        "B2",
+				Description: "C3",
+				AppSettings: map[string]any{},
+			},
+			wantMarshalledJson: `{
+				"id": "A1",
+				"name": "B2",
+				"description": "C3"
+			}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var pConfig PolicyConfiguration
+			err := json.Unmarshal(([]byte)(tt.inputData), &pConfig)
+			assert.NoError(t, err)
+
+			assert.EqualValues(t, &tt.wantUnmarshalledConfig, &pConfig)
+
+			jsonValue, err := json.Marshal(tt.wantUnmarshalledConfig)
+			assert.NoError(t, err)
+
+			assert.JSONEq(t, tt.wantMarshalledJson, string(jsonValue))
 		})
 	}
 }
