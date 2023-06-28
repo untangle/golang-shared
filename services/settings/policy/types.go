@@ -82,7 +82,7 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	}
 }
 
-func parseStringableList[T any](raw []byte, conv func(string) T) ([]T, error) {
+func parseList[T any](raw []byte) ([]T, error) {
 	var value struct {
 		Items []T `json:"items"`
 	}
@@ -93,7 +93,7 @@ func parseStringableList[T any](raw []byte, conv func(string) T) ([]T, error) {
 }
 
 func (g *Group) parseStringList(raw []byte) error {
-	if items, err := parseStringableList(raw, func(x string) string { return x }); err != nil {
+	if items, err := parseList[string](raw); err != nil {
 		return err
 	} else {
 		g.Items = items
@@ -102,8 +102,7 @@ func (g *Group) parseStringList(raw []byte) error {
 }
 
 func (g *Group) parseIPSpecList(raw []byte) error {
-	if items, err := parseStringableList(raw,
-		func(x string) net.IPSpecifierString { return net.IPSpecifierString(x) }); err != nil {
+	if items, err := parseList[net.IPSpecifierString](raw); err != nil {
 		return err
 	} else {
 		g.Items = items
@@ -112,13 +111,11 @@ func (g *Group) parseIPSpecList(raw []byte) error {
 }
 
 func (g *Group) parseServiceEndpointList(raw []byte) error {
-	var value struct {
-		Items []ServiceEndpoint `json:"items"`
-	}
-	if err := json.Unmarshal(raw, &value); err != nil {
+	if items, err := parseList[*Group](raw); err != nil {
 		return err
+	} else {
+		g.Items = items
 	}
-	g.Items = value.Items
 	return nil
 }
 
