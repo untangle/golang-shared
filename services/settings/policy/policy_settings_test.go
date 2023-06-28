@@ -74,10 +74,6 @@ func TestGroupUnmarshal(t *testing.T) {
 			Protocol: uint(layers.IPProtocolUDP),
 			Port:     12345,
 		},
-		{
-			Protocol: uint(layers.IPProtocolUDP),
-			Port:     12345,
-		},
 	}, endpointList)
 }
 
@@ -286,13 +282,13 @@ func TestGroupMarshal(t *testing.T) {
 				Type:        ServiceEndpointType,
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
-					{Protocol: "UDP",
-						IPSpecifier: "123.123.123.123",
-						Port:        2222,
+					{
+						Protocol: uint(layers.IPProtocolUDP),
+						Port:     2222,
 					},
-					{Protocol: "TCP",
-						IPSpecifier: "123.123.123.124",
-						Port:        2223,
+					{
+						Protocol: uint(layers.IPProtocolTCP),
+						Port:     2223,
 					},
 				},
 			},
@@ -301,8 +297,8 @@ func TestGroupMarshal(t *testing.T) {
 						 "description": "Description",
                          "type": "ServiceEndpoint",
                           "items": [
-                              {"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": 2222},
-                              {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": 2223}]}`,
+                              {"protocol": 17, "port": 2222},
+                              {"protocol": 6, "port": 2223}]}`,
 		},
 	}
 
