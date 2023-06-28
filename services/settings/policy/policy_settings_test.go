@@ -209,8 +209,8 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 						 "description": "Description",
                          "type": "ServiceEndpoint",
                           "items": [
-                              {"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": "2222"},
-                              {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": "2223"}]}`,
+                              {"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": 2222},
+                              {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": 2223}]}`,
 			expectedErr: false,
 			expected: Group{
 				Name:        "ServiceEndpointTest",
@@ -303,8 +303,8 @@ func TestGroupMarshal(t *testing.T) {
 						 "description": "Description",
                          "type": "ServiceEndpoint",
                           "items": [
-                              {"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": "2222"},
-                              {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": "2223"}]}`,
+                              {"protocol": "UDP", "ipspecifier": "123.123.123.123", "port": 2222},
+                              {"protocol": "TCP", "ipspecifier": "123.123.123.124", "port": 2223}]}`,
 		},
 	}
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/untangle/golang-shared/util/net"
 )
 
@@ -52,7 +51,7 @@ type Group struct {
 // identified by a list of these.
 type ServiceEndpoint struct {
 	Protocol    string `json:"protocol"`
-	IPSpecifier string `json:"ipspecifier"`
+	IPSpecifier string `json:"ipspecifier,omitempty"`
 	Port        uint   `json:"port"`
 }
 
@@ -90,49 +89,6 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 
 	// unmarshal PolicyConfiguration using struct tags
 	return json.Unmarshal(data, (*aliasGroup)(g))
-}
-
-// UnmarshalJSON required since "port" is a string in settings but a uint in the ServiceEndpoint
-func (se *ServiceEndpoint) UnmarshalJSON(data []byte) error {
-	var rawvalue map[string]interface{}
-
-	if err := json.Unmarshal(data, &rawvalue); err != nil {
-		return fmt.Errorf("unable to unmarshal endpoint: %w", err)
-	}
-
-	config := mapstructure.DecoderConfig{
-		TagName:          "json",
-		Result:           se,
-		WeaklyTypedInput: true,
-	}
-
-	d, err := mapstructure.NewDecoder(&config)
-	if err != nil {
-		return fmt.Errorf("unable to decode service endpoint: %w", err)
-	}
-	if err = d.Decode(rawvalue); err != nil {
-		return fmt.Errorf("error while trying to unmarshal policy group service endpoint values: %w",
-			err)
-	}
-	return nil
-}
-
-// MarshalJSON for a ServiceEndpoint
-func (se ServiceEndpoint) MarshalJSON() ([]byte, error) {
-	type alias ServiceEndpoint
-
-	// use struct to write port field as a string
-	type fieldOverwrite struct {
-		*alias
-		Port string `json:"port"`
-	}
-
-	overwrite := &fieldOverwrite{
-		alias: (*alias)(&se),
-		Port:  fmt.Sprint(se.Port),
-	}
-
-	return json.Marshal(overwrite)
 }
 
 // ItemsStringList returns the Items of the group as a slice of
