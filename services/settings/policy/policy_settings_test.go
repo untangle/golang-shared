@@ -192,7 +192,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
                          "type": "ServiceEndpoint",
-                          "items": [{"protocol": 17, "ipspecifier": ""]}`,
+                          "items": [{"protocol": 17]}`,
 			expectedErr: true,
 			expected:    Group{},
 		},
