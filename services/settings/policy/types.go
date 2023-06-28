@@ -111,7 +111,7 @@ func (g *Group) parseIPSpecList(raw []byte) error {
 }
 
 func (g *Group) parseServiceEndpointList(raw []byte) error {
-	if items, err := parseList[*Group](raw); err != nil {
+	if items, err := parseList[*ServiceEndpoint](raw); err != nil {
 		return err
 	} else {
 		g.Items = items
