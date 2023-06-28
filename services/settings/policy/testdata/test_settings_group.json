@@ -98,17 +98,17 @@
                     {
                         "protocol": "TCP",
                         "ipspecifier": "12.34.56.78",
-                        "port": "12345"
+                        "port": 12345
                     },
                     {
                         "protocol": "UDP",
                         "ipspecifier": "12.34.56.0/24",
-                        "port": "12345"
+                        "port": 12345
                     },
                     {
                         "protocol": "UDP",
                         "ipspecifier": "1.2.3.4-1.2.3.5",
-                        "port": "12345"
+                        "port": 12345
                     }
                 ]
             }
