@@ -2,7 +2,6 @@ package policy
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/google/gopacket/layers"
@@ -59,7 +58,6 @@ func TestGroupUnmarshal(t *testing.T) {
 	policySettings := PolicySettings{}
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
 	strlist, ok := policySettings.Groups[0].ItemsIPSpecList()
-	fmt.Printf("%v %T\n", policySettings.Groups[0].Items, policySettings.Groups[0].Items)
 	assert.True(t, ok)
 
 	assert.Equal(t, []net.IPSpecifierString{
