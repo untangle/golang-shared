@@ -86,7 +86,7 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	case ServiceEndpointType:
 		defer setList[ServiceEndpoint](g)()
 	case InterfaceType:
-		defer setList[int](g)()
+		defer setList[uint](g)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
