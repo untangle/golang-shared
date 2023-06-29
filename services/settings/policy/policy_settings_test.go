@@ -239,7 +239,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Description: "description",
 				Type:        InterfaceType,
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
-				Items:       []int{1, 2, 3},
+				Items:       []uint{1, 2, 3},
 			},
 		},
 		{
