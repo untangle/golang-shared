@@ -58,6 +58,12 @@ type ServiceEndpoint struct {
 	Port     uint `json:"port"`
 }
 
+// utility function for setting a list in the Group.Items field. We
+// use a trick where json.Unmarshal will look at an 'any' value and if
+// it has a pointer to a specific type, unmarshall into that
+// type. However, we don't want the pointer later on, we just want the
+// slice. setting g.Items to []T{} where T is a type we want does not
+// work.
 func setList[T any](g *Group) func() {
 	list := []T{}
 	g.Items = &list
