@@ -50,9 +50,8 @@ type Group struct {
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
 type ServiceEndpoint struct {
-	Protocol    string `json:"protocol"`
-	IPSpecifier string `json:"ipspecifier,omitempty"`
-	Port        uint   `json:"port"`
+	Protocol uint `json:"protocol"`
+	Port     uint `json:"port"`
 }
 
 // UnmarshalJSON is a custom json unmarshaller for a Group.
