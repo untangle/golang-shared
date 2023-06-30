@@ -228,6 +228,11 @@ func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]in
 		newSettings[exception] = currentSettings[exception]
 	}
 
+	// Default exception: Web admin ports will be set to current settings
+	logger.Info("System settings for web admin ports will not be restored\n")
+	newSettings["system"].(map[string]interface{})["httpPort"] = currentSettings["system"].(map[string]interface{})["httpPort"].(string)
+	newSettings["system"].(map[string]interface{})["httpsPort"] = currentSettings["system"].(map[string]interface{})["httpsPort"].(string)
+
 	return file.SetSettings(nil, newSettings, true)
 }
 
