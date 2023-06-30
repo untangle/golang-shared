@@ -64,22 +64,6 @@ const LogLevelDebug int32 = 7
 // LogLevelTrace = custom value
 const LogLevelTrace int32 = 8
 
-// These are only used internally to try to optimize
-// escape from logMessage for logs at a low level.
-// At some point, it may make sense to take advantage of the
-// bitmask but it works as is with logMessage().
-var logLevelMask = [...]int32{
-	1 << LogLevelEmerg,
-	1 << LogLevelAlert,
-	1 << LogLevelCrit,
-	1 << LogLevelErr,
-	1 << LogLevelWarn,
-	1 << LogLevelNotice,
-	1 << LogLevelInfo,
-	1 << LogLevelDebug,
-	1 << LogLevelTrace,
-}
-
 var loggerSingleton *Logger
 var once sync.Once
 
@@ -124,9 +108,9 @@ func DefaultLoggerConfig() *LoggerConfig {
 		FileLocation: "",
 		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
 		// Default logLevelMask is set to LogLevelInfo
-		LogLevelMask:  logLevelMask[LogLevelInfo],
-		OutputWriter:  DefaultLogWriter("system"),
-		CmdAlertSetup: CmdAlertDefaultSetup,
+		LogLevelHighest: LogLevelInfo,
+		OutputWriter:    DefaultLogWriter("system"),
+		CmdAlertSetup:   CmdAlertDefaultSetup,
 	}
 }
 
@@ -197,7 +181,7 @@ func (logger *Logger) Emerg(format string, args ...interface{}) {
 
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
 func (logger *Logger) IsEmergEnabled() bool {
-	if logLevelMask[LogLevelEmerg] > logger.config.LogLevelMask {
+	if LogLevelEmerg > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelEmerg)
@@ -210,7 +194,7 @@ func (logger *Logger) Alert(format string, args ...interface{}) {
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
 func (logger *Logger) IsAlertEnabled() bool {
-	if logLevelMask[LogLevelAlert] > logger.config.LogLevelMask {
+	if LogLevelAlert > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelAlert)
@@ -223,7 +207,7 @@ func (logger *Logger) Crit(format string, args ...interface{}) {
 
 // IsCritEnabled returns true if CRIT logging is enable for the caller
 func (logger *Logger) IsCritEnabled() bool {
-	if logLevelMask[LogLevelCrit] > logger.config.LogLevelMask {
+	if LogLevelCrit > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelCrit)
@@ -236,7 +220,7 @@ func (logger *Logger) Err(format string, args ...interface{}) {
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
 func (logger *Logger) IsErrEnabled() bool {
-	if logLevelMask[LogLevelErr] > logger.config.LogLevelMask {
+	if LogLevelErr > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelErr)
@@ -249,7 +233,7 @@ func (logger *Logger) Warn(format string, args ...interface{}) {
 
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
 func (logger *Logger) IsWarnEnabled() bool {
-	if logLevelMask[LogLevelWarn] > logger.config.LogLevelMask {
+	if LogLevelWarn > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelWarn)
@@ -262,7 +246,7 @@ func (logger *Logger) Notice(format string, args ...interface{}) {
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
 func (logger *Logger) IsNoticeEnabled() bool {
-	if logLevelMask[LogLevelNotice] > logger.config.LogLevelMask {
+	if LogLevelNotice > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelNotice)
@@ -275,7 +259,7 @@ func (logger *Logger) Info(format string, args ...interface{}) {
 
 // IsInfoEnabled returns true if INFO logging is enable for the caller
 func (logger *Logger) IsInfoEnabled() bool {
-	if logLevelMask[LogLevelInfo] > logger.config.LogLevelMask {
+	if LogLevelInfo > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelInfo)
@@ -288,7 +272,7 @@ func (logger *Logger) Debug(format string, args ...interface{}) {
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
 func (logger *Logger) IsDebugEnabled() bool {
-	if logLevelMask[LogLevelDebug] > logger.config.LogLevelMask {
+	if LogLevelDebug > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelDebug)
@@ -331,7 +315,7 @@ func (logger *Logger) OCCrit(format string, name string, limit int64, args ...in
 
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
 func (logger *Logger) IsTraceEnabled() bool {
-	if logLevelMask[LogLevelTrace] > logger.config.LogLevelMask {
+	if LogLevelTrace > logger.config.LogLevelHighest {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelTrace)
@@ -423,7 +407,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// logger.config.LogLevelMask keeps track of the logger levels that have been
 	// requested across the entire logger confguration so that we can drop out of this
 	// function quickly if the log is for something unlikely like a trace or debug.
-	if (1 << level) > logger.config.LogLevelMask {
+	if level > logger.config.LogLevelHighest {
 		return
 	}
 	_, _, packageName, functionName := findCallingFunction()

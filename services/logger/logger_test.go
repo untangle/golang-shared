@@ -42,17 +42,15 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 		"Debugtest":  {"DEBUG", 7},
 		"Tracetest":  {"TRACE", 8},
 	}
-	logger.config.LogLevelMask = logLevelMask[LogLevelInfo] | logLevelMask[LogLevelNotice] |
-		logLevelMask[LogLevelWarn] | logLevelMask[LogLevelErr] | logLevelMask[LogLevelCrit] |
-		logLevelMask[LogLevelAlert] | logLevelMask[LogLevelEmerg]
+	logger.config.LogLevelHighest = LogLevelInfo
 }
 
 // createTestConfig creates the logger config
 func createTestConfig() LoggerConfig {
 	return LoggerConfig{
-		FileLocation: "/tmp/logconfig_test.json",
-		LogLevelMap:  createTestMap(),
-		LogLevelMask: logLevelMask[LogLevelInfo] | logLevelMask[LogLevelWarn] | logLevelMask[LogLevelErr] | logLevelMask[LogLevelDebug],
+		FileLocation:    "/tmp/logconfig_test.json",
+		LogLevelMap:     createTestMap(),
+		LogLevelHighest: LogLevelDebug,
 	}
 }
 
@@ -283,7 +281,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 		}
 	}(testingOutput, expectedConfig, currentCtx)
 
-	time.Sleep(time.Millisecond * 1)
+	//time.Sleep(time.Millisecond * 1)
 	//Change config after routine starts to enable DEBUG
 	expectedConfig.SetLogLevel("runtime", NewLogLevel("DEBUG"))
 	expectedConfig.SetLogLevel("reflect", NewLogLevel("DEBUG"))
@@ -438,7 +436,7 @@ func (suite *TestLogger) TestPerformance() {
 	fmt.Printf("Optimized duration without IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
 
 	// Artificially defeat the optimization
-	logInstance.config.LogLevelMask = logLevelMask[LogLevelDebug]
+	logInstance.config.LogLevelHighest = LogLevelDebug
 
 	startTime = time.Now()
 	for i := 0; i < iterations; i++ {
@@ -475,7 +473,7 @@ func (suite *TestLogger) TestPerformance() {
 	fmt.Printf("Optimized duration without IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
 
 	// Artificially defeat the optimization
-	logInstance.config.LogLevelMask = logLevelMask[LogLevelTrace]
+	logInstance.config.LogLevelHighest = LogLevelTrace
 
 	startTime = time.Now()
 	for i := 0; i < iterations; i++ {

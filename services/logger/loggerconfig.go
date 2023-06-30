@@ -27,11 +27,11 @@ var CmdAlertDefaultSetup = map[int32]CmdAlertDetail{
 
 // LoggerConfig struct retains information about the where the log level map is stored, default log levels and writer that should be used
 type LoggerConfig struct {
-	FileLocation  string
-	LogLevelMask  int32
-	LogLevelMap   map[string]LogLevel
-	OutputWriter  io.Writer
-	CmdAlertSetup map[int32]CmdAlertDetail
+	FileLocation    string
+	LogLevelHighest int32
+	LogLevelMap     map[string]LogLevel
+	OutputWriter    io.Writer
+	CmdAlertSetup   map[int32]CmdAlertDetail
 }
 
 // loadLoggerConfig loads the logger configuration file
@@ -87,7 +87,9 @@ func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) error {
 	// and work as before but this should be an improvement
 	// in general.
 	for _, v := range conf.LogLevelMap {
-		conf.LogLevelMask |= logLevelMask[v.GetId()]
+		if v.GetId() > conf.LogLevelHighest {
+			conf.LogLevelHighest = v.GetId()
+		}
 	}
 	return nil
 }
@@ -121,7 +123,9 @@ func (conf *LoggerConfig) SaveConfig() {
 // SetLogLevel can set the log level in the log config
 func (conf *LoggerConfig) SetLogLevel(key string, newLevel LogLevel) {
 	conf.LogLevelMap[key] = newLevel
-	conf.LogLevelMask |= logLevelMask[newLevel.GetId()]
+	if newLevel.GetId() > conf.LogLevelHighest {
+		conf.LogLevelHighest = newLevel.GetId()
+	}
 }
 
 // removeConfigFile will remove the config file from disk
