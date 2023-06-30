@@ -417,6 +417,7 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
 	outbytes, err := cmd.CombinedOutput()
 	output := string(outbytes)
+	logger.Warn("Output: %v\n", output)
 	if err != nil {
 		// json decode the error, and get the attributes
 		var data map[string]string
