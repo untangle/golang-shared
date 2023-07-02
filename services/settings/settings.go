@@ -416,12 +416,13 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 func runSyncSettings(filename string, force bool) (string, error) {
 	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
 	outbytes, err := cmd.CombinedOutput()
+	output := string(outbytes)
 	if err != nil {
 		// json decode the error, and get the attributes
 		var data map[string]string
-		jsonStartIndex := strings.Index(string(outbytes), "{")
-		output := outbytes[jsonStartIndex:]
-		json.Unmarshal(output, &data)
+		jsonStartIndex := strings.Index(output, "{")
+		jsonOutput := outbytes[jsonStartIndex:]
+		json.Unmarshal(jsonOutput, &data)
 		logger.Warn("Failed to run sync-settings: %v\n", err.Error())
 		// return the trace and the error raised
 		return data["traceback"], errors.New(data["raisedException"])
