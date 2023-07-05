@@ -59,6 +59,7 @@ func TestGroupUnmarshal(t *testing.T) {
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
 	strlist, ok := policySettings.Groups[0].ItemsIPSpecList()
 	assert.True(t, ok)
+
 	assert.Equal(t, []net.IPSpecifierString{
 		"1.2.3.4",
 		"1.2.3.5/24",
@@ -222,6 +223,32 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					},
 				},
 			},
+		},
+		{
+			name: "interface list",
+			json: `{"name": "InterfaceListTest",
+                         "id": "702d4c99-9599-455f-8271-215e5680f038",
+                         "description": "description",
+                         "type": "Interface",
+                          "items": [1, 2, 3]}`,
+			expectedErr: false,
+			expected: Group{
+				Name:        "InterfaceListTest",
+				Description: "description",
+				Type:        InterfaceType,
+				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				Items:       []uint{1, 2, 3},
+			},
+		},
+		{
+			name: "bad iface list",
+			json: `{"name": "InterfaceListTest",
+                         "id": "702d4c99-9599-455f-8271-215e5680f038",
+                         "description": "description",
+                         "type": "Interface",
+                          "items": [1, "boog", 3]}`,
+			expectedErr: true,
+			expected:    Group{},
 		},
 	}
 
