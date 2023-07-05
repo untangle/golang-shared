@@ -106,3 +106,27 @@ func NetToRange(network *net.IPNet) IPRange {
 	}
 	return IPRange{Start: lower, End: upper}
 }
+
+/*
+// NetToRange converts a *net.IPNet to an IPRange.
+func NetIPToRange(network *netip.IPNet) IPRange {
+	masked := network.IP.Mask(network.Mask)
+	lower := make(net.IP, len(network.IP))
+	upper := make(net.IP, len(network.IP))
+	copy(lower, masked)
+	copy(upper, masked)
+	ones, bits := network.Mask.Size()
+	maskedBytes := (bits - ones) / 8
+	remainderBits := (bits - ones) % 8
+
+	for i := 1; i <= maskedBytes; i++ {
+		upper[len(masked)-i] = 0xff
+	}
+
+	if remainderBits != 0 {
+		remainderMask := (1 << (remainderBits)) - 1
+		upper[len(masked)-(maskedBytes+1)] |= byte(remainderMask)
+	}
+	return IPRange{Start: lower, End: upper}
+}
+*/
