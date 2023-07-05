@@ -35,6 +35,10 @@ const (
 	// ServiceEndpointType means that the Items of a Group are
 	// service endpoints.
 	ServiceEndpointType GroupType = "ServiceEndpoint"
+
+	// InterfaceType is a group type where all items are interface
+	// IDs (integers)
+	InterfaceType GroupType = "Interface"
 )
 
 // Group is a way to generically re-use certain lists of attributes
@@ -54,6 +58,20 @@ type ServiceEndpoint struct {
 	Port     uint `json:"port"`
 }
 
+// utility function for setting a list in the Group.Items field. We
+// use a trick where json.Unmarshal will look at an 'any' value and if
+// it has a pointer to a specific type, unmarshall into that
+// type. However, we don't want the pointer later on, we just want the
+// slice. setting g.Items to []T{} where T is a type we want does not
+// work.
+func setList[T any](g *Group) func() {
+	list := []T{}
+	g.Items = &list
+	return func() {
+		g.Items = list
+	}
+}
+
 // UnmarshalJSON is a custom json unmarshaller for a Group.
 func (g *Group) UnmarshalJSON(data []byte) error {
 
@@ -68,17 +86,13 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 
 	switch typeField.Type {
 	case IPAddrListType:
-		list := []net.IPSpecifierString{}
-		g.Items = &list
-		defer func() { g.Items = list }()
+		defer setList[net.IPSpecifierString](g)()
 	case GeoIPListType:
-		list := []string{}
-		g.Items = &list
-		defer func() { g.Items = list }()
+		defer setList[string](g)()
 	case ServiceEndpointType:
-		list := []ServiceEndpoint{}
-		g.Items = &list
-		defer func() { g.Items = list }()
+		defer setList[ServiceEndpoint](g)()
+	case InterfaceType:
+		defer setList[uint](g)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
