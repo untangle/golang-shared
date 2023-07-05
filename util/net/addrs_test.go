@@ -1,6 +1,7 @@
 package net
 
 import (
+	"fmt"
 	"net"
 	"net/netip"
 	"testing"
@@ -280,9 +281,19 @@ func BenchmarkTestNetIPRangeFromCIDR(b *testing.B) {
 				// is), and tests them differently.
 				assert.True(b, tt.ipRange.Start == network.Addr(),
 					"net range starts: %s (expected) should equal %s", tt.ipRange.Start, network)
+
+				// This is arguably more work than the End.Equal() in the other test
 				assert.True(b, network.Contains(tt.ipRange.End) && !network.Contains(tt.ipRange.End.Next()),
 					"net range ends: %s (expected) should contain %s", network, tt.ipRange.End)
 			})
 		}
 	}
+}
+
+func BenchmarkTestBothRangeFromCIDR(b *testing.B) {
+	fmt.Printf("Testing Old IPRange semantics:\n")
+	BenchmarkTestIPRangeFromCIDR(b)
+
+	fmt.Printf("\nTesting New netip semantics:\n")
+	BenchmarkTestNetIPRangeFromCIDR(b)
 }
