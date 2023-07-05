@@ -18,6 +18,6 @@ type DynamicIpBlockerConfig struct {
 type Interval struct {
 	Enabled bool `json:"enabled"`
 	DayOfWeek int `json:"dayOfWeek"`
-	HourOfday int `json:"hourOfday"`
-	MinuteOfhour int `json:"minuteOfhour"`
+	HourOfDay int `json:"hourOfDay"`
+	MinuteOfHour int `json:"minuteOfHour"`
 }
