@@ -2,6 +2,7 @@ package net
 
 import (
 	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -153,7 +154,135 @@ func TestIPRangeFromCIDR(t *testing.T) {
 			assert.True(t, tt.iprange.End.Equal(netRange.End),
 				"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
 		})
-
 	}
+}
 
+func BenchmarkTestIPRangeFromCIDR(b *testing.B) {
+	tests := []struct {
+		name    string
+		iprange IPRange
+		network string
+	}{
+		{
+			"simple, no bits",
+			IPRange{
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 255),
+			},
+
+			"192.168.25.0/24",
+		},
+		{
+			"one high bit masked off",
+			IPRange{
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 127),
+			},
+			"192.168.25.0/25",
+		},
+		{
+			"two high bits masked off",
+			IPRange{
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 63),
+			},
+			"192.168.25.0/26",
+		},
+		{
+			"only low bit allowed",
+			IPRange{
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 1),
+			},
+			"192.168.25.0/31",
+		},
+		{
+			"all bits masked",
+			IPRange{
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 0),
+			},
+			"192.168.25.0/32",
+		},
+	}
+	for n := 0; n < b.N; n++ {
+		for _, tt := range tests {
+			b.Run(tt.name, func(b *testing.B) {
+				_, network, _ := net.ParseCIDR(tt.network)
+				netRange := NetToRange(network)
+				// We are using True() instead of Equal() because the assert
+				// library specifically tests for byteslices (which net.IP
+				// is), and tests them differently.
+				assert.True(b, tt.iprange.Start.Equal(netRange.Start),
+					"net range starts: %s (expected) should equal %s", tt.iprange.Start, netRange.Start)
+				assert.True(b, tt.iprange.End.Equal(netRange.End),
+					"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
+			})
+		}
+	}
+}
+
+type netIPRange struct {
+	Start netip.Addr
+	End   netip.Addr
+}
+
+type netiptest struct {
+	name    string
+	ipRange netIPRange
+	network string
+}
+
+func BenchmarkTestNetIPRangeFromCIDR(b *testing.B) {
+	tests := []netiptest{}
+
+	rangenew := netIPRange{}
+	rangenew.Start, _ = netip.ParseAddr("192.168.25.0")
+	rangenew.End, _ = netip.ParseAddr("192.168.25.255")
+	tests = append(tests, netiptest{
+		"simple, no bits",
+		rangenew,
+		"192.168.25.0/24",
+	})
+	rangenew.End, _ = netip.ParseAddr("192.168.25.127")
+	tests = append(tests, netiptest{
+		"one high bit masked off",
+		rangenew,
+		"192.168.25.0/25",
+	})
+	rangenew.End, _ = netip.ParseAddr("192.168.25.63")
+	tests = append(tests, netiptest{
+		"two high bits masked off",
+		rangenew,
+		"192.168.25.0/26",
+	})
+	rangenew.End, _ = netip.ParseAddr("192.168.25.1")
+	tests = append(tests, netiptest{
+		"only low bit allowed",
+		rangenew,
+		"192.168.25.0/31",
+	})
+	rangenew.End = rangenew.Start
+	tests = append(tests, netiptest{
+		"all bits masked",
+		rangenew,
+		"192.168.25.0/32",
+	})
+	for n := 0; n < b.N; n++ {
+		for _, tt := range tests {
+			b.Run(tt.name, func(b *testing.B) {
+				network, err := netip.ParsePrefix(tt.network)
+				if err != nil {
+					b.Errorf("Error: calling ParsePrefix: %v %v", err, network)
+				}
+				// We are using True() instead of Equal() because the assert
+				// library specifically tests for byteslices (which net.IP
+				// is), and tests them differently.
+				assert.True(b, tt.ipRange.Start == network.Addr(),
+					"net range starts: %s (expected) should equal %s", tt.ipRange.Start, network)
+				assert.True(b, network.Contains(tt.ipRange.End) && !network.Contains(tt.ipRange.End.Next()),
+					"net range ends: %s (expected) should contain %s", network, tt.ipRange.End)
+			})
+		}
+	}
 }
