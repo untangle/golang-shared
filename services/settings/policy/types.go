@@ -36,17 +36,15 @@ const (
 	// service endpoints.
 	ServiceEndpointType GroupType = "ServiceEndpoint"
 
-	// WebFilterCategoryType means that the Items of the Group are web filter categories.
-	WebFilterCategoryType GroupType = "WebFilterCategory"
-
-	// ClassifyType means that the Items of the Group are classifications.
-	ClassifyType GroupType = "Classify" // TBD Not implemented.
-
-	// ThreatPreventionType means that the Items of the Group are threat prevention score.
-	ThreatPreventionType GroupType = "ThreatPrevention"
 	// InterfaceType is a group type where all items are interface
 	// IDs (integers)
 	InterfaceType GroupType = "Interface"
+
+	// WebFilterCategoryType means that the Items of the Group are web filter categories.
+	WebFilterCategoryType GroupType = "WebFilterCategory"
+
+	// ThreatPreventionType means that the Items of the Group are threat prevention score.
+	ThreatPreventionType GroupType = "ThreatPrevention"
 )
 
 // Group is a way to generically re-use certain lists of attributes
@@ -94,112 +92,16 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 
 	switch typeField.Type {
 	case IPAddrListType:
-		return g.parseIPSpecList(rawvalue)
-	case GeoIPListType, WebFilterCategoryType:
-		return g.parseStringList(rawvalue)
-	case ServiceEndpointType:
-		return g.parseServiceEndpointList(rawvalue)
-	case ThreatPreventionType:
-		return g.parseIntList(rawvalue)
-	case ClassifyType: // TBD Not implemented.
-		return nil
-	default:
-		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", theType)
-	}
-}
-
-func parseIntList[T any](raw map[string]interface{}, conv func(int) T) ([]T, error) {
-	items, ok := raw["items"]
-	if !ok {
-		return nil, fmt.Errorf("error unmarshalling policy group: no items")
-	}
-	values, ok := items.([]interface{})
-	if !ok {
-		return nil, fmt.Errorf(
-			"error unmarshalling policy group: not a string list: %v(type is: %T)",
-			values, values)
-	}
-	intList := make([]T, len(values), len(values))
-	for i, val := range values {
-		intConversion, ok := val.(int)
-		if !ok {
-			return nil, fmt.Errorf(
-				"not a valid string in list of strings: %v(type is: %T)",
-				val, val)
-		}
-		intList[i] = conv(intConversion)
-	}
-	return intList, nil
-}
-
-func parseStringableList[T any](raw map[string]interface{}, conv func(string) T) ([]T, error) {
-	items, ok := raw["items"]
-	if !ok {
-		return nil, fmt.Errorf("error unmarshalling policy group: no items")
-	}
-	values, ok := items.([]interface{})
-	if !ok {
-		return nil, fmt.Errorf(
-			"error unmarshalling policy group: not a string list: %v(type is: %T)",
-			values, values)
-	}
-	stringList := make([]T, len(values), len(values))
-	for i, val := range values {
-		stringConversion, ok := val.(string)
-		if !ok {
-			return nil, fmt.Errorf(
-				"not a valid string in list of strings: %v(type is: %T)",
-				val, val)
-		}
-		stringList[i] = conv(stringConversion)
-	}
-	return stringList, nil
-}
-
-func (g *Group) parseIntList(raw map[string]interface{}) error {
-	if items, err := parseIntList(raw, func(x int) int { return x }); err != nil {
-		return err
-	} else {
-		g.Items = items
-	}
-	return nil
-}
-
-func (g *Group) parseStringList(raw map[string]interface{}) error {
-	if items, err := parseStringableList(raw, func(x string) string { return x }); err != nil {
-		return err
-	} else {
-		g.Items = items
-	}
-	return nil
-}
-
-func (g *Group) parseIPSpecList(raw map[string]interface{}) error {
-	if items, err := parseStringableList(raw,
-		func(x string) net.IPSpecifierString { return net.IPSpecifierString(x) }); err != nil {
-		return err
-	} else {
-		g.Items = items
-	}
-	return nil
-}
-
-func (g *Group) parseServiceEndpointList(raw map[string]interface{}) error {
-	items, ok := raw["items"]
-	if !ok {
-		return fmt.Errorf("error unmarshalling policy group: no items")
-	}
-	values, ok := items.([]interface{})
-	if !ok {
-		return fmt.Errorf(
-			"error unmarshalling policy group: not a list of objects: %v(%T)",
-			values, items)
 		defer setList[net.IPSpecifierString](g)()
 	case GeoIPListType:
 		defer setList[string](g)()
 	case ServiceEndpointType:
 		defer setList[ServiceEndpoint](g)()
 	case InterfaceType:
+		defer setList[uint](g)()
+	case ThreatPreventionType:
+		defer setList[uint](g)()
+	case WebFilterCategoryType:
 		defer setList[uint](g)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
