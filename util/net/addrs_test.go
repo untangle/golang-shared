@@ -94,54 +94,64 @@ func TestIPRange(t *testing.T) {
 	}
 }
 
-func TestIPRangeFromCIDR(t *testing.T) {
-	tests := []struct {
-		name    string
-		iprange IPRange
-		network string
-	}{
-		{
-			"simple, no bits",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 255),
-			},
+var tests = []struct {
+	name    string
+	iprange IPRange
+	network string
+}{
+	{
+		"simple, no bits",
+		IPRange{
+			Start: net.IPv4(192, 168, 25, 0),
+			End:   net.IPv4(192, 168, 25, 255),
+		},
 
-			"192.168.25.0/24",
+		"192.168.25.0/24",
+	},
+	{
+		"middle of the subnet",
+		IPRange{
+			Start: net.IPv4(192, 168, 25, 0),
+			End:   net.IPv4(192, 168, 25, 255),
 		},
-		{
-			"one high bit masked off",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 127),
-			},
-			"192.168.25.0/25",
+
+		"192.168.25.123/24",
+	},
+	{
+		"one high bit masked off",
+		IPRange{
+			Start: net.IPv4(192, 168, 25, 0),
+			End:   net.IPv4(192, 168, 25, 127),
 		},
-		{
-			"two high bits masked off",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 63),
-			},
-			"192.168.25.0/26",
+		"192.168.25.0/25",
+	},
+	{
+		"two high bits masked off",
+		IPRange{
+			Start: net.IPv4(192, 168, 25, 0),
+			End:   net.IPv4(192, 168, 25, 63),
 		},
-		{
-			"only low bit allowed",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 1),
-			},
-			"192.168.25.0/31",
+		"192.168.25.0/26",
+	},
+	{
+		"only low bit allowed",
+		IPRange{
+			Start: net.IPv4(192, 168, 25, 0),
+			End:   net.IPv4(192, 168, 25, 1),
 		},
-		{
-			"all bits masked",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 0),
-			},
-			"192.168.25.0/32",
+		"192.168.25.0/31",
+	},
+	{
+		"all bits masked",
+		IPRange{
+			Start: net.IPv4(192, 168, 25, 0),
+			End:   net.IPv4(192, 168, 25, 0),
 		},
-	}
+		"192.168.25.0/32",
+	},
+}
+
+func TestIPRangeFromCIDR(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -159,53 +169,6 @@ func TestIPRangeFromCIDR(t *testing.T) {
 }
 
 func BenchmarkTestIPRangeFromCIDR(b *testing.B) {
-	tests := []struct {
-		name    string
-		iprange IPRange
-		network string
-	}{
-		{
-			"simple, no bits",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 255),
-			},
-
-			"192.168.25.0/24",
-		},
-		{
-			"one high bit masked off",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 127),
-			},
-			"192.168.25.0/25",
-		},
-		{
-			"two high bits masked off",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 63),
-			},
-			"192.168.25.0/26",
-		},
-		{
-			"only low bit allowed",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 1),
-			},
-			"192.168.25.0/31",
-		},
-		{
-			"all bits masked",
-			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 0),
-			},
-			"192.168.25.0/32",
-		},
-	}
 	for n := 0; n < b.N; n++ {
 		for _, tt := range tests {
 			b.Run(tt.name, func(b *testing.B) {
@@ -223,74 +186,80 @@ func BenchmarkTestIPRangeFromCIDR(b *testing.B) {
 	}
 }
 
-type netIPRange struct {
-	Start netip.Addr
-	End   netip.Addr
-}
-
 type netiptest struct {
 	name    string
-	ipRange netIPRange
+	ipRange NetIPRange
 	network string
 }
 
-func BenchmarkTestNetIPRangeFromCIDR(b *testing.B) {
-	tests := []netiptest{}
+var netiptests = []netiptest{}
 
-	rangenew := netIPRange{}
+func setupNetIPTests() {
+
+	rangenew := NetIPRange{}
 	rangenew.Start, _ = netip.ParseAddr("192.168.25.0")
 	rangenew.End, _ = netip.ParseAddr("192.168.25.255")
-	tests = append(tests, netiptest{
+	netiptests = append(netiptests, netiptest{
 		"simple, no bits",
 		rangenew,
 		"192.168.25.0/24",
 	})
+	netiptests = append(netiptests, netiptest{
+		"simple, no bits",
+		rangenew,
+		"192.168.25.123/24",
+	})
 	rangenew.End, _ = netip.ParseAddr("192.168.25.127")
-	tests = append(tests, netiptest{
+	netiptests = append(netiptests, netiptest{
 		"one high bit masked off",
 		rangenew,
 		"192.168.25.0/25",
 	})
 	rangenew.End, _ = netip.ParseAddr("192.168.25.63")
-	tests = append(tests, netiptest{
+	netiptests = append(netiptests, netiptest{
 		"two high bits masked off",
 		rangenew,
 		"192.168.25.0/26",
 	})
 	rangenew.End, _ = netip.ParseAddr("192.168.25.1")
-	tests = append(tests, netiptest{
+	netiptests = append(netiptests, netiptest{
 		"only low bit allowed",
 		rangenew,
 		"192.168.25.0/31",
 	})
 	rangenew.End = rangenew.Start
-	tests = append(tests, netiptest{
+	netiptests = append(netiptests, netiptest{
 		"all bits masked",
 		rangenew,
 		"192.168.25.0/32",
 	})
+}
+
+func BenchmarkTestNetIPRangeFromCIDR(b *testing.B) {
+	setupNetIPTests()
+
 	for n := 0; n < b.N; n++ {
-		for _, tt := range tests {
+		for _, tt := range netiptests {
 			b.Run(tt.name, func(b *testing.B) {
-				network, err := netip.ParsePrefix(tt.network)
+				prefix, err := netip.ParsePrefix(tt.network)
 				if err != nil {
-					b.Errorf("Error: calling ParsePrefix: %v %v", err, network)
+					b.Errorf("Error: calling ParsePrefix: %v %v", err, prefix)
 				}
-				// We are using True() instead of Equal() because the assert
-				// library specifically tests for byteslices (which net.IP
-				// is), and tests them differently.
-				assert.True(b, tt.ipRange.Start == network.Addr(),
-					"net range starts: %s (expected) should equal %s", tt.ipRange.Start, network)
+				netIPRange, err := NetIPToRange(&prefix)
+				assert.True(b, err == nil)
+				assert.True(b, tt.ipRange.Start == netIPRange.Start,
+					"net range starts: %s (expected) should equal %s", tt.ipRange.Start, netIPRange.Start)
 
 				// This is arguably more work than the End.Equal() in the other test
-				assert.True(b, network.Contains(tt.ipRange.End) && !network.Contains(tt.ipRange.End.Next()),
-					"net range ends: %s (expected) should contain %s", network, tt.ipRange.End)
+				assert.True(b, tt.ipRange.End == netIPRange.End,
+					"net range ends: %s (expected) should equal %s", tt.ipRange.End, netIPRange.End)
 			})
 		}
 	}
 }
 
 func BenchmarkTestBothRangeFromCIDR(b *testing.B) {
+
 	fmt.Printf("Testing Old IPRange semantics:\n")
 	BenchmarkTestIPRangeFromCIDR(b)
 

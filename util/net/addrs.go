@@ -2,8 +2,10 @@ package net
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net"
+	"net/netip"
 	"strings"
 )
 
@@ -107,26 +109,45 @@ func NetToRange(network *net.IPNet) IPRange {
 	return IPRange{Start: lower, End: upper}
 }
 
-/*
-// NetToRange converts a *net.IPNet to an IPRange.
-func NetIPToRange(network *netip.IPNet) IPRange {
-	masked := network.IP.Mask(network.Mask)
-	lower := make(net.IP, len(network.IP))
-	upper := make(net.IP, len(network.IP))
-	copy(lower, masked)
-	copy(upper, masked)
-	ones, bits := network.Mask.Size()
-	maskedBytes := (bits - ones) / 8
-	remainderBits := (bits - ones) % 8
-
-	for i := 1; i <= maskedBytes; i++ {
-		upper[len(masked)-i] = 0xff
-	}
-
-	if remainderBits != 0 {
-		remainderMask := (1 << (remainderBits)) - 1
-		upper[len(masked)-(maskedBytes+1)] |= byte(remainderMask)
-	}
-	return IPRange{Start: lower, End: upper}
+// IPRange is a range of IPs, from Start to End inclusive.
+type NetIPRange struct {
+	Start netip.Addr
+	End   netip.Addr
 }
-*/
+
+// NetToRange converts a *netip.IPNet to an IPRange.
+func NetIPToRange(prefix *netip.Prefix) (NetIPRange, error) {
+
+	if !prefix.IsValid() {
+		return NetIPRange{}, errors.New("invalid prefix")
+	}
+	maskBits := prefix.Bits()
+	if prefix.Addr().Is4In6() && maskBits < 96 {
+		return NetIPRange{}, errors.New("prefix with 4in6 address must have mask >= 96")
+	}
+	base := prefix.Masked().Addr()
+
+	// the internal 128bit representation is privat
+	// all calculations must be done in the bytes representation
+	a16 := base.As16()
+
+	if base.Is4() {
+		maskBits += 96
+	}
+
+	// set host bits to 1
+	for b := maskBits; b < 128; b++ {
+		byteNum, bitInByte := b/8, 7-(b%8)
+		a16[byteNum] |= 1 << uint(bitInByte)
+	}
+
+	// back to internal 128bit representation
+	last := netip.AddrFrom16(a16)
+
+	// unmap last to v4 if base is v4
+	if base.Is4() {
+		last = last.Unmap()
+	}
+
+	return NetIPRange{base, last}, nil
+}
