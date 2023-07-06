@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
-	"github.com/untangle/golang-shared/testing/mocks"
 	"testing"
 	"time"
+
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
+	"github.com/untangle/golang-shared/testing/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -41,13 +42,15 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 		"Debugtest":  {"DEBUG", 7},
 		"Tracetest":  {"TRACE", 8},
 	}
+	logger.config.LogLevelHighest = LogLevelInfo
 }
 
 // createTestConfig creates the logger config
 func createTestConfig() LoggerConfig {
 	return LoggerConfig{
-		FileLocation: "/tmp/logconfig_test.json",
-		LogLevelMap:  createTestMap(),
+		FileLocation:    "/tmp/logconfig_test.json",
+		LogLevelMap:     createTestMap(),
+		LogLevelHighest: LogLevelDebug,
 	}
 }
 
@@ -223,7 +226,7 @@ func (suite *TestLogger) TestDefaultInstance() {
 	assert.Equal(suite.T(), false, logInstance.timestampEnabled)
 
 	// Default log level names exist
-	assert.Equal(suite.T(), logLevelName, logInstance.logLevelName)
+	assert.Equal(suite.T(), logLevelName, logLevelName)
 
 }
 
@@ -278,7 +281,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 		}
 	}(testingOutput, expectedConfig, currentCtx)
 
-	time.Sleep(time.Millisecond * 1)
+	//time.Sleep(time.Millisecond * 1)
 	//Change config after routine starts to enable DEBUG
 	expectedConfig.SetLogLevel("runtime", NewLogLevel("DEBUG"))
 	expectedConfig.SetLogLevel("reflect", NewLogLevel("DEBUG"))
@@ -410,4 +413,83 @@ func (suite *TestLogger) TestGetInstanceWithConfig() {
 	// Verify old instance has this config too
 	assert.Equal(suite.T(), &expectedConfig, logInstance.config)
 
+}
+
+func (suite *TestLogger) TestPerformance() {
+	iterations := 100
+	logInstance := NewLogger()
+
+	startTime := time.Now()
+	for i := 0; i < iterations; i++ {
+		if logInstance.IsDebugEnabled() {
+			logInstance.Debug("This is a test debug string %d\n", i)
+		}
+	}
+	durationOpt := time.Since(startTime)
+	fmt.Printf("Optimized duration with IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationOpt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Debug("This is a test debug string %d\n", i)
+	}
+	durationUnopt := time.Since(startTime)
+	fmt.Printf("Optimized duration without IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
+
+	// Artificially defeat the optimization
+	logInstance.config.LogLevelHighest = LogLevelDebug
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		if logInstance.IsDebugEnabled() {
+			logInstance.Debug("This is a test debug string %d\n", i)
+		}
+	}
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration with IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Debug("This is a test debug string %d\n", i)
+	}
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration without IsDebugEnabled() for %d unlogged Debug() calls was %s\n", iterations, durationUnopt)
+
+	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		if logInstance.IsTraceEnabled() {
+			logInstance.Trace("This is a test trace string %d\n", i)
+		}
+	}
+	durationOpt = time.Since(startTime)
+	fmt.Printf("Optimized duration with IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationOpt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Trace("This is a test trace string %d\n", i)
+	}
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Optimized duration without IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
+
+	// Artificially defeat the optimization
+	logInstance.config.LogLevelHighest = LogLevelTrace
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		if logInstance.IsTraceEnabled() {
+			logInstance.Trace("This is a test trace string %d\n", i)
+		}
+	}
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration with IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
+
+	startTime = time.Now()
+	for i := 0; i < iterations; i++ {
+		logInstance.Trace("This is a test trace string %d\n", i)
+	}
+	durationUnopt = time.Since(startTime)
+	fmt.Printf("Unoptimized duration without IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
+
+	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
 }

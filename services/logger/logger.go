@@ -2,13 +2,14 @@ package logger
 
 import (
 	"fmt"
-	"github.com/untangle/golang-shared/services/alerts"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"log"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
 )
@@ -29,10 +30,11 @@ type Logger struct {
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
-	logLevelName     [9]string
 	alerts           alerts.AlertPublisher
 }
 
+// This is only used inernally.
+// This was originally stored in every Logger structure which seems wasteful
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
 
 // LogLevelEmerg = syslog.h/LOG_EMERG
@@ -96,7 +98,6 @@ func NewLogger() *Logger {
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
-		logLevelName:     logLevelName,
 	}
 }
 
@@ -104,10 +105,12 @@ func NewLogger() *Logger {
 func DefaultLoggerConfig() *LoggerConfig {
 
 	return &LoggerConfig{
-		FileLocation:  "",
-		LogLevelMap:   map[string]LogLevel{"*": {Name: "INFO"}},
-		OutputWriter:  DefaultLogWriter("system"),
-		CmdAlertSetup: CmdAlertDefaultSetup,
+		FileLocation: "",
+		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
+		// Default logLevelMask is set to LogLevelInfo
+		LogLevelHighest: LogLevelInfo,
+		OutputWriter:    DefaultLogWriter("system"),
+		CmdAlertSetup:   CmdAlertDefaultSetup,
 	}
 }
 
@@ -178,6 +181,9 @@ func (logger *Logger) Emerg(format string, args ...interface{}) {
 
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
 func (logger *Logger) IsEmergEnabled() bool {
+	if LogLevelEmerg > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelEmerg)
 }
 
@@ -188,6 +194,9 @@ func (logger *Logger) Alert(format string, args ...interface{}) {
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
 func (logger *Logger) IsAlertEnabled() bool {
+	if LogLevelAlert > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelAlert)
 }
 
@@ -198,6 +207,9 @@ func (logger *Logger) Crit(format string, args ...interface{}) {
 
 // IsCritEnabled returns true if CRIT logging is enable for the caller
 func (logger *Logger) IsCritEnabled() bool {
+	if LogLevelCrit > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelCrit)
 }
 
@@ -208,6 +220,9 @@ func (logger *Logger) Err(format string, args ...interface{}) {
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
 func (logger *Logger) IsErrEnabled() bool {
+	if LogLevelErr > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelErr)
 }
 
@@ -218,6 +233,9 @@ func (logger *Logger) Warn(format string, args ...interface{}) {
 
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
 func (logger *Logger) IsWarnEnabled() bool {
+	if LogLevelWarn > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelWarn)
 }
 
@@ -228,6 +246,9 @@ func (logger *Logger) Notice(format string, args ...interface{}) {
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
 func (logger *Logger) IsNoticeEnabled() bool {
+	if LogLevelNotice > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelNotice)
 }
 
@@ -238,6 +259,9 @@ func (logger *Logger) Info(format string, args ...interface{}) {
 
 // IsInfoEnabled returns true if INFO logging is enable for the caller
 func (logger *Logger) IsInfoEnabled() bool {
+	if LogLevelInfo > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelInfo)
 }
 
@@ -248,6 +272,9 @@ func (logger *Logger) Debug(format string, args ...interface{}) {
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
 func (logger *Logger) IsDebugEnabled() bool {
+	if LogLevelDebug > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelDebug)
 }
 
@@ -288,6 +315,9 @@ func (logger *Logger) OCCrit(format string, name string, limit int64, args ...in
 
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
 func (logger *Logger) IsTraceEnabled() bool {
+	if LogLevelTrace > logger.config.LogLevelHighest {
+		return false
+	}
 	return logger.isLogEnabled(LogLevelTrace)
 }
 
@@ -374,6 +404,12 @@ func (logger *Logger) isLogEnabled(level int32) bool {
 
 // logMessage is called to write messages to the system log
 func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, args ...interface{}) {
+	// logger.config.LogLevelMask keeps track of the logger levels that have been
+	// requested across the entire logger confguration so that we can drop out of this
+	// function quickly if the log is for something unlikely like a trace or debug.
+	if level > logger.config.LogLevelHighest {
+		return
+	}
 	_, _, packageName, functionName := findCallingFunction()
 
 	testLevel := logger.getLogLevel(packageName, functionName)
@@ -389,13 +425,13 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logger.logLevelName[level], packageName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
 	}
 
 	fmt.Print(logMessage)
