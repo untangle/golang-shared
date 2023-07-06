@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/untangle/golang-shared/util/net"
 )
 
@@ -14,12 +13,11 @@ import (
 // Those arrays are loaded from the json primarily by mapstructure.
 // facilitate lookup.
 type PolicySettings struct {
-	Enabled            bool          `json:"enabled"`
-	Flows              []*PolicyFlow `json:"flows"`
-	TempConfigurations interface{}   `json:"configurations"` // Config is dynamic so need temp place to store it.
-	Configurations     []*PolicyConfiguration
-	Policies           []*Policy `json:"policies"`
-	Groups             []*Group  `json:"groups"`
+	Enabled        bool                   `json:"enabled"`
+	Flows          []*PolicyFlow          `json:"flows"`
+	Configurations []*PolicyConfiguration `json:"configurations"`
+	Policies       []*Policy              `json:"policies"`
+	Groups         []*Group               `json:"groups"`
 }
 
 // GroupType is the type of group that a Group is, used to demux the
@@ -46,49 +44,55 @@ const (
 
 	// ThreatPreventionType means that the Items of the Group are threat prevention score.
 	ThreatPreventionType GroupType = "ThreatPrevention"
+	// InterfaceType is a group type where all items are interface
+	// IDs (integers)
+	InterfaceType GroupType = "Interface"
 )
 
 // Group is a way to generically re-use certain lists of attributes
 // that may be true for a session.
 type Group struct {
-	Type        GroupType
-	Description string
-	ID          string
-	Items       any
+	Name        string    `json:"name"`
+	Type        GroupType `json:"type"`
+	Description string    `json:"description"`
+	ID          string    `json:"id"`
+	Items       any       `json:"items"`
 }
 
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
 type ServiceEndpoint struct {
-	Protocol    string `json:"protocol"`
-	IPSpecifier string `json:"IPSpecifier"`
-	Port        uint   `json:"port"`
+	Protocol uint `json:"protocol"`
+	Port     uint `json:"port"`
+}
+
+// utility function for setting a list in the Group.Items field. We
+// use a trick where json.Unmarshal will look at an 'any' value and if
+// it has a pointer to a specific type, unmarshall into that
+// type. However, we don't want the pointer later on, we just want the
+// slice. setting g.Items to []T{} where T is a type we want does not
+// work.
+func setList[T any](g *Group) func() {
+	list := []T{}
+	g.Items = &list
+	return func() {
+		g.Items = list
+	}
 }
 
 // UnmarshalJSON is a custom json unmarshaller for a Group.
 func (g *Group) UnmarshalJSON(data []byte) error {
-	var rawvalue map[string]interface{}
 
-	if err := json.Unmarshal(data, &rawvalue); err != nil {
+	type GroupTypeField struct {
+		Type GroupType `json:"type"`
+	}
+	var typeField GroupTypeField
+
+	if err := json.Unmarshal(data, &typeField); err != nil {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
 	}
 
-	var theType string
-	var ok bool
-	if theType, ok = rawvalue["type"].(string); !ok {
-		return fmt.Errorf("malformed group: does not contain a 'type' field: %v", rawvalue)
-
-	}
-
-	desc, _ := rawvalue["description"].(string)
-	g.Description = desc
-
-	ID, _ := rawvalue["id"].(string)
-	g.ID = ID
-
-	g.Type = GroupType(theType)
-
-	switch g.Type {
+	switch typeField.Type {
 	case IPAddrListType:
 		return g.parseIPSpecList(rawvalue)
 	case GeoIPListType, WebFilterCategoryType:
@@ -190,25 +194,22 @@ func (g *Group) parseServiceEndpointList(raw map[string]interface{}) error {
 		return fmt.Errorf(
 			"error unmarshalling policy group: not a list of objects: %v(%T)",
 			values, items)
+		defer setList[net.IPSpecifierString](g)()
+	case GeoIPListType:
+		defer setList[string](g)()
+	case ServiceEndpointType:
+		defer setList[ServiceEndpoint](g)()
+	case InterfaceType:
+		defer setList[uint](g)()
+	default:
+		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
 
-	decoded := []ServiceEndpoint{}
-	config := mapstructure.DecoderConfig{
-		TagName:          "json",
-		Result:           &decoded,
-		WeaklyTypedInput: true,
-	}
+	// alias to make use of tags but avoid recursion
+	type aliasGroup Group
 
-	d, err := mapstructure.NewDecoder(&config)
-	if err != nil {
-		return fmt.Errorf("unable to decode service endpoint: %w", err)
-	}
-	if err = d.Decode(values); err != nil {
-		return fmt.Errorf("error while trying to unmarshal policy group service endpoint values: %w",
-			err)
-	}
-	g.Items = decoded
-	return nil
+	// unmarshal PolicyConfiguration using struct tags
+	return json.Unmarshal(data, (*aliasGroup)(g))
 }
 
 // ItemsStringList returns the Items of the group as a slice of
@@ -247,16 +248,62 @@ type PolicyFlow struct {
 type PolicyCondition struct {
 	Op      string   `json:"op"`
 	CType   string   `json:"type"`
-	Value   []string `json:"value"`
+	Value   []string `json:"value,omitempty"`
 	GroupID string   `json:"groupId"`
 }
 
 // PolicyConfiguration contains policy configuration.
 type PolicyConfiguration struct {
-	ID          string
-	Name        string
-	Description string
-	AppSettings map[string]interface{} // map of plugin settings, key is the plugin name.
+	ID          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	AppSettings map[string]interface{} `json:"-"` // map of plugin settings, key is the plugin name.
+}
+
+func (pConfig PolicyConfiguration) MarshalJSON() ([]byte, error) {
+	// alias to make use of tags but avoid recursion
+	type aliasPolicyConfiguration PolicyConfiguration
+
+	// marshal PolicyConfiguration using struct tags
+	fieldJSON, err := json.Marshal((*aliasPolicyConfiguration)(&pConfig))
+	if err != nil || len(pConfig.AppSettings) == 0 {
+		// return if there was an error or nothing else needs to be marshalled
+		return fieldJSON, err
+	}
+
+	// marshal AppSettings separately
+	dynamicJSON, err := json.Marshal(pConfig.AppSettings)
+	if err != nil {
+		return nil, err
+	}
+	// replace opening '{' with ',' as fields from dynamicJSON will be added
+	dynamicJSON[0] = ','
+	return append(fieldJSON[:len(fieldJSON)-1], dynamicJSON...), nil
+
+}
+
+func (pConfig *PolicyConfiguration) UnmarshalJSON(data []byte) error {
+	// alias to make use of tags but avoid recursion
+	type aliasPolicyConfiguration PolicyConfiguration
+
+	// unmarshal PolicyConfiguration using struct tags
+	if err := json.Unmarshal(data, (*aliasPolicyConfiguration)(pConfig)); err != nil {
+		return err
+	}
+
+	// unmarshal remaining fields in JSON and put them in AppSettings
+	dataMap := make(map[string]any)
+	if err := json.Unmarshal(data, &dataMap); err != nil {
+		return err
+	}
+	// delete fields that are not part of AppSettings
+	delete(dataMap, "description")
+	delete(dataMap, "name")
+	delete(dataMap, "id")
+
+	pConfig.AppSettings = dataMap
+
+	return nil
 }
 
 // Policies are the root of our policy configurations. It includes pointers to substructure.
