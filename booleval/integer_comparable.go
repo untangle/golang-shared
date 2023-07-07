@@ -62,7 +62,7 @@ func getInt(other any) (int64, error) {
 	case string:
 		if intValue, err := strconv.ParseInt(val, 10, 64); err == nil {
 			return intValue, nil
-		} else if floatValue, err := strconv.ParseFloat(val, 10); err == nil {
+		} else if floatValue, err := strconv.ParseFloat(val, 32); err == nil {
 			if math.Floor(floatValue) == floatValue {
 				return int64(floatValue), nil
 			}
