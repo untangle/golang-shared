@@ -1,7 +1,7 @@
 package booleval
 
 import (
-	"net"
+	"net/netip"
 	"testing"
 	"time"
 
@@ -12,10 +12,10 @@ import (
 func TestExprs(t *testing.T) {
 	intComp := IntegerComparable{22}
 	stringComp := StringComparable{"toodle"}
-	ip := IPComparable{ipaddr: net.ParseIP("192.168.22.22")}
-	_, network, err := net.ParseCIDR("192.168.22.2/24")
+	ip := NewIPComparable("192.168.22.22")
+	network, err := netip.ParsePrefix("192.168.22.2/24")
 	require.Nil(t, err)
-	ipNet := IPNetComparable{ipnet: *network}
+	ipNet := IPNetComparable{ipnet: network}
 	location, err := time.LoadLocation("")
 	assert.Nil(t, err)
 	time1 := time.Date(1999, time.April, int(time.Monday), 0, 0, 0, 0, location)
@@ -321,9 +321,8 @@ func TestExprs(t *testing.T) {
 }
 
 func BenchmarkEvaller(b *testing.B) {
-	ip := IPComparable{ipaddr: net.ParseIP("192.168.22.22")}
-	_, network, _ := net.ParseCIDR("192.168.22.2/24")
-	ipNet := IPNetComparable{ipnet: *network}
+	ip := NewIPComparable("192.168.22.22")
+	ipNet, _ := NewIPOrIPNetComparable("192.168.22.2/24")
 	location := time.Local
 	time1 := time.Date(1999, time.April, 1, 0, 0, 0, 0, location)
 	timeComparable1999 := TimeComparable{time: time1}
@@ -331,7 +330,7 @@ func BenchmarkEvaller(b *testing.B) {
 	timeComparable2000 := TimeComparable{time: time2}
 	middleTime := time.Date(1999, time.December, 1, 0, 0, 0, 0, location)
 	vars := map[string]any{
-		"myIp":     net.IPv4(192, 168, 22, 42),
+		"myIp":     netip.AddrFrom4([4]byte{192, 168, 22, 42}),
 		"myString": "doodle",
 		"time":     middleTime,
 		"myInt":    29,

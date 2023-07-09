@@ -2,39 +2,47 @@ package booleval
 
 import (
 	"fmt"
-	"net"
+	"net/netip"
 	"strings"
+
+	"github.com/untangle/golang-shared/services/logger"
 )
 
 // IPComparable is a Comparable for net.IPs. It cannot be ordered.
 type IPComparable struct {
 	GreaterNotApplicable
-	ipaddr net.IP
+	ipaddr netip.Addr
 }
 
 // NewIPComparable returns a new IPComparable, given the string. It
 // calls net.ParseIP to get the IP.
 func NewIPComparable(val string) IPComparable {
-	return IPComparable{ipaddr: net.ParseIP(val)}
+	if result, err := netip.ParseAddr(val); err != nil {
+		logger.Warn("Error parsing IP: %s %v\n", val, err)
+		return IPComparable{}
+	} else {
+		return IPComparable{ipaddr: result}
+	}
 }
 
 // Equal -- returns true if other is an IP and is the same as i,
 // or if other is an IPNet and contains i.
 func (i IPComparable) Equal(other any) (bool, error) {
 	switch val := other.(type) {
-	case net.IP:
-		return i.ipaddr.Equal(val), nil
+	case netip.Addr:
+		return i.ipaddr.Compare(val) == 0, nil
 	case string:
 		if strings.Contains(val, "/") {
-			_, ipnet, err := net.ParseCIDR(val)
+			ipprefix, err := netip.ParsePrefix(val)
 			if err != nil {
 				return false, fmt.Errorf(
 					"value %s contained a /, but is not a CIDR address",
 					val)
 			}
-			return ipnet.Contains(i.ipaddr), nil
+			return ipprefix.Contains(i.ipaddr), nil
 		} else {
-			return i.ipaddr.Equal(net.ParseIP(val)), nil
+			result, err := netip.ParseAddr(val)
+			return i.ipaddr.Compare(result) == 0, err
 		}
 	default:
 		return false, fmt.Errorf(
@@ -49,7 +57,7 @@ var _ Comparable = IPComparable{}
 // IPNetComparable is a comparable representing an IP network (subnet).
 type IPNetComparable struct {
 	GreaterNotApplicable
-	ipnet net.IPNet
+	ipnet netip.Prefix
 }
 
 // NewIPOrIPNetComparable is a generic constructor for either an
@@ -57,15 +65,16 @@ type IPNetComparable struct {
 // string. It may return an error if the string is malformed.
 func NewIPOrIPNetComparable(val string) (Comparable, error) {
 	if strings.Contains(val, "/") {
-		_, ipnet, err := net.ParseCIDR(val)
+		ipnet, err := netip.ParsePrefix(val)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"value %s contained a /, but is not a CIDR address",
 				val)
 		}
-		return IPNetComparable{ipnet: *ipnet}, nil
+		return IPNetComparable{ipnet: ipnet.Masked()}, nil
 	} else {
-		return IPComparable{ipaddr: net.ParseIP(val)}, nil
+		result, err := netip.ParseAddr(val)
+		return IPComparable{ipaddr: result}, err
 	}
 }
 
@@ -74,10 +83,13 @@ func NewIPOrIPNetComparable(val string) (Comparable, error) {
 // i.
 func (i IPNetComparable) Equal(other any) (bool, error) {
 	switch val := other.(type) {
-	case net.IP:
+	case netip.Addr:
 		return i.ipnet.Contains(val), nil
+	case netip.Prefix:
+		return i.ipnet.Contains(val.Addr()), nil
 	case string:
-		return i.ipnet.Contains(net.ParseIP(val)), nil
+		result, err := netip.ParseAddr(val)
+		return i.ipnet.Contains(result), err
 	default:
 		return false, fmt.Errorf(
 			"booleval IPNetComparable.Equal: cannot coerce %v(type %T) to net.IP", val, val)

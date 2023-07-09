@@ -1,7 +1,7 @@
 package booleval
 
 import (
-	"net"
+	"net/netip"
 	"testing"
 	"time"
 
@@ -154,15 +154,15 @@ func TestDayOfWeek(t *testing.T) {
 }
 
 func TestIPs(t *testing.T) {
-	ip := IPComparable{ipaddr: net.ParseIP("23.23.1.1")}
+	ip := NewIPComparable("23.23.1.1")
 	tests := []valueCondTest{
 		{eq, "23.23.1.1", true, false},
-		{eq, net.IPv4(23, 23, 1, 1), true, false},
+		{eq, netip.AddrFrom4([4]byte{23, 23, 1, 1}), true, false},
 		{eq, "1.1.1.1", false, false},
 		{eq, "fe80::1", false, false},
 		{eq, "23.23.0.0/16", true, false},
 		{eq, "23.23.0/16", false, true},
-		{eq, "dood", false, false},
+		{eq, "dood", false, true},
 	}
 	testDriver(t, ip, tests)
 
@@ -171,38 +171,38 @@ func TestIPs(t *testing.T) {
 		{eq, "123.123.1.1", true, false},
 		{eq, "123.123.1.2", false, false},
 		{eq, 6, false, true},
-		{eq, "dood", false, false}}
+		{eq, "dood", false, true}}
 	testDriver(t, ip, tests)
 
 	ipComparable, err := NewIPOrIPNetComparable("192.168.123.1")
 	assert.Nil(t, err)
-	result, err := ipComparable.Equal(net.IPv4(192, 168, 123, 1))
+	result, err := ipComparable.Equal(netip.AddrFrom4([4]byte{192, 168, 123, 1}))
 	assert.Nil(t, err)
 	assert.True(t, result)
 
 	ipComparable, err = NewIPOrIPNetComparable("192.168.123.1/24")
 	assert.Nil(t, err)
-	result, err = ipComparable.Equal(net.IPv4(192, 168, 123, 4))
+	result, err = ipComparable.Equal(netip.AddrFrom4([4]byte{192, 168, 123, 4}))
 	assert.Nil(t, err)
 	assert.True(t, result)
 
-	result, err = ipComparable.Equal(net.IPv4(192, 168, 123, 6))
+	result, err = ipComparable.Equal(netip.AddrFrom4([4]byte{192, 168, 123, 6}))
 	assert.Nil(t, err)
 	assert.True(t, result)
 
-	ipComparable, err = NewIPOrIPNetComparable("192.168.123/24")
+	_, err = NewIPOrIPNetComparable("192.168.123/24")
 	assert.NotNil(t, err)
 }
 
 func TestIPNets(t *testing.T) {
-	_, val, _ := net.ParseCIDR("132.1.23.0/24")
-	ipnet := IPNetComparable{ipnet: *val}
+	val, _ := netip.ParsePrefix("132.1.23.0/24")
+	ipnet := IPNetComparable{ipnet: val}
 	tests := []valueCondTest{
 		{eq, "132.1.23.1", true, false},
 		{eq, "132.1.24.1", false, false},
 		{eq, "132.22.1.1", false, false},
 		{eq, 6, false, true},
-		{eq, "dood", false, false}}
+		{eq, "dood", false, true}}
 
 	testDriver(t, ipnet, tests)
 
@@ -236,7 +236,7 @@ func TestStrings(t *testing.T) {
 
 	comp = NewStringComparable("192.168.123.1")
 	tests = []valueCondTest{
-		{eq, net.IPv4(192, 168, 123, 1), true, false},
+		{eq, netip.AddrFrom4([4]byte{192, 168, 123, 1}), true, false},
 		{gt, "a", false, false},
 		{gt, 1, false, true},
 		{eq, 1, false, false}}
