@@ -39,6 +39,12 @@ const (
 	// InterfaceType is a group type where all items are interface
 	// IDs (integers)
 	InterfaceType GroupType = "Interface"
+
+	// WebFilterCategoryType means that the Items of the Group are web filter categories.
+	WebFilterCategoryType GroupType = "WebFilterCategory"
+
+	// ThreatPreventionType means that the Items of the Group are threat prevention score.
+	ThreatPreventionType GroupType = "ThreatPrevention"
 )
 
 // Group is a way to generically re-use certain lists of attributes
@@ -92,6 +98,10 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	case ServiceEndpointType:
 		defer setList[ServiceEndpoint](g)()
 	case InterfaceType:
+		defer setList[uint](g)()
+	case ThreatPreventionType:
+		defer setList[uint](g)()
+	case WebFilterCategoryType:
 		defer setList[uint](g)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
