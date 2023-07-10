@@ -86,7 +86,7 @@ func (ss IPSpecifierString) Parse() any {
 	}
 }
 
-// NetToRange converts a *netip.IPNet to an IPRange.
+// NetToRange converts a *netip.Prefix to an IPRange.
 func NetToRange(prefix netip.Prefix) (IPRange, error) {
 
 	if !prefix.IsValid() {
