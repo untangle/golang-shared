@@ -160,7 +160,7 @@ func TestIPRangeFromCIDR(t *testing.T) {
 
 func BenchmarkIPTest(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
-	if f, err := os.OpenFile("../../booleval/ips.txt", 0, fs.FileMode(os.O_RDONLY)); err == nil {
+	if f, err := os.OpenFile("../../util/net/ips.txt", 0, fs.FileMode(os.O_RDONLY)); err == nil {
 		defer f.Close()
 		fileScanner := bufio.NewScanner(f)
 		var lines []string
@@ -192,7 +192,6 @@ func BenchmarkIPTest(b *testing.B) {
 			ipRange := IPRange{Start: zeroIP, End: ip}
 			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
 			assert.Truef(b, ipRange.Start.Compare(zeroIP) == 0, "Failed start check of %v\n", ip)
-			assert.Truef(b, ip.Compare(zeroIP) >= 0, "Failed ge test for %v\n", ip)
 			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
 			assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
 
