@@ -41,8 +41,7 @@ type IPRange struct {
 // Contains returns true if the ip is between the Start and End of r,
 // inclusive.
 func (r IPRange) Contains(ip netip.Addr) bool {
-	return r.Start.Compare(ip) <= 0 &&
-		r.End.Compare(ip) >= 0
+	return r.Start.Compare(ip) <= 0 && r.End.Compare(ip) >= 0
 }
 
 // Parse returns the parsed specifier as one of:

@@ -1,7 +1,10 @@
 package net
 
 import (
+	"bufio"
+	"io/fs"
 	"net/netip"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -152,7 +155,50 @@ func TestIPRangeFromCIDR(t *testing.T) {
 			assert.True(t, tt.iprange.End.Compare(netRange.End) == 0,
 				"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
 		})
-
 	}
+}
 
+func BenchmarkIPTest(b *testing.B) {
+	ipArray := make([]netip.Addr, 0)
+	if f, err := os.OpenFile("../../booleval/ips.txt", 0, fs.FileMode(os.O_RDONLY)); err == nil {
+		defer f.Close()
+		fileScanner := bufio.NewScanner(f)
+		var lines []string
+		for fileScanner.Scan() {
+			lines = append(lines, fileScanner.Text())
+		}
+		for _, line := range lines {
+			if len(line) > 0 {
+				if line[0] != '#' {
+					if ipx, err := netip.ParseAddr(line); err == nil {
+						ipArray = append(ipArray, ipx)
+					}
+				} else {
+					b.Logf("%s\n", line)
+				}
+			}
+		}
+	} else {
+		b.Errorf("Error loading IPs: %v\n", err)
+	}
+	var zeroIP = netip.AddrFrom4([4]byte{0, 0, 0, 0})
+
+	b.Logf("Loaded %d IPs\n", len(ipArray))
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		for _, ip := range ipArray {
+			ipRange := IPRange{Start: zeroIP, End: ip}
+			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
+			assert.Truef(b, ipRange.Start.Compare(zeroIP) == 0, "Failed start check of %v\n", ip)
+			assert.Truef(b, ip.Compare(zeroIP) >= 0, "Failed ge test for %v\n", ip)
+			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
+
+			ipRange = IPRange{Start: ip, End: ip}
+			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
+			assert.Truef(b, ipRange.Start.Compare(ip) == 0, "Failed start check of %v\n", ip)
+			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
+		}
+	}
 }
