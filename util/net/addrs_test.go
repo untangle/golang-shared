@@ -194,11 +194,14 @@ func BenchmarkIPTest(b *testing.B) {
 			assert.Truef(b, ipRange.Start.Compare(zeroIP) == 0, "Failed start check of %v\n", ip)
 			assert.Truef(b, ip.Compare(zeroIP) >= 0, "Failed ge test for %v\n", ip)
 			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
+			assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
 
 			ipRange = IPRange{Start: ip, End: ip}
 			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
 			assert.Truef(b, ipRange.Start.Compare(ip) == 0, "Failed start check of %v\n", ip)
 			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
+			assert.Truef(b, !ipRange.Contains(ip.Prev()), "Failed containment of previous: $v\n", ip.Prev())
+			assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
 		}
 	}
 }
