@@ -242,3 +242,92 @@ func TestStrings(t *testing.T) {
 		{eq, 1, false, false}}
 	testDriver(t, comp, tests)
 }
+
+func testBenchmarkDriver(b *testing.B, comparable Comparable, tests []valueCondTest) {
+	var result bool
+	var err error
+	for _, test := range tests {
+		switch test.op {
+		case eq:
+			result, err = comparable.Equal(test.value)
+		case gt:
+			result, err = comparable.Greater(test.value)
+		}
+
+		if test.iserr {
+			assert.NotNil(
+				b,
+				err,
+				"this value should result in an error: %v\n",
+				test.value)
+		} else if err != nil {
+			assert.Fail(b, "i.Equal(%v) returned an error: %v and should not have\n",
+				err)
+		}
+		assert.Equal(b, test.result, result,
+			"should get %v for wasEqual of %v and %v(%T)", test.result, comparable, test.value, test.value)
+	}
+}
+
+func BenchmarkIP(b *testing.B) {
+	//If there is any setup then uncomment this
+	//b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		b.Run("test", func(b *testing.B) {
+			//Copied from TestIPs above
+			//It would be nice to use the code in place but it's not
+			//clear how to make that work with testing.B
+			ip := NewIPComparable("23.23.1.1")
+			tests := []valueCondTest{
+				{eq, "23.23.1.1", true, false},
+				{eq, netip.AddrFrom4([4]byte{23, 23, 1, 1}), true, false},
+				{eq, "1.1.1.1", false, false},
+				{eq, "fe80::1", false, false},
+				{eq, "23.23.0.0/16", true, false},
+				{eq, "23.23.0/16", false, true},
+				{eq, "dood", false, true},
+			}
+			testBenchmarkDriver(b, ip, tests)
+
+			ip = NewIPComparable("123.123.1.1")
+			tests = []valueCondTest{
+				{eq, "123.123.1.1", true, false},
+				{eq, "123.123.1.2", false, false},
+				{eq, 6, false, true},
+				{eq, "dood", false, true}}
+			testBenchmarkDriver(b, ip, tests)
+
+			ipComparable, err := NewIPOrIPNetComparable("192.168.123.1")
+			assert.Nil(b, err)
+			result, err := ipComparable.Equal(netip.AddrFrom4([4]byte{192, 168, 123, 1}))
+			assert.Nil(b, err)
+			assert.True(b, result)
+
+			ipComparable, err = NewIPOrIPNetComparable("192.168.123.1/24")
+			assert.Nil(b, err)
+			result, err = ipComparable.Equal(netip.AddrFrom4([4]byte{192, 168, 123, 4}))
+			assert.Nil(b, err)
+			assert.True(b, result)
+
+			result, err = ipComparable.Equal(netip.AddrFrom4([4]byte{192, 168, 123, 6}))
+			assert.Nil(b, err)
+			assert.True(b, result)
+
+			_, err = NewIPOrIPNetComparable("192.168.123/24")
+			assert.NotNil(b, err)
+
+			//Copied from TestIPNets above
+			//It would be nice to use the code in place but it's not
+			//clear how to make that work with testing.B
+			ipnet, _ := NewIPOrIPNetComparable("132.1.23.0/24")
+			tests = []valueCondTest{
+				{eq, "132.1.23.1", true, false},
+				{eq, "132.1.24.1", false, false},
+				{eq, "132.22.1.1", false, false},
+				{eq, 6, false, true},
+				{eq, "dood", false, true}}
+
+			testBenchmarkDriver(b, ipnet, tests)
+		})
+	}
+}
