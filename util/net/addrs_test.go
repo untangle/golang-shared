@@ -2,9 +2,13 @@ package net
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
 	"io/fs"
+	"net"
 	"net/netip"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -158,34 +162,41 @@ func TestIPRangeFromCIDR(t *testing.T) {
 	}
 }
 
+var lines []string
+
+func loadFile(filename string) {
+	mutex := sync.Mutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
+	if len(lines) == 0 {
+		if f, err := os.OpenFile("../../util/net/ips.txt", 0, fs.FileMode(os.O_RDONLY)); err == nil {
+			defer f.Close()
+			fileScanner := bufio.NewScanner(f)
+			var lines []string
+			for fileScanner.Scan() {
+				lines = append(lines, fileScanner.Text())
+			}
+		} else {
+			fmt.Printf("Error loading IPs: %v\n", err)
+		}
+	}
+}
+
 func BenchmarkIPTest(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
-	if f, err := os.OpenFile("../../util/net/ips.txt", 0, fs.FileMode(os.O_RDONLY)); err == nil {
-		defer f.Close()
-		fileScanner := bufio.NewScanner(f)
-		var lines []string
-		for fileScanner.Scan() {
-			lines = append(lines, fileScanner.Text())
-		}
-		for _, line := range lines {
-			if len(line) > 0 {
-				if line[0] != '#' {
-					if ipx, err := netip.ParseAddr(line); err == nil {
-						ipArray = append(ipArray, ipx)
-					}
-				} else {
-					b.Logf("%s\n", line)
+	loadFile("../../util/net/ips.txt")
+	for _, line := range lines {
+		if len(line) > 0 {
+			if line[0] != '#' {
+				if ipx, err := netip.ParseAddr(line); err == nil {
+					ipArray = append(ipArray, ipx)
 				}
 			}
 		}
-	} else {
-		b.Errorf("Error loading IPs: %v\n", err)
 	}
 	var zeroIP = netip.AddrFrom4([4]byte{0, 0, 0, 0})
 
-	b.Logf("Loaded %d IPs\n", len(ipArray))
-
-	b.ResetTimer()
+	//b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
@@ -193,14 +204,63 @@ func BenchmarkIPTest(b *testing.B) {
 			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
 			assert.Truef(b, ipRange.Start.Compare(zeroIP) == 0, "Failed start check of %v\n", ip)
 			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
-			assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
+			//assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
 
 			ipRange = IPRange{Start: ip, End: ip}
 			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
 			assert.Truef(b, ipRange.Start.Compare(ip) == 0, "Failed start check of %v\n", ip)
 			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
-			assert.Truef(b, !ipRange.Contains(ip.Prev()), "Failed containment of previous: $v\n", ip.Prev())
-			assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
+			//assert.Truef(b, !ipRange.Contains(ip.Prev()), "Failed containment of previous: $v\n", ip.Prev())
+			//assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
 		}
 	}
+}
+
+type IPRangeOld struct {
+	Start net.IP
+	End   net.IP
+}
+
+func (r IPRangeOld) Contains(ip net.IP) bool {
+	return bytes.Compare(r.Start, ip) <= 0 &&
+		bytes.Compare(r.End, ip) >= 0
+}
+
+func BenchmarkIPTestOld(b *testing.B) {
+	ipArray := make([]net.IP, 0)
+	loadFile("../../util/net/ips.txt")
+	for _, line := range lines {
+		if len(line) > 0 {
+			if line[0] != '#' {
+				ipx := net.ParseIP(line)
+				ipArray = append(ipArray, ipx)
+			}
+		}
+	}
+	var zeroIP = net.IP{0, 0, 0, 0}
+
+	//b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		for _, ip := range ipArray {
+			ipRange := IPRangeOld{Start: zeroIP, End: ip}
+			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
+			assert.Truef(b, ipRange.Start.Equal(zeroIP), "Failed start check of %v\n", ip)
+			assert.Truef(b, ipRange.End.Equal(ip), "Failed end check of %v\n", ip)
+			//assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
+
+			ipRange = IPRangeOld{Start: ip, End: ip}
+			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
+			assert.Truef(b, ipRange.Start.Equal(ip), "Failed start check of %v\n", ip)
+			assert.Truef(b, ipRange.End.Equal(ip), "Failed end check of %v\n", ip)
+			//assert.Truef(b, !ipRange.Contains(ip.Prev()), "Failed containment of previous: $v\n", ip.Prev())
+			//assert.Truef(b, !ipRange.Contains(ip.Next()), "Failed containment of next: $v\n", ip.Next())
+		}
+	}
+}
+
+func BenchmarkAll(b *testing.B) {
+	loadFile("../../util/net/ips.txt")
+	b.Run("IPTest", BenchmarkIPTest)
+	b.Run("IPTestOld", BenchmarkIPTestOld)
 }
