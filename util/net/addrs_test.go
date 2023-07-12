@@ -193,20 +193,24 @@ func BenchmarkIPTest(b *testing.B) {
 			}
 		}
 	}
-	var zeroIP = netip.AddrFrom4([4]byte{0, 0, 0, 0})
+	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
-			ipRange := IPRange{Start: zeroIP, End: ip}
-			assert.Truef(b, ipRange.Contains(zeroIP), "Failed containment of %v\n", zeroIP)
-			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
-			assert.Truef(b, ipRange.Start.Compare(zeroIP) == 0, "Failed start check of %v\n", ip)
-			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
-
-			ipRange = IPRange{Start: ip, End: ip}
-			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
-			assert.Truef(b, ipRange.Start.Compare(ip) == 0, "Failed start check of %v\n", ip)
-			assert.Truef(b, ipRange.End.Compare(ip) == 0, "Failed end check of %v\n", ip)
+			ipas4 := ip.As4()
+			limit := ipas4[3]
+			if limit != 0 {
+				ipas4[3] = 0
+				newip := netip.AddrFrom4(ipas4)
+				ipPrefix := netip.PrefixFrom(newip, 24)
+				assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
+				// then set the last octet to 0 and create a range between it and ip
+				for octet := byte(0); octet < limit; octet++ {
+					ipas4[3] = octet
+					newip = netip.AddrFrom4(ipas4)
+					assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
+				}
+			}
 		}
 	}
 }
@@ -235,20 +239,24 @@ func BenchmarkIPTestOld(b *testing.B) {
 			}
 		}
 	}
-	var zeroIP = net.IP{0, 0, 0, 0}
+	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
-			ipRange := IPRangeOld{Start: zeroIP, End: ip}
-			assert.Truef(b, ipRange.Contains(zeroIP), "Failed containment of %v\n", zeroIP)
-			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
-			assert.Truef(b, ipRange.Start.Equal(zeroIP), "Failed start check of %v\n", ip)
-			assert.Truef(b, ipRange.End.Equal(ip), "Failed end check of %v\n", ip)
-
-			ipRange = IPRangeOld{Start: ip, End: ip}
-			assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
-			assert.Truef(b, ipRange.Start.Equal(ip), "Failed start check of %v\n", ip)
-			assert.Truef(b, ipRange.End.Equal(ip), "Failed end check of %v\n", ip)
+			limit := ip[15]
+			if limit != 0 {
+				// then set the last octet to 0 and create a range between it and ip
+				newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
+					ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
+					ip[14], 0}
+				ipNet := net.IPNet{IP: newip, Mask: net.IPv4Mask(255, 255, 255, 0)}
+				assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
+				intLimit := int(limit)
+				for octet := 0; octet <= intLimit; octet++ {
+					newip[15] = byte(octet)
+					assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
+				}
+			}
 		}
 	}
 }
@@ -257,6 +265,4 @@ func BenchmarkAll(b *testing.B) {
 	loadFile("ips.txt")
 	b.Run("IPTest", BenchmarkIPTest)
 	b.Run("IPTestOld", BenchmarkIPTestOld)
-	b.Run("IPTest2", BenchmarkIPTest)
-	b.Run("IPTestOld2", BenchmarkIPTestOld)
 }
