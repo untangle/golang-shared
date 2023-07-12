@@ -216,6 +216,9 @@ func BenchmarkIPTest(b *testing.B) {
 	}
 }
 
+// These structures and functions are resurrected from the old addrs.go
+// to support a comparative benchmark of netip versus net.ip.
+// They are not referenced anywhere else
 type IPRangeOld struct {
 	Start net.IP
 	End   net.IP
