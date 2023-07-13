@@ -2,7 +2,7 @@ package booleval
 
 import (
 	"fmt"
-	"net/netip"
+	"net"
 )
 
 // StringComparable is a Comparable for strings.
@@ -36,10 +36,8 @@ func (s StringComparable) Equal(other any) (bool, error) {
 	case string:
 		return s.theString == val, nil
 	case uint32, uint64, uint, uint8, uint16, int, int32, int64,
-		bool, float32, float64, netip.Addr:
+		bool, float32, float64, net.IP, net.IPNet:
 		return s.theString == fmt.Sprintf("%v", val), nil
-	case netip.Prefix:
-		return s.theString == fmt.Sprintf("%v", val.Addr()), nil
 	}
 	return false, nil
 }

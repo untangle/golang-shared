@@ -316,7 +316,7 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("IP4Test with net(existing)", BenchmarkIP4Test)
 
 	// Reset lines for IPv6
-	lines = make([]string, 1)
+	lines = make([]string, 0)
 	loadFile("ip6s.txt")
 	b.Run("IP6Test with net/netip", BenchmarkIP6TestNetIP)
 	b.Run("IP6Test with net(existing)", BenchmarkIP6Test)
