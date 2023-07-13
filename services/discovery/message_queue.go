@@ -33,6 +33,24 @@ func MergeZmqMessageIntoDeviceList(devlist *DevicesList, device *DeviceEntry, ca
 	return nil
 }
 
+// checkStaleNeigh would check if the encoming neighbour is stale and already marked stale in the deviceList
+func checkStaleNeigh(devices map[string]*DeviceEntry, neighDevice map[string]*disco.NEIGH, macAddress string) bool {
+	oldEntry, ok := devices[macAddress]
+	if !ok {
+		logger.Debug("Error reading device list")
+		return false
+	}
+	var knownNeighState, newNeighState *disco.NEIGH
+	for ip := range neighDevice {
+		knownNeighState = oldEntry.Neigh[ip]
+		newNeighState = neighDevice[ip]
+	}
+	if newNeighState.State == "STALE" && knownNeighState.State == "STALE" {
+		return true
+	}
+	return false
+}
+
 // FillDeviceListWithZMQDeviceMessages will run an infinite loop
 // receiving messages from channel and putting them into the device
 // list. Call callback on each new device.
@@ -85,8 +103,10 @@ func FillDeviceListWithZMQDeviceMessages(
 				neighDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Neigh: entryMap,
 					MacAddress: macAddress,
 					LastUpdate: neigh.LastUpdate}}
-				if err := MergeZmqMessageIntoDeviceList(devlist, neighDeviceEntry, callback); err != nil {
-					logger.Warn("Could not process NEIGH ZMQ message: %\n", err.Error())
+				if !checkStaleNeigh(devlist.Devices, entryMap, macAddress) {
+					if err := MergeZmqMessageIntoDeviceList(devlist, neighDeviceEntry, callback); err != nil {
+						logger.Warn("Could not process NEIGH ZMQ message: %\n", err.Error())
+					}
 				}
 			case NMAPDeviceZMQTopic:
 				nmap := &disco.NMAP{}
