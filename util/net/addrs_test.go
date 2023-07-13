@@ -184,7 +184,7 @@ func loadFile(filename string) {
 
 func BenchmarkIP4TestNetIP(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
-	loadFile("ip4s.txt")
+	loadFile("testdata/ip4s.txt")
 	for _, line := range lines {
 		if len(line) > 0 {
 			if line[0] != '#' {
@@ -216,7 +216,7 @@ func BenchmarkIP4TestNetIP(b *testing.B) {
 
 func BenchmarkIP4Test(b *testing.B) {
 	ipArray := make([]net.IP, 0)
-	loadFile("ip4s.txt")
+	loadFile("testdata/ip4s.txt")
 	for _, line := range lines {
 		if len(line) > 0 {
 			if line[0] != '#' {
@@ -246,7 +246,7 @@ func BenchmarkIP4Test(b *testing.B) {
 
 func BenchmarkIP6TestNetIP(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
-	loadFile("ip6s.txt")
+	loadFile("testdata/ip6s.txt")
 	for _, line := range lines {
 		if len(line) > 0 {
 			if line[0] != '#' {
@@ -278,7 +278,7 @@ func BenchmarkIP6TestNetIP(b *testing.B) {
 
 func BenchmarkIP6Test(b *testing.B) {
 	ipArray := make([]net.IP, 0)
-	loadFile("ip6s.txt")
+	loadFile("testdata/ip6s.txt")
 	for _, line := range lines {
 		if len(line) > 0 {
 			if line[0] != '#' {
@@ -311,13 +311,13 @@ func BenchmarkIP6Test(b *testing.B) {
 
 func BenchmarkAll(b *testing.B) {
 	// Load lines ahead of benchmark
-	loadFile("ip4s.txt")
+	loadFile("testdata/ip4s.txt")
 	b.Run("IP4Test with net/netip", BenchmarkIP4TestNetIP)
 	b.Run("IP4Test with net(existing)", BenchmarkIP4Test)
 
 	// Reset lines for IPv6
 	lines = make([]string, 0)
-	loadFile("ip6s.txt")
+	loadFile("testdata/ip6s.txt")
 	b.Run("IP6Test with net/netip", BenchmarkIP6TestNetIP)
 	b.Run("IP6Test with net(existing)", BenchmarkIP6Test)
 }
