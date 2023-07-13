@@ -193,8 +193,6 @@ func BenchmarkIPTest(b *testing.B) {
 			}
 		}
 	}
-	b.ResetTimer()
-
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
 			ipas4 := ip.As4()
@@ -239,8 +237,6 @@ func BenchmarkIPTestOld(b *testing.B) {
 			}
 		}
 	}
-	b.ResetTimer()
-
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
 			limit := ip[15]
