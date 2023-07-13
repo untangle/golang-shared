@@ -2,7 +2,6 @@ package net
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io/fs"
 	"net"
@@ -21,16 +20,15 @@ func TestIPSpecString(t *testing.T) {
 		shoudlerr   bool
 		shouldequal any
 	}{
-		{"ipv4 address", "132.123.123.1", false, netip.AddrFrom4([4]byte{132, 123, 123, 1})},
+		{"ipv4 address", "132.123.123.1", false, net.IPv4(132, 123, 123, 1)},
 		{"ipv4 net", "132.123.123.1/24", false,
-			func() netip.Prefix {
-				net, _ := netip.ParsePrefix("132.123.123.1/24")
+			func() *net.IPNet {
+				_, net, _ := net.ParseCIDR("132.123.123.1/24")
 				return net
 			}(),
 		},
 		{"ipv4 range", "132.123.123.1-132.123.123.3", false,
-			IPRange{Start: netip.AddrFrom4([4]byte{132, 123, 123, 1}),
-				End: netip.AddrFrom4([4]byte{132, 123, 123, 3})},
+			IPRange{Start: net.IPv4(132, 123, 123, 1), End: net.IPv4(132, 123, 123, 3)},
 		},
 		{"ipv4 range, start less than end", "132.123.123.1-132.123.123.0", true, nil},
 		{"ipv4 range, too many dashes", "132.123.123.1--132.123.123.20", true, nil},
@@ -43,7 +41,7 @@ func TestIPSpecString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			val := IPSpecifierString(tt.stringval).Parse()
 			switch typed := val.(type) {
-			case netip.Addr, netip.Prefix, IPRange:
+			case net.IP, *net.IPNet, IPRange:
 				assert.EqualValues(t, typed, tt.shouldequal)
 			case error:
 				assert.True(t, tt.shoudlerr)
@@ -58,37 +56,37 @@ func TestIPRange(t *testing.T) {
 	tests := []struct {
 		name          string
 		ipRange       IPRange
-		ipAddr        netip.Addr
+		ipAddr        net.IP
 		shouldContain bool
 	}{
 		{
 			"basic in",
-			IPRange{netip.AddrFrom4([4]byte{0, 0, 0, 0}), netip.AddrFrom4([4]byte{1, 0, 0, 0})},
-			netip.AddrFrom4([4]byte{0, 1, 0, 0}),
+			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			net.IPv4(0, 1, 0, 0),
 			true,
 		},
 		{
 			"basic out",
-			IPRange{netip.AddrFrom4([4]byte{0, 0, 0, 0}), netip.AddrFrom4([4]byte{1, 0, 0, 0})},
-			netip.AddrFrom4([4]byte{1, 1, 0, 0}),
+			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			net.IPv4(1, 1, 0, 0),
 			false,
 		},
 		{
 			"basic upper border",
-			IPRange{netip.AddrFrom4([4]byte{0, 0, 0, 0}), netip.AddrFrom4([4]byte{1, 0, 0, 0})},
-			netip.AddrFrom4([4]byte{1, 0, 0, 0}),
+			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			net.IPv4(1, 0, 0, 0),
 			true,
 		},
 		{
 			"basic lower border",
-			IPRange{netip.AddrFrom4([4]byte{0, 0, 0, 0}), netip.AddrFrom4([4]byte{1, 0, 0, 0})},
-			netip.AddrFrom4([4]byte{0, 0, 0, 0}),
+			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			net.IPv4(0, 0, 0, 0),
 			true,
 		},
 		{
 			"basic out, lower",
-			IPRange{netip.AddrFrom4([4]byte{1, 0, 0, 0}), netip.AddrFrom4([4]byte{2, 0, 0, 0})},
-			netip.AddrFrom4([4]byte{0, 0, 0, 1}),
+			IPRange{net.IPv4(1, 0, 0, 0), net.IPv4(2, 0, 0, 0)},
+			net.IPv4(0, 0, 0, 1),
 			false,
 		},
 	}
@@ -109,8 +107,8 @@ func TestIPRangeFromCIDR(t *testing.T) {
 		{
 			"simple, no bits",
 			IPRange{
-				Start: netip.AddrFrom4([4]byte{192, 168, 25, 0}),
-				End:   netip.AddrFrom4([4]byte{192, 168, 25, 255}),
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 255),
 			},
 
 			"192.168.25.0/24",
@@ -118,32 +116,32 @@ func TestIPRangeFromCIDR(t *testing.T) {
 		{
 			"one high bit masked off",
 			IPRange{
-				Start: netip.AddrFrom4([4]byte{192, 168, 25, 0}),
-				End:   netip.AddrFrom4([4]byte{192, 168, 25, 127}),
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 127),
 			},
 			"192.168.25.0/25",
 		},
 		{
 			"two high bits masked off",
 			IPRange{
-				Start: netip.AddrFrom4([4]byte{192, 168, 25, 0}),
-				End:   netip.AddrFrom4([4]byte{192, 168, 25, 63}),
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 63),
 			},
 			"192.168.25.0/26",
 		},
 		{
 			"only low bit allowed",
 			IPRange{
-				Start: netip.AddrFrom4([4]byte{192, 168, 25, 0}),
-				End:   netip.AddrFrom4([4]byte{192, 168, 25, 1}),
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 1),
 			},
 			"192.168.25.0/31",
 		},
 		{
 			"all bits masked",
 			IPRange{
-				Start: netip.AddrFrom4([4]byte{192, 168, 25, 0}),
-				End:   netip.AddrFrom4([4]byte{192, 168, 25, 0}),
+				Start: net.IPv4(192, 168, 25, 0),
+				End:   net.IPv4(192, 168, 25, 0),
 			},
 			"192.168.25.0/32",
 		},
@@ -151,14 +149,17 @@ func TestIPRangeFromCIDR(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			network, _ := netip.ParsePrefix(tt.network)
-			netRange, _ := NetToRange(network)
-
-			assert.True(t, tt.iprange.Start.Compare(netRange.Start) == 0,
+			_, network, _ := net.ParseCIDR(tt.network)
+			netRange := NetToRange(network)
+			// We are using True() instead of Equal() because the assert
+			// library specifically tests for byteslices (which net.IP
+			// is), and tests them differently.
+			assert.True(t, tt.iprange.Start.Equal(netRange.Start),
 				"net range starts: %s (expected) should equal %s", tt.iprange.Start, netRange.Start)
-			assert.True(t, tt.iprange.End.Compare(netRange.End) == 0,
+			assert.True(t, tt.iprange.End.Equal(netRange.End),
 				"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
 		})
+
 	}
 }
 
@@ -181,7 +182,7 @@ func loadFile(filename string) {
 	}
 }
 
-func BenchmarkIP4Test(b *testing.B) {
+func BenchmarkIP4TestNetIP(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
 	loadFile("ip4s.txt")
 	for _, line := range lines {
@@ -213,20 +214,7 @@ func BenchmarkIP4Test(b *testing.B) {
 	}
 }
 
-// These structures and functions are resurrected from the old addrs.go
-// to support a comparative benchmark of netip versus net.ip.
-// They are not referenced anywhere else
-type IPRangeOld struct {
-	Start net.IP
-	End   net.IP
-}
-
-func (r IPRangeOld) Contains(ip net.IP) bool {
-	return bytes.Compare(r.Start, ip) <= 0 &&
-		bytes.Compare(r.End, ip) >= 0
-}
-
-func BenchmarkIP4TestOld(b *testing.B) {
+func BenchmarkIP4Test(b *testing.B) {
 	ipArray := make([]net.IP, 0)
 	loadFile("ip4s.txt")
 	for _, line := range lines {
@@ -256,7 +244,7 @@ func BenchmarkIP4TestOld(b *testing.B) {
 	}
 }
 
-func BenchmarkIP6Test(b *testing.B) {
+func BenchmarkIP6TestNetIP(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
 	loadFile("ip6s.txt")
 	for _, line := range lines {
@@ -288,7 +276,7 @@ func BenchmarkIP6Test(b *testing.B) {
 	}
 }
 
-func BenchmarkIP6TestOld(b *testing.B) {
+func BenchmarkIP6Test(b *testing.B) {
 	ipArray := make([]net.IP, 0)
 	loadFile("ip6s.txt")
 	for _, line := range lines {
@@ -324,12 +312,12 @@ func BenchmarkIP6TestOld(b *testing.B) {
 func BenchmarkAll(b *testing.B) {
 	// Load lines ahead of benchmark
 	loadFile("ip4s.txt")
-	b.Run("IP4Test with net/netip", BenchmarkIP4Test)
-	b.Run("IP4Test with net(existing)", BenchmarkIP4TestOld)
+	b.Run("IP4Test with net/netip", BenchmarkIP4TestNetIP)
+	b.Run("IP4Test with net(existing)", BenchmarkIP4Test)
 
 	// Reset lines for IPv6
 	lines = make([]string, 1)
 	loadFile("ip6s.txt")
-	b.Run("IP6Test with net/netip", BenchmarkIP6Test)
-	b.Run("IP6Test with net(existing)", BenchmarkIP6TestOld)
+	b.Run("IP6Test with net/netip", BenchmarkIP6TestNetIP)
+	b.Run("IP6Test with net(existing)", BenchmarkIP6Test)
 }
