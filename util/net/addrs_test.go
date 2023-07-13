@@ -181,9 +181,9 @@ func loadFile(filename string) {
 	}
 }
 
-func BenchmarkIPTest(b *testing.B) {
+func BenchmarkIP4Test(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
-	loadFile("ips.txt")
+	loadFile("ip4s.txt")
 	for _, line := range lines {
 		if len(line) > 0 {
 			if line[0] != '#' {
@@ -196,7 +196,7 @@ func BenchmarkIPTest(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
 			ipas4 := ip.As4()
-			limit := ipas4[3]
+			limit := byte(255) //ipas4[3]
 			if limit != 0 {
 				ipas4[3] = 0
 				newip := netip.AddrFrom4(ipas4)
@@ -226,9 +226,9 @@ func (r IPRangeOld) Contains(ip net.IP) bool {
 		bytes.Compare(r.End, ip) >= 0
 }
 
-func BenchmarkIPTestOld(b *testing.B) {
+func BenchmarkIP4TestOld(b *testing.B) {
 	ipArray := make([]net.IP, 0)
-	loadFile("ips.txt")
+	loadFile("ip4s.txt")
 	for _, line := range lines {
 		if len(line) > 0 {
 			if line[0] != '#' {
@@ -239,7 +239,7 @@ func BenchmarkIPTestOld(b *testing.B) {
 	}
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
-			limit := ip[15]
+			limit := byte(255) //ip[15]
 			if limit != 0 {
 				// then set the last octet to 0 and create a range between it and ip
 				newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
@@ -247,9 +247,73 @@ func BenchmarkIPTestOld(b *testing.B) {
 					ip[14], 0}
 				ipNet := net.IPNet{IP: newip, Mask: net.IPv4Mask(255, 255, 255, 0)}
 				assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
-				intLimit := int(limit)
-				for octet := 0; octet <= intLimit; octet++ {
-					newip[15] = byte(octet)
+				for octet := byte(0); octet < limit; octet++ {
+					newip[15] = octet
+					assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
+				}
+			}
+		}
+	}
+}
+
+func BenchmarkIP6Test(b *testing.B) {
+	ipArray := make([]netip.Addr, 0)
+	loadFile("ip6s.txt")
+	for _, line := range lines {
+		if len(line) > 0 {
+			if line[0] != '#' {
+				if ipx, err := netip.ParseAddr(line); err == nil {
+					ipArray = append(ipArray, ipx)
+				}
+			}
+		}
+	}
+	for n := 0; n < b.N; n++ {
+		for _, ip := range ipArray {
+			ipas16 := ip.As16()
+			limit := byte(255) //ipas16[15]
+			if limit != 0 {
+				ipas16[15] = 0
+				newip := netip.AddrFrom16(ipas16)
+				ipPrefix := netip.PrefixFrom(newip, 120)
+				assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
+				// then set the last octet to 0 and create a range between it and ip
+				for octet := byte(0); octet < limit; octet++ {
+					ipas16[15] = octet
+					newip = netip.AddrFrom16(ipas16)
+					assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
+				}
+			}
+		}
+	}
+}
+
+func BenchmarkIP6TestOld(b *testing.B) {
+	ipArray := make([]net.IP, 0)
+	loadFile("ip6s.txt")
+	for _, line := range lines {
+		if len(line) > 0 {
+			if line[0] != '#' {
+				ipx := net.ParseIP(line)
+				ipArray = append(ipArray, ipx)
+			}
+		}
+	}
+	for n := 0; n < b.N; n++ {
+		for _, ip := range ipArray {
+			limit := byte(255) //ip[15]
+			if limit != 0 {
+				// then set the last octet to 0 and create a range between it and ip
+				newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
+					ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
+					ip[14], 0}
+				ipNet := net.IPNet{
+					IP:   newip,
+					Mask: []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0},
+				}
+				assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
+				for octet := byte(0); octet < limit; octet++ {
+					newip[15] = octet
 					assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
 				}
 			}
@@ -258,7 +322,14 @@ func BenchmarkIPTestOld(b *testing.B) {
 }
 
 func BenchmarkAll(b *testing.B) {
-	loadFile("ips.txt")
-	b.Run("IPTest", BenchmarkIPTest)
-	b.Run("IPTestOld", BenchmarkIPTestOld)
+	// Load lines ahead of benchmark
+	loadFile("ip4s.txt")
+	b.Run("IP4Test with net/netip", BenchmarkIP4Test)
+	b.Run("IP4Test with net(existing)", BenchmarkIP4TestOld)
+
+	// Reset lines for IPv6
+	lines = make([]string, 1)
+	loadFile("ip6s.txt")
+	b.Run("IP6Test with net/netip", BenchmarkIP6Test)
+	b.Run("IP6Test with net(existing)", BenchmarkIP6TestOld)
 }
