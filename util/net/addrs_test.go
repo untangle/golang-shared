@@ -197,18 +197,16 @@ func BenchmarkIP4TestNetIP(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
 			ipas4 := ip.As4()
-			limit := byte(255) //ipas4[3]
-			if limit != 0 {
-				ipas4[3] = 0
-				newip := netip.AddrFrom4(ipas4)
-				ipPrefix := netip.PrefixFrom(newip, 24)
-				assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
-				// then set the last octet to 0 and create a range between it and ip
-				for octet := byte(0); octet < limit; octet++ {
-					ipas4[3] = octet
-					newip = netip.AddrFrom4(ipas4)
-					assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
-				}
+			ipas4[3] = 0
+			newip := netip.AddrFrom4(ipas4)
+			ipPrefix := netip.PrefixFrom(newip, 24)
+			assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
+			// then set the last octet to 0 and create a range between it and ip
+			limit := byte(255)
+			for octet := byte(0); octet < limit; octet++ {
+				ipas4[3] = octet
+				newip = netip.AddrFrom4(ipas4)
+				assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
 			}
 		}
 	}
@@ -227,18 +225,16 @@ func BenchmarkIP4Test(b *testing.B) {
 	}
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
-			limit := byte(255) //ip[15]
-			if limit != 0 {
-				// then set the last octet to 0 and create a range between it and ip
-				newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
-					ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
-					ip[14], 0}
-				ipNet := net.IPNet{IP: newip, Mask: net.IPv4Mask(255, 255, 255, 0)}
-				assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
-				for octet := byte(0); octet < limit; octet++ {
-					newip[15] = octet
-					assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
-				}
+			// then set the last octet to 0 and create a range between it and ip
+			newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
+				ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
+				ip[14], 0}
+			ipNet := net.IPNet{IP: newip, Mask: net.IPv4Mask(255, 255, 255, 0)}
+			assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
+			limit := byte(255)
+			for octet := byte(0); octet < limit; octet++ {
+				newip[15] = octet
+				assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
 			}
 		}
 	}
@@ -259,18 +255,16 @@ func BenchmarkIP6TestNetIP(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
 			ipas16 := ip.As16()
-			limit := byte(255) //ipas16[15]
-			if limit != 0 {
-				ipas16[15] = 0
-				newip := netip.AddrFrom16(ipas16)
-				ipPrefix := netip.PrefixFrom(newip, 120)
-				assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
-				// then set the last octet to 0 and create a range between it and ip
-				for octet := byte(0); octet < limit; octet++ {
-					ipas16[15] = octet
-					newip = netip.AddrFrom16(ipas16)
-					assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
-				}
+			ipas16[15] = 0
+			newip := netip.AddrFrom16(ipas16)
+			ipPrefix := netip.PrefixFrom(newip, 120)
+			assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
+			// then set the last octet to 0 and create a range between it and ip
+			limit := byte(255)
+			for octet := byte(0); octet < limit; octet++ {
+				ipas16[15] = octet
+				newip = netip.AddrFrom16(ipas16)
+				assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
 			}
 		}
 	}
@@ -289,21 +283,19 @@ func BenchmarkIP6Test(b *testing.B) {
 	}
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
-			limit := byte(255) //ip[15]
-			if limit != 0 {
-				// then set the last octet to 0 and create a range between it and ip
-				newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
-					ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
-					ip[14], 0}
-				ipNet := net.IPNet{
-					IP:   newip,
-					Mask: []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0},
-				}
-				assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
-				for octet := byte(0); octet < limit; octet++ {
-					newip[15] = octet
-					assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
-				}
+			// then set the last octet to 0 and create a range between it and ip
+			newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
+				ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
+				ip[14], 0}
+			ipNet := net.IPNet{
+				IP:   newip,
+				Mask: []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0},
+			}
+			assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
+			limit := byte(255)
+			for octet := byte(0); octet < limit; octet++ {
+				newip[15] = octet
+				assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
 			}
 		}
 	}
