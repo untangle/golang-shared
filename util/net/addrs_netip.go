@@ -31,25 +31,31 @@ type IPRangeNetIP struct {
 // With netip, the addresses are presumed to be stored as [16]byte
 func GetPrefixFromNetIPs(start netip.Addr, end netip.Addr) netip.Prefix {
 	startAs16 := start.As16()
-	bigStart := big.NewInt(0)
+	var bigStart big.Int
+	bigStart.SetUint64(0)
 	bigStart.SetBytes(startAs16[8:16])
 
 	endAs16 := end.As16()
-	bigEnd := big.NewInt(0)
+	var bigEnd big.Int
+	bigEnd.SetUint64(0)
 	bigEnd.SetBytes(endAs16[8:16])
 
 	bits := 128
-	bigMask := big.NewInt(0x7FFFFFFFFFFFFFFF)
-	bigTwo := big.NewInt(2)
+	var bigMask big.Int
+	bigMask.SetUint64(0xFFFFFFFFFFFFFFFF)
+	var bigTwo big.Int
+	bigTwo.SetUint64(2)
 	for bits = 128; bits > 0; bits-- {
-		if bigStart.And(bigStart, bigMask).Cmp(bigEnd.And(bigEnd, bigMask)) == 0 {
+		if bigStart.And(&bigStart, &bigMask).Cmp(bigEnd.And(&bigEnd, &bigMask)) == 0 {
 			break
 		}
-		bigMask.Mul(bigMask, bigTwo)
+		bigMask.Mul(&bigMask, &bigTwo)
 	}
 	var base16 [16]byte
 	copy(base16[0:8], startAs16[0:8])
-	copy(base16[8:16], bigStart.And(bigStart, bigMask).Bytes()[0:8])
+	// IPv4 addresses ended up truncated to 6 bytes in the result here
+	result := bigStart.And(&bigStart, &bigMask).Bytes()
+	copy(base16[10:16], result)
 
 	return netip.PrefixFrom(netip.AddrFrom16(base16), bits)
 }

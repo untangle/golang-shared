@@ -182,6 +182,11 @@ func loadFile(filename string) {
 	}
 }
 
+func TestGetPrefixFromIPs(t *testing.T) {
+	x := GetPrefixFromNetIPs(netip.AddrFrom4([4]byte{1, 1, 1, 1}), netip.AddrFrom4([4]byte{1, 1, 1, 253}))
+	assert.Truef(t, x.Bits() == 120, "GetPrefixFromNetIPs should have returned 120")
+}
+
 func BenchmarkIP4TestNetIP(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
 	loadFile("testdata/ip4s.txt")
