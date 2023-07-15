@@ -28,18 +28,18 @@ type IPRangeNetIP struct {
 
 // Determine a netip.Prefix based on start and end
 // This is only implemented for IPv4 for now
-func GetPrefix(start netip.Addr, end netip.Addr) netip.Prefix {
-	ipas16 := start.As16()
-	bigTop := big.NetInt(0)
-	bigTop.SetBytes(ipas16[0:8])
+// With netip, the addresses are presumed to be stored as [16]byte
+func GetPrefixFromNetIPs(start netip.Addr, end netip.Addr) netip.Prefix {
+	startAs16 := start.As16()
 	bigStart := big.NewInt(0)
-	bigStart.SetBytes(ipas16[8:16])
-	ipas16 = end.As16()
+	bigStart.SetBytes(startAs16[8:16])
+
+	endAs16 := end.As16()
 	bigEnd := big.NewInt(0)
-	bigEnd.SetBytes(ipas16[8:16])
+	bigEnd.SetBytes(endAs16[8:16])
 
 	bits := 128
-	bigMask := big.NewInt(0xFFFFFFFFFFFFFFFF)
+	bigMask := big.NewInt(0x7FFFFFFFFFFFFFFF)
 	bigTwo := big.NewInt(2)
 	for bits = 128; bits > 0; bits-- {
 		if bigStart.And(bigStart, bigMask).Cmp(bigEnd.And(bigEnd, bigMask)) == 0 {
@@ -47,15 +47,18 @@ func GetPrefix(start netip.Addr, end netip.Addr) netip.Prefix {
 		}
 		bigMask.Mul(bigMask, bigTwo)
 	}
-	base16 := append(bigTop, bigStart.And(bigStart, bigMask).Bytes())
+	var base16 [16]byte
+	copy(base16[0:8], startAs16[0:8])
+	copy(base16[8:16], bigStart.And(bigStart, bigMask).Bytes()[0:8])
+
 	return netip.PrefixFrom(netip.AddrFrom16(base16), bits)
 }
 
-func NewIPRangeNetIP(start netip.Addr, end, netip.Addr) {
+func NewIPRangeNetIP(start netip.Addr, end netip.Addr) IPRangeNetIP {
 	return IPRangeNetIP{
-		Start: start,
-		End: end,
-		Prefix: GetPrefix(start, end),
+		Start:  start,
+		End:    end,
+		Prefix: GetPrefixFromNetIPs(start, end),
 	}
 }
 
@@ -92,7 +95,7 @@ func (ss IPSpecifierString) ParseNetIP() any {
 			return fmt.Errorf("invalid IP range, start > end: %s", ss)
 		}
 
-		return IPRangeNetIP{Start: start, End: end, Prefix: GetPrefix(start, end)}
+		return IPRangeNetIP{Start: start, End: end, Prefix: GetPrefixFromNetIPs(start, end)}
 	} else if strings.Contains(string(ss), "/") {
 		if network, err := netip.ParsePrefix(string(ss)); err != nil {
 			return err
