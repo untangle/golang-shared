@@ -3,6 +3,7 @@ package net
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"net/netip"
 	"strings"
 )
@@ -20,13 +21,48 @@ func CheckIPAddressTypeNetIP(ip netip.Addr) (string, error) {
 
 // IPRange is a range of IPs, from Start to End inclusive.
 type IPRangeNetIP struct {
-	Start netip.Addr
-	End   netip.Addr
+	Start  netip.Addr
+	End    netip.Addr
+	Prefix netip.Prefix
+}
+
+// Determine a netip.Prefix based on start and end
+// This is only implemented for IPv4 for now
+func GetPrefix(start netip.Addr, end netip.Addr) netip.Prefix {
+	ipas16 := start.As16()
+	bigTop := big.NetInt(0)
+	bigTop.SetBytes(ipas16[0:8])
+	bigStart := big.NewInt(0)
+	bigStart.SetBytes(ipas16[8:16])
+	ipas16 = end.As16()
+	bigEnd := big.NewInt(0)
+	bigEnd.SetBytes(ipas16[8:16])
+
+	bits := 128
+	bigMask := big.NewInt(0xFFFFFFFFFFFFFFFF)
+	bigTwo := big.NewInt(2)
+	for bits = 128; bits > 0; bits-- {
+		if bigStart.And(bigStart, bigMask).Cmp(bigEnd.And(bigEnd, bigMask)) == 0 {
+			break
+		}
+		bigMask.Mul(bigMask, bigTwo)
+	}
+	base16 := append(bigTop, bigStart.And(bigStart, bigMask).Bytes())
+	return netip.PrefixFrom(netip.AddrFrom16(base16), bits)
+}
+
+func NewIPRangeNetIP(start netip.Addr, end, netip.Addr) {
+	return IPRangeNetIP{
+		Start: start,
+		End: end,
+		Prefix: GetPrefix(start, end),
+	}
 }
 
 // Contains returns true if the ip is between the Start and End of r,
 // inclusive.
 func (r IPRangeNetIP) Contains(ip netip.Addr) bool {
+	// Could potentially optimize this using the Prefix
 	return r.Start.Compare(ip) <= 0 && r.End.Compare(ip) >= 0
 }
 
@@ -56,7 +92,7 @@ func (ss IPSpecifierString) ParseNetIP() any {
 			return fmt.Errorf("invalid IP range, start > end: %s", ss)
 		}
 
-		return IPRangeNetIP{Start: start, End: end}
+		return IPRangeNetIP{Start: start, End: end, Prefix: GetPrefix(start, end)}
 	} else if strings.Contains(string(ss), "/") {
 		if network, err := netip.ParsePrefix(string(ss)); err != nil {
 			return err
@@ -83,7 +119,7 @@ func NetToRangeNetIP(prefix netip.Prefix) (IPRangeNetIP, error) {
 	}
 	base := prefix.Masked().Addr()
 
-	// the internal 128bit representation is privat
+	// the internal 128bit representation is private
 	// all calculations must be done in the bytes representation
 	a16 := base.As16()
 
@@ -105,5 +141,5 @@ func NetToRangeNetIP(prefix netip.Prefix) (IPRangeNetIP, error) {
 		last = last.Unmap()
 	}
 
-	return IPRangeNetIP{base, last}, nil
+	return IPRangeNetIP{base, last, prefix}, nil
 }
