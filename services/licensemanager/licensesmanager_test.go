@@ -115,6 +115,7 @@ func TestGetLicenseDefaults(t *testing.T) {
 		"untangle-node-threat-prevention",
 		"untangle-node-sitefilter",
 		"untangle-node-geoip",
+		"untangle-node-captiveportal",
 	}
 
 	assert.ElementsMatch(t, expectedKeys, serviceKeys)
@@ -338,6 +339,7 @@ func (suite *LicenseManagerTestSuite) SetupSuite() {
 		"untangle-node-threat-prevention": {Name: "untangle-node-threat-prevention", State: ServiceState{AllowedState: 1}},
 		"untangle-node-sitefilter":        {Name: "untangle-node-sitefilter", State: ServiceState{AllowedState: 0}},
 		"untangle-node-geoip":             {Name: "untangle-node-geoip", State: ServiceState{AllowedState: 0}},
+		"untangle-node-captiveportal":     {Name: "untangle-node-captiveportal", State: ServiceState{AllowedState: 0}},
 	}
 
 	suite.lm.Startup()
@@ -406,6 +408,12 @@ func getTestConfig() *Config {
 		// Setting Star/Stop to non-nil
 		// prevents sighups from being sent
 		// out to non-existent binaries
+		"untangle-node-captiveportal": {
+			Start:    func() {},
+			Stop:     func() {},
+			Enabled:  nil,
+			Disabled: disableCaptivePortal,
+		},
 		"untangle-node-threat-prevention": {
 			Start:    func() {},
 			Stop:     func() {},
@@ -445,6 +453,11 @@ func getTestConfig() *Config {
 		ValidServiceHooks:    apps,
 		Executable:           "testd",
 	}
+}
+
+// DisableCaptivePortal
+func disableCaptivePortal() (interface{}, []string, error) {
+	return false, []string{"captiveportal", "enabled"}, nil
 }
 
 // DisableThreatPrevention
