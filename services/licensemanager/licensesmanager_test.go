@@ -142,6 +142,7 @@ func TestGetLicenseDetails(t *testing.T) {
 		"Application Control",
 		"Database Services",
 		"Device Discovery",
+		"Captive Portal",
 	}
 
 	actualDisplayNames := []string{}
