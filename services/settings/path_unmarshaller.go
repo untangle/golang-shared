@@ -258,7 +258,13 @@ func NewPathUnmarshaller(reader io.ReadSeeker) *PathUnmarshaller {
 // be anything json.Unmarshal accepts.
 func (unm *PathUnmarshaller) UnmarshalAtPath(output interface{}, path ...string) error {
 	unm.searchedForPath = path
-	outputPosition, err := unm.processObject([]string{}, path)
+	var outputPosition int64
+	var err error
+	if len(path) == 0 {
+		outputPosition = 0
+	} else {
+		outputPosition, err = unm.processObject([]string{}, path)
+	}
 	if err != nil {
 		return err
 	} else if outputPosition == notFound {
@@ -268,7 +274,9 @@ func (unm *PathUnmarshaller) UnmarshalAtPath(output interface{}, path ...string)
 		return fmt.Errorf("error seeking to position of object: %w", err)
 	}
 
-	err = unm.fastForwardToValue()
+	if outputPosition != 0 {
+		err = unm.fastForwardToValue()
+	}
 	if err != nil {
 		return err
 	}
