@@ -257,6 +257,8 @@ func BenchmarkIP6TestNetIP(b *testing.B) {
 			}
 		}
 	}
+	b.ResetTimer()
+
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
 			ipas16 := ip.As16()
@@ -286,6 +288,8 @@ func BenchmarkIP6Test(b *testing.B) {
 			}
 		}
 	}
+	b.ResetTimer()
+
 	for n := 0; n < b.N; n++ {
 		for _, ip := range ipArray {
 			// then set the last octet to 0 and create a range between it and ip

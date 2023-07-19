@@ -163,6 +163,8 @@ func TestIPs(t *testing.T) {
 		{eq, "23.23.0.0/16", true, false},
 		{eq, "23.23.0/16", false, true},
 		{eq, "dood", false, false},
+		{gt, "dood.dood", false, true},
+		{gt, "dood:dood", false, true},
 	}
 	testDriver(t, ip, tests)
 
@@ -190,8 +192,26 @@ func TestIPs(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, result)
 
-	ipComparable, err = NewIPOrIPNetComparable("192.168.123/24")
+	_, err = NewIPOrIPNetComparable("192.168.123/24")
 	assert.NotNil(t, err)
+
+	ip = NewIPComparable("ABCD:EF01:2345:6789:ABCD:EF01:2345:6789")
+
+	tests = []valueCondTest{
+		{eq, "123.123.1.1", false, false},
+		{eq, "123.123.1.2", false, false},
+		{eq, 6, false, true},
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789", true, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
+	testDriver(t, ip, tests)
 }
 
 func TestIPNets(t *testing.T) {
@@ -202,10 +222,159 @@ func TestIPNets(t *testing.T) {
 		{eq, "132.1.24.1", false, false},
 		{eq, "132.22.1.1", false, false},
 		{eq, 6, false, true},
-		{eq, "dood", false, false}}
-
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789", false, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
 	testDriver(t, ipnet, tests)
 
+	_, val, _ = net.ParseCIDR("ABCD:EF01:2345:6789:ABCD:EF01:2345:6789/24")
+	ipnet = IPNetComparable{ipnet: *val}
+
+	tests = []valueCondTest{
+		{eq, "132.1.23.1", false, false},
+		{eq, "132.1.24.1", false, false},
+		{eq, "132.22.1.1", false, false},
+		{eq, 6, false, true},
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789", true, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
+	testDriver(t, ipnet, tests)
+}
+
+func TestIPNext(t *testing.T) {
+	ip := NewIPComparable("132.1.23.0")
+	tests := []valueCondTest{
+		{eq, "132.1.23.1", true, false},
+		{eq, "132.1.24.0", false, false},
+		{eq, "132.22.1.1", false, false},
+		{eq, "6", false, true},
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789", false, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
+	for _, test := range tests {
+		testIP := net.ParseIP(test.value.(string))
+		result, err := ip.Next()
+		if err != nil {
+			assert.True(t, true == test.iserr, "Failed error test for %s Equal %s\n",
+				ip.ipaddr.String(), test.value)
+		} else {
+			assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
+				result.String(), test.value)
+		}
+	}
+	ip = NewIPComparable("ABCD:EF01:2345:6789:ABCD:EF01:2345:6789")
+	tests = []valueCondTest{
+		{eq, "132.1.23.1", false, false},
+		{eq, "132.1.24.0", false, false},
+		{eq, "132.22.1.1", false, false},
+		{eq, "6", false, true},
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:678A", true, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
+	for _, test := range tests {
+		testIP := net.ParseIP(test.value.(string))
+		result, err := ip.Next()
+		if err != nil {
+			assert.True(t, true == test.iserr, "Failed error test for %s Equal %s\n",
+				ip.ipaddr.String(), test.value)
+		} else {
+			assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
+				result.String(), test.value)
+		}
+	}
+}
+
+func TestIPNetNext(t *testing.T) {
+	comparable, _ := NewIPOrIPNetComparable("132.1.23.0/24")
+	ipnet := comparable.(IPNetComparable)
+	tests := []valueCondTest{
+		{eq, "132.1.24.0/24", true, false},
+		{eq, "132.1.23.1/24", false, false},
+		{eq, "132.22.1.1/24", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6700/120", false, false},
+		{eq, "2001:0db8::2/120", false, false},
+		{eq, "2001:fe99::0/120", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A/120", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101/120", false, false},
+		{eq, "::13.1.68.3/120", false, false},
+		{eq, "::FFFF:129.144.52.38/120", false, false},
+		{eq, "::FFFF:216.151.130.153/120", false, false},
+	}
+	for _, test := range tests {
+		testIP, _, err := net.ParseCIDR(test.value.(string))
+		if err != nil {
+			assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
+				ipnet, test.value)
+		} else {
+			result, err := ipnet.Next()
+			if err != nil {
+				assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
+					ipnet, test.value)
+			} else {
+				assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
+					result.String(), test.value)
+			}
+		}
+	}
+	comparable, _ = NewIPOrIPNetComparable("ABCD:EF01:2345:6789:ABCD:EF01:2345:678A/120")
+	ipnet = comparable.(IPNetComparable)
+	tests = []valueCondTest{
+		{eq, "132.1.24.0/24", false, false},
+		{eq, "132.1.23.1/24", false, false},
+		{eq, "132.22.1.1/24", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6800/120", true, false},
+		{eq, "2001:0db8::2/120", false, false},
+		{eq, "2001:fe99::0/120", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A/120", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101/120", false, false},
+		{eq, "::13.1.68.3/120", false, false},
+		{eq, "::FFFF:129.144.52.38/120", false, false},
+		{eq, "::FFFF:216.151.130.153/120", false, false},
+	}
+	for _, test := range tests {
+		testIP, _, err := net.ParseCIDR(test.value.(string))
+		if err != nil {
+			assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
+				ipnet, test.value)
+		} else {
+			result, err := ipnet.Next()
+			if err != nil {
+				assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
+					ipnet, test.value)
+			} else {
+				assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
+					result.String(), test.value)
+			}
+		}
+	}
 }
 
 func TestTimeComparable(t *testing.T) {
