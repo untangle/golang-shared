@@ -1,7 +1,6 @@
 package net
 
 import (
-	"bytes"
 	"fmt"
 	"net"
 	"net/netip"
@@ -42,10 +41,9 @@ type IPRange struct {
 // Contains returns true if the ip is between the Start and End of r,
 // inclusive.
 func (r IPRange) Contains(ip net.IP) bool {
-	start := r.Start.As16()
-	end := r.End.As16()
-	return bytes.Compare(start[:], ip.To16()[:]) <= 0 &&
-		bytes.Compare(end[:], ip.To16()[:]) >= 0
+	ipNetIP, _ := netip.AddrFromSlice(ip)
+	return r.Start.Compare(ipNetIP) <= 0 &&
+		r.End.Compare(ipNetIP) >= 0
 }
 
 // Parse returns the parsed specifier as one of:
