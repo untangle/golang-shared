@@ -107,9 +107,9 @@ func (ip IPComparable) Next() (net.IP, error) {
 	return nil, fmt.Errorf("could not handle IPv6 %v", addr)
 }
 
-// Return the next IP based on the  end of a given subnet or err if applicable
-func (ipnet IPNetComparable) Next() (net.IP, error) {
+// Return the next IP based on the  end of a given subnet
+func (ipnet IPNetComparable) Next() net.IP {
 	next := utilnet.NetToRange(&ipnet.ipnet).End.Next()
 
-	return next.AsSlice(), nil
+	return next.AsSlice()
 }

@@ -334,14 +334,9 @@ func TestIPNetNext(t *testing.T) {
 			assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
 				ipnet, test.value)
 		} else {
-			result, err := ipnet.Next()
-			if err != nil {
-				assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
-					ipnet, test.value)
-			} else {
-				assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
-					result.String(), test.value)
-			}
+			result := ipnet.Next()
+			assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
+				result.String(), test.value)
 		}
 	}
 	comparable, _ = NewIPOrIPNetComparable("ABCD:EF01:2345:6789:ABCD:EF01:2345:678A/120")
@@ -365,14 +360,9 @@ func TestIPNetNext(t *testing.T) {
 			assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
 				ipnet, test.value)
 		} else {
-			result, err := ipnet.Next()
-			if err != nil {
-				assert.True(t, true == test.iserr, "Failed error test for %v Equal %s\n",
-					ipnet, test.value)
-			} else {
-				assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
-					result.String(), test.value)
-			}
+			result := ipnet.Next()
+			assert.True(t, test.result == result.Equal(testIP), "Failed Next match for %s and %s\n",
+				result.String(), test.value)
 		}
 	}
 }
