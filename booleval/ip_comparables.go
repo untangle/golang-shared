@@ -109,7 +109,13 @@ func (ip IPComparable) Next() (net.IP, error) {
 
 // Return the next IP based on the  end of a given subnet or err if applicable
 func (ipnet IPNetComparable) Next() (net.IP, error) {
-	// Could move the NetToRange() code here and streamline it
-	arange := utilnet.NetToRange(&ipnet.ipnet)
-	return IPComparable{ipaddr: arange.End}.Next()
+	next := utilnet.NetToRange(&ipnet.ipnet).End.Next()
+
+	if next.Is4() {
+		addr := next.As4()
+		return net.IPv4(addr[0], addr[1], addr[2], addr[3]), nil
+	} else {
+		addr := next.String()
+		return net.ParseIP(addr), nil
+	}
 }
