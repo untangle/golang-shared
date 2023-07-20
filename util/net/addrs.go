@@ -105,8 +105,7 @@ func NetToRange(network *net.IPNet) IPRange {
 		remainderMask := (1 << (remainderBits)) - 1
 		upper[len-(maskedBytes+1)] |= byte(remainderMask)
 	}
-	// Not optimal to use String
-	start, _ := netip.ParseAddr(lower.String())
-	end, _ := netip.ParseAddr(upper.String())
-	return IPRange{Start: start, End: end}
+	lowerNetIP, _ := netip.AddrFromSlice(lower)
+	upperNetIP, _ := netip.AddrFromSlice(upper)
+	return IPRange{Start: lowerNetIP, End: upperNetIP}
 }
