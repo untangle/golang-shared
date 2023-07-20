@@ -111,11 +111,5 @@ func (ip IPComparable) Next() (net.IP, error) {
 func (ipnet IPNetComparable) Next() (net.IP, error) {
 	next := utilnet.NetToRange(&ipnet.ipnet).End.Next()
 
-	if next.Is4() {
-		addr := next.As4()
-		return net.IPv4(addr[0], addr[1], addr[2], addr[3]), nil
-	} else {
-		addr := next.String()
-		return net.ParseIP(addr), nil
-	}
+	return next.AsSlice(), nil
 }
