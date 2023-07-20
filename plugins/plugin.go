@@ -184,7 +184,7 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 func (control *PluginControl) Unregister(name string) error {
 
 	// Search the plugins slice and remove
-	// TODO: When we migrate to go1.21, do this with the "slice" package instead of manually
+	// TODO: When we migrate to go1.21, do this with the "slice" package instead of manually searching
 	for indx, plugin := range control.plugins {
 		if plugin.Name() == name {
 			// remove the index from the slice
@@ -214,11 +214,13 @@ func (control *PluginControl) Startup() {
 	for _, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
+
 			if unregErr := control.Unregister(plugin.Name()); unregErr != nil {
 				logger.Crit("couldn't unregister plugin %s after failed startup: %s",
 					plugin.Name(),
 					unregErr)
 			}
+
 			if control.enableStartupPanic {
 				panic(fmt.Sprintf("couldn't startup plugin %s: %s",
 					plugin.Name(),
