@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -416,16 +417,21 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 func runSyncSettings(filename string, force bool) (string, error) {
 	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
 	outbytes, err := cmd.CombinedOutput()
+	// The below regex is used to identify the starting index of json object from stdout by matching with the first key value pair
+	jsonPattern := `\{\n\s{2}"[a-z]+":\s{1}.+`
+	regExp := regexp.MustCompile(jsonPattern)
 	output := string(outbytes)
+	jsonStartIndex := regExp.FindStringIndex(output)
+	jsonOutput := output[jsonStartIndex[0]:]
 	if err != nil {
 		// json decode the error, and get the attributes
 		var data map[string]string
-		json.Unmarshal([]byte(output), &data)
+		json.Unmarshal(outbytes[jsonStartIndex[0]:], &data)
 		logger.Warn("Failed to run sync-settings: %v\n", err.Error())
 		// return the trace and the error raised
 		return data["traceback"], errors.New(data["raisedException"])
 	}
-	return output, nil
+	return jsonOutput, nil
 }
 
 // this runs the `sync` command so the OS writes the cached file changes
