@@ -1,11 +1,13 @@
 package plugins
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
-	logService "github.com/untangle/golang-shared/services/logger"
 	"go.uber.org/dig"
+
+	logService "github.com/untangle/golang-shared/services/logger"
 )
 
 var logger = logService.GetLoggerInstance()
@@ -178,6 +180,23 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 	}
 }
 
+// Unregister removes the a plugin from list of plugins
+func (control *PluginControl) Unregister(name string) error {
+
+	// Search the plugins slice and remove
+	// TODO: When we migrate to go1.21, do this with the "slice" package instead of manually
+	for indx, plugin := range control.plugins {
+		if plugin.Name() == name {
+			// remove the index from the slice
+			control.plugins = append(control.plugins[:indx], control.plugins[indx+1:]...)
+		} else {
+		logger.Info("Could not unregister plugin. Plugin not found in list %s\n", plugin.Name())
+            return errors.New("could not unregister plugin")
+		}
+	}
+	return nil
+}
+
 // Startup constructs and then starts all registered plugins. It
 // panics if any don't start. So it will call the constructor passed
 // to RegisterPlugin with whatever arguments it requires (obtained via
@@ -195,6 +214,11 @@ func (control *PluginControl) Startup() {
 	for _, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
+			if unregErr := control.Unregister(plugin.Name()); unregErr != nil {
+				logger.Crit("couldn't unregister plugin %s after failed startup: %s",
+					plugin.Name(),
+					unregErr)
+			}
 			if control.enableStartupPanic {
 				panic(fmt.Sprintf("couldn't startup plugin %s: %s",
 					plugin.Name(),
