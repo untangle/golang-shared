@@ -45,9 +45,8 @@ func (r IPRange) Contains(ip net.IP) bool {
 	if r.Start.Is6() {
 		ipNetIP, _ = netip.AddrFromSlice(ip.To16())
 	}
-	x := r.Start.Compare(ipNetIP)
-	y := r.End.Compare(ipNetIP)
-	return x <= 0 && y >= 0
+	return r.Start.Compare(ipNetIP) <= 0 &&
+		r.End.Compare(ipNetIP) >= 0
 }
 
 // Parse returns the parsed specifier as one of:

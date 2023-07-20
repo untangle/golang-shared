@@ -73,7 +73,6 @@ func NewIPRangeNetIP(start netip.Addr, end netip.Addr) IPRangeNetIP {
 func (r IPRangeNetIP) Contains(ip netip.Addr) bool {
 	// Could potentially optimize this using the Prefix
 	return r.Prefix.Contains(ip)
-	//return r.Start.Compare(ip) <= 0 && r.End.Compare(ip) >= 0
 }
 
 // Parse returns the parsed specifier as one of:
