@@ -47,9 +47,13 @@ type PluginControl struct {
 // NewPluginControl creates an empty PluginControl
 func NewPluginControl() *PluginControl {
 	container := dig.New()
-	return &PluginControl{
+	ctrl := &PluginControl{
 		Container:          *container,
 		enableStartupPanic: true}
+	ctrl.Provide(func() *PluginControl {
+		return ctrl
+	})
+	return ctrl
 }
 
 var pluginControl *PluginControl
@@ -207,9 +211,7 @@ func (control *PluginControl) Startup() {
 		} else {
 			control.findConsumers(plugin)
 		}
-
 	}
-
 }
 
 // LogStartupErrors sets the PluginControl to just log errors when
