@@ -368,15 +368,15 @@ func TestIPNetNext(t *testing.T) {
 }
 
 func TestTimeComparable(t *testing.T) {
-	time1 := time.Date(1999, time.April, 1, 0, 0, 0, 0, time.Local)
+	time1 := time.Date(1999, time.April, 1, 0, 0, 0, 0, time.UTC)
 	timeComparable := TimeComparable{time: time1}
 	tests := []valueCondTest{
 		{eq, time1.Unix(), true, false},
 		{eq, time1, true, false},
 		{eq, "foop", false, true},
 		{gt, "foop", false, true},
-		{eq, "01 Apr 99 00:00 MST", true, false},
-		{gt, "01 Apr 98 00:00 MST", true, false},
+		{eq, "01 Apr 99 00:00 UTC", true, false},
+		{gt, "01 Apr 98 00:00 UTC", true, false},
 		{gt, time1.Add(time.Hour), false, false},
 		{gt, time1.Add(-time.Hour), true, false},
 		{gt, time1.Unix() - 1, true, false},
