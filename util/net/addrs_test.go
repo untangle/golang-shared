@@ -192,6 +192,8 @@ func loadFile(filename string) {
 	}
 }
 
+var idx = 0
+
 func BenchmarkIP4TestNetIP(b *testing.B) {
 	ipArray := make([]netip.Addr, 0)
 	loadFile("testdata/ip4s.txt")
@@ -204,22 +206,20 @@ func BenchmarkIP4TestNetIP(b *testing.B) {
 			}
 		}
 	}
-	for n := 0; n < b.N; n++ {
-		for _, ip := range ipArray {
-			ipas4 := ip.As4()
-			ipas4[3] = 0
-			newip := netip.AddrFrom4(ipas4)
-			ipPrefix := netip.PrefixFrom(newip, 24)
-			assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
-			// then set the last octet to 0 and create a range between it and ip
-			limit := byte(255)
-			for octet := byte(0); octet < limit; octet++ {
-				ipas4[3] = octet
-				newip = netip.AddrFrom4(ipas4)
-				assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
-			}
-		}
+	b.ResetTimer()
+
+	ip := ipArray[idx]
+	ipas4 := ip.As4()
+	// then set the last octet to 0 and create a range between it and ip
+	ipas4[3] = 0
+	newip := netip.AddrFrom4(ipas4)
+	ipPrefix := netip.PrefixFrom(newip, 24)
+	for octet := 0; octet < 256; octet++ {
+		assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
+		newip = newip.Next()
 	}
+	assert.Falsef(b, ipPrefix.Contains(newip), "Failed  unexpected containment of %v\n", newip)
+	idx = (idx + 1) % len(ipArray)
 }
 
 func BenchmarkIP4Test(b *testing.B) {
@@ -233,21 +233,52 @@ func BenchmarkIP4Test(b *testing.B) {
 			}
 		}
 	}
-	for n := 0; n < b.N; n++ {
-		for _, ip := range ipArray {
-			// then set the last octet to 0 and create a range between it and ip
-			newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
-				ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
-				ip[14], 0}
-			ipNet := net.IPNet{IP: newip, Mask: net.IPv4Mask(255, 255, 255, 0)}
-			assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
-			limit := byte(255)
-			for octet := byte(0); octet < limit; octet++ {
-				newip[15] = octet
-				assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
+	mask := net.IPv4Mask(255, 255, 255, 0)
+	b.ResetTimer()
+
+	newip := ipArray[idx].To4()
+	// then set the last octet to 0 and create a range between it and ip
+	newip[3] = 0
+	ipNet := net.IPNet{IP: newip, Mask: mask}
+	anip := net.IPv4(newip[0], newip[1], newip[2], 0).To4()
+	for octet := 0; octet < 256; octet++ {
+		assert.Truef(b, ipNet.Contains(anip), "Failed containment of %v\n", anip)
+		anip[3]++
+	}
+	anip[2]++
+	assert.Falsef(b, ipNet.Contains(anip), "Failed  unexpected containment of %v\n", anip)
+	idx = (idx + 1) % len(ipArray)
+}
+
+func BenchmarkIP4Range(b *testing.B) {
+	ipArray := make([]net.IP, 0)
+	loadFile("testdata/ip4s.txt")
+	for _, line := range lines {
+		if len(line) > 0 {
+			if line[0] != '#' {
+				ipx := net.ParseIP(line)
+				ipArray = append(ipArray, ipx)
 			}
 		}
 	}
+	b.ResetTimer()
+
+	ip := ipArray[idx]
+	newip := ip.To4()
+	// then set the last octet to 0 and create a range between it and ip
+	newip[3] = 0
+	start, _ := netip.AddrFromSlice(newip)
+	newip[3] = 255
+	end, _ := netip.AddrFromSlice(newip)
+	newip[3] = 0
+	ipRange := IPRange{Start: start, End: end}
+	for octet := 0; octet < 256; octet++ {
+		assert.Truef(b, ipRange.Contains(newip), "Failed containment of %v\n", newip)
+		newip[3]++
+	}
+	newip[2]++
+	assert.Falsef(b, ipRange.Contains(newip), "Failed  unexpected containment of %v\n", newip)
+	idx = (idx + 1) % len(ipArray)
 }
 
 func BenchmarkIP6TestNetIP(b *testing.B) {
@@ -264,22 +295,19 @@ func BenchmarkIP6TestNetIP(b *testing.B) {
 	}
 	b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
-		for _, ip := range ipArray {
-			ipas16 := ip.As16()
-			ipas16[15] = 0
-			newip := netip.AddrFrom16(ipas16)
-			ipPrefix := netip.PrefixFrom(newip, 120)
-			assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
-			// then set the last octet to 0 and create a range between it and ip
-			limit := byte(255)
-			for octet := byte(0); octet < limit; octet++ {
-				ipas16[15] = octet
-				newip = netip.AddrFrom16(ipas16)
-				assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
-			}
-		}
+	ip := ipArray[idx]
+	ipas16 := ip.As16()
+	// then set the last octet to 0 and create a range between it and ip
+	ipas16[15] = 0
+	newip := netip.AddrFrom16(ipas16)
+	ipPrefix := netip.PrefixFrom(newip, 120)
+	assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
+	for octet := 0; octet < 256; octet++ {
+		assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
+		newip = newip.Next()
 	}
+	assert.Falsef(b, ipPrefix.Contains(newip), "Failed  unexpected containment of %v\n", newip)
+	idx = (idx + 1) % len(ipArray)
 }
 
 func BenchmarkIP6Test(b *testing.B) {
@@ -293,37 +321,74 @@ func BenchmarkIP6Test(b *testing.B) {
 			}
 		}
 	}
+	mask := []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0}
+	var anip = net.IPv4(0, 0, 0, 0).To16()
 	b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
-		for _, ip := range ipArray {
-			// then set the last octet to 0 and create a range between it and ip
-			newip := net.IP{ip[0], ip[1], ip[2], ip[3], ip[4], ip[5],
-				ip[6], ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
-				ip[14], 0}
-			ipNet := net.IPNet{
-				IP:   newip,
-				Mask: []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0},
-			}
-			assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
-			limit := byte(255)
-			for octet := byte(0); octet < limit; octet++ {
-				newip[15] = octet
-				assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
+	ip := ipArray[idx]
+	newip := ip.To16()
+	// then set the last octet to 0 and create a range between it and ip
+	newip[15] = 0
+	ipNet := net.IPNet{IP: newip, Mask: mask}
+
+	copy(anip[:], newip[:])
+	for octet := 0; octet < 256; octet++ {
+		assert.Truef(b, ipNet.Contains(anip), "Failed containment of %v\n", anip)
+		anip[15]++
+	}
+	anip[14]++
+	assert.Falsef(b, ipNet.Contains(anip), "Failed  unexpected containment of %v\n", anip)
+	idx = (idx + 1) % len(ipArray)
+}
+
+func BenchmarkIP6Range(b *testing.B) {
+	ipArray := make([]net.IP, 0)
+	loadFile("testdata/ip6s.txt")
+	for _, line := range lines {
+		if len(line) > 0 {
+			if line[0] != '#' {
+				ipx := net.ParseIP(line)
+				ipArray = append(ipArray, ipx)
 			}
 		}
 	}
+	b.ResetTimer()
+
+	ip := ipArray[idx]
+	newip := ip.To16()
+	// then set the last octet to 0 and create a range between it and ip
+	newip[15] = 0
+	start, _ := netip.AddrFromSlice(newip)
+	newip[15] = 255
+	end, _ := netip.AddrFromSlice(newip)
+	newip[15] = 0
+	ipRange := IPRange{Start: start, End: end}
+	for octet := 0; octet < 256; octet++ {
+		assert.Truef(b, ipRange.Contains(newip), "Failed containment of %v\n", newip)
+		newip[15]++
+	}
+	newip[14]++
+	assert.Falsef(b, ipRange.Contains(newip), "Failed  unexpected containment of %v\n", newip)
+	idx = (idx + 1) % len(ipArray)
 }
 
 func BenchmarkAll(b *testing.B) {
 	// Load lines ahead of benchmark
 	loadFile("testdata/ip4s.txt")
+	idx = 0
 	b.Run("IP4Test with net/netip", BenchmarkIP4TestNetIP)
+	idx = 0
 	b.Run("IP4Test with net(existing)", BenchmarkIP4Test)
+	idx = 0
+	b.Run("IP4Test using IPRange", BenchmarkIP4Range)
 
 	// Reset lines for IPv6
 	lines = make([]string, 0)
 	loadFile("testdata/ip6s.txt")
+	idx = 0
 	b.Run("IP6Test with net/netip", BenchmarkIP6TestNetIP)
+	idx = 0
 	b.Run("IP6Test with net(existing)", BenchmarkIP6Test)
+	idx = 0
+	b.Run("IP6Test using IPRange", BenchmarkIP6Range)
 }
