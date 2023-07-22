@@ -1,10 +1,9 @@
-package dynamic_ip_blocker
+package dynamic_block_lists
 
 // Example for this struct is present on mfw_schema
 
-// DynamicIpBlockerConfig is the data structure for Dynamic IP blocker configurations.
-// It contains an array of Dynamic IP Blocker Configurations
-type DynamicIpBlockerConfig struct {
+// DynamicBlockListsConfig is the data structure for JSON marshalling and unamrshalling Dynamic Block Lists configurations.
+type DynamicBlockListsConfig struct {
 	Name           string   `json:"name"`
 	ID             string   `json:"id"`
 	Type           string   `json:"type"`
