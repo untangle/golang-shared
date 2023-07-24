@@ -1,7 +1,6 @@
 package plugins
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -181,22 +180,6 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 }
 
 // UnregisterPlugin removes a plugin from the list of plugins
-func (control *PluginControl) UnregisterPlugin(name string) error {
-
-	// Search the plugins slice and remove
-	// TODO: When we migrate to go1.21, do this with the "slice" package instead of manually searching
-	for indx, plugin := range control.plugins {
-		if plugin.Name() == name {
-			// remove the index from the slice
-			control.plugins = append(control.plugins[:indx], control.plugins[indx+1:]...)
-		} else {
-			logger.Info("Could not unregister plugin. Plugin not found in list %s\n", plugin.Name())
-			return errors.New("could not unregister plugin")
-		}
-	}
-	return nil
-}
-
 func (control *PluginControl) UnregisterPluginByIndex(indx int) {
 	control.plugins = append(control.plugins[:indx], control.plugins[indx+1:]...)
 }
