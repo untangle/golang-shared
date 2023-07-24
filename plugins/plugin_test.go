@@ -47,13 +47,6 @@ func TestFailingStartPlugin(t *testing.T) {
 			return &Config{Name: configName, FailingStartup: true}
 		}))
 
-
-    for _, plugin := range pluginController.plugins {
-		if plugin.Name() == configName {
-			t.Fatal("Plugin did not Unregister")
-		}
-	}
-
     assert.Len(t,pluginController.plugins,0)
 
 	// This will start the plugins
