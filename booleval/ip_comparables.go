@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net"
 	"strings"
-
-	utilnet "github.com/untangle/golang-shared/util/net"
 )
 
 // IPComparable is a Comparable for net.IPs. It cannot be ordered.
@@ -87,29 +85,3 @@ func (i IPNetComparable) Equal(other any) (bool, error) {
 }
 
 var _ Comparable = IPNetComparable{}
-
-// Return the next IP based on a given IPComparable or error if the IP is invalid
-func (ip IPComparable) Next() (net.IP, error) {
-	addr := ip.ipaddr
-	len := len(addr)
-	result := make([]byte, len)
-	copy(result, addr)
-	for i := len - 1; i >= 0; i-- {
-		if result[i]++; result[i] != 0 {
-			break
-		}
-	}
-	if len == net.IPv4len {
-		return net.IPv4(result[0], result[1], result[2], result[3]), nil
-	} else if len == net.IPv6len {
-		return result, nil
-	}
-	return nil, fmt.Errorf("could not handle IPv6 %v", addr)
-}
-
-// Return the next IP based on the  end of a given subnet
-func (ipnet IPNetComparable) Next() net.IP {
-	next := utilnet.NetToRange(&ipnet.ipnet).End.Next()
-
-	return next.AsSlice()
-}
