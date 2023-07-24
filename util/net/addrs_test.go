@@ -26,14 +26,14 @@ func TestIPSpecString(t *testing.T) {
 	tests := []struct {
 		name        string
 		stringval   string
-		shoudlerr   bool
+		shoulderr   bool
 		shouldequal any
 	}{
 		{"ipv4 address", "132.123.123.1", false, net.IPv4(132, 123, 123, 1)},
 		{"ipv4 net", "132.123.123.1/24", false,
-			func() *net.IPNet {
+			func() IPRange {
 				_, net, _ := net.ParseCIDR("132.123.123.1/24")
-				return net
+				return NetToRange(net)
 			}(),
 		},
 		{"ipv4 range", "132.123.123.1-132.123.123.3", false,
@@ -53,7 +53,7 @@ func TestIPSpecString(t *testing.T) {
 			case net.IP, *net.IPNet, IPRange:
 				assert.EqualValues(t, typed, tt.shouldequal)
 			case error:
-				assert.True(t, tt.shoudlerr)
+				assert.True(t, tt.shoulderr)
 			default:
 				assert.FailNow(t, "invalid type: %T", typed)
 			}
@@ -158,15 +158,17 @@ func TestIPRangeFromCIDR(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, network, _ := net.ParseCIDR(tt.network)
-			netRange := NetToRange(network)
-			// We are using True() instead of Equal() because the assert
-			// library specifically tests for byteslices (which net.IP
-			// is), and tests them differently.
-			assert.True(t, tt.iprange.Start.Compare(netRange.Start) == 0,
-				"net range starts: %s (expected) should equal %s", tt.iprange.Start, netRange.Start)
-			assert.True(t, tt.iprange.End.Compare(netRange.End) == 0,
-				"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
+			result := IPSpecifierString(tt.network).Parse()
+			switch netRange := result.(type) {
+			case IPRange:
+				// We are using True() instead of Equal() because the assert
+				// library specifically tests for byteslices (which net.IP
+				// is), and tests them differently.
+				assert.True(t, tt.iprange.Start.Compare(netRange.Start) == 0,
+					"net range starts: %s (expected) should equal %s", tt.iprange.Start, netRange.Start)
+				assert.True(t, tt.iprange.End.Compare(netRange.End) == 0,
+					"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
+			}
 		})
 
 	}

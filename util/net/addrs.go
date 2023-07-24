@@ -76,9 +76,8 @@ func (ss IPSpecifierString) Parse() any {
 		if _, network, err := net.ParseCIDR(string(ss)); err != nil {
 			return err
 		} else {
-			return network
+			return NetToRange(network)
 		}
-
 	} else if ip := net.ParseIP(string(ss)); ip != nil {
 		return ip
 	} else {

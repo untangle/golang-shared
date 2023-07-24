@@ -148,7 +148,7 @@ func TestDayOfWeek(t *testing.T) {
 
 	testDriver(t, weekday, tests)
 
-	weekday, err = NewDayOfWeekFromString("fakeday")
+	_, err = NewDayOfWeekFromString("fakeday")
 	assert.NotNil(t, err)
 
 }
