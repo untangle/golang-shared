@@ -102,7 +102,7 @@ func TestIPRange(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.shouldContain, tt.ipRange.Contains(tt.ipAddr))
+			assert.Equal(t, tt.shouldContain, tt.ipRange.ContainsIP(tt.ipAddr))
 		})
 	}
 }
@@ -285,7 +285,7 @@ func BenchmarkIP4Range(b *testing.B) {
 		end, _ := netip.AddrFromSlice(newip)
 		ipRange := IPRange{Start: start, End: end}
 
-		assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
+		assert.Truef(b, ipRange.ContainsIP(ip), "Failed containment of %v\n", ip)
 
 		idx = (idx + 1) % len(ipArray)
 	}
@@ -377,7 +377,7 @@ func BenchmarkIP6Range(b *testing.B) {
 		end, _ := netip.AddrFromSlice(newip)
 		ipRange := IPRange{Start: start, End: end}
 
-		assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
+		assert.Truef(b, ipRange.ContainsIP(ip), "Failed containment of %v\n", ip)
 		idx = (idx + 1) % len(ipArray)
 	}
 }

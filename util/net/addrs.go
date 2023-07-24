@@ -40,7 +40,7 @@ type IPRange struct {
 
 // Contains returns true if the ip is between the Start and End of r,
 // inclusive.
-func (r IPRange) Contains(ip net.IP) bool {
+func (r IPRange) ContainsIP(ip net.IP) bool {
 	ipNetIP, _ := netip.AddrFromSlice(ip.To4())
 	if r.Start.Is6() {
 		ipNetIP, _ = netip.AddrFromSlice(ip.To16())
