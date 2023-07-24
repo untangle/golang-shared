@@ -422,6 +422,8 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	regExp := regexp.MustCompile(jsonPattern)
 	output := string(outbytes)
 	jsonStartIndex := regExp.FindStringIndex(output)
+	logger.Warn("Failed to run findstringindex: %v \n", len(jsonStartIndex))
+	logger.Warn("Failed to run findstringindex: %v \n", len(output))
 	jsonOutput := output[jsonStartIndex[0]:]
 	if err != nil {
 		// json decode the error, and get the attributes
