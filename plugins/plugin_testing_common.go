@@ -53,6 +53,11 @@ func (plugin *MockPlugin) Name() string {
 	return "MockPlugin"
 }
 
+// SettingsKey returns the settings key
+func (plugin *MockPlugin) SettingsKey() string {
+	return "MockPlugin"
+}
+
 func (plugin *MockPlugin) Shutdown() error {
 	returns := plugin.Called()
 	return returns.Error(0)

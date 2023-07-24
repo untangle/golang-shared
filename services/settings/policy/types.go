@@ -238,19 +238,28 @@ func (p *PolicySettings) FindFlow(id string) *PolicyFlow {
 	return nil
 }
 
-// Returns a list of disabled app services for a given policy ID.
-func (p *PolicySettings) FindDisabledConfigs(pol *Policy) []string {
-
-	disabledConfigs := []string{}
+// FindConfigsWithEnabled returns the configs with enabled status.
+func (p *PolicySettings) FindConfigsWithEnabled(pol *Policy, enabled bool) []string {
+	configs := []string{}
 	for _, configID := range pol.Configurations {
 		config := p.findConfiguration(configID)
 		if config != nil && config.AppSettings != nil {
 			for pluginName, pluginSettings := range config.AppSettings {
-				if pluginSettings.(map[string]interface{})["enabled"] == false {
-					disabledConfigs = append(disabledConfigs, pluginName)
+				if pluginSettings.(map[string]interface{})["enabled"] == enabled {
+					configs = append(configs, pluginName)
 				}
 			}
 		}
 	}
-	return disabledConfigs
+	return configs
+}
+
+// Returns a list of disabled app services for a given policy ID.
+func (p *PolicySettings) FindDisabledConfigs(pol *Policy) []string {
+	return p.FindConfigsWithEnabled(pol, false)
+}
+
+// FindEnabledConfigs returns enabled configs for this policy
+func (p *PolicySettings) FindEnabledConfigs(pol *Policy) []string {
+	return p.FindConfigsWithEnabled(pol, true)
 }
