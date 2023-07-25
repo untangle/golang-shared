@@ -372,7 +372,7 @@ func BenchmarkIP6Range(b *testing.B) {
 		end, _ := netip.AddrFromSlice(newip)
 		ipRange := IPRange{Start: start, End: end}
 
-		assert.Truef(b, ipRange.ContainsIP(ip), "Failed containment of %v\n", ip)
+		assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
 		idx = (idx + 1) % len(ipArray)
 	}
 }

@@ -73,7 +73,7 @@ func (ss IPSpecifierString) Parse() any {
 		} else if start.Compare(end) > 0 {
 			return fmt.Errorf("invalid IP range, start > end: %s", ss)
 		} else {
-			return IPRange{Start: start, End: end}
+			return IPRange{Start: netip.AddrFrom16(start.As16()), End: netip.AddrFrom16(end.As16())}
 		}
 	} else if strings.Contains(string(ss), "/") {
 		if _, network, err := net.ParseCIDR(string(ss)); err != nil {
