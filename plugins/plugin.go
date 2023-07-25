@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
-	logService "github.com/untangle/golang-shared/services/logger"
 	"go.uber.org/dig"
+
+	logService "github.com/untangle/golang-shared/services/logger"
 )
 
 var logger = logService.GetLoggerInstance()
@@ -47,9 +48,13 @@ type PluginControl struct {
 // NewPluginControl creates an empty PluginControl
 func NewPluginControl() *PluginControl {
 	container := dig.New()
-	return &PluginControl{
+	ctrl := &PluginControl{
 		Container:          *container,
 		enableStartupPanic: true}
+	ctrl.Provide(func() *PluginControl {
+		return ctrl
+	})
+	return ctrl
 }
 
 var pluginControl *PluginControl
@@ -178,6 +183,11 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 	}
 }
 
+// UnregisterPlugin removes a plugin from the list of plugins
+func (control *PluginControl) UnregisterPluginByIndex(indx int) {
+	control.plugins = append(control.plugins[:indx], control.plugins[indx+1:]...)
+}
+
 // Startup constructs and then starts all registered plugins. It
 // panics if any don't start. So it will call the constructor passed
 // to RegisterPlugin with whatever arguments it requires (obtained via
@@ -192,9 +202,12 @@ func (control *PluginControl) Startup() {
 		}
 	}
 
-	for _, plugin := range control.plugins {
+	var toUnregister []int
+
+	for indx, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
+
 			if control.enableStartupPanic {
 				panic(fmt.Sprintf("couldn't startup plugin %s: %s",
 					plugin.Name(),
@@ -204,10 +217,15 @@ func (control *PluginControl) Startup() {
 					plugin.Name(),
 					err)
 			}
+
+			toUnregister = append(toUnregister, indx)
 		} else {
 			control.findConsumers(plugin)
 		}
-
+	}
+	// Unregister the plugins that failed to startup
+	for _, pluginIndx := range toUnregister {
+		control.UnregisterPluginByIndex(pluginIndx)
 	}
 
 }

@@ -12,5 +12,6 @@ package plugins
 type SettingsInjectablePlugin interface {
 	Plugin
 	GetNewSettings() any
+	SettingsKey() string
 	SetSettings(any)
 }

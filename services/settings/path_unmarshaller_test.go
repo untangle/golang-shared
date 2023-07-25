@@ -14,46 +14,63 @@ type TestJSONUnmarshalSuite struct {
 	suite.Suite
 }
 
-// Test the most basic schenario -- get a value for a key.
-func (suite *TestJSONUnmarshalSuite) TestSimpleUnmarshalPath() {
-	jsonSimple := `{"one": "two"}`
-	unmarshaller := suite.getUnmarshallerForString(jsonSimple)
-	var output interface{}
-	suite.Nil(unmarshaller.UnmarshalAtPath(&output, "one"))
-	stringOutput := output.(string)
-	suite.Equal(stringOutput, "two")
-}
-
-// Test a more nested path.
-func (suite *TestJSONUnmarshalSuite) TestBiggerPath() {
-	jsonAdvanced := `{"one": {"two": {"three": {"x": 1, "y": 2}}}}`
-	var output interface{} = nil
-	unmarshaller := suite.getUnmarshallerForString(jsonAdvanced)
-	unmarshaller.UseNumber()
-	suite.Nil(unmarshaller.UnmarshalAtPath(&output, "one", "two", "three"))
-	mapOutput := output.(map[string]interface{})
-	xValue, err := mapOutput["x"].(json.Number).Int64()
-	suite.Nil(err)
-	yValue, err := mapOutput["y"].(json.Number).Int64()
-	suite.Nil(err)
-	suite.Equal(int(xValue), 1)
-	suite.Equal(int(yValue), 2)
-}
-
-// Test that basic structure unmarshalling works.
-func (suite *TestJSONUnmarshalSuite) TestStructUnmarshal() {
-
-	type Dummy struct {
+func (suite *TestJSONUnmarshalSuite) TestUnmarshalling() {
+	type dummy struct {
 		Value1 int64  `json:"value1"`
 		Value2 string `json:"value2"`
 	}
+	tests := []struct {
+		name           string
+		jsonString     string
+		expectedOutput any
+		path           []string
+		outputVar      any
+	}{
+		{
+			name:           "simple with one object",
+			path:           []string{"one"},
+			jsonString:     `{"one": "two"}`,
+			expectedOutput: "two",
+			outputVar:      nil,
+		},
+		{
+			name:       "simple multi-component object path",
+			path:       []string{"one", "two", "three"},
+			jsonString: `{"one": {"two": {"three": {"x": 1, "y": 2}}}}`,
+			outputVar:  nil,
+			expectedOutput: map[string]interface{}{
+				"x": json.Number("1"),
+				"y": json.Number("2"),
+			},
+		},
+		{
+			name:           "struct unmarshal",
+			jsonString:     `{"": null, "x": false, "path1": {"path2": {"value1": 222, "value2": "hello"}}}`,
+			path:           []string{"path1", "path2"},
+			outputVar:      &dummy{},
+			expectedOutput: &dummy{Value1: 222, Value2: "hello"},
+		},
+		{
+			name:           "root unmarshal",
+			jsonString:     `{"value1": 222, "value2": "hello", "ignored": 3030}`,
+			outputVar:      &dummy{},
+			expectedOutput: &dummy{Value1: 222, Value2: "hello"},
+		},
+	}
 
-	jsonDummy := `{"": null, "x": false, "path1": {"path2": {"value1": 222, "value2": "hello"}}}`
-	output := &Dummy{}
-	unmarshaller := suite.getUnmarshallerForString(jsonDummy)
-	suite.Nil(unmarshaller.UnmarshalAtPath(output, "path1", "path2"))
-	suite.Equal(output.Value1, int64(222))
-	suite.Equal(output.Value2, "hello")
+	for _, tt := range tests {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			unmarshaller := suite.getUnmarshallerForString(tt.jsonString)
+			unmarshaller.UseNumber()
+			if tt.outputVar != nil {
+				suite.NoError(unmarshaller.UnmarshalAtPath(tt.outputVar, tt.path...))
+			} else {
+				suite.NoError(unmarshaller.UnmarshalAtPath(&tt.outputVar, tt.path...))
+			}
+			suite.EqualValues(tt.expectedOutput, tt.outputVar)
+		})
+	}
+
 }
 
 // Test that we catch various error cases and do not panic.

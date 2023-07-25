@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"errors"
 	"fmt"
 	"syscall"
 
@@ -9,8 +10,9 @@ import (
 
 // Fake configuration to check DI works.
 type Config struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
+	Name           string `json:"name"`
+	ID             string `json:"id"`
+	FailingStartup bool   `json:"failing"`
 }
 
 // Mock plugin to check method calls.
@@ -27,14 +29,18 @@ func NewMockSingletonPlugin(config *Config) *MockPlugin {
 	return baseMockPluginSave
 }
 
-func GetMockPluginConstructor() (*MockPlugin, *mock.Mock, func(config *Config) *MockPlugin) {
+func GetMockPluginConstructor(config *Config) (*MockPlugin, *mock.Mock, func(config *Config) *MockPlugin) {
 	baseMockPluginSave = &MockPlugin{}
+    baseMockPluginSave.config = config
 	fmt.Printf("plugin save: %v (intf: %v)\n", baseMockPluginSave, (interface{}(baseMockPluginSave)).(Plugin))
 	return baseMockPluginSave, &baseMockPluginSave.Mock, NewMockSingletonPlugin
 }
 
 func (plugin *MockPlugin) Startup() error {
-	returns := plugin.Mock.Called()
+	returns := plugin.Called()
+	if plugin.config.FailingStartup {
+		return errors.New("generic Error")
+	}
 	return returns.Error(0)
 }
 
@@ -44,6 +50,11 @@ func (plugin *MockPlugin) Signal(sig syscall.Signal) error {
 }
 
 func (plugin *MockPlugin) Name() string {
+	return "MockPlugin"
+}
+
+// SettingsKey returns the settings key
+func (plugin *MockPlugin) SettingsKey() string {
 	return "MockPlugin"
 }
 
