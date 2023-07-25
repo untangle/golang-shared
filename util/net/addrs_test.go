@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Helper function to generate full IPv6 addresses for use with netip.
 func v6NetIP(a byte, b byte, c byte, d byte) netip.Addr {
 	addr := [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c, d}
 	return netip.AddrFrom16(addr)
@@ -169,8 +170,10 @@ func TestIPRangeFromCIDR(t *testing.T) {
 	}
 }
 
+// global storage of lines loaded by loadFile
 var lines []string
 
+// Helper function to load an array of strings(IP's) from an IP file.
 func loadFile(filename string) {
 	mutex := sync.Mutex{}
 	mutex.Lock()
@@ -193,8 +196,10 @@ func loadFile(filename string) {
 // across repeated calls to the Benchmark
 var idx = 0
 
+// Array of netips's for use in the netip tests
 var netipArray = make([]netip.Addr, 0)
 
+// Benchmark netip.Prefix (network) using IPv4 addresses
 func BenchmarkIP4TestNetIP(b *testing.B) {
 	b.StopTimer()
 
@@ -225,8 +230,10 @@ func BenchmarkIP4TestNetIP(b *testing.B) {
 	}
 }
 
+// Array of net.IP's for the net.IP tests
 var ipArray = make([]net.IP, 0)
 
+// Benchmark net.IPNet using IPv4 addresses
 func BenchmarkIP4Test(b *testing.B) {
 	b.StopTimer()
 
@@ -255,6 +262,7 @@ func BenchmarkIP4Test(b *testing.B) {
 	}
 }
 
+// Benchmark IPRange using IPv4 addresses
 func BenchmarkIP4Range(b *testing.B) {
 	b.StopTimer()
 
@@ -286,6 +294,7 @@ func BenchmarkIP4Range(b *testing.B) {
 	}
 }
 
+// Benchmark netip.Prefix using IPv6 addresses
 func BenchmarkIP6TestNetIP(b *testing.B) {
 	b.StopTimer()
 
@@ -317,6 +326,7 @@ func BenchmarkIP6TestNetIP(b *testing.B) {
 	}
 }
 
+// Benchmark net.IPNet using IPv6 addresses
 func BenchmarkIP6Test(b *testing.B) {
 	b.StopTimer()
 	if len(ipArray) == 0 {
@@ -347,6 +357,7 @@ func BenchmarkIP6Test(b *testing.B) {
 	}
 }
 
+// Benchmark IPRange using IPv6 addresses
 func BenchmarkIP6Range(b *testing.B) {
 	b.StopTimer()
 	if len(ipArray) == 0 {
@@ -377,6 +388,7 @@ func BenchmarkIP6Range(b *testing.B) {
 	}
 }
 
+// Convenience function to run all benchmarks in sequence
 func BenchmarkAll(b *testing.B) {
 	// Load lines ahead of benchmark
 	loadFile("testdata/ip4s.txt")

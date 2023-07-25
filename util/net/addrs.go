@@ -39,17 +39,16 @@ type IPRange struct {
 }
 
 // Contains returns true if the ip is between the Start and End of r,
-// inclusive.
+// inclusive. This is retained for backwards compatibility.
 func (r IPRange) Contains(ip net.IP) bool {
 	ipNetIP, _ := netip.AddrFromSlice(ip.To16())
 	return r.ContainsNetIP(ipNetIP)
 }
 
-// Contains returns true if the ip is between the Start and End of r,
+// ContainsNetIP returns true if the given netip.ADdr is between the Start and End of r,
 // inclusive.
 func (r IPRange) ContainsNetIP(ip netip.Addr) bool {
-	return r.Start.Compare(ip) <= 0 &&
-		r.End.Compare(ip) >= 0
+	return r.Start.Compare(ip) <= 0 && r.End.Compare(ip) >= 0
 }
 
 // Parse returns the parsed specifier as one of:
@@ -73,6 +72,8 @@ func (ss IPSpecifierString) Parse() any {
 		} else if start.Compare(end) > 0 {
 			return fmt.Errorf("invalid IP range, start > end: %s", ss)
 		} else {
+			// This is required to coerce the addresses into full IPV6 format
+			// If this isn't done then comparisons fail because of bit count difference.
 			return IPRange{Start: netip.AddrFrom16(start.As16()), End: netip.AddrFrom16(end.As16())}
 		}
 	} else if strings.Contains(string(ss), "/") {
@@ -90,6 +91,8 @@ func (ss IPSpecifierString) Parse() any {
 
 // NetToRange converts a *net.IPNet to an IPRange.
 func NetToRange(network *net.IPNet) IPRange {
+	// This is required to coerce the addresses into full IPV6 format
+	// If this isn't done then comparisons fail because of bit count difference.
 	masked := network.IP.Mask(network.Mask).To16()
 	len := len(masked)
 	lower := make(net.IP, len)
