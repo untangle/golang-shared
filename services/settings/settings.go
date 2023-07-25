@@ -418,13 +418,11 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
 	outbytes, err := cmd.CombinedOutput()
 	// // The below regex is used to identify the starting index of json object from stdout by matching with the first key value pair
-	// jsonPattern := `\{\n\s{2}"[a-z]+":\s{1}.+`
-	// regExp := regexp.MustCompile(jsonPattern)
-	// output := string(outbytes)
-	// jsonStartIndex := regExp.FindStringIndex(output)
-	// logger.Warn("Failed to run findstringindex: %v \n", len(jsonStartIndex))
-	// logger.Warn("Failed to run findstringindex: %v \n", len(output))
-	// jsonOutput := output[jsonStartIndex[0]:]
+	jsonPattern := `\{\n\s{2}"[a-z]+":\s{1}.+`
+	regExp := regexp.MustCompile(jsonPattern)
+	output := string(outbytes)
+	jsonStartIndex := regExp.FindStringIndex(output)
+	jsonOutput := output[jsonStartIndex[0]:]
 	if err != nil {
 		// json decode the error, and get the attributes
 		var data map[string]string
