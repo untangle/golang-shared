@@ -40,13 +40,16 @@ type IPRange struct {
 
 // Contains returns true if the ip is between the Start and End of r,
 // inclusive.
-func (r IPRange) ContainsIP(ip net.IP) bool {
-	ipNetIP, _ := netip.AddrFromSlice(ip.To4())
-	if r.Start.Is6() {
-		ipNetIP, _ = netip.AddrFromSlice(ip.To16())
-	}
-	return r.Start.Compare(ipNetIP) <= 0 &&
-		r.End.Compare(ipNetIP) >= 0
+func (r IPRange) Contains(ip net.IP) bool {
+	ipNetIP, _ := netip.AddrFromSlice(ip.To16())
+	return r.ContainsNetIP(ipNetIP)
+}
+
+// Contains returns true if the ip is between the Start and End of r,
+// inclusive.
+func (r IPRange) ContainsNetIP(ip netip.Addr) bool {
+	return r.Start.Compare(ip) <= 0 &&
+		r.End.Compare(ip) >= 0
 }
 
 // Parse returns the parsed specifier as one of:
@@ -87,7 +90,7 @@ func (ss IPSpecifierString) Parse() any {
 
 // NetToRange converts a *net.IPNet to an IPRange.
 func NetToRange(network *net.IPNet) IPRange {
-	masked := network.IP.Mask(network.Mask)
+	masked := network.IP.Mask(network.Mask).To16()
 	len := len(masked)
 	lower := make(net.IP, len)
 	upper := make(net.IP, len)

@@ -13,13 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func v4NetIP(a byte, b byte, c byte, d byte) netip.Addr {
-	var addr [4]byte
-	addr[0] = a
-	addr[1] = b
-	addr[2] = c
-	addr[3] = d
-	return netip.AddrFrom4(addr)
+func v6NetIP(a byte, b byte, c byte, d byte) netip.Addr {
+	addr := [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c, d}
+	return netip.AddrFrom16(addr)
 }
 
 func TestIPSpecString(t *testing.T) {
@@ -37,7 +33,7 @@ func TestIPSpecString(t *testing.T) {
 			}(),
 		},
 		{"ipv4 range", "132.123.123.1-132.123.123.3", false,
-			IPRange{Start: v4NetIP(132, 123, 123, 1), End: v4NetIP(132, 123, 123, 3)},
+			IPRange{Start: v6NetIP(132, 123, 123, 1), End: v6NetIP(132, 123, 123, 3)},
 		},
 		{"ipv4 range, start less than end", "132.123.123.1-132.123.123.0", true, nil},
 		{"ipv4 range, too many dashes", "132.123.123.1--132.123.123.20", true, nil},
@@ -70,31 +66,31 @@ func TestIPRange(t *testing.T) {
 	}{
 		{
 			"basic in",
-			IPRange{v4NetIP(0, 0, 0, 0), v4NetIP(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(0, 1, 0, 0),
 			true,
 		},
 		{
 			"basic out",
-			IPRange{v4NetIP(0, 0, 0, 0), v4NetIP(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(1, 1, 0, 0),
 			false,
 		},
 		{
 			"basic upper border",
-			IPRange{v4NetIP(0, 0, 0, 0), v4NetIP(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(1, 0, 0, 0),
 			true,
 		},
 		{
 			"basic lower border",
-			IPRange{v4NetIP(0, 0, 0, 0), v4NetIP(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(0, 0, 0, 0),
 			true,
 		},
 		{
 			"basic out, lower",
-			IPRange{v4NetIP(1, 0, 0, 0), v4NetIP(2, 0, 0, 0)},
+			IPRange{v6NetIP(1, 0, 0, 0), v6NetIP(2, 0, 0, 0)},
 			net.IPv4(0, 0, 0, 1),
 			false,
 		},
@@ -102,7 +98,7 @@ func TestIPRange(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.shouldContain, tt.ipRange.ContainsIP(tt.ipAddr))
+			assert.Equal(t, tt.shouldContain, tt.ipRange.Contains(tt.ipAddr))
 		})
 	}
 }
@@ -116,41 +112,40 @@ func TestIPRangeFromCIDR(t *testing.T) {
 		{
 			"simple, no bits",
 			IPRange{
-				Start: v4NetIP(192, 168, 25, 0),
-				End:   v4NetIP(192, 168, 25, 255),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 255),
 			},
-
 			"192.168.25.0/24",
 		},
 		{
 			"one high bit masked off",
 			IPRange{
-				Start: v4NetIP(192, 168, 25, 0),
-				End:   v4NetIP(192, 168, 25, 127),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 127),
 			},
 			"192.168.25.0/25",
 		},
 		{
 			"two high bits masked off",
 			IPRange{
-				Start: v4NetIP(192, 168, 25, 0),
-				End:   v4NetIP(192, 168, 25, 63),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 63),
 			},
 			"192.168.25.0/26",
 		},
 		{
 			"only low bit allowed",
 			IPRange{
-				Start: v4NetIP(192, 168, 25, 0),
-				End:   v4NetIP(192, 168, 25, 1),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 1),
 			},
 			"192.168.25.0/31",
 		},
 		{
 			"all bits masked",
 			IPRange{
-				Start: v4NetIP(192, 168, 25, 0),
-				End:   v4NetIP(192, 168, 25, 0),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 0),
 			},
 			"192.168.25.0/32",
 		},
@@ -250,13 +245,12 @@ func BenchmarkIP4Test(b *testing.B) {
 	b.StartTimer()
 
 	for n := 0; n < b.N; n++ {
-		ip := ipArray[idx]
-		newip := ip.To4()
+		newip := ipArray[idx]
 		// then set the last octet to 0 and create a range between it and ip
 		newip[3] = 0
 		ipNet := net.IPNet{IP: newip, Mask: mask}
 
-		assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
+		assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
 		idx = (idx + 1) % len(ipArray)
 	}
 }
@@ -270,7 +264,7 @@ func BenchmarkIP4Range(b *testing.B) {
 			if len(line) > 0 {
 				if line[0] != '#' {
 					ipx := net.ParseIP(line)
-					ipArray = append(ipArray, ipx)
+					ipArray = append(ipArray, ipx.To16())
 				}
 			}
 		}
@@ -279,15 +273,14 @@ func BenchmarkIP4Range(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		ip := ipArray[idx]
-		newip := ip.To4()
 		// then set the last octet to 0 and create a range between it and ip
-		newip[3] = 0
-		start, _ := netip.AddrFromSlice(newip)
-		newip[3] = 255
-		end, _ := netip.AddrFromSlice(newip)
+		ip[15] = 0
+		start, _ := netip.AddrFromSlice(ip)
+		ip[15] = 255
+		end, _ := netip.AddrFromSlice(ip)
 		ipRange := IPRange{Start: start, End: end}
 
-		assert.Truef(b, ipRange.ContainsIP(ip), "Failed containment of %v\n", ip)
+		assert.Truef(b, ipRange.ContainsNetIP(end), "Failed containment of %v\n", end)
 
 		idx = (idx + 1) % len(ipArray)
 	}
