@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/untangle/golang-shared/services/logger"
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/untangle/golang-shared/services/logger"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins/util"
@@ -176,8 +177,9 @@ func (lm *LicenseManager) GetServices() map[string]*Service {
 
 // RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
-	err := util.RunSigusr1(clientLicenseService)
-	return err
+	// do not bail when license refresh fails
+	_ = util.RunSigusr1(clientLicenseService)
+	return nil
 }
 
 // IsLicenseEnabled is called from API to see if service is currently enabled.

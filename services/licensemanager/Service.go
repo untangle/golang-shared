@@ -37,10 +37,8 @@ func (s *Service) setServiceState(newAllowedState State, executable string) erro
 
 	// api called the sighup, so enable/disable service
 	if runInterrupt {
-		err := util.RunSighup(executable)
-		if err != nil {
-			return err
-		}
+		// don't bail out if sighup fails
+		_ = util.RunSighup(executable)
 	}
 
 	return err
