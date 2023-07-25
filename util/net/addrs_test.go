@@ -1,28 +1,40 @@
 package net
 
 import (
+	"bufio"
+	"fmt"
+	"io/fs"
 	"net"
+	"net/netip"
+	"os"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+// Helper function to generate full IPv6 addresses for use with netip.
+func v6NetIP(a byte, b byte, c byte, d byte) netip.Addr {
+	addr := [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c, d}
+	return netip.AddrFrom16(addr)
+}
+
 func TestIPSpecString(t *testing.T) {
 	tests := []struct {
 		name        string
 		stringval   string
-		shoudlerr   bool
+		shoulderr   bool
 		shouldequal any
 	}{
 		{"ipv4 address", "132.123.123.1", false, net.IPv4(132, 123, 123, 1)},
 		{"ipv4 net", "132.123.123.1/24", false,
-			func() *net.IPNet {
+			func() IPRange {
 				_, net, _ := net.ParseCIDR("132.123.123.1/24")
-				return net
+				return NetToRange(net)
 			}(),
 		},
 		{"ipv4 range", "132.123.123.1-132.123.123.3", false,
-			IPRange{Start: net.IPv4(132, 123, 123, 1), End: net.IPv4(132, 123, 123, 3)},
+			IPRange{Start: v6NetIP(132, 123, 123, 1), End: v6NetIP(132, 123, 123, 3)},
 		},
 		{"ipv4 range, start less than end", "132.123.123.1-132.123.123.0", true, nil},
 		{"ipv4 range, too many dashes", "132.123.123.1--132.123.123.20", true, nil},
@@ -38,7 +50,7 @@ func TestIPSpecString(t *testing.T) {
 			case net.IP, *net.IPNet, IPRange:
 				assert.EqualValues(t, typed, tt.shouldequal)
 			case error:
-				assert.True(t, tt.shoudlerr)
+				assert.True(t, tt.shoulderr)
 			default:
 				assert.FailNow(t, "invalid type: %T", typed)
 			}
@@ -55,31 +67,31 @@ func TestIPRange(t *testing.T) {
 	}{
 		{
 			"basic in",
-			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(0, 1, 0, 0),
 			true,
 		},
 		{
 			"basic out",
-			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(1, 1, 0, 0),
 			false,
 		},
 		{
 			"basic upper border",
-			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(1, 0, 0, 0),
 			true,
 		},
 		{
 			"basic lower border",
-			IPRange{net.IPv4(0, 0, 0, 0), net.IPv4(1, 0, 0, 0)},
+			IPRange{v6NetIP(0, 0, 0, 0), v6NetIP(1, 0, 0, 0)},
 			net.IPv4(0, 0, 0, 0),
 			true,
 		},
 		{
 			"basic out, lower",
-			IPRange{net.IPv4(1, 0, 0, 0), net.IPv4(2, 0, 0, 0)},
+			IPRange{v6NetIP(1, 0, 0, 0), v6NetIP(2, 0, 0, 0)},
 			net.IPv4(0, 0, 0, 1),
 			false,
 		},
@@ -101,41 +113,40 @@ func TestIPRangeFromCIDR(t *testing.T) {
 		{
 			"simple, no bits",
 			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 255),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 255),
 			},
-
 			"192.168.25.0/24",
 		},
 		{
 			"one high bit masked off",
 			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 127),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 127),
 			},
 			"192.168.25.0/25",
 		},
 		{
 			"two high bits masked off",
 			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 63),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 63),
 			},
 			"192.168.25.0/26",
 		},
 		{
 			"only low bit allowed",
 			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 1),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 1),
 			},
 			"192.168.25.0/31",
 		},
 		{
 			"all bits masked",
 			IPRange{
-				Start: net.IPv4(192, 168, 25, 0),
-				End:   net.IPv4(192, 168, 25, 0),
+				Start: v6NetIP(192, 168, 25, 0),
+				End:   v6NetIP(192, 168, 25, 0),
 			},
 			"192.168.25.0/32",
 		},
@@ -143,17 +154,258 @@ func TestIPRangeFromCIDR(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, network, _ := net.ParseCIDR(tt.network)
-			netRange := NetToRange(network)
-			// We are using True() instead of Equal() because the assert
-			// library specifically tests for byteslices (which net.IP
-			// is), and tests them differently.
-			assert.True(t, tt.iprange.Start.Equal(netRange.Start),
-				"net range starts: %s (expected) should equal %s", tt.iprange.Start, netRange.Start)
-			assert.True(t, tt.iprange.End.Equal(netRange.End),
-				"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
+			result := IPSpecifierString(tt.network).Parse()
+			switch netRange := result.(type) {
+			case IPRange:
+				// We are using True() instead of Equal() because the assert
+				// library specifically tests for byteslices (which net.IP
+				// is), and tests them differently.
+				assert.True(t, tt.iprange.Start.Compare(netRange.Start) == 0,
+					"net range starts: %s (expected) should equal %s", tt.iprange.Start, netRange.Start)
+				assert.True(t, tt.iprange.End.Compare(netRange.End) == 0,
+					"net range ends: %s (expected) should equal %s", tt.iprange.End, netRange.End)
+			}
 		})
 
 	}
+}
 
+// global storage of lines loaded by loadFile
+var lines []string
+
+// Helper function to load an array of strings(IP's) from an IP file.
+func loadFile(filename string) {
+	mutex := sync.Mutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
+	if len(lines) == 0 {
+		if f, err := os.OpenFile(filename, 0, fs.FileMode(os.O_RDONLY)); err == nil {
+			defer f.Close()
+			fileScanner := bufio.NewScanner(f)
+			for fileScanner.Scan() {
+				lines = append(lines, fileScanner.Text())
+			}
+			fmt.Printf("Loaded %d lines from %s\n", len(lines), filename)
+		} else {
+			fmt.Printf("Error loading IPs: %v\n", err)
+		}
+	}
+}
+
+// variable used to iterate through the ipIndex
+// across repeated calls to the Benchmark
+var idx = 0
+
+// Array of netips's for use in the netip tests
+var netipArray = make([]netip.Addr, 0)
+
+// Benchmark netip.Prefix (network) using IPv4 addresses
+func BenchmarkIP4TestNetIP(b *testing.B) {
+	b.StopTimer()
+
+	if len(netipArray) == 0 {
+		loadFile("testdata/ip4s.txt")
+		for _, line := range lines {
+			if len(line) > 0 {
+				if line[0] != '#' {
+					if ipx, err := netip.ParseAddr(line); err == nil {
+						netipArray = append(netipArray, ipx)
+					}
+				}
+			}
+		}
+	}
+	b.StartTimer()
+	for n := 0; n < b.N; n++ {
+		ip := netipArray[idx]
+		ipas4 := ip.As4()
+		// then set the last octet to 0 and create a range between it and ip
+		ipas4[3] = 0
+		newip := netip.AddrFrom4(ipas4)
+		ipPrefix := netip.PrefixFrom(newip, 24)
+
+		assert.Truef(b, ipPrefix.Contains(ip), "Failed containment of %v\n", ip)
+
+		idx = (idx + 1) % len(netipArray)
+	}
+}
+
+// Array of net.IP's for the net.IP tests
+var ipArray = make([]net.IP, 0)
+
+// Benchmark net.IPNet using IPv4 addresses
+func BenchmarkIP4Test(b *testing.B) {
+	b.StopTimer()
+
+	if len(ipArray) == 0 {
+		loadFile("testdata/ip4s.txt")
+		for _, line := range lines {
+			if len(line) > 0 {
+				if line[0] != '#' {
+					ipx := net.ParseIP(line)
+					ipArray = append(ipArray, ipx)
+				}
+			}
+		}
+	}
+	mask := net.IPv4Mask(255, 255, 255, 0)
+	b.StartTimer()
+
+	for n := 0; n < b.N; n++ {
+		newip := ipArray[idx]
+		// then set the last octet to 0 and create a range between it and ip
+		newip[3] = 0
+		ipNet := net.IPNet{IP: newip, Mask: mask}
+
+		assert.Truef(b, ipNet.Contains(newip), "Failed containment of %v\n", newip)
+		idx = (idx + 1) % len(ipArray)
+	}
+}
+
+// Benchmark IPRange using IPv4 addresses
+func BenchmarkIP4Range(b *testing.B) {
+	b.StopTimer()
+
+	if len(ipArray) == 0 {
+		loadFile("testdata/ip4s.txt")
+		for _, line := range lines {
+			if len(line) > 0 {
+				if line[0] != '#' {
+					ipx := net.ParseIP(line)
+					ipArray = append(ipArray, ipx.To16())
+				}
+			}
+		}
+	}
+	b.StartTimer()
+
+	for n := 0; n < b.N; n++ {
+		ip := ipArray[idx]
+		// then set the last octet to 0 and create a range between it and ip
+		ip[15] = 0
+		start, _ := netip.AddrFromSlice(ip)
+		ip[15] = 255
+		end, _ := netip.AddrFromSlice(ip)
+		ipRange := IPRange{Start: start, End: end}
+
+		assert.Truef(b, ipRange.ContainsNetIP(end), "Failed containment of %v\n", end)
+
+		idx = (idx + 1) % len(ipArray)
+	}
+}
+
+// Benchmark netip.Prefix using IPv6 addresses
+func BenchmarkIP6TestNetIP(b *testing.B) {
+	b.StopTimer()
+
+	if len(netipArray) == 0 {
+		loadFile("testdata/ip6s.txt")
+		for _, line := range lines {
+			if len(line) > 0 {
+				if line[0] != '#' {
+					if ipx, err := netip.ParseAddr(line); err == nil {
+						netipArray = append(netipArray, ipx)
+					}
+				}
+			}
+		}
+	}
+	b.StartTimer()
+
+	for n := 0; n < b.N; n++ {
+		ip := netipArray[idx]
+		ipas16 := ip.As16()
+		// then set the last octet to 0 and create a range between it and ip
+		ipas16[15] = 0
+		newip := netip.AddrFrom16(ipas16)
+		ipPrefix := netip.PrefixFrom(newip, 120)
+
+		assert.Truef(b, ipPrefix.Contains(newip), "Failed containment of %v\n", newip)
+
+		idx = (idx + 1) % len(netipArray)
+	}
+}
+
+// Benchmark net.IPNet using IPv6 addresses
+func BenchmarkIP6Test(b *testing.B) {
+	b.StopTimer()
+	if len(ipArray) == 0 {
+		ipArray = make([]net.IP, 0)
+		loadFile("testdata/ip6s.txt")
+		for _, line := range lines {
+			if len(line) > 0 {
+				if line[0] != '#' {
+					ipx := net.ParseIP(line)
+					ipArray = append(ipArray, ipx)
+				}
+			}
+		}
+	}
+	mask := []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0}
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		ip := ipArray[idx]
+		newip := ip.To16()
+		// then set the last octet to 0 and create a range between it and ip
+		newip[15] = 0
+		ipNet := net.IPNet{IP: newip, Mask: mask}
+
+		assert.Truef(b, ipNet.Contains(ip), "Failed containment of %v\n", ip)
+		idx = (idx + 1) % len(ipArray)
+	}
+}
+
+// Benchmark IPRange using IPv6 addresses
+func BenchmarkIP6Range(b *testing.B) {
+	b.StopTimer()
+	if len(ipArray) == 0 {
+		loadFile("testdata/ip6s.txt")
+		for _, line := range lines {
+			if len(line) > 0 {
+				if line[0] != '#' {
+					ipx := net.ParseIP(line)
+					ipArray = append(ipArray, ipx)
+				}
+			}
+		}
+	}
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		ip := ipArray[idx]
+		newip := ip.To16()
+		// then set the last octet to 0 and create a range between it and ip
+		newip[15] = 0
+		start, _ := netip.AddrFromSlice(newip)
+		newip[15] = 255
+		end, _ := netip.AddrFromSlice(newip)
+		ipRange := IPRange{Start: start, End: end}
+
+		assert.Truef(b, ipRange.Contains(ip), "Failed containment of %v\n", ip)
+		idx = (idx + 1) % len(ipArray)
+	}
+}
+
+// Convenience function to run all benchmarks in sequence
+func BenchmarkAll(b *testing.B) {
+	// Load lines ahead of benchmark
+	loadFile("testdata/ip4s.txt")
+	idx = 0
+	b.Run("IP4Test with net/netip", BenchmarkIP4TestNetIP)
+	idx = 0
+	b.Run("IP4Test with net(existing)", BenchmarkIP4Test)
+	idx = 0
+	b.Run("IP4Test using IPRange", BenchmarkIP4Range)
+
+	// Reset lines for IPv6
+	lines = make([]string, 0)
+	loadFile("testdata/ip6s.txt")
+	idx = 0
+	b.Run("IP6Test with net/netip", BenchmarkIP6TestNetIP)
+	idx = 0
+	b.Run("IP6Test with net(existing)", BenchmarkIP6Test)
+	idx = 0
+	b.Run("IP6Test using IPRange", BenchmarkIP6Range)
 }
