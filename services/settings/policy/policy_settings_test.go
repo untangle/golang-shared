@@ -2,6 +2,7 @@ package policy
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/google/gopacket/layers"
@@ -405,5 +406,79 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 
 			assert.JSONEq(t, tt.wantMarshalledJson, string(jsonValue))
 		})
+	}
+}
+
+type BenchmarkChoice int
+
+const (
+	LookupByMap      BenchmarkChoice = 0
+	LookupByMapFixed BenchmarkChoice = 1
+	LookupByArray    BenchmarkChoice = 2
+	LookupByBoth     BenchmarkChoice = 3
+)
+
+type BenchmarkSettings struct {
+	isSetup bool
+	choice  BenchmarkChoice
+	key     int
+	limit   int
+	amap    map[string]*string
+	anArray []*string
+	test    *string
+}
+
+var benchmarkSettings BenchmarkSettings
+
+func BenchmarkLookupBy(b *testing.B) {
+	b.StopTimer()
+	if !benchmarkSettings.isSetup {
+		benchmarkSettings.limit = 1000
+		benchmarkSettings.amap = make(map[string]*string, benchmarkSettings.limit)
+		benchmarkSettings.anArray = make([]*string, benchmarkSettings.limit)
+		for i := 0; i < benchmarkSettings.limit; i++ {
+			s := fmt.Sprintf("%32.032d", i)
+			benchmarkSettings.amap[s] = &s
+			benchmarkSettings.anArray[i] = &s
+		}
+		benchmarkSettings.isSetup = true
+	}
+	b.StartTimer()
+	for n := 0; n < b.N; n++ {
+		switch benchmarkSettings.choice {
+		case LookupByMap:
+			s := fmt.Sprintf("%32.032d", benchmarkSettings.key)
+			benchmarkSettings.test = benchmarkSettings.amap[s]
+		case LookupByMapFixed:
+			benchmarkSettings.test = benchmarkSettings.amap["0000000000000000000000000000001"]
+		case LookupByArray:
+			benchmarkSettings.test = benchmarkSettings.anArray[benchmarkSettings.key]
+
+		case LookupByBoth:
+			benchmarkSettings.test = benchmarkSettings.amap[*benchmarkSettings.anArray[benchmarkSettings.key]]
+		}
+		benchmarkSettings.key = (1 + benchmarkSettings.key) % benchmarkSettings.limit
+	}
+}
+
+func BenchmarkAll(b *testing.B) {
+	for i := 0; i < 2; i++ {
+		benchmarkSettings.key = 0
+		benchmarkSettings.choice = LookupByMap
+		b.Run("Lookup by map", BenchmarkLookupBy)
+
+		benchmarkSettings.key = 0
+		benchmarkSettings.choice = LookupByMapFixed
+		b.Run("Lookup by map fixed", BenchmarkLookupBy)
+
+		benchmarkSettings.key = 0
+		benchmarkSettings.choice = LookupByArray
+		b.Run("Lookup by array", BenchmarkLookupBy)
+
+		benchmarkSettings.key = 0
+		benchmarkSettings.choice = LookupByBoth
+		b.Run("Lookup by both", BenchmarkLookupBy)
+
+		fmt.Printf("\n")
 	}
 }
