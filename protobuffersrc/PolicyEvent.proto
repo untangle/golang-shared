@@ -1,0 +1,27 @@
+syntax = "proto3";
+package captiveportalevent;
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/CaptivePortalEvent";
+
+message UserEventRequest {
+  string Client = 1;
+}
+
+message UserEventResponse {
+  	string Client = 1;
+	string PolicyId = 2;
+	string configId = 3;
+	/*  string Client = 1;
+  	  int32 PolicyId = 2;
+	  bool UserReponse = 3;*/
+}
+
+
+// This service need to be implemented by gind on a port exclusive to captive portal communication
+
+
+/*service CaptiveUserEvent {
+    rpc SendUser(UserEvent) returns (UserEventResponse) {}
+}*/
+
