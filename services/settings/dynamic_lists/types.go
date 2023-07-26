@@ -1,9 +1,9 @@
-package dynamic_block_lists
+package dynamic_lists
 
 // Example for this struct is present on mfw_schema
 
-// DynamicBlockListsConfig is the data structure for JSON marshalling and unamrshalling Dynamic Block Lists configurations.
-type DynamicBlockListsConfig struct {
+// DynamicListsConfig is the data structure for JSON marshalling and unamrshalling Dynamic Lists configurations.
+type DynamicListsConfig struct {
 	Name           string   `json:"name"`
 	ID             string   `json:"id"`
 	Type           string   `json:"type"`
