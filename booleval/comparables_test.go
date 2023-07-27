@@ -148,7 +148,7 @@ func TestDayOfWeek(t *testing.T) {
 
 	testDriver(t, weekday, tests)
 
-	weekday, err = NewDayOfWeekFromString("fakeday")
+	_, err = NewDayOfWeekFromString("fakeday")
 	assert.NotNil(t, err)
 
 }
@@ -163,6 +163,8 @@ func TestIPs(t *testing.T) {
 		{eq, "23.23.0.0/16", true, false},
 		{eq, "23.23.0/16", false, true},
 		{eq, "dood", false, false},
+		{gt, "dood.dood", false, true},
+		{gt, "dood:dood", false, true},
 	}
 	testDriver(t, ip, tests)
 
@@ -190,8 +192,26 @@ func TestIPs(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, result)
 
-	ipComparable, err = NewIPOrIPNetComparable("192.168.123/24")
+	_, err = NewIPOrIPNetComparable("192.168.123/24")
 	assert.NotNil(t, err)
+
+	ip = NewIPComparable("ABCD:EF01:2345:6789:ABCD:EF01:2345:6789")
+
+	tests = []valueCondTest{
+		{eq, "123.123.1.1", false, false},
+		{eq, "123.123.1.2", false, false},
+		{eq, 6, false, true},
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789", true, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
+	testDriver(t, ip, tests)
 }
 
 func TestIPNets(t *testing.T) {
@@ -202,22 +222,49 @@ func TestIPNets(t *testing.T) {
 		{eq, "132.1.24.1", false, false},
 		{eq, "132.22.1.1", false, false},
 		{eq, 6, false, true},
-		{eq, "dood", false, false}}
-
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789", false, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
 	testDriver(t, ipnet, tests)
 
+	_, val, _ = net.ParseCIDR("ABCD:EF01:2345:6789:ABCD:EF01:2345:6789/24")
+	ipnet = IPNetComparable{ipnet: *val}
+
+	tests = []valueCondTest{
+		{eq, "132.1.23.1", false, false},
+		{eq, "132.1.24.1", false, false},
+		{eq, "132.22.1.1", false, false},
+		{eq, 6, false, true},
+		{eq, "dood", false, false},
+		{eq, "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789", true, false},
+		{eq, "2001:0db8::2", false, false},
+		{eq, "2001:fe99::0", false, false},
+		{eq, "2001:DB8:0:0:8:800:200C:417A", false, false},
+		{eq, "FF01:0:0:0:0:0:0:101", false, false},
+		{eq, "::13.1.68.3", false, false},
+		{eq, "::FFFF:129.144.52.38", false, false},
+		{eq, "::FFFF:216.151.130.153", false, false},
+	}
+	testDriver(t, ipnet, tests)
 }
 
 func TestTimeComparable(t *testing.T) {
-	time1 := time.Date(1999, time.April, 1, 0, 0, 0, 0, time.Local)
+	time1 := time.Date(1999, time.April, 1, 0, 0, 0, 0, time.UTC)
 	timeComparable := TimeComparable{time: time1}
 	tests := []valueCondTest{
 		{eq, time1.Unix(), true, false},
 		{eq, time1, true, false},
 		{eq, "foop", false, true},
 		{gt, "foop", false, true},
-		{eq, "01 Apr 99 00:00 MST", true, false},
-		{gt, "01 Apr 98 00:00 MST", true, false},
+		{eq, "01 Apr 99 00:00 UTC", true, false},
+		{gt, "01 Apr 98 00:00 UTC", true, false},
 		{gt, time1.Add(time.Hour), false, false},
 		{gt, time1.Add(-time.Hour), true, false},
 		{gt, time1.Unix() - 1, true, false},

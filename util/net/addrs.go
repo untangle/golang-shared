@@ -1,9 +1,9 @@
 package net
 
 import (
-	"bytes"
 	"fmt"
 	"net"
+	"net/netip"
 	"strings"
 )
 
@@ -34,16 +34,21 @@ type IPSpecifierString string
 
 // IPRange is a range of IPs, from Start to End inclusive.
 type IPRange struct {
-	Start net.IP
-	End   net.IP
+	Start netip.Addr
+	End   netip.Addr
 }
 
 // Contains returns true if the ip is between the Start and End of r,
-// inclusive.
+// inclusive. This is retained for backwards compatibility.
 func (r IPRange) Contains(ip net.IP) bool {
-	return bytes.Compare(r.Start, ip) <= 0 &&
-		bytes.Compare(r.End, ip) >= 0
+	ipNetIP, _ := netip.AddrFromSlice(ip.To16())
+	return r.ContainsNetIP(ipNetIP)
+}
 
+// ContainsNetIP returns true if the given netip.ADdr is between the Start and End of r,
+// inclusive.
+func (r IPRange) ContainsNetIP(ip netip.Addr) bool {
+	return r.Start.Compare(ip) <= 0 && r.End.Compare(ip) >= 0
 }
 
 // Parse returns the parsed specifier as one of:
@@ -58,26 +63,25 @@ func (ss IPSpecifierString) Parse() any {
 			return fmt.Errorf("invalid ip specifier string range, contains too many -: %s",
 				ss)
 		}
-		start := net.ParseIP(parts[0])
-		end := net.ParseIP(parts[1])
-
-		if start == nil || end == nil {
+		if start, err := netip.ParseAddr(parts[0]); err != nil {
 			return fmt.Errorf("invalid ip specifier string range, contains bad IPs: %s",
 				ss)
-		}
-
-		if bytes.Compare(start, end) > 0 {
+		} else if end, err := netip.ParseAddr(parts[1]); err != nil {
+			return fmt.Errorf("invalid ip specifier string range, contains bad IPs: %s",
+				ss)
+		} else if start.Compare(end) > 0 {
 			return fmt.Errorf("invalid IP range, start > end: %s", ss)
+		} else {
+			// This is required to coerce the addresses into full IPV6 format
+			// If this isn't done then comparisons fail because of bit count difference.
+			return IPRange{Start: netip.AddrFrom16(start.As16()), End: netip.AddrFrom16(end.As16())}
 		}
-
-		return IPRange{Start: start, End: end}
 	} else if strings.Contains(string(ss), "/") {
 		if _, network, err := net.ParseCIDR(string(ss)); err != nil {
 			return err
 		} else {
-			return network
+			return NetToRange(network)
 		}
-
 	} else if ip := net.ParseIP(string(ss)); ip != nil {
 		return ip
 	} else {
@@ -87,22 +91,27 @@ func (ss IPSpecifierString) Parse() any {
 
 // NetToRange converts a *net.IPNet to an IPRange.
 func NetToRange(network *net.IPNet) IPRange {
-	masked := network.IP.Mask(network.Mask)
-	lower := make(net.IP, len(network.IP))
-	upper := make(net.IP, len(network.IP))
+	// This is required to coerce the addresses into full IPV6 format
+	// If this isn't done then comparisons fail because of bit count difference.
+	masked := network.IP.Mask(network.Mask).To16()
+	len := len(masked)
+	lower := make(net.IP, len)
+	upper := make(net.IP, len)
 	copy(lower, masked)
 	copy(upper, masked)
 	ones, bits := network.Mask.Size()
 	maskedBytes := (bits - ones) / 8
 	remainderBits := (bits - ones) % 8
 
+	// Maybe this can be optimized
 	for i := 1; i <= maskedBytes; i++ {
-		upper[len(masked)-i] = 0xff
+		upper[len-i] = 0xff
 	}
-
 	if remainderBits != 0 {
 		remainderMask := (1 << (remainderBits)) - 1
-		upper[len(masked)-(maskedBytes+1)] |= byte(remainderMask)
+		upper[len-(maskedBytes+1)] |= byte(remainderMask)
 	}
-	return IPRange{Start: lower, End: upper}
+	lowerNetIP, _ := netip.AddrFromSlice(lower)
+	upperNetIP, _ := netip.AddrFromSlice(upper)
+	return IPRange{Start: lowerNetIP, End: upperNetIP}
 }

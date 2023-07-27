@@ -20,6 +20,10 @@ func (d *decorator) Startup() error {
 	return nil
 }
 
+// SettingsKey returns the settings key
+func (d *decorator) SettingsKey() string {
+	return "decorator"
+}
 func (d *decorator) Name() string {
 	return "decorator"
 }
