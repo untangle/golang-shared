@@ -35,6 +35,7 @@ const (
 	AlertType_DHCP              AlertType = 9
 	AlertType_CRITICALERROR     AlertType = 10
 	AlertType_VPN               AlertType = 11
+	AlertType_CAPTIVEPORTAL     AlertType = 12
 )
 
 // Enum value maps for AlertType.
