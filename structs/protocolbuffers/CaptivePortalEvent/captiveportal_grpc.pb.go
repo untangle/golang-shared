@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: PolicyEvent.proto
+// source: captiveportal.proto
 
 package CaptivePortalEvent
 
@@ -142,5 +142,5 @@ var CaptiveUserEvent_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "PolicyEvent.proto",
+	Metadata: "captiveportal.proto",
 }
