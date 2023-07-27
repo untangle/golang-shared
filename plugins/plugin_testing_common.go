@@ -29,9 +29,8 @@ func NewMockSingletonPlugin(config *Config) *MockPlugin {
 	return baseMockPluginSave
 }
 
-func GetMockPluginConstructor(config *Config) (*MockPlugin, *mock.Mock, func(config *Config) *MockPlugin) {
+func GetMockPluginConstructor() (*MockPlugin, *mock.Mock, func(config *Config) *MockPlugin) {
 	baseMockPluginSave = &MockPlugin{}
-    baseMockPluginSave.config = config
 	fmt.Printf("plugin save: %v (intf: %v)\n", baseMockPluginSave, (interface{}(baseMockPluginSave)).(Plugin))
 	return baseMockPluginSave, &baseMockPluginSave.Mock, NewMockSingletonPlugin
 }
