@@ -68,7 +68,7 @@ var (
 		"DHCP":              9,
 		"CRITICALERROR":     10,
 		"VPN":               11,
-		"CAPTIVEPORTAL":	 12,
+		"CAPTIVEPORTAL":     12,
 	}
 )
 
