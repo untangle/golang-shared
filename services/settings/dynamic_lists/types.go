@@ -20,3 +20,10 @@ type Interval struct {
 	HourOfDay int `json:"hourOfDay"`
 	MinuteOfHour int `json:"minuteOfHour"`
 }
+
+// Go Data structure to bind JSON from Gin context
+type DynamicListsEntry struct {
+	NumOfentries int    `json:"num_entries"`
+	Uuid         string `json:"uuid"`
+	Status 		 bool   `json:"status"`
+}
