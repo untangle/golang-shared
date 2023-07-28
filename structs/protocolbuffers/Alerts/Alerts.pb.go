@@ -53,6 +53,7 @@ var (
 		9:  "DHCP",
 		10: "CRITICALERROR",
 		11: "VPN",
+		12: "CAPTIVEPORTAL",
 	}
 	AlertType_value = map[string]int32{
 		"UNKNOWN":           0,
@@ -67,6 +68,7 @@ var (
 		"DHCP":              9,
 		"CRITICALERROR":     10,
 		"VPN":               11,
+		"CAPTIVEPORTAL":	 12,
 	}
 )
 
