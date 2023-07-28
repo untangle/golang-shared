@@ -35,6 +35,7 @@ const (
 	AlertType_DHCP              AlertType = 9
 	AlertType_CRITICALERROR     AlertType = 10
 	AlertType_VPN               AlertType = 11
+	AlertType_CAPTIVEPORTAL     AlertType = 12
 )
 
 // Enum value maps for AlertType.
@@ -52,6 +53,7 @@ var (
 		9:  "DHCP",
 		10: "CRITICALERROR",
 		11: "VPN",
+		12: "CAPTIVEPORTAL",
 	}
 	AlertType_value = map[string]int32{
 		"UNKNOWN":           0,
@@ -66,6 +68,7 @@ var (
 		"DHCP":              9,
 		"CRITICALERROR":     10,
 		"VPN":               11,
+		"CAPTIVEPORTAL":     12,
 	}
 )
 
