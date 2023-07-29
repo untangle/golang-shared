@@ -29,6 +29,10 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, pluginName); err != nil {
 		return nil, err
 	}
+
+	if _, ok := pluginSettings[pluginName]; !ok {
+		pluginSettings[pluginName] = map[string]any{}
+	}
 	pluginSettings[pluginName][DefaultSettingUUID] = defaultPluginSettings
 	return pluginSettings[pluginName], nil
 }
