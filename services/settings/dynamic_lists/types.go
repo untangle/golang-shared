@@ -4,19 +4,12 @@ package dynamic_lists
 
 // Configs is the data structure for JSON marshalling and unamrshalling Dynamic Lists configurations under dynamic_lists package
 type Config struct {
-	Name           string   `json:"name"`
-	ID             string   `json:"id"`
-	Type           string   `json:"type"`
-	Enable         bool     `json:"enable"`
-	Source         string   `json:"source"`
-	RegexType      string   `json:"regexType"`
-	UpdateInterval Interval `json:"interval"`
-}
-
-// This is the Interval data structure, which stores the time interval between two update attempts.
-type Interval struct {
-	Enabled bool `json:"enabled"`
-	DayOfWeek int `json:"dayOfWeek"`
-	HourOfDay int `json:"hourOfDay"`
-	MinuteOfHour int `json:"minuteOfHour"`
+	Name        string `json:"name"`
+	ID          string `json:"id"`
+	Type        string `json:"type"`
+	Enabled     bool   `json:"enabled"`
+	Source      string `json:"source"`
+	PullingUnit string `json:"pullingUnit"`
+	PullingTime int    `json:"pullingTime"`
+	RegexType   string `json:"regexType"`
 }
