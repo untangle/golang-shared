@@ -20,6 +20,6 @@ message SessionStatsEvent {
   uint32 serverPacketRate = 14;
 
 
-  // Network address of the client.
+  // Network address of the client
   string clientNetworkAddress = 15;
 }
