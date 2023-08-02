@@ -422,16 +422,22 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	regExp := regexp.MustCompile(jsonPattern)
 	output := string(outbytes)
 	jsonStartIndex := regExp.FindStringIndex(output)
+
+	if len(jsonStartIndex) == 0 {
+		return "", err
+	}
+
 	jsonOutput := output[jsonStartIndex[0]:]
 	if err != nil {
-		// json decode the error, and get the attributes
-		var data map[string]string
-		json.Unmarshal(outbytes[jsonStartIndex[0]:], &data)
-		logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-		// return the trace and the error raised
-		return data["traceback"], errors.New(data["raisedException"])
+		return jsonOutput, nil
 	}
-	return jsonOutput, nil
+
+	// json decode the error, and get the attributes
+	var data map[string]string
+	json.Unmarshal(outbytes[jsonStartIndex[0]:], &data)
+	logger.Warn("Failed to run sync-settings: %v\n", err.Error())
+	// return the trace and the error raised
+	return data["traceback"], errors.New(data["raisedException"])
 }
 
 // this runs the `sync` command so the OS writes the cached file changes
