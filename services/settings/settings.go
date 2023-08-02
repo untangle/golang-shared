@@ -428,7 +428,7 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	}
 
 	jsonOutput := output[jsonStartIndex[0]:]
-	if err != nil {
+	if err == nil {
 		return jsonOutput, nil
 	}
 
