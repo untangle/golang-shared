@@ -39,7 +39,7 @@ type SessionStatsEvent struct {
 	PacketRate       uint32 `protobuf:"varint,12,opt,name=packetRate,proto3" json:"packetRate,omitempty"`
 	ClientPacketRate uint32 `protobuf:"varint,13,opt,name=clientPacketRate,proto3" json:"clientPacketRate,omitempty"`
 	ServerPacketRate uint32 `protobuf:"varint,14,opt,name=serverPacketRate,proto3" json:"serverPacketRate,omitempty"`
-	// Network address of the client.
+	// Network address of the client
 	ClientNetworkAddress string `protobuf:"bytes,15,opt,name=clientNetworkAddress,proto3" json:"clientNetworkAddress,omitempty"`
 }
 

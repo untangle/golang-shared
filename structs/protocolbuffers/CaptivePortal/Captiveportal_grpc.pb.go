@@ -58,15 +58,14 @@ func (c *captivePortalServiceClient) SetCaptivePortalUser(ctx context.Context, i
 }
 
 // CaptivePortalServiceServer is the server API for CaptivePortalService service.
-// All implementations must embed UnimplementedCaptivePortalServiceServer
+// All implementations should embed UnimplementedCaptivePortalServiceServer
 // for forward compatibility
 type CaptivePortalServiceServer interface {
 	GetCaptivePortalUser(context.Context, *UserGetRequest) (*UserGetResponse, error)
 	SetCaptivePortalUser(context.Context, *UserSetRequest) (*UserSetResponse, error)
-	mustEmbedUnimplementedCaptivePortalServiceServer()
 }
 
-// UnimplementedCaptivePortalServiceServer must be embedded to have forward compatible implementations.
+// UnimplementedCaptivePortalServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedCaptivePortalServiceServer struct {
 }
 
@@ -76,7 +75,6 @@ func (UnimplementedCaptivePortalServiceServer) GetCaptivePortalUser(context.Cont
 func (UnimplementedCaptivePortalServiceServer) SetCaptivePortalUser(context.Context, *UserSetRequest) (*UserSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetCaptivePortalUser not implemented")
 }
-func (UnimplementedCaptivePortalServiceServer) mustEmbedUnimplementedCaptivePortalServiceServer() {}
 
 // UnsafeCaptivePortalServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to CaptivePortalServiceServer will
