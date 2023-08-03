@@ -417,7 +417,7 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 func runSyncSettings(filename string, force bool) (string, error) {
 	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
 	outBytes, err := cmd.CombinedOutput()
-	jsonOutput, data, errParse := parseJsonOutput(outBytes)
+	jsonOutput, data, errParse := parseSyncSettingsJsonOutput(outBytes)
 
 	if err == nil {
 		// if the json was invalid we return the error received from unmarshalling, the output will be empty
@@ -434,8 +434,10 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	return errParse.Error(), err
 }
 
-// parseJsonOutput gets the data from the JSON part of the sync settings output
-func parseJsonOutput(output []byte) (string, map[string]any, error) {
+// parseSyncSettingsJsonOutput gets the data from the JSON part of the sync-settings output
+// On the last line of the output there will be the JSON.
+// If The last line is not a valid json, it returns an error.
+func parseSyncSettingsJsonOutput(output []byte) (string, map[string]any, error) {
 	output = bytes.TrimSpace(output)
 
 	outputBuffer := bytes.NewBuffer(output)
