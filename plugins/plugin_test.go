@@ -39,7 +39,7 @@ func TestFailingStartPlugin(t *testing.T) {
 
 	// First init the controller
 	pluginController := NewPluginControl()
-    pluginController.LogStartupErrors()
+	pluginController.LogStartupErrors()
 	pluginController.RegisterPlugin(NewMockSingletonPlugin)
 
 	assert.Nil(t, pluginController.Provide(
@@ -47,14 +47,14 @@ func TestFailingStartPlugin(t *testing.T) {
 			return &Config{Name: configName, FailingStartup: true}
 		}))
 
-    assert.Len(t,pluginController.plugins,0)
+	assert.Len(t, pluginController.plugins, 0)
 
 	// This will start the plugins
 	pluginController.Startup()
-    
-    // This will make sure that the plugin slice is empty since
-    // the plugin is failing to start
-    assert.Len(t,pluginController.plugins,0)
+
+	// This will make sure that the plugin slice is empty since
+	// the plugin is failing to start
+	assert.Len(t, pluginController.plugins, 0)
 
 	pluginController.Shutdown()
 
@@ -81,13 +81,13 @@ func (mock *HelloWorldPlugin) SayHello() {
 
 var consumedPluginSave *HelloWorldPlugin
 
-func NewConsumedPlugin() *HelloWorldPlugin {
+func NewConsumedPlugin(config *Config) *HelloWorldPlugin {
+	consumedPluginSave.config = config
 	return consumedPluginSave
 }
 
-func GetConsumedPluginConstructor(config *Config) (*HelloWorldPlugin, *mock.Mock, func() *HelloWorldPlugin) {
+func GetConsumedPluginConstructor() (*HelloWorldPlugin, *mock.Mock, func(config *Config) *HelloWorldPlugin) {
 	consumedPluginSave = &HelloWorldPlugin{}
-	consumedPluginSave.config = config
 	return consumedPluginSave, &consumedPluginSave.Mock, NewConsumedPlugin
 }
 
@@ -106,13 +106,13 @@ func (mock *GoodbyeWorldPlugin) SayGoodbye() {
 
 var multiInterfacePluginSave *GoodbyeWorldPlugin
 
-func NewMultiInterfacePlugin() *GoodbyeWorldPlugin {
+func NewMultiInterfacePlugin(config *Config) *GoodbyeWorldPlugin {
+	multiInterfacePluginSave.config = config
 	return multiInterfacePluginSave
 }
 
-func GetMultiInterfaceConstructor(config *Config) (*GoodbyeWorldPlugin, *mock.Mock, func() *GoodbyeWorldPlugin) {
+func GetMultiInterfaceConstructor() (*GoodbyeWorldPlugin, *mock.Mock, func(config *Config) *GoodbyeWorldPlugin) {
 	multiInterfacePluginSave = &GoodbyeWorldPlugin{}
-	multiInterfacePluginSave.config = config
 	return multiInterfacePluginSave, &multiInterfacePluginSave.Mock, NewMultiInterfacePlugin
 }
 
@@ -146,9 +146,8 @@ func NewDependantPlugin(config *Config, otherPlugin *MockPlugin) *DependantPlugi
 	return dependantPluginSave
 }
 
-func GetDependantPluginConstructor(config *Config) (*DependantPlugin, *mock.Mock, func(*Config, *MockPlugin) *DependantPlugin) {
+func GetDependantPluginConstructor() (*DependantPlugin, *mock.Mock, func(*Config, *MockPlugin) *DependantPlugin) {
 	dependantPluginSave = &DependantPlugin{}
-    dependantPluginSave.config = config
 	return dependantPluginSave, &dependantPluginSave.Mock, NewDependantPlugin
 }
 
@@ -204,7 +203,7 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			// function.
 			plugins: []func() constructorPluginPair{
 				func() constructorPluginPair {
-					return makeConstructorPluginPair(GetConsumedPluginConstructor(&Config{}))
+					return makeConstructorPluginPair(GetConsumedPluginConstructor())
 				},
 			},
 			assertions: func() {
@@ -230,7 +229,7 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 		{
 			// Test that unrelated plugins are not consumed.
 			plugins: []func() constructorPluginPair{
-				func() constructorPluginPair { return makeConstructorPluginPair(GetMockPluginConstructor(&Config{})) }},
+				func() constructorPluginPair { return makeConstructorPluginPair(GetMockPluginConstructor()) }},
 			assertions: func() {
 				require.Equal(t, 0, len(helloConsumerPluginRegistry))
 				baseMockPluginSave.AssertCalled(t, "Startup")
@@ -245,7 +244,7 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			// notified.
 			plugins: []func() constructorPluginPair{
 				func() constructorPluginPair {
-					return makeConstructorPluginPair(GetMultiInterfaceConstructor(&Config{}))
+					return makeConstructorPluginPair(GetMultiInterfaceConstructor())
 				}},
 			assertions: func() {
 				require.Equal(t, 1, len(helloConsumerPluginRegistry))
@@ -277,9 +276,11 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			// Test that inter-plugin dependencies work.
 			plugins: []func() constructorPluginPair{
 				func() constructorPluginPair {
-					return makeConstructorProviderPluginPair(GetMockPluginConstructor(&Config{}))
+					return makeConstructorProviderPluginPair(GetMockPluginConstructor())
 				},
-				func() constructorPluginPair { return makeConstructorPluginPair(GetDependantPluginConstructor(&Config{})) },
+				func() constructorPluginPair {
+					return makeConstructorPluginPair(GetDependantPluginConstructor())
+				},
 			},
 			assertions: func() {
 				// check that the dependant plugin got provided the right object during construction.
