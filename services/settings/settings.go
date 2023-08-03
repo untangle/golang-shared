@@ -424,7 +424,7 @@ func runSyncSettings(filename string, force bool) (string, error) {
 		return jsonOutput, errParse
 	}
 
-	if err != nil && errParse != nil {
+	if err != nil && errParse == nil {
 		logger.Warn("Failed to run sync-settings: %v\n", err.Error())
 		// return the trace and the error raised
 		return fmt.Sprintf("%v", data["traceback"]), errors.New(fmt.Sprintf("%v", data["raisedException"]))
