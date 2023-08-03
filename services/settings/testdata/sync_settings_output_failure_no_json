@@ -1,0 +1,18 @@
+Unable to read settings file. [Errno 2] No such file or directory: '/tmp/no_temp_file'
+Traceback (most recent call last):
+  File "/usr/lib/python3.9/site-packages/sync/settings_file.py", line 371, in get_settings_from_file
+    settings_file = open(file_name, 'r')
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/no_temp_file'
+cp: can't stat '/tmp/sync_settings-s3gk_mgh/*': No such file or directory
+Traceback (most recent call last):
+  File "/usr/bin/sync-settings", line 676, in <module>
+    main()
+  File "/usr/bin/sync-settings", line 671, in main
+    sync_to_system(settings_file)
+  File "/usr/bin/sync-settings", line 477, in sync_to_system
+    notify_store_of_settings_change(settings)
+  File "/usr/lib/python3.9/site-packages/sync/notification_util.py", line 40, in notify_store_of_settings_change
+    settings_change_uri = get_settings_change_uri(settings_file)
+  File "/usr/lib/python3.9/site-packages/sync/notification_util.py", line 24, in get_settings_change_uri
+    for uri in settings_file.settings['uris']['uriTranslations']:
+KeyError: 'uris'

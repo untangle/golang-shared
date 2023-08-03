@@ -2,6 +2,7 @@ package settings
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -416,22 +416,45 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 // runSyncSettings runs sync-settings on the specified filename
 func runSyncSettings(filename string, force bool) (string, error) {
 	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
-	outbytes, err := cmd.CombinedOutput()
-	// The below regex is used to identify the starting index of json object from stdout by matching with the first key value pair
-	jsonPattern := `\{\n\s{2}"[a-z]+":\s{1}.+`
-	regExp := regexp.MustCompile(jsonPattern)
-	output := string(outbytes)
-	jsonStartIndex := regExp.FindStringIndex(output)
-	jsonOutput := output[jsonStartIndex[0]:]
-	if err != nil {
-		// json decode the error, and get the attributes
-		var data map[string]string
-		json.Unmarshal(outbytes[jsonStartIndex[0]:], &data)
-		logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-		// return the trace and the error raised
-		return data["traceback"], errors.New(data["raisedException"])
+	outBytes, err := cmd.CombinedOutput()
+	jsonOutput, data, errParse := parseSyncSettingsJsonOutput(outBytes)
+
+	if err == nil {
+		// if the json was invalid we return the error received from unmarshalling, the output will be empty
+		return jsonOutput, errParse
 	}
-	return jsonOutput, nil
+
+	logger.Warn("Failed to run sync-settings: %v\n", err.Error())
+	if err != nil && errParse == nil {
+		// return the trace and the error raised
+		return fmt.Sprintf("%v", data["traceback"]), errors.New(fmt.Sprintf("%v", data["raisedException"]))
+	}
+
+	// in this case err is not nil, and we had a parsing error
+	return errParse.Error(), err
+}
+
+// parseSyncSettingsJsonOutput gets the data from the JSON part of the sync-settings output
+// On the last line of the output there will be the JSON.
+// If The last line is not a valid json, it returns an error.
+func parseSyncSettingsJsonOutput(output []byte) (string, map[string]any, error) {
+	output = bytes.TrimSpace(output)
+
+	outputBuffer := bytes.NewBuffer(output)
+	textScanner := bufio.NewScanner(outputBuffer)
+	textScanner.Split(bufio.ScanLines)
+
+	jsonLine := []byte{}
+	for textScanner.Scan() {
+		jsonLine = textScanner.Bytes()
+	}
+
+	var data map[string]any
+	if err := json.Unmarshal(jsonLine, &data); err != nil {
+		return "", nil, fmt.Errorf("parse sync-settings output error: %w", err)
+	}
+
+	return string(jsonLine), data, nil
 }
 
 // this runs the `sync` command so the OS writes the cached file changes
