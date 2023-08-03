@@ -1,0 +1,44 @@
+Table Manager: Disabling captive portal rules
+Table Manager: Found redirection ip for captive portal: 192.168.1.1
+SystemManager: wrote ttylogin.
+SystemManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/startup.d/050-hostname
+SystemManager: Wrote /tmp/sync_settings-zv_fsub2/etc/crontabs/root
+SystemManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/zzz-reload-system
+SystemManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/startup.d/060-nic-settings
+SystemManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/setup.d/010-timezone
+SystemManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/web-admin-ports
+NetworkManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/network
+WirelessManager: Syncing settings
+WirelessManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/wireless
+InterfaceManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/nftables-rules.d/101-interface-marks
+DhcpManager: Syncing settings
+DhcpManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/dhcp
+NatManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/nftables-rules.d/100-nat
+AccountsManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/setup.d/100-setpasswd
+QosManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/nftables-rules.d/300-qos-rules-sys
+QosManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/qos.d/10-disable-qos-wan-eth1
+QosManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/qos.d/20-enable-qos-wan-eth1
+QosManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/qos.d/15-disable-qos-all
+RouteManager: Syncing settings
+RouteManager: Wrote /tmp/sync_settings-zv_fsub2/etc/iproute2/rt_tables
+RouteManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/ifup.d/10-default-route
+RouteManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/ifdown.d/10-default-route
+RouteManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/nftables-rules.d/102-wan-routing
+RouteManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/wan_manager
+RouteManager: Wrote /tmp/sync_settings-zv_fsub2/etc/udhcpc.user
+StatsManager: Sync settings
+IpsecManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/ipsec
+IpsecManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/nftables-rules.d/400-ipsec-rules
+LldpManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/lldpd
+ThreatPreventionManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/bcti.cfg
+WebFilterManager: Sync settings
+WebFilter Manager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/bcti.cfg
+WebFilter Manager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/nftables-rules.d/207-wf-rules
+GeoipManager: Sync settings
+DiscoveryManager: Sync settings
+CaptivePortalManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/captive_portal/captive_portal_settings
+SettingsManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/current.json
+DynamicBlockListsManager: Syncing settings
+DynamicIpBlockerManager: Wrote /tmp/sync_settings-zv_fsub2/usr/bin/fetch_ip_list.py
+Connection Error occurred during settings change notification: HTTPSConnectionPool(host='untangle.com', port=443): Max retries exceeded with url: /api/v1/appliance/OnSettingsUpdate?uid=6d944017-6256-4b3e-a8d5-1238a61deb84&token=2da30367-a1de-4154-a409-fca6addecd68 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x227e6f0>: Failed to establish a new connection: [Errno -3] Try again'))
+{"success": true, "logLines": "Syncing to system...\nNo changed files.\nDeleted files:\n/etc/config/nftables-rules.d/207-wf-rules\nDeleting files...\nCopying files...", "message": null, "traceback": null, "raisedException": null}

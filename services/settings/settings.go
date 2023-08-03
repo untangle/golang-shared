@@ -2,6 +2,7 @@ package settings
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -438,6 +439,26 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	logger.Warn("Failed to run sync-settings: %v\n", err.Error())
 	// return the trace and the error raised
 	return data["traceback"], errors.New(data["raisedException"])
+}
+
+func parseJsonOutput(output []byte) (string, map[string]any, error) {
+	output = bytes.TrimSpace(output)
+
+	outputBuffer := bytes.NewBuffer(output)
+	fileScanner := bufio.NewScanner(outputBuffer)
+	fileScanner.Split(bufio.ScanLines)
+
+	jsonLine := []byte{}
+	for fileScanner.Scan() {
+		jsonLine = fileScanner.Bytes()
+	}
+
+	var data map[string]any
+	if err := json.Unmarshal(jsonLine, &data); err != nil {
+		return "", nil, err
+	}
+
+	return string(jsonLine), data, nil
 }
 
 // this runs the `sync` command so the OS writes the cached file changes
