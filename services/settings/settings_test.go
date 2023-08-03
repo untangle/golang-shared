@@ -55,6 +55,6 @@ func TestParseJsonOutput(t *testing.T) {
 
 		assert.Equal(t, expectedString, jsonOutput)
 		assert.Equal(t, expectedMap, mapOutput)
-		assert.Equal(t, "invalid character 'K' looking for beginning of value", err.Error())
+		assert.Contains(t, err.Error(), "parse sync-settings output error:")
 	})
 }
