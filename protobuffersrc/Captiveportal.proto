@@ -19,7 +19,6 @@ message UserGetResponse {
 
 message UserSetRequest {
 	string ClientIp = 1;
-	string AcceptedTimestamp = 2;
 }
 message UserSetResponse {
 	bool Done = 1;
