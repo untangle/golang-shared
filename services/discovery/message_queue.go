@@ -45,7 +45,7 @@ func checkStaleNeigh(devices map[string]*DeviceEntry, neighDevice map[string]*di
 		knownNeighState = oldEntry.Neigh[ip]
 		newNeighState = neighDevice[ip]
 	}
-	if newNeighState.State == "STALE" && knownNeighState.State == "STALE" {
+	if knownNeighState != nil && newNeighState.State == "STALE" && knownNeighState.State == "STALE" {
 		return true
 	}
 	return false
