@@ -1,6 +1,8 @@
 package packetfilter
 
 import (
+	"fmt"
+
 	"github.com/untangle/golang-shared/booleval"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -41,10 +43,17 @@ func getCompareValue(condition PacketCondition) (booleval.Comparable, error) {
 		} else {
 			return port, nil
 		}
-	case "ApplicationIDInferred", "ApplicationNameInferred", "ApplicationProtocolInferred", "ApplicationRiskInferred":
+	case "ApplicationCategoryInferred", "ApplicationIDInferred", "ApplicationNameInferred", "ApplicationProtocolInferred", "ApplicationRiskInferred":
 		return booleval.NewStringComparable(condition.Value), nil
 	case "CertSubjectCN", "CertSubjectDNS", "CertSubjectO", "ClientReverseDNS", "ServerDNSHint":
 		return booleval.NewStringComparable(condition.Value), nil
+	case "ClientInterfaceType", "ClientInterfaceZone", "ServerInterfaceType", "ServerInterfaceZone":
+		return booleval.NewStringComparable(condition.Value), nil
+	case "CTState":
+		return booleval.NewStringComparable(condition.Value), nil
+	case "IPProtocol":
+		return booleval.NewStringComparable(condition.Value), nil
+	default:
+		return nil, fmt.Errorf("packetfilter getCompareValue(): property %v is not a valid packetCondition", condition.Property)
 	}
-	return nil, nil
 }
