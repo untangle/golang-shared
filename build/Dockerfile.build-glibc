@@ -28,4 +28,5 @@ RUN mkdir -p /go/untangle-shared
 VOLUME /go/untangle-shared
 WORKDIR /go/untangle-shared
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 CMD make all && (if [ -n "${UNIT_TEST}" -a "${UNIT_TEST}" = "yes" ]; then make test; make racetest; fi)

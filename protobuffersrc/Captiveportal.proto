@@ -1,0 +1,25 @@
+syntax = "proto3";
+package captiveportal;
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/CaptivePortal";
+
+service CaptivePortalService {
+    rpc getCaptivePortalUser (UserGetRequest) returns (UserGetResponse) {}
+    rpc setCaptivePortalUser (UserSetRequest) returns (UserSetResponse) {}
+}
+
+message UserGetRequest {
+  string ClientIp = 1;
+}
+
+message UserGetResponse {
+  	string ClientIp = 1;
+	string PolicyId = 2;
+	string ConfigId = 3;
+}
+
+message UserSetRequest {
+	string ClientIp = 1;
+}
+message UserSetResponse {
+	bool Done = 1;
+}

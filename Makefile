@@ -24,7 +24,7 @@ all: build lint
 build:
 	$(call LOG_FUNCTION,"Compiling protocol buffers...")
 	rm -rf structs/protocolbuffers/*
-	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared protobuffersrc/*
+	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared --go-grpc_out=require_unimplemented_servers=false:. --go-grpc_opt=module=github.com/untangle/golang-shared protobuffersrc/*
 
 environment:
 	$(call LOG_FUNCTION,"Setting up environment...")
