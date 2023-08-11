@@ -10,7 +10,7 @@ service CaptivePortalService {
 message UserGetRequest {
   string ClientIp = 1;
 }
-
+// get user info to redirect to respective captive portal.
 message UserGetResponse {
   	string ClientIp = 1;
 	string PolicyId = 2;
@@ -20,6 +20,7 @@ message UserGetResponse {
 message UserSetRequest {
 	string ClientIp = 1;
 }
+//captive portal accept update status.
 message UserSetResponse {
 	bool Done = 1;
 }
