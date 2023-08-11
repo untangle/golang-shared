@@ -67,6 +67,7 @@ func (x *UserGetRequest) GetClientIp() string {
 	return ""
 }
 
+// get user info to redirect to respective captive portal.
 type UserGetResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -177,6 +178,7 @@ func (x *UserSetRequest) GetClientIp() string {
 	return ""
 }
 
+// captive portal accept update status.
 type UserSetResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
