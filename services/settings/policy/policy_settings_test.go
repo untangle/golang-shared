@@ -364,9 +364,9 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			}`,
 			shouldErr: false,
 			expected: PolicyCondition{
-				Op:     "==",
-				CType:  "CLIENT_ADDRESS",
-				Values: []string{"192.168.5.6/32"},
+				Op:    "==",
+				CType: "CLIENT_ADDRESS",
+				Value: []string{"192.168.5.6/32"},
 			},
 		},
 		{
@@ -398,9 +398,9 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			}`,
 			shouldErr: false,
 			expected: PolicyCondition{
-				Op:     "==",
-				CType:  "SERVER_ADDRESS",
-				Values: []string{"fd00::1/8"},
+				Op:    "==",
+				CType: "SERVER_ADDRESS",
+				Value: []string{"fd00::1/8"},
 			},
 		},
 		{
@@ -422,9 +422,9 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			}`,
 			shouldErr: false,
 			expected: PolicyCondition{
-				Op:     "==",
-				CType:  "CLIENT_PORT",
-				Values: []string{"22"},
+				Op:    "==",
+				CType: "CLIENT_PORT",
+				Value: []string{"22"},
 			},
 		},
 		{

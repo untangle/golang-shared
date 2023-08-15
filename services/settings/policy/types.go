@@ -152,7 +152,7 @@ type PolicyFlow struct {
 type PolicyCondition struct {
 	Op      string   `json:"op"`
 	CType   string   `json:"type"`
-	Values  []string `json:"value,omitempty"`
+	Value  []string `json:"value,omitempty"`
 	GroupID string   `json:"groupId"`
 }
 
@@ -165,7 +165,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 	}
 
 	// check that pCondition.Value is formatted correctly for the CType
-	for _, value := range pCondition.Values {
+	for _, value := range pCondition.Value {
 		switch pCondition.CType {
 		case "CLIENT_ADDRESS", "SERVER_ADDRESS":
 			// Enforces mask on address
