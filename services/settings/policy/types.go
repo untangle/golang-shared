@@ -152,7 +152,7 @@ type PolicyFlow struct {
 type PolicyCondition struct {
 	Op      string   `json:"op"`
 	CType   string   `json:"type"`
-	Value  []string `json:"value,omitempty"`
+	Value   []string `json:"value,omitempty"`
 	GroupID string   `json:"groupId"`
 }
 
