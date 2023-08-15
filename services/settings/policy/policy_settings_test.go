@@ -338,6 +338,122 @@ func TestGroupMarshal(t *testing.T) {
 	}
 }
 
+// Tests unmarshalling the PolicyCondition type with various combos of valid/invalid CIDR addresses and ports
+func TestUnmarshalPolicyCondition(t *testing.T) {
+	tests := []struct {
+		name      string
+		json      string
+		shouldErr bool
+		expected  PolicyCondition
+	}{{
+		name: "bad type",
+		json: `{
+				"op": "==",
+				"type": "I am not a type",
+				"value": ["192.168.5.6/32"]
+			}`,
+		shouldErr: true,
+		expected:  PolicyCondition{},
+	},
+		{
+			name: "ipv4 w mask",
+			json: `{
+				"op": "==",
+				"type": "CLIENT_ADDRESS",
+				"value": ["192.168.5.6/32"]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:     "==",
+				CType:  "CLIENT_ADDRESS",
+				Values: []string{"192.168.5.6/32"},
+			},
+		},
+		{
+			name: "ipv4 no mask",
+			json: `{
+				"op": "==",
+				"type": "CLIENT_ADDRESS",
+				"value": ["192.168.5.6"]
+			}`,
+			shouldErr: true,
+			expected:  PolicyCondition{},
+		},
+		{
+			name: "invalid ipv4 w mask",
+			json: `{
+				"op": "==",
+				"type": "SERVER_ADDRESS",
+				"value": ["192.168.5.256/32"]
+			}`,
+			shouldErr: true,
+			expected:  PolicyCondition{},
+		},
+		{
+			name: "ipv6 w mask",
+			json: `{
+				"op": "==",
+				"type": "SERVER_ADDRESS",
+				"value": ["fd00::1/8"]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:     "==",
+				CType:  "SERVER_ADDRESS",
+				Values: []string{"fd00::1/8"},
+			},
+		},
+		{
+			name: "ipv6 no mask",
+			json: `{
+				"op": "==",
+				"type": "SERVER_ADDRESS",
+				"value": ["fd00::1"]
+			}`,
+			shouldErr: true,
+			expected:  PolicyCondition{},
+		},
+		{
+			name: "valid port",
+			json: `{
+				"op": "==",
+				"type": "CLIENT_PORT",
+				"value": ["22"]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:     "==",
+				CType:  "CLIENT_PORT",
+				Values: []string{"22"},
+			},
+		},
+		{
+			name: "invalid port",
+			json: `{
+				"op": "==",
+				"type": "SERVER_PORT",
+				"value": ["-1"]
+			}`,
+			shouldErr: true,
+			expected:  PolicyCondition{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var actualCondition PolicyCondition
+
+			if tt.shouldErr {
+				assert.NotNil(t, json.Unmarshal([]byte(tt.json), &actualCondition))
+			} else {
+				assert.Nil(t, json.Unmarshal([]byte(tt.json), &actualCondition))
+				assert.NotNil(t, actualCondition)
+				assert.EqualValues(t, tt.expected, actualCondition)
+			}
+		})
+	}
+}
+
 func TestPolicyConfigurationJSON(t *testing.T) {
 	tests := []struct {
 		name                   string
