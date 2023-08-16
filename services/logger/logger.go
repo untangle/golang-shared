@@ -127,6 +127,7 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 	if err != nil {
 		logger.Warn("No existing config found - using default as current, err: %s\n", err)
 		conf.SaveConfig()
+		conf.LoadConfigFromFile()
 	}
 
 	logger.configLocker.Lock()
