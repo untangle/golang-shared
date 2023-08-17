@@ -46,6 +46,7 @@ func Shutdown() {
 
 }
 
+// New data involved
 // SetSighupProperties sets the properties of running sighup, such as if it should and the processes to sighup
 // @param shouldRunSighup - true if sighup should be run after callsbacks, false otherwise
 // @param sighupExecutables - executables to call sighup on, empty string if none
