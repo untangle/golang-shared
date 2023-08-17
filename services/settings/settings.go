@@ -28,6 +28,7 @@ const currentFile = "/etc/config/current.json"
 
 var syncCallbacks []func()
 
+// new data
 // ShouldRunSighup is if sighup should be run after sync-settings callbacks
 var ShouldRunSighup bool = false
 
