@@ -276,7 +276,7 @@ func (db *MaxMindGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 		}
 	} else {
 		logger.Warn(
-			"LookupCountryCodeOfIP() called with nil MaxMind DB reader!\n")
+			"Vincent : LookupCountryCodeOfIP() called with nil MaxMind DB reader!\n")
 		retOk = false
 	}
 
