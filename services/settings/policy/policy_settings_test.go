@@ -83,9 +83,9 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 		name        string
 		json        string
 		expectedErr bool
-		expected    Group
+		expected    PolicyGroup
 	}{
-		{name: "emptyjson", json: ``, expectedErr: true, expected: Group{}},
+		{name: "emptyjson", json: ``, expectedErr: true, expected: PolicyGroup{}},
 		{
 			name: "Basic bad type test",
 			json: `{"name": "someBogus",
@@ -93,7 +93,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "badType",
                           "items:" []}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 		{
 			name: "okay ip list",
@@ -102,7 +102,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "IPAddrList",
                           "items": ["132.123.123"]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: PolicyGroup{
 				Name:  "someBogus",
 				Type:  "IPAddrList",
 				Items: []net.IPSpecifierString{"132.123.123"},
@@ -115,7 +115,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "GeoIPLocation",
                           "items": ["AE", "AF"]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: PolicyGroup{
 				Name:  "someBogus",
 				Type:  "GeoIPLocation",
 				Items: []string{"AE", "AF"},
@@ -128,7 +128,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "IPAddrList",
                           "items": [{]]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 		{
 			name: "bad ip addrlist",
@@ -137,7 +137,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "IPAddrList",
                           "items": [{}]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 		{
 			name: "bad type",
@@ -146,7 +146,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "IPAddrListBOGUS",
                           "items": []}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 		{
 			name: "bad items",
@@ -155,7 +155,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "IPAddrList",
                           "items": false}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 		{
 			name: "bad items2",
@@ -164,7 +164,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "IPAddrList",
                           "items": [{}, {}, {}]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 		{
 			name: "bad service endpoint",
@@ -173,7 +173,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "ServiceEndpoint",
                           "items": ["googlywoogly"]}`,
 			expectedErr: true,
-			expected:    Group{}},
+			expected:    PolicyGroup{}},
 		{
 			name: "emptylist",
 			json: `{"name": "ServiceEndpointTest",
@@ -181,7 +181,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "ServiceEndpoint",
                           "items": []}`,
 			expectedErr: false,
-			expected: Group{
+			expected: PolicyGroup{
 				Name:  "ServiceEndpointTest",
 				Type:  "ServiceEndpoint",
 				Items: []ServiceEndpoint{},
@@ -195,7 +195,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "ServiceEndpoint",
                           "items": [{"protocol": 17]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 		{
 			name: "good sg endpoint list",
@@ -207,7 +207,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                               {"protocol": 17, "port": 2222},
                               {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: PolicyGroup{
 				Name:        "ServiceEndpointTest",
 				Description: "Description",
 				Type:        ServiceEndpointType,
@@ -232,7 +232,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "Interface",
                           "items": [1, 2, 3]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: PolicyGroup{
 				Name:        "InterfaceListTest",
 				Description: "description",
 				Type:        InterfaceType,
@@ -248,13 +248,13 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "Interface",
                           "items": [1, "boog", 3]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    PolicyGroup{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var actual Group
+			var actual PolicyGroup
 			if !tt.expectedErr {
 				assert.Nil(t, json.Unmarshal([]byte(tt.json), &actual))
 				assert.EqualValues(t, tt.expected, actual)
@@ -268,12 +268,12 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 func TestGroupMarshal(t *testing.T) {
 	tests := []struct {
 		name         string
-		group        Group
+		group        PolicyGroup
 		expectedJSON string
 	}{
 		{
 			name: "okay ip list",
-			group: Group{
+			group: PolicyGroup{
 				Name:        "someBogus",
 				Description: "Description",
 				Type:        "IPAddrList",
@@ -288,7 +288,7 @@ func TestGroupMarshal(t *testing.T) {
 		},
 		{
 			name: "okay geoip list",
-			group: Group{
+			group: PolicyGroup{
 				Name:        "someBogus",
 				Description: "Description",
 				Type:        "GeoIPLocation",
@@ -303,7 +303,7 @@ func TestGroupMarshal(t *testing.T) {
 		},
 		{
 			name: "good sg endpoint list",
-			group: Group{
+			group: PolicyGroup{
 				Name:        "ServiceEndpointTest",
 				Description: "Description",
 				Type:        ServiceEndpointType,

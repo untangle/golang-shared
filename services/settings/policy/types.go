@@ -14,10 +14,10 @@ import (
 // facilitate lookup.
 type PolicySettings struct {
 	Enabled        bool                   `json:"enabled"`
-	Flows          []*PolicyFlow          `json:"flows"`
+	Flows          []*PolicyFlow          `json:"condition_objects"`
 	Configurations []*PolicyConfiguration `json:"configurations"`
 	Policies       []*Policy              `json:"policies"`
-	Groups         []*Group               `json:"groups"`
+	Groups         []*PolicyGroup         `json:"groups"`
 }
 
 // GroupType is the type of group that a Group is, used to demux the
@@ -45,11 +45,14 @@ const (
 
 	// ThreatPreventionType means that the Items of the Group are threat prevention score.
 	ThreatPreventionType GroupType = "ThreatPrevention"
+
+	// ConditionGroup contains a reference to a ConditionObject
+	ConditionGroupType GroupType = "ConditionGroup"
 )
 
 // Group is a way to generically re-use certain lists of attributes
 // that may be true for a session.
-type Group struct {
+type PolicyGroup struct {
 	Name        string    `json:"name"`
 	Type        GroupType `json:"type"`
 	Description string    `json:"description"`
@@ -70,7 +73,7 @@ type ServiceEndpoint struct {
 // type. However, we don't want the pointer later on, we just want the
 // slice. setting g.Items to []T{} where T is a type we want does not
 // work.
-func setList[T any](g *Group) func() {
+func setList[T any](g *PolicyGroup) func() {
 	list := []T{}
 	g.Items = &list
 	return func() {
@@ -78,8 +81,8 @@ func setList[T any](g *Group) func() {
 	}
 }
 
-// UnmarshalJSON is a custom json unmarshaller for a Group.
-func (g *Group) UnmarshalJSON(data []byte) error {
+// UnmarshalJSON is a custom json unmarshaller for a PolicyGroup.
+func (g *PolicyGroup) UnmarshalJSON(data []byte) error {
 
 	type GroupTypeField struct {
 		Type GroupType `json:"type"`
@@ -87,7 +90,7 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	var typeField GroupTypeField
 
 	if err := json.Unmarshal(data, &typeField); err != nil {
-		return fmt.Errorf("unable to unmarshal group: %w", err)
+		return fmt.Errorf("unable to unmarshal PolicyGroup: %w", err)
 	}
 
 	switch typeField.Type {
@@ -103,37 +106,39 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 		defer setList[uint](g)()
 	case WebFilterCategoryType:
 		defer setList[uint](g)()
+	case ConditionGroupType:
+		defer setList[uint](g)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
 
 	// alias to make use of tags but avoid recursion
-	type aliasGroup Group
+	type aliasGroup PolicyGroup
 
 	// unmarshal PolicyConfiguration using struct tags
 	return json.Unmarshal(data, (*aliasGroup)(g))
 }
 
-// ItemsStringList returns the Items of the group as a slice of
+// ItemsStringList returns the Items of the PolciyGroup as a slice of
 // strings if they can be interpreted this way, or an empty slice and
 // false if not.
-func (g *Group) ItemsStringList() ([]string, bool) {
+func (g *PolicyGroup) ItemsStringList() ([]string, bool) {
 	val, ok := g.Items.([]string)
 	return val, ok
 }
 
-// ItemsIPSpecList returns the Items of a group as a slice of
+// ItemsIPSpecList returns the Items of a PolicyGroup as a slice of
 // net.IPSpecifierString and true if they can be interpreted this way,
 // or an empty slice and false otherwise.
-func (g *Group) ItemsIPSpecList() ([]net.IPSpecifierString, bool) {
+func (g *PolicyGroup) ItemsIPSpecList() ([]net.IPSpecifierString, bool) {
 	val, ok := g.Items.([]net.IPSpecifierString)
 	return val, ok
 }
 
-// ItemsServiceEndpointList returns the Items of a group as a slice of
+// ItemsServiceEndpointList returns the Items of a PolicyGroup as a slice of
 // ServiceEndpoint and true if they can be interpreted this way, nil
 // and false otherwise.
-func (g *Group) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
+func (g *PolicyGroup) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
 	val, ok := g.Items.([]ServiceEndpoint)
 	return val, ok
 }
@@ -208,15 +213,24 @@ func (pConfig *PolicyConfiguration) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// PolicyService is an association between a PolicyConfiguration and a PolicyConditionObject
+// that can be added to a Policy
+
+type PolicyService struct {
+	ConditionObjectID string `json:"condition_object"`
+	ConfigurationID   string `json:"configuration"`
+}
+
 // Policies are the root of our policy configurations. It includes pointers to substructure.
 type Policy struct {
-	Defaults       bool     `json:"defaults"`
-	ID             string   `json:"id"`
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
-	Enabled        bool     `json:"enabled"`
-	Configurations []string `json:"configurations"`
-	Flows          []string `json:"flows"`
+	Defaults        bool            `json:"defaults"`
+	ID              string          `json:"id"`
+	Name            string          `json:"name"`
+	Description     string          `json:"description"`
+	Enabled         bool            `json:"enabled"`
+	Configurations  []string        `json:"configurations"`
+	Services        []PolicyService `json:"services"`
+	ConditionObject string          `json:"condition_object"`
 }
 
 func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
