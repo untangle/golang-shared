@@ -431,7 +431,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 		if len(buffer) == 0 {
 			return
 		}
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, functionName, buffer)
 	}
 
 	fmt.Print(logMessage)
