@@ -425,13 +425,13 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s: %18s %s", logger.getPrefix(), logLevelName[level], packageName, functionName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s: %18s %s", logger.getPrefix(), logLevelName[level], packageName, functionName, buffer)
 	}
 
 	fmt.Print(logMessage)
@@ -467,7 +467,7 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single stack frame we need
 	stack := make([]uintptr, 1)
-	count := runtime.Callers(4, stack)
+	count := runtime.Callers(5, stack)
 	if count != 1 {
 		return "unknown", 0, "unknown", "unknown"
 	}
@@ -492,7 +492,7 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 		packageName = functionName[0:dot]
 	}
 
-	return caller.File, caller.Line, packageName, functionName
+	return caller.File, caller.Line, packageName, caller.Function
 }
 
 // getPrefix returns a log message prefix
