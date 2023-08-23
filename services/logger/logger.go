@@ -478,6 +478,7 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 
 	// Find the index of the last slash to isolate the package.FunctionName
 	end := strings.LastIndex(caller.Function, "/")
+	logger.Info("The function name is: %s \n", caller.Function)
 	if end < 0 {
 		functionName = caller.Function
 	} else {
