@@ -467,7 +467,7 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single stack frame we need
 	stack := make([]uintptr, 1)
-	count := runtime.Callers(5, stack)
+	count := runtime.Callers(4, stack)
 	if count != 1 {
 		return "unknown", 0, "unknown", "unknown"
 	}
