@@ -87,12 +87,8 @@ func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) error {
 	return nil
 }
 
+// SetLogLevelHighest will set the highest log level in the log config
 func (conf *LoggerConfig) SetLogLevelHighest() {
-	// Create a mask of LogLevel Id's in use anywhere
-	// This is not optimal - if you enable trace or debug
-	// anywhere in the code, it will defeat the check in logMessage
-	// and work as before but this should be an improvement
-	// in general.
 	for _, v := range conf.LogLevelMap {
 		if v.GetId() > conf.LogLevelHighest {
 			conf.LogLevelHighest = v.GetId()
