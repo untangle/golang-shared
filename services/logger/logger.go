@@ -425,7 +425,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, functionName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
@@ -478,7 +478,6 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 
 	// Find the index of the last slash to isolate the package.FunctionName
 	end := strings.LastIndex(caller.Function, "/")
-	logger.Info("The function name is: %s \n", caller.Function)
 	if end < 0 {
 		functionName = caller.Function
 	} else {
