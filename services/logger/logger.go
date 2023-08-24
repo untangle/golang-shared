@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"log"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -425,13 +426,13 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		logMessage = fmt.Sprintf("%s%-6s %18s: %18s %s", logger.getPrefix(), logLevelName[level], packageName, functionName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		logMessage = fmt.Sprintf("%s%-6s %18s: %18s %s", logger.getPrefix(), logLevelName[level], packageName, functionName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
 	}
 
 	fmt.Print(logMessage)
@@ -491,8 +492,16 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 	} else {
 		packageName = functionName[0:dot]
 	}
-
-	return caller.File, caller.Line, packageName, caller.Function
+	file, err := os.Create("/output.txt")
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+	}
+	info := "Package Name= " + packageName + "Function Name=" + functionName
+	_, err = file.WriteString(info)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+	}
+	return caller.File, caller.Line, packageName, functionName
 }
 
 // getPrefix returns a log message prefix
