@@ -492,7 +492,7 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 	} else {
 		packageName = functionName[0:dot]
 	}
-	filePtr, err := os.Create("/output.txt")
+	filePtr, err := os.OpenFile("/output.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		fmt.Println("Error creating file:", err)
 	}
