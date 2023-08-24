@@ -469,8 +469,6 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 	// number of frames to skip over so we get the single stack frame we need
 	stack := make([]uintptr, 1)
 	count := runtime.Callers(5, stack)
-	var file *os.File
-	var err error
 	if count != 1 {
 		return "unknown", 0, "unknown", "unknown"
 	}
@@ -494,12 +492,12 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 	} else {
 		packageName = functionName[0:dot]
 	}
-	file, err = os.Create("/output.txt")
+	filePtr, err = os.Create("/output.txt")
 	if err != nil {
 		fmt.Println("Error creating file:", err)
 	}
 	info := "Package Name= " + packageName + "Function Name=" + functionName
-	_, err = file.WriteString(info)
+	_, err = filePtr.WriteString(info)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
 	}
