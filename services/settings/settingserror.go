@@ -383,6 +383,12 @@ func determineID(path []string, value map[string]interface{}) (string, error) {
 		rawID, found = value["policyId"]
 	} else if path[0] == "network" && path[1] == "interfaces" { // interfaces
 		rawID, found = value["interfaceId"]
+	} else if len(path) > 3 && path[0] == "firewall" && path[1] == "tables" && path[2] == "shaping" { // Network Filter rules
+		rawID, found = value["ruleId"]
+	} else if len(path) > 3 && path[0] == "firewall" && path[1] == "tables" && path[2] == "nat" { // Network NAT rules
+		rawID, found = value["ruleId"]
+	}else {
+		logger.Warn("Condition for Path: %v is not implemented", path)
 	}
 
 	if !found {
