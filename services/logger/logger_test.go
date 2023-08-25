@@ -336,7 +336,7 @@ func (suite *TestLogger) TestBasicWriters() {
 
 	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
 
-	startCount := logInstance.GetLineCount()
+	startCount := logInstance.GetLogCount()
 
 	//Change log writer to print to a buffer for us to analyze
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
@@ -346,9 +346,9 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
 
-	assert.Equal(suite.T(), uint64(4), logInstance.GetLineCount()-startCount)
+	assert.Equal(suite.T(), uint64(4), logInstance.GetLogCount()-startCount)
 
-	startCount = logInstance.GetLineCount()
+	startCount = logInstance.GetLogCount()
 
 	//Bump reflect config up
 	logInstance.config.SetLogLevel("logger", NewLogLevel("DEBUG"))
@@ -360,7 +360,7 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
 
-	assert.Equal(suite.T(), uint64(5), logInstance.GetLineCount()-startCount)
+	assert.Equal(suite.T(), uint64(5), logInstance.GetLogCount()-startCount)
 }
 
 func (suite *TestLogger) TestSendAlertToCMD() {
@@ -378,7 +378,7 @@ func (suite *TestLogger) TestSendAlertToCMD() {
 
 	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
 	assert.Equal(suite.T(), Alerts.AlertSeverity_CRITICAL, mockAlertsPublisher.LastAlert.Severity)
-	assert.Equal(suite.T(), "CRIT              reflect: Testing output for CRIT\n", mockAlertsPublisher.LastAlert.Message)
+	assert.Equal(suite.T(), "CRIT               logger: Testing output for CRIT\n", mockAlertsPublisher.LastAlert.Message)
 
 	logInstance.configLocker.Lock()
 	// Set alerts for error level logs
@@ -392,17 +392,17 @@ func (suite *TestLogger) TestSendAlertToCMD() {
 
 	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
 	assert.Equal(suite.T(), Alerts.AlertSeverity_ERROR, mockAlertsPublisher.LastAlert.Severity)
-	assert.Equal(suite.T(), "ERROR             reflect: Testing output for ERROR\n", mockAlertsPublisher.LastAlert.Message)
+	assert.Equal(suite.T(), "ERROR              logger: Testing output for ERROR\n", mockAlertsPublisher.LastAlert.Message)
 }
 
 func (suite *TestLogger) TestFindCallingFunction() {
 
 	fileName, lineNumber, packageName, functionName := findCallingFunction()
 
-	assert.Contains(suite.T(), fileName, "suite.go")
-	assert.Greater(suite.T(), lineNumber, 0)
-	assert.Equal(suite.T(), "suite", packageName)
-	assert.Contains(suite.T(), functionName, "suite.Run")
+	assert.Contains(suite.T(), fileName, "reflect")
+	assert.Equal(suite.T(), lineNumber, 339)
+	assert.Equal(suite.T(), "reflect", packageName)
+	assert.Contains(suite.T(), functionName, "reflect.Value.Call")
 }
 
 func (suite *TestLogger) TestGetInstanceWithConfig() {
