@@ -31,6 +31,7 @@ type Logger struct {
 	launchTime       time.Time
 	timestampEnabled bool
 	alerts           alerts.AlertPublisher
+	count            uint64
 }
 
 // This is only used inernally.
@@ -145,6 +146,10 @@ func (logger *Logger) GetConfig() LoggerConfig {
 // GetConfig returns the logger config
 func (logger *Logger) GetDefaultConfig() LoggerConfig {
 	return *logger.defaultConfig
+}
+
+func (logger *Logger) GetCount() uint64 {
+	return logger.count
 }
 
 // Startup starts the logging service
@@ -433,8 +438,9 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 		}
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
 	}
-
 	fmt.Print(logMessage)
+
+	logger.count++
 
 	logger.configLocker.Lock()
 	defer logger.configLocker.Unlock()
@@ -455,8 +461,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 // Frame 1 = findCallingFunction
 // Frame 2 = logMessage / isLogEnabled
 // Frame 3 = Warn, Info / IsWarnEnabled, IsInfoEnabled (etc...)
-// Frame 4 = the logger struct details
-// Frame 5 = the function that actually called logger.Warn, logger.Info, logger.IsWarnEnabled, logger.IsInfoEnabled, etc...
+// Frame 4 = the function that actually called logger.Warn, logger.Info, logger.IsWarnEnabled, logger.IsInfoEnabled, etc...
 // Here is an example of what we expect to see in the calling function frame:
 // FILE: /home/username/golang/src/github.com/untangle/packetd/services/dict/dict.go
 // FUNC: github.com/untangle/packetd/services/dict.cleanDictionary
@@ -467,7 +472,7 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single stack frame we need
 	stack := make([]uintptr, 1)
-	count := runtime.Callers(5, stack)
+	count := runtime.Callers(4, stack)
 	if count != 1 {
 		return "unknown", 0, "unknown", "unknown"
 	}

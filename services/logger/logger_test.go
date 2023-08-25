@@ -336,21 +336,31 @@ func (suite *TestLogger) TestBasicWriters() {
 
 	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
 
+	startCount := logInstance.GetCount()
+
 	//Change log writer to print to a buffer for us to analyze
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
 	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
-	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Notice(testingOutput, logLevelName[LogLevelNotice])
 	logInstance.Warn(testingOutput, logLevelName[LogLevelWarn])
+	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
+
+	assert.Equal(suite.T(), uint64(4), logInstance.GetCount()-startCount)
+
+	startCount = logInstance.GetCount()
 
 	//Bump reflect config up
-	logInstance.config.SetLogLevel("reflect", NewLogLevel("DEBUG"))
+	logInstance.config.SetLogLevel("logger", NewLogLevel("DEBUG"))
 	//Change log writer to print to a buffer for us to analyze
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
 	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
-	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Notice(testingOutput, logLevelName[LogLevelNotice])
 	logInstance.Warn(testingOutput, logLevelName[LogLevelWarn])
+	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
+
+	assert.Equal(suite.T(), uint64(5), logInstance.GetCount()-startCount)
 }
 
 func (suite *TestLogger) TestSendAlertToCMD() {
