@@ -33,7 +33,7 @@ func (suite *LogWriterTestSuite) TestLogLevels() {
 
 	for _, testLevel := range []string{"INFO", "ALERT", "CRIT"} {
 		// Set Log level
-		logWriter.SetLogLevel(NewLogLevel(testLevel))
+		assert.Nil(suite.T(), logWriter.SetLogLevel(NewLogLevel(testLevel)))
 
 		result := suite.logAndGetOutput(logWriter, fmt.Sprintf("Test message level: %s\n", testLevel))
 
@@ -54,7 +54,9 @@ func (suite *LogWriterTestSuite) logAndGetOutput(writer *LogWriter, message stri
 	w := io.MultiWriter(writer, suite.logInstance.Writer())
 
 	// Call write on the multiwriter interface
-	w.Write([]byte(message))
+	count, err := w.Write([]byte(message))
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), count, len(message))
 
 	// Return the output from the bytesBuffer
 	return buf.String()

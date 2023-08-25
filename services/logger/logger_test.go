@@ -210,7 +210,7 @@ func (suite *TestLogger) TestLoadConfigFromJSON() {
 
 	suite.T().Logf("testing data: %v", jsonData)
 
-	loggerConf.LoadConfigFromJSON(jsonData)
+	assert.Nil(suite.T(), loggerConf.LoadConfigFromJSON(jsonData))
 
 	assert.NotNil(suite.T(), loggerConf.LogLevelMap)
 	assert.Equal(suite.T(), testMap, loggerConf.LogLevelMap)
@@ -305,7 +305,7 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 
 	// now load from file
 	logInstance.config.FileLocation = "LoggerConfig.json"
-	logInstance.config.LoadConfigFromFile()
+	assert.Nil(suite.T(), logInstance.config.LoadConfigFromFile())
 
 	// verify these are different
 	assert.NotEqual(suite.T(), testConfig, logInstance.config)
@@ -400,7 +400,8 @@ func (suite *TestLogger) TestFindCallingFunction() {
 	fileName, lineNumber, packageName, functionName := findCallingFunction()
 
 	assert.Contains(suite.T(), fileName, "reflect")
-	assert.Equal(suite.T(), lineNumber, 339)
+	// The line number varies dependng on where this is run from
+	assert.Greater(suite.T(), lineNumber, 0)
 	assert.Equal(suite.T(), "reflect", packageName)
 	assert.Contains(suite.T(), functionName, "reflect.Value.Call")
 }
