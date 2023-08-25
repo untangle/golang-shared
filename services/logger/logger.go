@@ -31,7 +31,7 @@ type Logger struct {
 	launchTime       time.Time
 	timestampEnabled bool
 	alerts           alerts.AlertPublisher
-	count            uint64
+	lineCount        uint64
 }
 
 // This is only used inernally.
@@ -148,8 +148,8 @@ func (logger *Logger) GetDefaultConfig() LoggerConfig {
 	return *logger.defaultConfig
 }
 
-func (logger *Logger) GetCount() uint64 {
-	return logger.count
+func (logger *Logger) GetLineCount() uint64 {
+	return logger.lineCount
 }
 
 // Startup starts the logging service
@@ -440,7 +440,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	}
 	fmt.Print(logMessage)
 
-	logger.count++
+	logger.lineCount++
 
 	logger.configLocker.Lock()
 	defer logger.configLocker.Unlock()

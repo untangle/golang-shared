@@ -336,7 +336,7 @@ func (suite *TestLogger) TestBasicWriters() {
 
 	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
 
-	startCount := logInstance.GetCount()
+	startCount := logInstance.GetLineCount()
 
 	//Change log writer to print to a buffer for us to analyze
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
@@ -346,9 +346,9 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
 
-	assert.Equal(suite.T(), uint64(4), logInstance.GetCount()-startCount)
+	assert.Equal(suite.T(), uint64(4), logInstance.GetLineCount()-startCount)
 
-	startCount = logInstance.GetCount()
+	startCount = logInstance.GetLineCount()
 
 	//Bump reflect config up
 	logInstance.config.SetLogLevel("logger", NewLogLevel("DEBUG"))
@@ -360,7 +360,7 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
 
-	assert.Equal(suite.T(), uint64(5), logInstance.GetCount()-startCount)
+	assert.Equal(suite.T(), uint64(5), logInstance.GetLineCount()-startCount)
 }
 
 func (suite *TestLogger) TestSendAlertToCMD() {
