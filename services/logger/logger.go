@@ -446,10 +446,10 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	}
 	fmt.Print(logMessage)
 
-	logger.logCount++
-
 	logger.configLocker.Lock()
 	defer logger.configLocker.Unlock()
+
+	logger.logCount++
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
 		logger.alerts.Send(&Alerts.Alert{
