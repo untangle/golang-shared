@@ -466,30 +466,38 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 func findCallingFunction() (file string, lineNumber int, packageName string, functionName string) {
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single stack frame we need
-	stack := make([]uintptr, 1)
-	count := runtime.Callers(5, stack)
-	if count != 1 {
+	stack := make([]uintptr, 2)
+	var frame_itr int
+	numFrames1 := runtime.Callers(4, &stack[0])
+	numFrames2 := runtime.Callers(5, &stack[1])
+
+	if numFrames1 != 1 || numFrames2 != 1 {
 		return "unknown", 0, "unknown", "unknown"
 	}
 
 	// get the frame object for the caller
-	frames := runtime.CallersFrames(stack)
-	caller, _ := frames.Next()
+	for frame_itr = 1; frame_itr >= 0; frame_itr-- {
+		frames := runtime.CallersFrames(&stack[frame_itr])
+		caller, _ := frames.Next()
 
-	// Find the index of the last slash to isolate the package.FunctionName
-	end := strings.LastIndex(caller.Function, "/")
-	if end < 0 {
-		functionName = caller.Function
-	} else {
-		functionName = caller.Function[end+1:]
-	}
+		// Find the index of the last slash to isolate the package.FunctionName
+		end := strings.LastIndex(caller.Function, "/")
+		if end < 0 {
+			functionName = caller.Function
+		} else {
+			functionName = caller.Function[end+1:]
+		}
 
-	// Find the index of the dot after the package name
-	dot := strings.Index(functionName, ".")
-	if dot < 0 {
-		packageName = "unknown"
-	} else {
-		packageName = functionName[0:dot]
+		// Find the index of the dot after the package name
+		dot := strings.Index(functionName, ".")
+		if dot < 0 {
+			packageName = "unknown"
+		} else {
+			packageName = functionName[0:dot]
+			if packageName != "runtime" {
+				break
+			}
+		}
 	}
 
 	return caller.File, caller.Line, packageName, functionName
