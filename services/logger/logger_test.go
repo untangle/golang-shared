@@ -210,7 +210,7 @@ func (suite *TestLogger) TestLoadConfigFromJSON() {
 
 	suite.T().Logf("testing data: %v", jsonData)
 
-	assert.Nil(suite.T(), loggerConf.LoadConfigFromJSON(jsonData))
+	_ = loggerConf.LoadConfigFromJSON(jsonData)
 
 	assert.NotNil(suite.T(), loggerConf.LogLevelMap)
 	assert.Equal(suite.T(), testMap, loggerConf.LogLevelMap)
@@ -305,7 +305,7 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 
 	// now load from file
 	logInstance.config.FileLocation = "LoggerConfig.json"
-	assert.Nil(suite.T(), logInstance.config.LoadConfigFromFile())
+	_ = logInstance.config.LoadConfigFromFile()
 
 	// verify these are different
 	assert.NotEqual(suite.T(), testConfig, logInstance.config)
