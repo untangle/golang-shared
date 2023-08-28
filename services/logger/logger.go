@@ -449,6 +449,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	logger.configLocker.Lock()
 	defer logger.configLocker.Unlock()
 
+	// This is protected y the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
