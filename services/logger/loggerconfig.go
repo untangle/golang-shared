@@ -81,17 +81,19 @@ func (conf *LoggerConfig) LoadConfigFromJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	// Create a mask of LogLevel Id's in use anywhere
-	// This is not optimal - if you enable trace or debug
-	// anywhere in the code, it will defeat the check in logMessage
-	// and work as before but this should be an improvement
-	// in general.
+
+	// set the highest log level
+	conf.SetLogLevelHighest()
+	return nil
+}
+
+// SetLogLevelHighest will set the highest log level in the log config
+func (conf *LoggerConfig) SetLogLevelHighest() {
 	for _, v := range conf.LogLevelMap {
 		if v.GetId() > conf.LogLevelHighest {
 			conf.LogLevelHighest = v.GetId()
 		}
 	}
-	return nil
 }
 
 // SaveConfig will write the current loglevelmap to disk
@@ -118,6 +120,7 @@ func (conf *LoggerConfig) SaveConfig() {
 		fmt.Printf("Unable to write to file: %s, error: %s", conf.FileLocation, err)
 		return
 	}
+	conf.SetLogLevelHighest()
 }
 
 // SetLogLevel can set the log level in the log config
