@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/r3labs/diff/v2"
 )
@@ -360,6 +361,9 @@ func determineNextIds(allInvalidItems map[string]InvalidItem, currentId string, 
 
 	if buildFrom == "parent" { // enable
 		if invalidItem.ParentID != "" {
+			if strings.Contains(invalidItem.ParentID, ",") {
+				return strings.Split(invalidItem.ParentID, ",")
+			}
 			return []string{invalidItem.ParentID}
 		}
 		return []string{}
@@ -383,8 +387,8 @@ func determineID(path []string, value map[string]interface{}) (string, error) {
 		rawID, found = value["policyId"]
 	} else if path[0] == "network" && path[1] == "interfaces" { // interfaces
 		rawID, found = value["interfaceId"]
-	} else if path[0] == "application_control" || path[0] == "geoip" { // services
-		rawID, found = path[0], true
+	} else if path[0] == "firewall" && path[1] == "tables" { // Firewall Rules
+		rawID, found = value["ruleId"]
 	}
 
 	if !found {
