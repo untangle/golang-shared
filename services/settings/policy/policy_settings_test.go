@@ -376,8 +376,12 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				"type": "CLIENT_ADDRESS",
 				"value": ["192.168.5.6"]
 			}`,
-			shouldErr: true,
-			expected:  PolicyCondition{},
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    "==",
+				CType: "CLIENT_ADDRESS",
+				Value: []string{"192.168.5.6/32"},
+			},
 		},
 		{
 			name: "invalid ipv4 w mask",
@@ -410,8 +414,12 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				"type": "SERVER_ADDRESS",
 				"value": ["fd00::1"]
 			}`,
-			shouldErr: true,
-			expected:  PolicyCondition{},
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    "==",
+				CType: "SERVER_ADDRESS",
+				Value: []string{"fd00::1/64"},
+			},
 		},
 		{
 			name: "valid port",
