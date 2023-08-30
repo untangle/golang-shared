@@ -2,25 +2,44 @@ syntax = "proto3";
 package captiveportal;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/CaptivePortal";
 
-service CaptivePortalService {
-    rpc getCaptivePortalUser (UserGetRequest) returns (UserGetResponse) {}
-    rpc setCaptivePortalUser (UserSetRequest) returns (UserSetResponse) {}
+message ImageDetails {
+  string imageData = 1 [json_name = "imageData"];
+  string imageName = 2 [json_name = "imageName"];
+}
+
+message CpSettingType {
+  bool Enabled = 1 [json_name = "enabled"];
+  int32 TimeoutValue = 2 [json_name = "timeoutValue"];
+  string TimeoutPeriod = 3 [json_name = "timeoutPeriod"];
+  string AcceptText = 4 [json_name = "acceptText"];
+  string AcceptButtonText = 5 [json_name = "acceptButtonText"];
+  string MessageText = 6 [json_name = "messageText"];
+  string TosText = 7 [json_name = "tosText"];
+  string WelcomeText = 8 [json_name = "welcomeText"];
+  ImageDetails logo = 9 [json_name = "logo"];
+}
+
+service GrpcService {
+  rpc getCaptivePortalUser (UserGetRequest) returns (UserGetResponse) {}
+  rpc setCaptivePortalUser (UserSetRequest) returns (UserSetResponse) {}
 }
 
 message UserGetRequest {
   string ClientIp = 1;
 }
-// get user info to redirect to respective captive portal.
+
+// Get user info to redirect to respective captive portal.
 message UserGetResponse {
-  	string ClientIp = 1;
-	string PolicyId = 2;
-	string ConfigId = 3;
+  string ClientIp = 1;
+  string PolicyId = 2;
+  CpSettingType PolicyConfig = 3;
 }
 
 message UserSetRequest {
-	string ClientIp = 1;
+  string ClientIp = 1;
 }
-//captive portal accept update status.
+
+// Update captive portal t&c accepted status.
 message UserSetResponse {
-	bool Done = 1;
+  bool Done = 1;
 }
