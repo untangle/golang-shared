@@ -43,7 +43,7 @@ func TestName(t *testing.T) {
 }
 
 func TestFindServiceState(t *testing.T) {
-	serviceStates, _ := loadServiceStates(servicesStatesEnabledFile)
+	serviceStates, _ := LoadServiceStates(servicesStatesEnabledFile)
 	actualServiceState, found := findServiceState("untangle-node-discovery", serviceStates)
 	assert.True(t, found)
 	assert.NotNil(t, actualServiceState)
@@ -73,7 +73,7 @@ func TestClsWatchdog(t *testing.T) {
 
 func TestLoadServiceStates(t *testing.T) {
 	// Test reading in
-	actualEnabled, err := loadServiceStates(servicesStatesEnabledFile)
+	actualEnabled, err := LoadServiceStates(servicesStatesEnabledFile)
 	assert.NoError(t, err)
 	if len(actualEnabled) < 1 {
 		t.Fatalf("No services read from %s could be used to conduct the test.\n", servicesStatesEnabledFile)
@@ -84,7 +84,7 @@ func TestLoadServiceStates(t *testing.T) {
 		assert.NotEmpty(t, serviceState.Name)
 	}
 
-	actualDisabled, err := loadServiceStates(servicesStatesDisabledFile)
+	actualDisabled, err := LoadServiceStates(servicesStatesDisabledFile)
 	assert.NoError(t, err)
 	if len(actualDisabled) < 1 {
 		t.Fatalf("No services read from %s could be used to conduct the test.\n", servicesStatesDisabledFile)
@@ -97,11 +97,11 @@ func TestLoadServiceStates(t *testing.T) {
 
 	// Test a bad path
 	// Function isn't considered to be in an error state if the appstate file can't be found
-	_, err = loadServiceStates("bogusPath")
+	_, err = LoadServiceStates("bogusPath")
 	assert.NoError(t, err)
 
 	// Test a valid path but invalid file
-	_, err = loadServiceStates(servicesStatesInvalidFile)
+	_, err = LoadServiceStates(servicesStatesInvalidFile)
 	assert.Error(t, err)
 }
 
@@ -195,14 +195,14 @@ func TestSaveServiceStatesFrom(t *testing.T) {
 	defer lm.Shutdown()
 
 	// Setup the test by setting the service to a known state
-	lm.setServiceState("untangle-node-discovery", "enable", true)
+	lm.services["untangle-node-discovery"].setServiceState(StateEnable)
 
 	lm.services["untangle-node-discovery"].State.AllowedState = StateDisable
 
 	saveServiceStatesFromServices(serviceStatesTestUpdates, lm.services)
 
 	// Read back in the states
-	statesFromFile, err := loadServiceStates(serviceStatesTestUpdates)
+	statesFromFile, err := LoadServiceStates(serviceStatesTestUpdates)
 	assert.NoError(t, err)
 	var actualServiceState *ServiceState
 
@@ -234,8 +234,7 @@ func TestSaveServiceStates(t *testing.T) {
 	defer lm.Shutdown()
 
 	// Setup the test by setting the service to a known state
-	lm.setServiceState("untangle-node-discovery", "enable", true)
-
+	lm.services["untangle-node-discovery"].setServiceState(StateEnable)
 	lm.services["untangle-node-discovery"].State.AllowedState = StateDisable
 
 	serviceStates := []ServiceState{}
@@ -246,7 +245,7 @@ func TestSaveServiceStates(t *testing.T) {
 	saveServiceStates(serviceStatesTestUpdates, serviceStates)
 
 	// Read back in the states
-	statesFromFile, err := loadServiceStates(serviceStatesTestUpdates)
+	statesFromFile, err := LoadServiceStates(serviceStatesTestUpdates)
 	assert.NoError(t, err)
 	var actualServiceState *ServiceState
 
@@ -281,20 +280,16 @@ func TestSetServiceStateLicenseManager(t *testing.T) {
 	defer lm.Shutdown()
 
 	// Service can be found, and its state is updated only in the internal data structures
-	err := lm.setServiceState("untangle-node-discovery", "enable", false)
+	err := lm.services["untangle-node-discovery"].setServiceState(StateEnable)
 	assert.NoError(t, err)
 	assert.Equal(t, StateEnable, lm.services["untangle-node-discovery"].State.getAllowedState())
 
-	// Test fake service
-	err = lm.setServiceState("bogus-service", "enable", false)
-	assert.Error(t, err)
-
 	// Verify the actual file was updated
-	err = lm.setServiceState("untangle-node-discovery", "disable", true)
+	err = lm.services["untangle-node-discovery"].setServiceState(StateDisable)
 	assert.NoError(t, err)
 	assert.Equal(t, StateDisable, lm.services["untangle-node-discovery"].State.getAllowedState())
 
-	statesFromFile, err := loadServiceStates(serviceStatesTestUpdates)
+	statesFromFile, err := LoadServiceStates(serviceStatesTestUpdates)
 	assert.NoError(t, err)
 	var actualServiceState *ServiceState
 

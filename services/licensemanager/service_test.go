@@ -102,7 +102,7 @@ func TestSetServiceState(t *testing.T) {
 	}
 
 	// Set the AllowedState from enabled to disabled
-	err := service.setServiceState(StateDisable, "")
+	err := service.setServiceState(StateDisable)
 	assert.NoError(t, err)
 	assert.True(t, serviceStopCalled)
 	assert.False(t, serviceStartCalled)
@@ -111,7 +111,7 @@ func TestSetServiceState(t *testing.T) {
 	service.State.AllowedState = StateDisable
 	serviceStartCalled = false
 	serviceStopCalled = false
-	err = service.setServiceState(StateEnable, "")
+	err = service.setServiceState(StateEnable)
 	assert.NoError(t, err)
 	assert.False(t, serviceStopCalled)
 	assert.True(t, serviceStartCalled)

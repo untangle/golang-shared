@@ -1,7 +1,6 @@
 package licensemanager
 
 import (
-	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/logger"
 )
 
@@ -16,30 +15,14 @@ type Service struct {
 // @param State newAllowedState - new allowed state
 // @param string executable - executable to use when enabling/disabling the service
 // @return error - associated errors
-func (s *Service) setServiceState(newAllowedState State, executable string) error {
+func (s *Service) setServiceState(newAllowedState State) error {
 	var err error
 
-	runInterrupt := false
 	oldAllowedState := s.State.getAllowedState()
 	s.State.setAllowedState(newAllowedState)
 
 	logger.Debug("old state of %s: %v\n", s.Name, oldAllowedState)
 	logger.Debug("new state of %s: %v\n", s.Name, s.State.getAllowedState())
-
-	switch newAllowedState {
-	case StateEnable:
-		// always run start
-		runInterrupt = s.ServiceStart()
-	case StateDisable:
-		// always run stop
-		runInterrupt = s.ServiceStop()
-	}
-
-	// api called the sighup, so enable/disable service
-	if runInterrupt {
-		// don't bail out if sighup fails
-		_ = util.RunSighup(executable)
-	}
 
 	return err
 }
