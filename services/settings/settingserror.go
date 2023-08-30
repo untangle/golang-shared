@@ -387,7 +387,7 @@ func determineID(path []string, value map[string]interface{}) (string, error) {
 		rawID, found = value["policyId"]
 	} else if path[0] == "network" && path[1] == "interfaces" { // interfaces
 		rawID, found = value["interfaceId"]
-	} else if path[0] == "firewall" && path[1] == "tables" { // Firewall Rules
+	} else if path[0] == "firewall" && path[1] == "tables" { // Firewall Rules and tables
 		rawID, found = value["ruleId"]
 	}
 
