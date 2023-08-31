@@ -43,26 +43,6 @@ func ReadCommandFileAndGetStatus(name string) (bool, error) {
 	return state.getAllowedState() == StateEnable, nil
 }
 
-// writeOutServiceToEnableOrDisable writes out the state of a ServiceState
-// @return error - any associated error, nil if none
-func (state *ServiceState) writeOutServiceToEnableOrDisable() error {
-	// get data of ServiceState
-	data, err := json.Marshal(state)
-	if err != nil {
-		return err
-	}
-
-	// write out file
-	fileLocation := ServicesAllowedStatesLocation + state.Name
-	logger.Debug("Location of service command: %s\n", fileLocation)
-	err = ioutil.WriteFile(fileLocation, data, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // setAllowedState sets the AllowedState of a ServiceState
 // @param State newState - new allowed state
 func (state *ServiceState) setAllowedState(newState State) {
