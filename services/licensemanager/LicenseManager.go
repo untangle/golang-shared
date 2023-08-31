@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins/util"
@@ -229,7 +230,8 @@ func GetLicenseFileDoesNotExistStr() string {
 	return LicenseFileDoesNotExistStr
 }
 
-// SetServices will disable any disabled services to un-enabled in settings
+// SetServices will disable any disabled services to un-enabled in
+// settings, and the appstate file.
 func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 	var err error = nil
 	for serviceName, isEnabled := range enabledServices {
@@ -239,12 +241,27 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 		} else if isEnabled {
 			service.setServiceState(StateEnable)
 		} else {
-			service.setServiceState(StateDisable)
+			lm.disableService(service)
 		}
 	}
 	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
 	util.RunSighup(lm.config.Executable)
 	return err
+}
+
+// disableService disables a service
+func (lm *LicenseManager) disableService(service *Service) {
+	service.setServiceState(StateDisable)
+	newSettings, settingsSegs, err := service.Hook.Disabled()
+	if err != nil {
+		lm.logger.Warn("Failed to get disabled settings for service %s\n", service.Name)
+	}
+
+	// Set settings
+	_, err = settings.SetSettings(settingsSegs, newSettings, true)
+	if err != nil {
+		lm.logger.Warn("Failed to set disabled settings for service %s\n", service.Name)
+	}
 }
 
 // licenseFileExists checks if a file exists and is not a directory before we

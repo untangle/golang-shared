@@ -20,7 +20,7 @@ func (s *Service) setServiceState(newAllowedState State) error {
 
 	oldAllowedState := s.State.getAllowedState()
 	s.State.setAllowedState(newAllowedState)
-
+	s.Hook.Disabled()
 	logger.Debug("old state of %s: %v\n", s.Name, oldAllowedState)
 	logger.Debug("new state of %s: %v\n", s.Name, s.State.getAllowedState())
 
