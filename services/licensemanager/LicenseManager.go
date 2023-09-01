@@ -252,6 +252,9 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 // disableService disables a service
 func (lm *LicenseManager) disableService(service *Service) {
 	service.setServiceState(StateDisable)
+	if service.Hook.Disabled == nil {
+		return
+	}
 	newSettings, settingsSegs, err := service.Hook.Disabled()
 	if err != nil {
 		lm.logger.Warn("Failed to get disabled settings for service %s\n", service.Name)
