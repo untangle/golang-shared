@@ -180,7 +180,7 @@ func TestRoutineContextGroup(t *testing.T) {
 	Shutdown()
 	afterShutdownRCG := monitorRelation
 
-	// check the status of RoutineContextGroup before and after shutdownn
+	// check RoutineContextGroup's status before and after shutdown
 	assert.Equal(t, beforeShutdownRCG, afterShutdownRCG)
 
 	// stop all started routines
