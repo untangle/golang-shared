@@ -3,7 +3,6 @@ package monitor
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -32,7 +31,6 @@ func TestRoutineStartedAndRoutineEnd(t *testing.T) {
 		go monitorRoutineEvents(monitorRelation.Contexts[currentRoutineName], handleRoutineWatcherEvents)
 
 		RoutineStarted(currentRoutineName)
-		<-time.After(150 * time.Millisecond)
 
 		activeRoutinesMutex.RLock()
 		_, exist := activeRoutines[currentRoutineName]
@@ -86,11 +84,9 @@ func TestRoutineError(t *testing.T) {
 		go monitorRoutineEvents(monitorRelation.Contexts[routineName], handleRoutineWatcherEvents)
 
 		RoutineStarted(routineName)
-		<-time.After(150 * time.Millisecond)
 	}
 
 	RoutineError("routineInfoWatcher3")
-	<-time.After(150 * time.Millisecond)
 
 	activeRoutinesMutex.RLock()
 	_, exist := activeRoutines["routineInfoWatcher3"]
@@ -135,7 +131,6 @@ func TestRoutineContextGroup(t *testing.T) {
 		go monitorRoutineEvents(monitorRelation.Contexts[routineName], handleRoutineWatcherEvents)
 
 		RoutineStarted(routineName)
-		<-time.After(150 * time.Millisecond)
 	}
 
 	beforeShutdownRCG := monitorRelation
