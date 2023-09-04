@@ -19,124 +19,124 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	GrpcService_GetCaptivePortalUser_FullMethodName = "/captiveportal.GrpcService/getCaptivePortalUser"
-	GrpcService_SetCaptivePortalUser_FullMethodName = "/captiveportal.GrpcService/setCaptivePortalUser"
+	CaptivePortalGrpcService_GetCaptivePortalUser_FullMethodName = "/captiveportal.CaptivePortalGrpcService/getCaptivePortalUser"
+	CaptivePortalGrpcService_SetCaptivePortalUser_FullMethodName = "/captiveportal.CaptivePortalGrpcService/setCaptivePortalUser"
 )
 
-// GrpcServiceClient is the client API for GrpcService service.
+// CaptivePortalGrpcServiceClient is the client API for CaptivePortalGrpcService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GrpcServiceClient interface {
+type CaptivePortalGrpcServiceClient interface {
 	GetCaptivePortalUser(ctx context.Context, in *UserGetRequest, opts ...grpc.CallOption) (*UserGetResponse, error)
 	SetCaptivePortalUser(ctx context.Context, in *UserSetRequest, opts ...grpc.CallOption) (*UserSetResponse, error)
 }
 
-type grpcServiceClient struct {
+type captivePortalGrpcServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGrpcServiceClient(cc grpc.ClientConnInterface) GrpcServiceClient {
-	return &grpcServiceClient{cc}
+func NewCaptivePortalGrpcServiceClient(cc grpc.ClientConnInterface) CaptivePortalGrpcServiceClient {
+	return &captivePortalGrpcServiceClient{cc}
 }
 
-func (c *grpcServiceClient) GetCaptivePortalUser(ctx context.Context, in *UserGetRequest, opts ...grpc.CallOption) (*UserGetResponse, error) {
+func (c *captivePortalGrpcServiceClient) GetCaptivePortalUser(ctx context.Context, in *UserGetRequest, opts ...grpc.CallOption) (*UserGetResponse, error) {
 	out := new(UserGetResponse)
-	err := c.cc.Invoke(ctx, GrpcService_GetCaptivePortalUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, CaptivePortalGrpcService_GetCaptivePortalUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *grpcServiceClient) SetCaptivePortalUser(ctx context.Context, in *UserSetRequest, opts ...grpc.CallOption) (*UserSetResponse, error) {
+func (c *captivePortalGrpcServiceClient) SetCaptivePortalUser(ctx context.Context, in *UserSetRequest, opts ...grpc.CallOption) (*UserSetResponse, error) {
 	out := new(UserSetResponse)
-	err := c.cc.Invoke(ctx, GrpcService_SetCaptivePortalUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, CaptivePortalGrpcService_SetCaptivePortalUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GrpcServiceServer is the server API for GrpcService service.
-// All implementations should embed UnimplementedGrpcServiceServer
+// CaptivePortalGrpcServiceServer is the server API for CaptivePortalGrpcService service.
+// All implementations should embed UnimplementedCaptivePortalGrpcServiceServer
 // for forward compatibility
-type GrpcServiceServer interface {
+type CaptivePortalGrpcServiceServer interface {
 	GetCaptivePortalUser(context.Context, *UserGetRequest) (*UserGetResponse, error)
 	SetCaptivePortalUser(context.Context, *UserSetRequest) (*UserSetResponse, error)
 }
 
-// UnimplementedGrpcServiceServer should be embedded to have forward compatible implementations.
-type UnimplementedGrpcServiceServer struct {
+// UnimplementedCaptivePortalGrpcServiceServer should be embedded to have forward compatible implementations.
+type UnimplementedCaptivePortalGrpcServiceServer struct {
 }
 
-func (UnimplementedGrpcServiceServer) GetCaptivePortalUser(context.Context, *UserGetRequest) (*UserGetResponse, error) {
+func (UnimplementedCaptivePortalGrpcServiceServer) GetCaptivePortalUser(context.Context, *UserGetRequest) (*UserGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCaptivePortalUser not implemented")
 }
-func (UnimplementedGrpcServiceServer) SetCaptivePortalUser(context.Context, *UserSetRequest) (*UserSetResponse, error) {
+func (UnimplementedCaptivePortalGrpcServiceServer) SetCaptivePortalUser(context.Context, *UserSetRequest) (*UserSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetCaptivePortalUser not implemented")
 }
 
-// UnsafeGrpcServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GrpcServiceServer will
+// UnsafeCaptivePortalGrpcServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CaptivePortalGrpcServiceServer will
 // result in compilation errors.
-type UnsafeGrpcServiceServer interface {
-	mustEmbedUnimplementedGrpcServiceServer()
+type UnsafeCaptivePortalGrpcServiceServer interface {
+	mustEmbedUnimplementedCaptivePortalGrpcServiceServer()
 }
 
-func RegisterGrpcServiceServer(s grpc.ServiceRegistrar, srv GrpcServiceServer) {
-	s.RegisterService(&GrpcService_ServiceDesc, srv)
+func RegisterCaptivePortalGrpcServiceServer(s grpc.ServiceRegistrar, srv CaptivePortalGrpcServiceServer) {
+	s.RegisterService(&CaptivePortalGrpcService_ServiceDesc, srv)
 }
 
-func _GrpcService_GetCaptivePortalUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CaptivePortalGrpcService_GetCaptivePortalUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserGetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrpcServiceServer).GetCaptivePortalUser(ctx, in)
+		return srv.(CaptivePortalGrpcServiceServer).GetCaptivePortalUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GrpcService_GetCaptivePortalUser_FullMethodName,
+		FullMethod: CaptivePortalGrpcService_GetCaptivePortalUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcServiceServer).GetCaptivePortalUser(ctx, req.(*UserGetRequest))
+		return srv.(CaptivePortalGrpcServiceServer).GetCaptivePortalUser(ctx, req.(*UserGetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GrpcService_SetCaptivePortalUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CaptivePortalGrpcService_SetCaptivePortalUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserSetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrpcServiceServer).SetCaptivePortalUser(ctx, in)
+		return srv.(CaptivePortalGrpcServiceServer).SetCaptivePortalUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GrpcService_SetCaptivePortalUser_FullMethodName,
+		FullMethod: CaptivePortalGrpcService_SetCaptivePortalUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcServiceServer).SetCaptivePortalUser(ctx, req.(*UserSetRequest))
+		return srv.(CaptivePortalGrpcServiceServer).SetCaptivePortalUser(ctx, req.(*UserSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// GrpcService_ServiceDesc is the grpc.ServiceDesc for GrpcService service.
+// CaptivePortalGrpcService_ServiceDesc is the grpc.ServiceDesc for CaptivePortalGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var GrpcService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "captiveportal.GrpcService",
-	HandlerType: (*GrpcServiceServer)(nil),
+var CaptivePortalGrpcService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "captiveportal.CaptivePortalGrpcService",
+	HandlerType: (*CaptivePortalGrpcServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "getCaptivePortalUser",
-			Handler:    _GrpcService_GetCaptivePortalUser_Handler,
+			Handler:    _CaptivePortalGrpcService_GetCaptivePortalUser_Handler,
 		},
 		{
 			MethodName: "setCaptivePortalUser",
-			Handler:    _GrpcService_SetCaptivePortalUser_Handler,
+			Handler:    _CaptivePortalGrpcService_SetCaptivePortalUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

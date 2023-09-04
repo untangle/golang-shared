@@ -13,13 +13,14 @@ message CpSettingType {
   string TimeoutPeriod = 3 [json_name = "timeoutPeriod"];
   string AcceptText = 4 [json_name = "acceptText"];
   string AcceptButtonText = 5 [json_name = "acceptButtonText"];
-  string MessageText = 6 [json_name = "messageText"];
-  string TosText = 7 [json_name = "tosText"];
+  string MessageHeading = 6 [json_name = "messageHeading"];
+  string MessageText = 7 [json_name = "messageText"];
   string WelcomeText = 8 [json_name = "welcomeText"];
-  ImageDetails logo = 9 [json_name = "logo"];
+  string PageTitle = 9 [json_name = "pageTitle"];
+  ImageDetails logo = 10 [json_name = "logo"];
 }
 
-service GrpcService {
+service CaptivePortalGrpcService {
   rpc getCaptivePortalUser (UserGetRequest) returns (UserGetResponse) {}
   rpc setCaptivePortalUser (UserSetRequest) returns (UserSetResponse) {}
 }
