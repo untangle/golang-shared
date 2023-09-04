@@ -9,12 +9,14 @@ type CpRulesConditions struct {
 	CompareValue any `json:"-"`
 }
 
-// CustomRulesAction
-type CpRulesAction string
+// CpRulesAction
+type CpRulesAction struct {
+	Type string `json:"type"`
+}
 
-const (
-	CpRulesEnable  CpRulesAction = "enable"
-	CpRulesDisable CpRulesAction = "disable"
+var (
+	CpRulesEnable  = CpRulesAction{"ENABLE"}
+	CpRulesDisable = CpRulesAction{"DISABLE"}
 )
 
 // Captive portal rules
