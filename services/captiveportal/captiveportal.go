@@ -7,9 +7,10 @@ type CpSettingType struct {
 	TimeoutPeriod    string `json:"timeoutPeriod"`
 	AcceptText       string `json:"acceptText"`
 	AcceptButtonText string `json:"acceptButtonText"`
+	MessageHeading   string `json:"messageHeading"`
 	MessageText      string `json:"messageText"`
-	TosText          string `json:"tosText"`
 	WelcomeText      string `json:"welcomeText"`
+	PageTitle        string `json:"pageTitle"`
 	Base64ImageData  struct {
 		EncodedBase64Image string `json:"imageData"`
 		ImageName          string `json:"imageName"`
