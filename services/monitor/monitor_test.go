@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRoutineStarted(t *testing.T) {
+func TestRoutineStartedAndRoutineEnd(t *testing.T) {
 	// Create context for testing
 	ctx := context.Background()
 
@@ -38,64 +38,27 @@ func TestRoutineStarted(t *testing.T) {
 		_, exist := activeRoutines[currentRoutineName]
 		activeRoutinesMutex.RUnlock()
 
-		// check current status of routine
+		// check current status of routine for RoutineStarted
 		assert.True(t, exist)
 	}
 
-	// check number of the activeRoutines
+	// check number of the activeRoutines for RoutineStarted
 	assert.Equal(t, len(activeRoutines), tests[0].numberOfActiveRoutines)
 
-	// stop all started routines
-	for _, routineName := range routines {
-		RoutineEnd(routineName)
-		<-time.After(100 * time.Millisecond)
-	}
-}
-
-func TestRoutineEnd(t *testing.T) {
-	// Create context for testing
-	ctx := context.Background()
-
-	// create tests for storing the routines information
-	tests := []struct {
-		name                   string
-		routineNames           []string
-		numberOfActiveRoutines int
-	}{
-		{
-			name:                   "test",
-			routineNames:           []string{"routineInfoWatcher1", "routineInfoWatcher2", "routineInfoWatcher3"},
-			numberOfActiveRoutines: 3,
-		},
-	}
-
-	monitorRelation := CreateRoutineContextRelation(ctx, tests[0].name, tests[0].routineNames)
-
-	routines := tests[0].routineNames
-	for _, routineName := range routines {
-		go monitorRoutineEvents(monitorRelation.Contexts[routineName], handleRoutineWatcherEvents)
-
-		RoutineStarted(routineName)
-		<-time.After(150 * time.Millisecond)
-	}
-
 	RoutineEnd("routineInfoWatcher2")
-	<-time.After(150 * time.Millisecond)
-
 	activeRoutinesMutex.RLock()
 	_, exist := activeRoutines["routineInfoWatcher2"]
 	activeRoutinesMutex.RUnlock()
 
-	// check current status of routine
+	// check current status of routine for RoutineEnd
 	assert.False(t, exist)
 
-	// check number of the activeRoutines
+	// check number of the activeRoutines for RoutineEnd
 	assert.Equal(t, len(activeRoutines), tests[0].numberOfActiveRoutines-1)
 
 	// stop all started routines
 	for routineName, _ := range activeRoutines {
 		RoutineEnd(routineName)
-		<-time.After(100 * time.Millisecond)
 	}
 }
 
@@ -141,7 +104,6 @@ func TestRoutineError(t *testing.T) {
 
 	for routineName, _ := range activeRoutines {
 		RoutineEnd(routineName)
-		<-time.After(100 * time.Millisecond)
 	}
 }
 
@@ -186,6 +148,5 @@ func TestRoutineContextGroup(t *testing.T) {
 	// stop all started routines
 	for _, routineName := range routines {
 		RoutineEnd(routineName)
-		<-time.After(100 * time.Millisecond)
 	}
 }
