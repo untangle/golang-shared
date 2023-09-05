@@ -89,6 +89,17 @@ func TestDetermineNextIds(t *testing.T) {
 			buildFrom:   "child",
 			expectedIds: []string{"zxc", "cxz"},
 		},
+		{
+			name: "from parent, child has comma seperated parentIDs",
+			allItems: map[string]InvalidItem{
+				"childID1":  {ParentID: "parentID1,parentID2"},
+				"parentID1": {ParentID: ""},
+				"parentID2": {ParentID: ""},
+			},
+			crtId:       "childID1",
+			buildFrom:   "parent",
+			expectedIds: []string{"parentID1", "parentID2"},
+		},
 	}
 
 	for _, test := range testCases {
