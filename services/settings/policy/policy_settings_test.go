@@ -445,6 +445,20 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			shouldErr: true,
 			expected:  PolicyCondition{},
 		},
+		{
+			name: "test time",
+			json: `{
+				"op": ">=",
+				"type": "TIME_OF_DAY",
+				"value": ["9:00am"]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    ">=",
+				CType: "TIME_OF_DAY",
+				Value: []string{"9:00am"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

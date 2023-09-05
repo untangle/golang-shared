@@ -185,6 +185,8 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 			if _, err := strconv.ParseUint(value, 10, 32); err != nil {
 				return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
 			}
+		case "DAY_OF_WEEK", "DEST_ADDRESS", "GEOIP_LOCATION", "INTERFACE", "SERVICE_ENDPOINT", "SOURCE_ADDRESS", "PROTOCOL_TYPE", "TIME_OF_DAY", "VLAN_ID":
+			// These are not yet implemented and need to have a designated format
 		default:
 			return fmt.Errorf("error while unmarshalling policy condition: invalid type: %s", pCondition.CType)
 		}
