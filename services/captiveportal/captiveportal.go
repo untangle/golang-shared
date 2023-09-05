@@ -1,15 +1,13 @@
 package captiveportal
 
+// Captive portal rule conditions
 type CpRulesConditions struct {
 	Op    string `json:"op"`
 	Type  string `json:"type"`
 	Value string `json:"value"`
-	// CompareValue is used when evaluating conditions,
-	// the Value is compared against this field using Op operator.
-	CompareValue any `json:"-"`
 }
 
-// CpRulesAction
+// Captive portal rule actions
 type CpRulesAction struct {
 	Type string `json:"type"`
 }
@@ -28,7 +26,7 @@ type CpRules struct {
 	Action      CpRulesAction
 }
 
-// captive-portal user settings
+// Captive portal user settings
 type CpSettingType struct {
 	Enabled          bool   `json:"enabled"`
 	TimeoutValue     int16  `json:"timeoutValue"`
