@@ -31,9 +31,7 @@ type Logger struct {
 	launchTime       time.Time
 	timestampEnabled bool
 	alerts           alerts.AlertPublisher
-	// logCount is added for testing purposes - not ideal.
-	// Ideally, this could be implemented with MockLogger and MockOutputWriter but the logger
-	// does not currently use the OutputWriter AFAICT
+	// logCount is added for testing purposes
 	logCount uint64
 }
 

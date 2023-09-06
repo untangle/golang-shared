@@ -346,9 +346,9 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
 
-	assert.Equal(suite.T(), uint64(4), logInstance.GetLogCount()-startCount)
-
-	startCount = logInstance.GetLogCount()
+	newCount := logInstance.GetLogCount()
+	assert.Equal(suite.T(), uint64(4), newCount-startCount)
+	startCount = newCount
 
 	//Bump reflect config up
 	logInstance.config.SetLogLevel("logger", NewLogLevel("DEBUG"))
