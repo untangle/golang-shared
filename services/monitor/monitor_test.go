@@ -104,5 +104,5 @@ func TestRoutineError(t *testing.T) {
 }
 
 func handleRoutineWatcherEvents(rtEvt *RoutineInfo) {
-	logger.Info("Taking action on %v event", rtEvt.Name)
+	logger.Info("Taking action on %v event\n", rtEvt.Name)
 }
