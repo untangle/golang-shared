@@ -31,9 +31,9 @@ type Logger struct {
 	launchTime       time.Time
 	timestampEnabled bool
 	alerts           alerts.AlertPublisher
-	// logCount is added for testing purposes
+	// logCount is added for testing purposes - not ideal.
 	// Ideally, this could be implemented with MockLogger and MockOutputWriter but the logger
-	// does not currently use the OutputWriter
+	// does not currently use the OutputWriter AFAICT
 	logCount uint64
 }
 
@@ -463,7 +463,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 }
 
 // func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function
-// Our public function heirarchy is implemented so the caller is always at the 5th frame
+// Our public function heirarchy is implemented so the caller is always at the 4th frame
 // Frame 0 = runtime.Callers
 // Frame 1 = findCallingFunction
 // Frame 2 = logMessage / isLogEnabled
