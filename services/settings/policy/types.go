@@ -3,8 +3,10 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
+	"net"
+	"strconv"
 
-	"github.com/untangle/golang-shared/util/net"
+	utilNet "github.com/untangle/golang-shared/util/net"
 )
 
 // PolicySettings is the main data structure for Policy Management.
@@ -92,7 +94,7 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 
 	switch typeField.Type {
 	case IPAddrListType:
-		defer setList[net.IPSpecifierString](g)()
+		defer setList[utilNet.IPSpecifierString](g)()
 	case GeoIPListType:
 		defer setList[string](g)()
 	case ServiceEndpointType:
@@ -123,10 +125,10 @@ func (g *Group) ItemsStringList() ([]string, bool) {
 }
 
 // ItemsIPSpecList returns the Items of a group as a slice of
-// net.IPSpecifierString and true if they can be interpreted this way,
+// utilNet.IPSpecifierString and true if they can be interpreted this way,
 // or an empty slice and false otherwise.
-func (g *Group) ItemsIPSpecList() ([]net.IPSpecifierString, bool) {
-	val, ok := g.Items.([]net.IPSpecifierString)
+func (g *Group) ItemsIPSpecList() ([]utilNet.IPSpecifierString, bool) {
+	val, ok := g.Items.([]utilNet.IPSpecifierString)
 	return val, ok
 }
 
@@ -152,6 +154,45 @@ type PolicyCondition struct {
 	CType   string   `json:"type"`
 	Value   []string `json:"value,omitempty"`
 	GroupID string   `json:"groupId"`
+}
+
+// Unmarshal policy condition so that types of values can be checked
+func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
+	// unmarshal like normal first
+	type aliasPolicyCondition PolicyCondition
+	if err := json.Unmarshal(data, (*aliasPolicyCondition)(pCondition)); err != nil {
+		return err
+	}
+
+	// check that pCondition.Value is formatted correctly for the CType
+	for i, value := range pCondition.Value {
+		switch pCondition.CType {
+		case "CLIENT_ADDRESS", "SERVER_ADDRESS":
+			// Check that address is in CIDR format (w/ mask)
+			if _, _, err := net.ParseCIDR(value); err != nil {
+				// If address is a valid IP, but without a mask, just add the default
+				if ip := net.ParseIP(value); ip != nil {
+					if ip.To4() != nil {
+						pCondition.Value[i] = fmt.Sprintf("%s%s", value, "/32")
+					} else {
+						pCondition.Value[i] = fmt.Sprintf("%s%s", value, "/64")
+					}
+				} else {
+					return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
+				}
+			}
+		case "CLIENT_PORT", "SERVER_PORT":
+			if _, err := strconv.ParseUint(value, 10, 32); err != nil {
+				return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
+			}
+		case "DAY_OF_WEEK", "DEST_ADDRESS", "GEOIP_LOCATION", "INTERFACE", "SERVICE_ENDPOINT", "SOURCE_ADDRESS", "PROTOCOL_TYPE", "TIME_OF_DAY", "VLAN_ID", "THREATPREVENTION":
+			// These are not yet implemented and need to have a designated format
+		default:
+			return fmt.Errorf("error while unmarshalling policy condition: invalid type: %s", pCondition.CType)
+		}
+	}
+
+	return nil
 }
 
 // PolicyConfiguration contains policy configuration.
