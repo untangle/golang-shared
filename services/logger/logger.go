@@ -151,8 +151,8 @@ func (logger *Logger) GetDefaultConfig() LoggerConfig {
 
 // Return a count of the number of logs that were actually printed
 // This is used for testing purposes.
-// The OutputWrite in the logger.config is not used.
-func (logger *Logger) GetLogCount() uint64 {
+
+func (logger *Logger) getLogCount() uint64 {
 	return logger.logCount
 }
 

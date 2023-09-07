@@ -336,7 +336,7 @@ func (suite *TestLogger) TestBasicWriters() {
 
 	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
 
-	startCount := logInstance.GetLogCount()
+	startCount := logInstance.getLogCount()
 
 	//Change log writer to print to a buffer for us to analyze
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
@@ -346,7 +346,7 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
 
-	newCount := logInstance.GetLogCount()
+	newCount := logInstance.getLogCount()
 	assert.Equal(suite.T(), uint64(4), newCount-startCount)
 	startCount = newCount
 
@@ -360,7 +360,7 @@ func (suite *TestLogger) TestBasicWriters() {
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
 
-	assert.Equal(suite.T(), uint64(5), logInstance.GetLogCount()-startCount)
+	assert.Equal(suite.T(), uint64(5), logInstance.getLogCount()-startCount)
 }
 
 func (suite *TestLogger) TestSendAlertToCMD() {
