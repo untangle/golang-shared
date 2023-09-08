@@ -2,6 +2,26 @@ syntax = "proto3";
 package captiveportal;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/CaptivePortal";
 
+// Captive portal condition
+message CpRuleCondition {
+  string Op = 1 [json_name = "op"];
+  string Type = 2 [json_name = "type"];
+  string Value = 3 [json_name = "value"];
+}
+// Captive portal action enum
+enum CpRuleAction {
+  DISABLE = 0;
+  ENABLE = 1;
+}
+// Captive portal rule
+message CpRules {
+  string RuleId = 1 [json_name = "rule_id"];
+  bool Enabled = 2 [json_name = "enabled"];
+  string Description = 3 [json_name = "description"];
+  repeated CpRuleCondition Conditions = 4 [json_name = "conditions"];
+  CpRuleAction Action = 5 [json_name = "action"];
+}
+
 message ImageDetails {
   string imageData = 1 [json_name = "imageData"];
   string imageName = 2 [json_name = "imageName"];
@@ -18,6 +38,7 @@ message CpSettingType {
   string WelcomeText = 8 [json_name = "welcomeText"];
   string PageTitle = 9 [json_name = "pageTitle"];
   ImageDetails logo = 10 [json_name = "logo"];
+  repeated CpRules Rules = 11 [json_name = "rules"];
 }
 
 service CaptivePortalGrpcService {
