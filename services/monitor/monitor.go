@@ -131,6 +131,9 @@ func Shutdown() {
 // THIS IS A ROUTINE FUNCTION
 func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func(rtInfo *RoutineInfo)) {
 
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+
 	// Read the routineInfoWatcher channel for any Error types
 	for {
 		select {
@@ -139,7 +142,7 @@ func monitorRoutineEvents(ctx context.Context, callbackErrorHandler func(rtInfo 
 				logger.Info("Acting on this event: %v\n", rtEvt)
 				callbackErrorHandler(rtEvt)
 			}
-		case <-time.Tick(60 * time.Second):
+		case <-ticker.C:
 			activeRoutinesMutex.Lock()
 			logger.Info("There are %v monitored routines.\n", len(activeRoutines))
 			activeRoutinesMutex.Unlock()

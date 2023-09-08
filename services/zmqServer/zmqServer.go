@@ -50,7 +50,10 @@ func socketServer(processer Processer) {
 
 	// Put socket into the waitgroup
 	// TODO find a way to dynamically choose port. passed into the socket server here?
-	zmqSocket.Bind("tcp://*:5555")
+	err = zmqSocket.Bind("tcp://*:5555")
+	if err != nil {
+		logger.Warn("Failed to bind socket to endpoint for incoming connection: %v\n", err.Error())
+	}
 	wg.Add(1)
 
 	// Go routine for running the server
@@ -58,7 +61,9 @@ func socketServer(processer Processer) {
 		// Close socket and signal waitgroup is done
 		defer socket.Close()
 		defer waitgroup.Done()
-		tick := time.Tick(ServerTick)
+
+		ticker := time.NewTicker(ServerTick)
+		defer ticker.Stop()
 
 		// Infinite for loop that quits when shutdown channel is closed
 		// Receives message bytes on the tick
@@ -67,7 +72,7 @@ func socketServer(processer Processer) {
 			case <-isShutdown:
 				logger.Info("Shutdown is seen\n")
 				return
-			case <-tick:
+			case <-ticker.C:
 				logger.Debug("Listening for requests\n")
 				serverErr := ""
 				var reply []byte
@@ -110,7 +115,11 @@ func socketServer(processer Processer) {
 				}
 
 				// Send message
-				socket.SendMessage(reply)
+				_, err = socket.SendMessage(reply)
+				if err != nil {
+					logger.Warn("Failed to send message on socket: %s\n", err.Error())
+				}
+
 				logger.Debug("Sent %v", reply, "\n")
 			}
 		}
