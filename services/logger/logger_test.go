@@ -210,7 +210,7 @@ func (suite *TestLogger) TestLoadConfigFromJSON() {
 
 	suite.T().Logf("testing data: %v", jsonData)
 
-	loggerConf.LoadConfigFromJSON(jsonData)
+	_ = loggerConf.LoadConfigFromJSON(jsonData)
 
 	assert.NotNil(suite.T(), loggerConf.LogLevelMap)
 	assert.Equal(suite.T(), testMap, loggerConf.LogLevelMap)
@@ -305,7 +305,7 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 
 	// now load from file
 	logInstance.config.FileLocation = "LoggerConfig.json"
-	logInstance.config.LoadConfigFromFile()
+	_ = logInstance.config.LoadConfigFromFile()
 
 	// verify these are different
 	assert.NotEqual(suite.T(), testConfig, logInstance.config)
@@ -336,21 +336,31 @@ func (suite *TestLogger) TestBasicWriters() {
 
 	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
 
+	startCount := logInstance.getLogCount()
+
 	//Change log writer to print to a buffer for us to analyze
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
 	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
-	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Notice(testingOutput, logLevelName[LogLevelNotice])
 	logInstance.Warn(testingOutput, logLevelName[LogLevelWarn])
+	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
+
+	newCount := logInstance.getLogCount()
+	assert.Equal(suite.T(), uint64(4), newCount-startCount)
+	startCount = newCount
 
 	//Bump reflect config up
-	logInstance.config.SetLogLevel("reflect", NewLogLevel("DEBUG"))
+	logInstance.config.SetLogLevel("logger", NewLogLevel("DEBUG"))
 	//Change log writer to print to a buffer for us to analyze
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
 	logInstance.Err(testingOutput, logLevelName[LogLevelErr])
-	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Notice(testingOutput, logLevelName[LogLevelNotice])
 	logInstance.Warn(testingOutput, logLevelName[LogLevelWarn])
+	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
+	logInstance.Trace(testingOutput, logLevelName[LogLevelTrace])
+
+	assert.Equal(suite.T(), uint64(5), logInstance.getLogCount()-startCount)
 }
 
 func (suite *TestLogger) TestSendAlertToCMD() {
@@ -368,7 +378,7 @@ func (suite *TestLogger) TestSendAlertToCMD() {
 
 	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
 	assert.Equal(suite.T(), Alerts.AlertSeverity_CRITICAL, mockAlertsPublisher.LastAlert.Severity)
-	assert.Equal(suite.T(), "CRIT              reflect: Testing output for CRIT\n", mockAlertsPublisher.LastAlert.Message)
+	assert.Equal(suite.T(), "CRIT               logger: Testing output for CRIT\n", mockAlertsPublisher.LastAlert.Message)
 
 	logInstance.configLocker.Lock()
 	// Set alerts for error level logs
@@ -382,17 +392,18 @@ func (suite *TestLogger) TestSendAlertToCMD() {
 
 	assert.Equal(suite.T(), Alerts.AlertType_CRITICALERROR, mockAlertsPublisher.LastAlert.Type)
 	assert.Equal(suite.T(), Alerts.AlertSeverity_ERROR, mockAlertsPublisher.LastAlert.Severity)
-	assert.Equal(suite.T(), "ERROR             reflect: Testing output for ERROR\n", mockAlertsPublisher.LastAlert.Message)
+	assert.Equal(suite.T(), "ERROR              logger: Testing output for ERROR\n", mockAlertsPublisher.LastAlert.Message)
 }
 
 func (suite *TestLogger) TestFindCallingFunction() {
 
 	fileName, lineNumber, packageName, functionName := findCallingFunction()
 
-	assert.Contains(suite.T(), fileName, "suite.go")
+	assert.Contains(suite.T(), fileName, "reflect")
+	// The line number varies dependng on where this is run from
 	assert.Greater(suite.T(), lineNumber, 0)
-	assert.Equal(suite.T(), "suite", packageName)
-	assert.Contains(suite.T(), functionName, "suite.Run")
+	assert.Equal(suite.T(), "reflect", packageName)
+	assert.Contains(suite.T(), functionName, "reflect.Value.Call")
 }
 
 func (suite *TestLogger) TestGetInstanceWithConfig() {

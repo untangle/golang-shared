@@ -46,7 +46,6 @@ func (conf *LoggerConfig) LoadConfigFromFile() error {
 
 	// open the logger configuration file
 	file, err = os.Open(conf.FileLocation)
-	fmt.Print(err)
 
 	// return error if one exists
 	if err != nil {
