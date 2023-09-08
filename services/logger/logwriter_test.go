@@ -56,7 +56,7 @@ func (suite *LogWriterTestSuite) logAndGetOutput(writer *LogWriter, message stri
 	// Call write on the multiwriter interface
 	count, err := w.Write([]byte(message))
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), count, len(message), "Count of written characters(%d) didn't match message size(%d)", count, len(message))
+	assert.Equalf(suite.T(), count, len(message), "Count of written characters(%d) didn't match message size(%d)", count, len(message))
 
 	// Return the output from the bytesBuffer
 	return buf.String()
