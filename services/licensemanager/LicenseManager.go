@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins/util"
-	"github.com/untangle/golang-shared/services/settings"
 )
 
 const (
@@ -76,7 +76,7 @@ func (lm *LicenseManager) Name() string {
 func (lm *LicenseManager) Startup() error {
 	lm.logger.Info("Starting the license service\n")
 
-	serviceStates, err := loadServiceStates(lm.config.ServiceStateLocation)
+	serviceStates, err := LoadServiceStates(lm.config.ServiceStateLocation)
 	if err != nil {
 		lm.logger.Warn("Unable to retrieve previous service state. %v\n", err)
 	}
@@ -230,84 +230,41 @@ func GetLicenseFileDoesNotExistStr() string {
 	return LicenseFileDoesNotExistStr
 }
 
-// SetServices will disable any disabled services to un-enabled in settings
+// SetServices will disable any disabled services to un-enabled in
+// settings, and the appstate file.
 func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 	var err error = nil
-	for serviceName, valid := range enabledServices {
-		if !valid {
-			// find service, get disabled hook, and run it
-			var service *Service
-			lm.logger.Debug("Set %s to invalid\n", serviceName)
-			service, err = lm.findService(serviceName)
-			if err != nil {
-				lm.logger.Warn("Failed to set un-enabled for service %s\n", serviceName)
-				continue
-			}
-
-			// get the new disabled settings, the segments to set, and any errors
-			newSettings, settingsSegments, disableErr := service.Hook.Disabled()
-			if disableErr != nil {
-				lm.logger.Warn("Failed to get disabled settings for service %s\n", serviceName)
-				err = disableErr
-				continue
-			}
-
-			// Set settings
-			_, err = settings.SetSettings(settingsSegments, newSettings, true)
-			if err != nil {
-				lm.logger.Warn("Failed to set disabled settings for service %s\n", serviceName)
-			}
+	for serviceName, isEnabled := range enabledServices {
+		if service, err := lm.findService(serviceName); err != nil {
+			lm.logger.Warn("LicenseManager: when updating services, given nonexistent service: %s\n",
+				serviceName)
+		} else if isEnabled {
+			service.setServiceState(StateEnable)
+		} else {
+			lm.disableService(service)
 		}
 	}
-
-	for serviceName, valid := range enabledServices {
-		cmd := "disable"
-		if valid {
-			cmd = "enable"
-		}
-		err = lm.setServiceState(serviceName, cmd, true)
-
-		if err != nil {
-			lm.logger.Warn("Failed to set service: %s: %s\n", serviceName, err.Error())
-			continue
-		}
-	}
-
+	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
+	util.RunSighup(lm.config.Executable)
 	return err
 }
 
-// setServiceState sets the given serviceName to the given allowedState
-// @param string serviceName - service to set
-// @param string newAllowedState - new allowed state such as enabled or disabled
-// @param bool saveStates - whether ServiceState file should be saved
-// @return any error
-func (lm *LicenseManager) setServiceState(serviceName string, newAllowedState string, saveStates bool) error {
-	service, err := lm.findService(serviceName)
+// disableService disables a service
+func (lm *LicenseManager) disableService(service *Service) {
+	service.setServiceState(StateDisable)
+	if service.Hook.Disabled == nil {
+		return
+	}
+	newSettings, settingsSegs, err := service.Hook.Disabled()
 	if err != nil {
-		lm.logger.Warn("Failure to find service: %s\n", err.Error())
-		return err
+		lm.logger.Warn("Failed to get disabled settings for service %s\n", service.Name)
 	}
 
-	var newState State
-	err = newState.FromString(newAllowedState)
+	// Set settings
+	_, err = settings.SetSettings(settingsSegs, newSettings, true)
 	if err != nil {
-		lm.logger.Warn("Failure getting newAllowedState: %s\n", err.Error())
-		return err
+		lm.logger.Warn("Failed to set disabled settings for service %s\n", service.Name)
 	}
-
-	err = service.setServiceState(newState, lm.config.Executable)
-	if err != nil {
-		lm.logger.Warn("Failure setting service state: %s\n", err.Error())
-		return err
-	}
-
-	if saveStates {
-		err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
-		return err
-	}
-
-	return nil
-
 }
 
 // licenseFileExists checks if a file exists and is not a directory before we
@@ -332,8 +289,9 @@ func (lm *LicenseManager) shutdownServices() {
 		lm.logger.Warn("Failure to write non-license file: %v\n", err)
 	}
 	for _, service := range lm.services {
-		service.setServiceState(StateDisable, lm.config.Executable)
+		service.setServiceState(StateDisable)
 	}
+	util.RunSighup(lm.config.Executable)
 }
 
 // findService finds the service in the services map
@@ -396,11 +354,11 @@ func saveServiceStates(fileLocation string, serviceStates []ServiceState) error 
 
 }
 
-// loadServiceStates retrieves the previously saved service state
+// LoadServiceStates retrieves the previously saved service state
 // @param fileLocation - the location of the service states file
 // @return []ServiceState - an array of service states, loaded from the file
 // @return error - associated errors
-func loadServiceStates(fileLocation string) ([]ServiceState, error) {
+func LoadServiceStates(fileLocation string) ([]ServiceState, error) {
 	var serviceStates = make([]ServiceState, 0)
 	fileContent, err := ioutil.ReadFile(fileLocation)
 	if err != nil {

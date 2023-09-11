@@ -81,14 +81,7 @@ func TestSetServiceState(t *testing.T) {
 	// Use the start and stop functions to test if ServiceStart and ServiceStop
 	// were called as expected. They aren't an interface, but if the funcs
 	// aren't nil they wrap ServiceHook's Start and Stop
-	serviceStartCalled := false
-	serviceStopCalled := false
-
 	name := "test-name"
-	serviceHook := ServiceHook{
-		Start: func() { serviceStartCalled = true },
-		Stop:  func() { serviceStopCalled = true },
-	}
 
 	state := ServiceState{
 		Name:         name,
@@ -98,21 +91,15 @@ func TestSetServiceState(t *testing.T) {
 	service := &Service{
 		Name:  name,
 		State: state,
-		Hook:  serviceHook,
 	}
 
 	// Set the AllowedState from enabled to disabled
-	err := service.setServiceState(StateDisable, "")
+	err := service.setServiceState(StateDisable)
 	assert.NoError(t, err)
-	assert.True(t, serviceStopCalled)
-	assert.False(t, serviceStartCalled)
 
 	// Set AllowedState from disabled to enabled
 	service.State.AllowedState = StateDisable
-	serviceStartCalled = false
-	serviceStopCalled = false
-	err = service.setServiceState(StateEnable, "")
+	err = service.setServiceState(StateEnable)
 	assert.NoError(t, err)
-	assert.False(t, serviceStopCalled)
-	assert.True(t, serviceStartCalled)
+
 }
