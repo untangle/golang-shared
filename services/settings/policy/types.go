@@ -57,12 +57,26 @@ type Object struct {
 	Type        GroupType `json:"type"`
 	Description string    `json:"description"`
 	ID          string    `json:"id"`
+	Enabled     bool      `json:"enabled"`
 	Items       any       `json:"items"`
+
+	// Other Object Types that use conditions
+	Conditions []*PolicyCondition `json:"conditions"`
+
+	// Policy Object
+	Rules []string `json:"rules"`
+
+	// DEPRECATED
+	Configurations []string `json:"configurations"`
+	Flows          []string `json:"flows"`
 }
 
 // Group is a deprecated concept, please use Object.
 // Deprecated: Group is deprecated, use Object instead. See MFW-3517.
 type Group = Object
+
+// Policies are the root of our policy configurations. It includes pointers to substructure.
+type Policy = Object
 
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
@@ -252,20 +266,6 @@ func (pConfig *PolicyConfiguration) UnmarshalJSON(data []byte) error {
 	pConfig.AppSettings = dataMap
 
 	return nil
-}
-
-// Policies are the root of our policy configurations. It includes pointers to substructure.
-type Policy struct {
-	Defaults    bool     `json:"defaults"`
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Enabled     bool     `json:"enabled"`
-	Rules       []string `json:"rules"`
-
-	// DEPRECATED
-	Configurations []string `json:"configurations"`
-	Flows          []string `json:"flows"`
 }
 
 func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
