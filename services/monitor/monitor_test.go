@@ -103,6 +103,7 @@ func TestRoutineError(t *testing.T) {
 	}
 }
 
+// Handler function for watching the routine
 func handleRoutineWatcherEvents(rtEvt *RoutineInfo) {
 	logger.Info("Taking action on %v event\n", rtEvt.Name)
 }
