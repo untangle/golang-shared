@@ -49,15 +49,20 @@ const (
 	ThreatPreventionType GroupType = "ThreatPrevention"
 )
 
-// Group is a way to generically re-use certain lists of attributes
-// that may be true for a session.
-type Group struct {
+// Object is a way to generically re-use the idea of something that is
+// identified by ID, with associated metadata of name and description,
+// with possible accompanying Items.
+type Object struct {
 	Name        string    `json:"name"`
 	Type        GroupType `json:"type"`
 	Description string    `json:"description"`
 	ID          string    `json:"id"`
 	Items       any       `json:"items"`
 }
+
+// Group is a deprecated concept, please use Object.
+// Deprecated: Group is deprecated, use Object instead. See MFW-3517.
+type Group = Object
 
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
