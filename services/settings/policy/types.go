@@ -57,18 +57,18 @@ type Object struct {
 	Type        GroupType `json:"type"`
 	Description string    `json:"description"`
 	ID          string    `json:"id"`
-	Enabled     bool      `json:"enabled"`
-	Items       any       `json:"items"`
+	Enabled     bool      `json:"enabled,omitempty"`
+	Items       any       `json:"items,omitempty"`
 
 	// Other Object Types that use conditions
-	Conditions []*PolicyCondition `json:"conditions"`
+	Conditions []*PolicyCondition `json:"conditions,omitempty"`
 
 	// Policy Object
-	Rules []string `json:"rules"`
+	Rules []string `json:"rules,omitempty"`
 
 	// DEPRECATED
-	Configurations []string `json:"configurations"`
-	Flows          []string `json:"flows"`
+	Configurations []string `json:"configurations,omitempty"`
+	Flows          []string `json:"flows,omitempty"`
 }
 
 // Group is a deprecated concept, please use Object.
