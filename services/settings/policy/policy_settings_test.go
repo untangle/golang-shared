@@ -103,10 +103,12 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["132.123.123"]}`,
 			expectedErr: false,
 			expected: Group{
-				Name:  "someBogus",
-				Type:  "IPAddrList",
-				Items: []net.IPSpecifierString{"132.123.123"},
-				ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				Object{
+					Name:  "someBogus",
+					Type:  "IPAddrList",
+					Items: []net.IPSpecifierString{"132.123.123"},
+					ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				},
 			}},
 		{
 			name: "okay geoip list",
@@ -116,10 +118,12 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["AE", "AF"]}`,
 			expectedErr: false,
 			expected: Group{
-				Name:  "someBogus",
-				Type:  "GeoIPLocation",
-				Items: []string{"AE", "AF"},
-				ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				Object{
+					Name:  "someBogus",
+					Type:  "GeoIPLocation",
+					Items: []string{"AE", "AF"},
+					ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				},
 			}},
 		{
 			name: "malformed JSON",
@@ -182,10 +186,12 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": []}`,
 			expectedErr: false,
 			expected: Group{
-				Name:  "ServiceEndpointTest",
-				Type:  "ServiceEndpoint",
-				Items: []ServiceEndpoint{},
-				ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				Object{
+					Name:  "ServiceEndpointTest",
+					Type:  "ServiceEndpoint",
+					Items: []ServiceEndpoint{},
+					ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				},
 			},
 		},
 		{
@@ -208,18 +214,20 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                               {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
 			expected: Group{
-				Name:        "ServiceEndpointTest",
-				Description: "Description",
-				Type:        ServiceEndpointType,
-				ID:          "702d4c99-9599-455f-8271-215e5680f038",
-				Items: []ServiceEndpoint{
-					{
-						Protocol: uint(layers.IPProtocolUDP),
-						Port:     2222,
-					},
-					{
-						Protocol: uint(layers.IPProtocolTCP),
-						Port:     2223,
+				Object{
+					Name:        "ServiceEndpointTest",
+					Description: "Description",
+					Type:        ServiceEndpointType,
+					ID:          "702d4c99-9599-455f-8271-215e5680f038",
+					Items: []ServiceEndpoint{
+						{
+							Protocol: uint(layers.IPProtocolUDP),
+							Port:     2222,
+						},
+						{
+							Protocol: uint(layers.IPProtocolTCP),
+							Port:     2223,
+						},
 					},
 				},
 			},
@@ -233,11 +241,14 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": [1, 2, 3]}`,
 			expectedErr: false,
 			expected: Group{
-				Name:        "InterfaceListTest",
-				Description: "description",
-				Type:        InterfaceType,
-				ID:          "702d4c99-9599-455f-8271-215e5680f038",
-				Items:       []uint{1, 2, 3},
+				Object{
+
+					Name:        "InterfaceListTest",
+					Description: "description",
+					Type:        InterfaceType,
+					ID:          "702d4c99-9599-455f-8271-215e5680f038",
+					Items:       []uint{1, 2, 3},
+				},
 			},
 		},
 		{
@@ -274,11 +285,13 @@ func TestGroupMarshal(t *testing.T) {
 		{
 			name: "okay ip list",
 			group: Group{
-				Name:        "someBogus",
-				Description: "Description",
-				Type:        "IPAddrList",
-				Items:       []net.IPSpecifierString{"132.123.123"},
-				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				Object{
+					Name:        "someBogus",
+					Description: "Description",
+					Type:        "IPAddrList",
+					Items:       []net.IPSpecifierString{"132.123.123"},
+					ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				},
 			},
 			expectedJSON: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
@@ -289,11 +302,13 @@ func TestGroupMarshal(t *testing.T) {
 		{
 			name: "okay geoip list",
 			group: Group{
-				Name:        "someBogus",
-				Description: "Description",
-				Type:        "GeoIPLocation",
-				Items:       []string{"AE", "AF"},
-				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				Object{
+					Name:        "someBogus",
+					Description: "Description",
+					Type:        "GeoIPLocation",
+					Items:       []string{"AE", "AF"},
+					ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				},
 			},
 			expectedJSON: `{"name": "someBogus",
 			"id": "702d4c99-9599-455f-8271-215e5680f038",
@@ -304,18 +319,20 @@ func TestGroupMarshal(t *testing.T) {
 		{
 			name: "good sg endpoint list",
 			group: Group{
-				Name:        "ServiceEndpointTest",
-				Description: "Description",
-				Type:        ServiceEndpointType,
-				ID:          "702d4c99-9599-455f-8271-215e5680f038",
-				Items: []ServiceEndpoint{
-					{
-						Protocol: uint(layers.IPProtocolUDP),
-						Port:     2222,
-					},
-					{
-						Protocol: uint(layers.IPProtocolTCP),
-						Port:     2223,
+				Object{
+					Name:        "ServiceEndpointTest",
+					Description: "Description",
+					Type:        ServiceEndpointType,
+					ID:          "702d4c99-9599-455f-8271-215e5680f038",
+					Items: []ServiceEndpoint{
+						{
+							Protocol: uint(layers.IPProtocolUDP),
+							Port:     2222,
+						},
+						{
+							Protocol: uint(layers.IPProtocolTCP),
+							Port:     2223,
+						},
 					},
 				},
 			},

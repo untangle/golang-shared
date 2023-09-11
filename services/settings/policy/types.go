@@ -57,8 +57,20 @@ type Object struct {
 	Type        GroupType `json:"type"`
 	Description string    `json:"description"`
 	ID          string    `json:"id"`
-	Enabled     bool      `json:"enabled"`
 	Items       any       `json:"items"`
+}
+
+// Group is a deprecated concept, please use Object.
+// Deprecated: Group is deprecated, use Object instead. See MFW-3517.
+type Group struct {
+	Object
+}
+
+// Policies are the root of our policy configurations. It includes pointers to substructure.
+type Policy struct {
+	Object
+
+	Enabled bool `json:"enabled"`
 
 	// Other Object Types that use conditions
 	Conditions []*PolicyCondition `json:"conditions"`
@@ -70,13 +82,6 @@ type Object struct {
 	Configurations []string `json:"configurations"`
 	Flows          []string `json:"flows"`
 }
-
-// Group is a deprecated concept, please use Object.
-// Deprecated: Group is deprecated, use Object instead. See MFW-3517.
-type Group = Object
-
-// Policies are the root of our policy configurations. It includes pointers to substructure.
-type Policy = Object
 
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
