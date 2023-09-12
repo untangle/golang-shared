@@ -121,11 +121,14 @@ message LayerFour {
 }
 
 message CpUserEntry {
-        string Policy = 1;
-        string Description = 2;
-        string Host = 3;
-        int64 LastAcceptedTimeStamp = 4;
-        int64 LastSeenTimeStamp = 5;
+        string PolicyId = 1;
+        string ConfigId = 2;
+        string PolicyConfig = 3;
+        int64 TimeoutDuration = 4;
+        string Description = 5;
+        string Host = 6;
+        int64 LastAcceptedTimeStamp = 7;
+        int64 LastSeenTimeStamp = 8;
 }
 
 //This message is used to send deviceEntry to packetd for updating session entry with deviceEntry(Mac address)
@@ -133,7 +136,6 @@ message DeviceEntry {
     string macAddress = 1;
     repeated string ipAddress = 2;
     int64 LastUpdate = 3;
-    
 }
 
 message NeighEntries {
