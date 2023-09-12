@@ -9,7 +9,7 @@ message CpRuleCondition {
   string Value = 3 [json_name = "value"];
 }
 // Captive portal action enum
-enum CpRuleAction {
+enum CpRulesAction {
   DISABLE = 0;
   ENABLE = 1;
 }
@@ -19,7 +19,7 @@ message CpRules {
   bool Enabled = 2 [json_name = "enabled"];
   string Description = 3 [json_name = "description"];
   repeated CpRuleCondition Conditions = 4 [json_name = "conditions"];
-  CpRuleAction Action = 5 [json_name = "action"];
+  CpRulesAction Action = 5 [json_name = "action"];
 }
 
 message ImageDetails {
