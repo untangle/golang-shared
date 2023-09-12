@@ -1117,109 +1117,6 @@ func (x *LayerFour) GetDPort() int32 {
 	return 0
 }
 
-type CpUserEntry struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	PolicyId              string `protobuf:"bytes,1,opt,name=PolicyId,proto3" json:"PolicyId,omitempty"`
-	ConfigId              string `protobuf:"bytes,2,opt,name=ConfigId,proto3" json:"ConfigId,omitempty"`
-	PolicyConfig          string `protobuf:"bytes,3,opt,name=PolicyConfig,proto3" json:"PolicyConfig,omitempty"`
-	TimeoutDuration       int64  `protobuf:"varint,4,opt,name=TimeoutDuration,proto3" json:"TimeoutDuration,omitempty"`
-	Description           string `protobuf:"bytes,5,opt,name=Description,proto3" json:"Description,omitempty"`
-	Host                  string `protobuf:"bytes,6,opt,name=Host,proto3" json:"Host,omitempty"`
-	LastAcceptedTimeStamp int64  `protobuf:"varint,7,opt,name=LastAcceptedTimeStamp,proto3" json:"LastAcceptedTimeStamp,omitempty"`
-	LastSeenTimeStamp     int64  `protobuf:"varint,8,opt,name=LastSeenTimeStamp,proto3" json:"LastSeenTimeStamp,omitempty"`
-}
-
-func (x *CpUserEntry) Reset() {
-	*x = CpUserEntry{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_Discovery_proto_msgTypes[14]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CpUserEntry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CpUserEntry) ProtoMessage() {}
-
-func (x *CpUserEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_Discovery_proto_msgTypes[14]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CpUserEntry.ProtoReflect.Descriptor instead.
-func (*CpUserEntry) Descriptor() ([]byte, []int) {
-	return file_Discovery_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *CpUserEntry) GetPolicyId() string {
-	if x != nil {
-		return x.PolicyId
-	}
-	return ""
-}
-
-func (x *CpUserEntry) GetConfigId() string {
-	if x != nil {
-		return x.ConfigId
-	}
-	return ""
-}
-
-func (x *CpUserEntry) GetPolicyConfig() string {
-	if x != nil {
-		return x.PolicyConfig
-	}
-	return ""
-}
-
-func (x *CpUserEntry) GetTimeoutDuration() int64 {
-	if x != nil {
-		return x.TimeoutDuration
-	}
-	return 0
-}
-
-func (x *CpUserEntry) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *CpUserEntry) GetHost() string {
-	if x != nil {
-		return x.Host
-	}
-	return ""
-}
-
-func (x *CpUserEntry) GetLastAcceptedTimeStamp() int64 {
-	if x != nil {
-		return x.LastAcceptedTimeStamp
-	}
-	return 0
-}
-
-func (x *CpUserEntry) GetLastSeenTimeStamp() int64 {
-	if x != nil {
-		return x.LastSeenTimeStamp
-	}
-	return 0
-}
-
 // This message is used to send deviceEntry to packetd for updating session entry with deviceEntry(Mac address)
 type DeviceEntry struct {
 	state         protoimpl.MessageState
@@ -1234,7 +1131,7 @@ type DeviceEntry struct {
 func (x *DeviceEntry) Reset() {
 	*x = DeviceEntry{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_Discovery_proto_msgTypes[15]
+		mi := &file_Discovery_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1247,7 +1144,7 @@ func (x *DeviceEntry) String() string {
 func (*DeviceEntry) ProtoMessage() {}
 
 func (x *DeviceEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_Discovery_proto_msgTypes[15]
+	mi := &file_Discovery_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1260,7 +1157,7 @@ func (x *DeviceEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceEntry.ProtoReflect.Descriptor instead.
 func (*DeviceEntry) Descriptor() ([]byte, []int) {
-	return file_Discovery_proto_rawDescGZIP(), []int{15}
+	return file_Discovery_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DeviceEntry) GetMacAddress() string {
@@ -1295,7 +1192,7 @@ type NeighEntries struct {
 func (x *NeighEntries) Reset() {
 	*x = NeighEntries{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_Discovery_proto_msgTypes[16]
+		mi := &file_Discovery_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1308,7 +1205,7 @@ func (x *NeighEntries) String() string {
 func (*NeighEntries) ProtoMessage() {}
 
 func (x *NeighEntries) ProtoReflect() protoreflect.Message {
-	mi := &file_Discovery_proto_msgTypes[16]
+	mi := &file_Discovery_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1321,7 +1218,7 @@ func (x *NeighEntries) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NeighEntries.ProtoReflect.Descriptor instead.
 func (*NeighEntries) Descriptor() ([]byte, []int) {
-	return file_Discovery_proto_rawDescGZIP(), []int{16}
+	return file_Discovery_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *NeighEntries) GetEntries() []*NEIGH {
@@ -1487,26 +1384,7 @@ var file_Discovery_proto_rawDesc = []byte{
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x50, 0x6f,
 	0x72, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x73, 0x50, 0x6f, 0x72, 0x74, 0x12,
 	0x14, 0x0a, 0x05, 0x64, 0x50, 0x6f, 0x72, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05,
-	0x64, 0x50, 0x6f, 0x72, 0x74, 0x22, 0xad, 0x02, 0x0a, 0x0b, 0x43, 0x70, 0x55, 0x73, 0x65, 0x72,
-	0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x1a, 0x0a, 0x08, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x49,
-	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x49,
-	0x64, 0x12, 0x1a, 0x0a, 0x08, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x64, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x08, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x64, 0x12, 0x22, 0x0a,
-	0x0c, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x0c, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x12, 0x28, 0x0a, 0x0f, 0x54, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x44, 0x75, 0x72, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0f, 0x54, 0x69, 0x6d, 0x65,
-	0x6f, 0x75, 0x74, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x20, 0x0a, 0x0b, 0x44,
-	0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x0b, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a,
-	0x04, 0x48, 0x6f, 0x73, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x48, 0x6f, 0x73,
-	0x74, 0x12, 0x34, 0x0a, 0x15, 0x4c, 0x61, 0x73, 0x74, 0x41, 0x63, 0x63, 0x65, 0x70, 0x74, 0x65,
-	0x64, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x07, 0x20, 0x01, 0x28, 0x03,
-	0x52, 0x15, 0x4c, 0x61, 0x73, 0x74, 0x41, 0x63, 0x63, 0x65, 0x70, 0x74, 0x65, 0x64, 0x54, 0x69,
-	0x6d, 0x65, 0x53, 0x74, 0x61, 0x6d, 0x70, 0x12, 0x2c, 0x0a, 0x11, 0x4c, 0x61, 0x73, 0x74, 0x53,
-	0x65, 0x65, 0x6e, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x08, 0x20, 0x01,
-	0x28, 0x03, 0x52, 0x11, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x65, 0x65, 0x6e, 0x54, 0x69, 0x6d, 0x65,
-	0x53, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x6b, 0x0a, 0x0b, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x45,
+	0x64, 0x50, 0x6f, 0x72, 0x74, 0x22, 0x6b, 0x0a, 0x0b, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x45,
 	0x6e, 0x74, 0x72, 0x79, 0x12, 0x1e, 0x0a, 0x0a, 0x6d, 0x61, 0x63, 0x41, 0x64, 0x64, 0x72, 0x65,
 	0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6d, 0x61, 0x63, 0x41, 0x64, 0x64,
 	0x72, 0x65, 0x73, 0x73, 0x12, 0x1c, 0x0a, 0x09, 0x69, 0x70, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
@@ -1542,7 +1420,7 @@ func file_Discovery_proto_rawDescGZIP() []byte {
 }
 
 var file_Discovery_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_Discovery_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_Discovery_proto_goTypes = []interface{}{
 	(ResponseCode)(0),             // 0: discoverd.ResponseCode
 	(*EmptyParam)(nil),            // 1: discoverd.EmptyParam
@@ -1559,18 +1437,17 @@ var file_Discovery_proto_goTypes = []interface{}{
 	(*Original)(nil),              // 12: discoverd.Original
 	(*LayerThree)(nil),            // 13: discoverd.LayerThree
 	(*LayerFour)(nil),             // 14: discoverd.LayerFour
-	(*CpUserEntry)(nil),           // 15: discoverd.CpUserEntry
-	(*DeviceEntry)(nil),           // 16: discoverd.DeviceEntry
-	(*NeighEntries)(nil),          // 17: discoverd.NeighEntries
-	nil,                           // 18: discoverd.DiscoveryEntry.LldpEntry
-	nil,                           // 19: discoverd.DiscoveryEntry.NeighEntry
-	nil,                           // 20: discoverd.DiscoveryEntry.NmapEntry
+	(*DeviceEntry)(nil),           // 15: discoverd.DeviceEntry
+	(*NeighEntries)(nil),          // 16: discoverd.NeighEntries
+	nil,                           // 17: discoverd.DiscoveryEntry.LldpEntry
+	nil,                           // 18: discoverd.DiscoveryEntry.NeighEntry
+	nil,                           // 19: discoverd.DiscoveryEntry.NmapEntry
 }
 var file_Discovery_proto_depIdxs = []int32{
 	0,  // 0: discoverd.CallDiscoveryResponse.result:type_name -> discoverd.ResponseCode
-	18, // 1: discoverd.DiscoveryEntry.lldp:type_name -> discoverd.DiscoveryEntry.LldpEntry
-	19, // 2: discoverd.DiscoveryEntry.neigh:type_name -> discoverd.DiscoveryEntry.NeighEntry
-	20, // 3: discoverd.DiscoveryEntry.nmap:type_name -> discoverd.DiscoveryEntry.NmapEntry
+	17, // 1: discoverd.DiscoveryEntry.lldp:type_name -> discoverd.DiscoveryEntry.LldpEntry
+	18, // 2: discoverd.DiscoveryEntry.neigh:type_name -> discoverd.DiscoveryEntry.NeighEntry
+	19, // 3: discoverd.DiscoveryEntry.nmap:type_name -> discoverd.DiscoveryEntry.NmapEntry
 	6,  // 4: discoverd.LLDP.chassisCapabilities:type_name -> discoverd.LLDPCapabilities
 	6,  // 5: discoverd.LLDP.medCapabilities:type_name -> discoverd.LLDPCapabilities
 	9,  // 6: discoverd.NMAP.openPorts:type_name -> discoverd.NMAPPorts
@@ -1764,18 +1641,6 @@ func file_Discovery_proto_init() {
 			}
 		}
 		file_Discovery_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CpUserEntry); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_Discovery_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeviceEntry); i {
 			case 0:
 				return &v.state
@@ -1787,7 +1652,7 @@ func file_Discovery_proto_init() {
 				return nil
 			}
 		}
-		file_Discovery_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_Discovery_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NeighEntries); i {
 			case 0:
 				return &v.state
@@ -1806,7 +1671,7 @@ func file_Discovery_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_Discovery_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   20,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
