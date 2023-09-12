@@ -26,6 +26,11 @@ type PolicySettings struct {
 // Items field.
 type GroupType string
 
+// GroupTypeField is used to figure out what group type is being used within a group
+type GroupTypeField struct {
+	Type GroupType `json:"type"`
+}
+
 const (
 	// GeoIPListType means that the Items of a Group are geoip countries.
 	GeoIPListType GroupType = "GeoIPLocation"
@@ -99,12 +104,8 @@ func setList[T any](g *Group) func() {
 	}
 }
 
-// UnmarshalJSON is a custom json unmarshaller for a Group.
-func (g *Group) UnmarshalJSON(data []byte) error {
-
-	type GroupTypeField struct {
-		Type GroupType `json:"type"`
-	}
+// UnmarshalJSON is a custom json unmarshaller for Objects.
+func (obj *Object) UnmarshalJSON(data []byte) error {
 	var typeField GroupTypeField
 
 	if err := json.Unmarshal(data, &typeField); err != nil {
@@ -112,18 +113,27 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	}
 
 	switch typeField.Type {
+	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
+	case "":
+		type aliasObject Object
+
+		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
+			return fmt.Errorf("unable to unmarshal generic object: %w", err)
+		}
+		return nil
+
 	case IPAddrListType:
-		defer setList[utilNet.IPSpecifierString](g)()
+		defer setList[utilNet.IPSpecifierString](obj)()
 	case GeoIPListType:
-		defer setList[string](g)()
+		defer setList[string](obj)()
 	case ServiceEndpointType:
-		defer setList[ServiceEndpoint](g)()
+		defer setList[ServiceEndpoint](obj)()
 	case InterfaceType:
-		defer setList[uint](g)()
+		defer setList[uint](obj)()
 	case ThreatPreventionType:
-		defer setList[uint](g)()
+		defer setList[uint](obj)()
 	case WebFilterCategoryType:
-		defer setList[uint](g)()
+		defer setList[uint](obj)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
@@ -132,7 +142,7 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	type aliasGroup Group
 
 	// unmarshal PolicyConfiguration using struct tags
-	return json.Unmarshal(data, (*aliasGroup)(g))
+	return json.Unmarshal(data, (*aliasGroup)(obj))
 }
 
 // ItemsStringList returns the Items of the group as a slice of
