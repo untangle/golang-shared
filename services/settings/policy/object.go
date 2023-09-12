@@ -21,6 +21,9 @@ type Object struct {
 	// Policy Object
 	Rules []string `json:"rules,omitempty"`
 
+	//Action overlaps a bit with Policy type
+	Action *Action `json:"rule,omitempty"`
+
 	// DEPRECATED
 	Configurations []string `json:"configurations,omitempty"`
 	Flows          []string `json:"flows,omitempty"`
@@ -32,6 +35,13 @@ type Group = Object
 
 // Policies are the root of our policy configurations. It includes pointers to substructure.
 type Policy = Object
+
+// Action struct is used for rule object types (Conditions + Action)
+type Action struct {
+	Key  string `json:"key"`
+	UUID string `json:"configuration_id"`
+	Type string `json:"type"`
+}
 
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
