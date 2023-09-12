@@ -120,17 +120,6 @@ message LayerFour {
     int32 dPort = 4;
 }
 
-message CpUserEntry {
-        string PolicyId = 1;
-        string ConfigId = 2;
-        string PolicyConfig = 3;
-        int64 TimeoutDuration = 4;
-        string Description = 5;
-        string Host = 6;
-        int64 LastAcceptedTimeStamp = 7;
-        int64 LastSeenTimeStamp = 8;
-}
-
 //This message is used to send deviceEntry to packetd for updating session entry with deviceEntry(Mac address)
 message DeviceEntry {
     string macAddress = 1;

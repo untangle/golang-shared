@@ -65,3 +65,14 @@ message UserSetRequest {
 message UserSetResponse {
   bool Done = 1;
 }
+
+message CpUserEntry {
+  string PolicyId = 1;
+  string ConfigId = 2;
+  CpSettingType PolicyConfig = 3;
+  int64 TimeoutDuration = 4;
+  int64 LastAcceptedTimeStamp = 5;
+  int64 LastSeenTimeStamp = 6;
+  string Description = 7;
+  string Host = 8;
+}
