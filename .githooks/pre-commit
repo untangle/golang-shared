@@ -5,15 +5,21 @@ LOG_REGEX1='[lL]ogger.(Alert|Err|Notice|Info|Debug|Trace|Fatal|Warning|OCTrace|O
 LOG_REGEX2='[lL]ogger.(Alert|Err|Notice|Info|Debug|Trace|Fatal|Warning|OCTrace|OCWarn|OCDebug|OCErr|OCCrit)\("([^"]*)",\s*([^)]*)\)'
 
 # Get the list of added/modified lines in the most recent commit
-modified_lines=$(git diff --staged --unified=0 | grep -E '^+' | grep -E "$LOG_REGEX1|$LOG_REGEX2")
+modified_lines=$(git diff --staged --unified=0 | grep -E '^\+' | grep -E "$LOG_REGEX1|$LOG_REGEX2")
 printf 'Modified lines are: %s\n' "$modified_lines"
 
 # Flag to indicate if there are any issues with log formats or newline characters
 has_issues=false
 
 while IFS= read -r line; do
+
+    # Check if the line is empty or consists of only whitespace characters
+    if [[ "$line" =~ ^[[:space:]]*$ ]]; then
+       continue
+    fi
+
     # Check if the line ends with \n
-    if [[ ! $line == *'\n' ]]; then
+    if [[ ! $line == *'\n'* ]]; then
         echo "Error in commit: Log statement does not end with '\\n': $line"
         has_issues=true
     fi
