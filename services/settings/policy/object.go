@@ -50,17 +50,17 @@ type ServiceEndpoint struct {
 	Port     uint `json:"port"`
 }
 
-// utility function for setting a list in the Group.Items field. We
+// setList is a utility function for setting a list in the Group.Items field. We
 // use a trick where json.Unmarshal will look at an 'any' value and if
 // it has a pointer to a specific type, unmarshall into that
 // type. However, we don't want the pointer later on, we just want the
 // slice. setting g.Items to []T{} where T is a type we want does not
 // work.
-func setList[T any](g *Group) func() {
+func setList[T any](obj *Object) func() {
 	list := []T{}
-	g.Items = &list
+	obj.Items = &list
 	return func() {
-		g.Items = list
+		obj.Items = list
 	}
 }
 
@@ -71,11 +71,11 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &typeField); err != nil {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
 	}
+	type aliasObject Object
 
 	switch typeField.Type {
 	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
 	case "":
-		type aliasObject Object
 
 		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
 			return fmt.Errorf("unable to unmarshal generic object: %w", err)
@@ -102,11 +102,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
 
-	// alias to make use of tags but avoid recursion
-	type aliasGroup Group
-
 	// unmarshal PolicyConfiguration using struct tags
-	return json.Unmarshal(data, (*aliasGroup)(obj))
+	return json.Unmarshal(data, (*aliasObject)(obj))
 }
 
 // ItemsStringList returns the Items of the group as a slice of
