@@ -19,11 +19,17 @@ var logger = logService.GetLoggerInstance()
 // Those arrays are loaded from the json primarily by mapstructure.
 // facilitate lookup.
 type PolicySettings struct {
-	Enabled        bool                   `json:"enabled"`
-	Flows          []*PolicyFlow          `json:"flows"`
-	Configurations []*PolicyConfiguration `json:"configurations"`
-	Policies       []*Policy              `json:"policies"`
-	Groups         []*Group               `json:"groups"`
+	Enabled         bool                   `json:"enabled"`
+	Configurations  []*PolicyConfiguration `json:"configurations"`
+	Objects         []*Object              `json:"objects"`
+	Groups          []*Group               `json:"object_groups"`
+	Conditions      []*Object              `json:"conditions"`
+	ConditionGroups []*Object              `json:"condition_groups"`
+	Rules           []*Object              `json:"rules"`
+	Policies        []*Policy              `json:"policies"`
+
+	//DEPRECATED
+	Flows []*PolicyFlow `json:"flows"`
 }
 
 func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
