@@ -26,6 +26,11 @@ type PolicySettings struct {
 // Items field.
 type GroupType string
 
+// GroupTypeField is used to figure out what group type is being used within a group
+type GroupTypeField struct {
+	Type GroupType `json:"type"`
+}
+
 const (
 	// GeoIPListType means that the Items of a Group are geoip countries.
 	GeoIPListType GroupType = "GeoIPLocation"
@@ -57,12 +62,26 @@ type Object struct {
 	Type        GroupType `json:"type"`
 	Description string    `json:"description"`
 	ID          string    `json:"id"`
-	Items       any       `json:"items"`
+	Enabled     bool      `json:"enabled,omitempty"`
+	Items       any       `json:"items,omitempty"`
+
+	// Other Object Types that use conditions
+	Conditions []*PolicyCondition `json:"conditions,omitempty"`
+
+	// Policy Object
+	Rules []string `json:"rules,omitempty"`
+
+	// DEPRECATED
+	Configurations []string `json:"configurations,omitempty"`
+	Flows          []string `json:"flows,omitempty"`
 }
 
 // Group is a deprecated concept, please use Object.
 // Deprecated: Group is deprecated, use Object instead. See MFW-3517.
 type Group = Object
+
+// Policies are the root of our policy configurations. It includes pointers to substructure.
+type Policy = Object
 
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
@@ -85,12 +104,8 @@ func setList[T any](g *Group) func() {
 	}
 }
 
-// UnmarshalJSON is a custom json unmarshaller for a Group.
-func (g *Group) UnmarshalJSON(data []byte) error {
-
-	type GroupTypeField struct {
-		Type GroupType `json:"type"`
-	}
+// UnmarshalJSON is a custom json unmarshaller for Objects.
+func (obj *Object) UnmarshalJSON(data []byte) error {
 	var typeField GroupTypeField
 
 	if err := json.Unmarshal(data, &typeField); err != nil {
@@ -98,18 +113,27 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	}
 
 	switch typeField.Type {
+	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
+	case "":
+		type aliasObject Object
+
+		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
+			return fmt.Errorf("unable to unmarshal generic object: %w", err)
+		}
+		return nil
+
 	case IPAddrListType:
-		defer setList[utilNet.IPSpecifierString](g)()
+		defer setList[utilNet.IPSpecifierString](obj)()
 	case GeoIPListType:
-		defer setList[string](g)()
+		defer setList[string](obj)()
 	case ServiceEndpointType:
-		defer setList[ServiceEndpoint](g)()
+		defer setList[ServiceEndpoint](obj)()
 	case InterfaceType:
-		defer setList[uint](g)()
+		defer setList[uint](obj)()
 	case ThreatPreventionType:
-		defer setList[uint](g)()
+		defer setList[uint](obj)()
 	case WebFilterCategoryType:
-		defer setList[uint](g)()
+		defer setList[uint](obj)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
@@ -118,7 +142,7 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 	type aliasGroup Group
 
 	// unmarshal PolicyConfiguration using struct tags
-	return json.Unmarshal(data, (*aliasGroup)(g))
+	return json.Unmarshal(data, (*aliasGroup)(obj))
 }
 
 // ItemsStringList returns the Items of the group as a slice of
@@ -252,17 +276,6 @@ func (pConfig *PolicyConfiguration) UnmarshalJSON(data []byte) error {
 	pConfig.AppSettings = dataMap
 
 	return nil
-}
-
-// Policies are the root of our policy configurations. It includes pointers to substructure.
-type Policy struct {
-	Defaults       bool     `json:"defaults"`
-	ID             string   `json:"id"`
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
-	Enabled        bool     `json:"enabled"`
-	Configurations []string `json:"configurations"`
-	Flows          []string `json:"flows"`
 }
 
 func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
