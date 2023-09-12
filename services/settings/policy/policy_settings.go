@@ -21,8 +21,8 @@ var logger = logService.GetLoggerInstance()
 type PolicySettings struct {
 	Enabled         bool                   `json:"enabled"`
 	Configurations  []*PolicyConfiguration `json:"configurations"`
-	Objects         []*Object              `json:"objects"`
-	Groups          []*Group               `json:"object_groups"`
+	Objects         []*Group               `json:"objects"`
+	ObjectGroups    []*Object              `json:"object_groups"`
 	Conditions      []*Object              `json:"conditions"`
 	ConditionGroups []*Object              `json:"condition_groups"`
 	Rules           []*Object              `json:"rules"`

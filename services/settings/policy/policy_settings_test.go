@@ -57,14 +57,14 @@ func TestGroupUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
 	policySettings := PolicySettings{}
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
-	strlist, ok := policySettings.Groups[0].ItemsIPSpecList()
+	strlist, ok := policySettings.Objects[0].ItemsIPSpecList()
 	assert.True(t, ok)
 
 	assert.Equal(t, []net.IPSpecifierString{
 		"1.2.3.4",
 		"1.2.3.5/24",
 		"1.2.3.4-1.2.3.20"}, strlist)
-	endpointList, ok := policySettings.Groups[2].ItemsServiceEndpointList()
+	endpointList, ok := policySettings.Objects[2].ItemsServiceEndpointList()
 	assert.True(t, ok)
 	assert.EqualValues(t, []ServiceEndpoint{
 		{
