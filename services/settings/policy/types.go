@@ -34,7 +34,7 @@ type Object struct {
 	Items       any        `json:"items,omitempty"`
 
 	// Other Object Types that use conditions
-	Conditions []*PolicyCondition `json:"conditions,omitempty"`
+	//Conditions []*PolicyCondition `json:"conditions,omitempty"`
 
 	// Policy Object
 	Rules []string `json:"rules,omitempty"`
