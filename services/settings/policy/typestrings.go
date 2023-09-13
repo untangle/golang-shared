@@ -42,7 +42,9 @@ const (
 
 	// InterfaceType is a group type where all items are interface
 	// IDs (integers)
-	InterfaceType ObjectType = "Interface"
+	InterfaceType            ObjectType = "Interface"
+	InterfaceObjectType      ObjectType = "mfw-interfacezone-object"
+	InterfaceObjectGroupType ObjectType = "mfw-interfacezone-group"
 
 	// Deprecated: WebFilter* will be removed.
 	// WebFilterCategoryType means that the Items of the Group are web filter categories.

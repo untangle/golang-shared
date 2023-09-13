@@ -90,13 +90,13 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		}
 		return nil
 
-	case IPAddrListType:
+	case IPAddrListType, IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
-	case GeoIPListType:
+	case GeoIPListType, GeoIPObjectType:
 		defer setList[string](obj)()
-	case ServiceEndpointType:
+	case ServiceEndpointType, ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
-	case InterfaceType:
+	case InterfaceType, InterfaceObjectType:
 		defer setList[uint](obj)()
 	case ThreatPreventionType:
 		defer setList[uint](obj)()
