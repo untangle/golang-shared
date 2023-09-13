@@ -9,10 +9,10 @@ import (
 
 // PolicyCondition contains policy condition configuration.
 type PolicyCondition struct {
-	Op      string   `json:"op"`
-	CType   string   `json:"type"`
-	Value   []string `json:"value,omitempty"`
-	GroupID string   `json:"groupId"`
+	Op       string   `json:"op"`
+	CType    string   `json:"type"`
+	Value    []string `json:"value,omitempty"`
+	GroupIDs []string `json:"object,omitempty"`
 }
 
 // Unmarshal policy condition so that types of values can be checked

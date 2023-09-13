@@ -99,7 +99,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	case WebFilterCategoryType:
 		defer setList[uint](obj)()
 	case Condition:
-		fmt.Printf("Not implemented\n")
+		defer setList[PolicyCondition](obj)()
 	case ConditionGroup:
 		fmt.Printf("Not implemented\n")
 	default:
