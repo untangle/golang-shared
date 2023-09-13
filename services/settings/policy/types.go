@@ -22,48 +22,16 @@ type PolicySettings struct {
 	Groups         []*Group               `json:"groups"`
 }
 
-// GroupType is the type of group that a Group is, used to demux the
-// Items field.
-type GroupType string
-
-// GroupTypeField is used to figure out what group type is being used within a group
-type GroupTypeField struct {
-	Type GroupType `json:"type"`
-}
-
-const (
-	// GeoIPListType means that the Items of a Group are geoip countries.
-	GeoIPListType GroupType = "GeoIPLocation"
-
-	// IPAddrListType means that the Items of the Group are ip
-	// specifications (ranges, CIDRs, or single IPs).
-	IPAddrListType GroupType = "IPAddrList"
-
-	// ServiceEndpointType means that the Items of a Group are
-	// service endpoints.
-	ServiceEndpointType GroupType = "ServiceEndpoint"
-
-	// InterfaceType is a group type where all items are interface
-	// IDs (integers)
-	InterfaceType GroupType = "Interface"
-
-	// WebFilterCategoryType means that the Items of the Group are web filter categories.
-	WebFilterCategoryType GroupType = "WebFilterCategory"
-
-	// ThreatPreventionType means that the Items of the Group are threat prevention score.
-	ThreatPreventionType GroupType = "ThreatPrevention"
-)
-
 // Object is a way to generically re-use the idea of something that is
 // identified by ID, with associated metadata of name and description,
 // with possible accompanying Items.
 type Object struct {
-	Name        string    `json:"name"`
-	Type        GroupType `json:"type"`
-	Description string    `json:"description"`
-	ID          string    `json:"id"`
-	Enabled     bool      `json:"enabled,omitempty"`
-	Items       any       `json:"items,omitempty"`
+	Name        string     `json:"name"`
+	Type        ObjectType `json:"type"`
+	Description string     `json:"description"`
+	ID          string     `json:"id"`
+	Enabled     bool       `json:"enabled,omitempty"`
+	Items       any        `json:"items,omitempty"`
 
 	// Other Object Types that use conditions
 	Conditions []*PolicyCondition `json:"conditions,omitempty"`
