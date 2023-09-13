@@ -116,7 +116,7 @@
           {
             "type": "DESTINATION_ADDRESS",
             "op": "==",
-            "value": "192.10.2.20"
+            "value": ["192.10.2.20"]
           }
         ]
       },
@@ -134,7 +134,7 @@
           {
             "type": "DESTINATION_ADDRESS",
             "op": "==",
-            "value": "192.20.3.10"
+            "value": ["192.20.3.10"]
           }
         ]
       }
