@@ -514,7 +514,7 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			expected: PolicyCondition{
 				Op:    "==",
 				CType: "SERVER_ADDRESS",
-				Value: []string{"fd00::1/64"},
+				Value: []string{"fd00::1/128"},
 			},
 		},
 		{

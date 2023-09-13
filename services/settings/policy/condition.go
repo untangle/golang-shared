@@ -36,7 +36,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 						if ip.To4() != nil {
 							pCondition.Value[i] = fmt.Sprintf("%s%s", value, "/32")
 						} else {
-							pCondition.Value[i] = fmt.Sprintf("%s%s", value, "/64")
+							pCondition.Value[i] = fmt.Sprintf("%s%s", value, "/128")
 						}
 					} else {
 						return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
