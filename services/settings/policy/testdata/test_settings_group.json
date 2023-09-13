@@ -124,7 +124,7 @@
         "id": "0893af13-3ed9-45c3-9301-a70a2cc8ffd2",
         "name": "Europe",
         "description": "",
-        "type": "GeoipObjectGroup",
+        "type": "mfw-object-geoip-group",
         "items": [
           "b821864e-18ef-409c-a7bc-defc2d049d96",
           "3c5856f1-f182-40d0-ac2a-e586c7413f4f"
@@ -136,7 +136,7 @@
         "id": "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",
         "name": "Policy Cond 1",
         "description": "",
-        "type": "ConditionObject",
+        "type": "mfw-object-condition",
         "items": [
           {
             "type": "DESTINATION_ADDRESS",
@@ -149,7 +149,7 @@
         "id": "1458dc12-a9c2-4d0c-8203-1340c61c2c3b",
         "name": "Policy 8/28/2023 8:10:48 PM",
         "description": "",
-        "type": "ConditionObject",
+        "type": "mfw-object-condition",
         "items": [
           {
             "type": "SOURCE_ADDRESS",
@@ -169,7 +169,7 @@
         "id": "8d09ef73-8e5d-4f8b-a4e8-30af1f685273",
         "name": "Sample condition group",
         "description": "",
-        "type": "ConditionGroup",
+        "type": "mfw-object-condition-group",
         "items": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"]
       }
     ],

@@ -86,7 +86,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	case IPAddrListType, IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
-	case GeoIPListType, GeoIPObjectType:
+	case GeoIPListType, GeoIPObjectType, GeoIPObjectGroupType:
 		defer setList[string](obj)()
 	case ServiceEndpointType, ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
