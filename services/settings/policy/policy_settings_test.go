@@ -278,6 +278,26 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "condition group object",
+			json: `{
+                            "name": "blooblah",
+                            "id": "702d4c99-9599-455f-8271-215e5680f039",
+                            "type": "mfw-object-condition-group",
+                            "items": [
+                                 "702d4c99-9599-455f-8271-215e5680f038"
+                            ]
+                        }`,
+			expectedErr: false,
+			expected: Object{
+				Name: "blooblah",
+				ID:   "702d4c99-9599-455f-8271-215e5680f039",
+				Type: ConditionGroupType,
+				Items: []string{
+					"702d4c99-9599-455f-8271-215e5680f038",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
