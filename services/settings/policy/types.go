@@ -33,9 +33,6 @@ type Object struct {
 	Enabled     bool       `json:"enabled,omitempty"`
 	Items       any        `json:"items,omitempty"`
 
-	// Other Object Types that use conditions
-	//Conditions []*PolicyCondition `json:"conditions,omitempty"`
-
 	// Policy Object
 	Rules []string `json:"rules,omitempty"`
 
