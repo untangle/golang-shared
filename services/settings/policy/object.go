@@ -18,11 +18,15 @@ type Object struct {
 	Enabled     bool       `json:"enabled,omitempty"`
 	Items       any        `json:"items,omitempty"`
 
+	// Other Object Types that use conditions
+	Conditions   []*PolicyCondition `json:"conditions,omitempty"`
+	ConditionIDs []string           `json:"conditions,omitempty"`
+
 	// Policy Object
 	Rules []string `json:"rules,omitempty"`
 
 	//Action overlaps a bit with Policy type
-	Action *Action `json:"rule,omitempty"`
+	Action *Action `json:"action,omitempty"`
 
 	// DEPRECATED
 	Configurations []string `json:"configurations,omitempty"`
@@ -76,7 +80,6 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	switch typeField.Type {
 	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
 	case "":
-
 		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
 			return fmt.Errorf("unable to unmarshal generic object: %w", err)
 		}
@@ -84,6 +87,23 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	case IPAddrListType, IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
+	// For rule objects - we need to parse the condition list items differently
+	case GeoipFilterRuleObject:
+		var cndIds ConditionIDs
+
+		// Rule object types need some special handling for the conditions field
+		if err := json.Unmarshal(data, &cndIds); err != nil {
+			return fmt.Errorf("unable to unmarshal condition IDs off of a rule object: %w", err)
+		}
+
+		// Parse the rest into the normal object
+		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
+			return fmt.Errorf("unable to unmarshal rule object: %w", err)
+		}
+
+		// Set them to the real object now
+		obj.ConditionIDs = cndIds.IDs
+
 	case GeoIPListType, GeoIPObjectType:
 		defer setList[string](obj)()
 	case ServiceEndpointType, ServiceEndpointObjectType:
@@ -98,10 +118,12 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[uint](obj)()
 	case WebFilterCategoryType:
 		defer setList[uint](obj)()
+	// Condition Types
 	case Condition:
 		defer setList[PolicyCondition](obj)()
 	case ConditionGroup:
 		defer setList[string](obj)()
+	// Group Types
 	case GeoIPListGroup:
 		defer setList[string](obj)()
 	default:

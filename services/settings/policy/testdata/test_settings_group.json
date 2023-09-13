@@ -261,6 +261,18 @@
           "redirect": true,
           "sensitivity": 40
         }
+      },
+      {
+        "id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+        "name": "GeoIp",
+        "description": "some geoip filter",
+        "type": "GeoipFilterConfiguration",
+        "settings": {
+          "blockedCountries": [],
+          "enabled": true,
+          "enabledLog": false,
+          "passedNetworks": []
+        }
       }
     ],
     "enabled": true,
@@ -339,6 +351,20 @@
         "description": "123",
         "id": "b34671cb-5e08-484d-aad6-72d3500efcda",
         "name": "test"
+      }
+    ],
+    "rules": [
+      {
+        "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+        "name": "GeoIP rule",
+        "description": "Whatever",
+        "enabled": true,
+        "type": "GeoipFilterRuleObject",
+        "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+        "action": {
+          "type": "SET_CONFIGURATION",
+          "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031"
+        }
       }
     ],
     "policies": [

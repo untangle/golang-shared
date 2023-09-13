@@ -53,6 +53,54 @@ func TestErrorGetPolicyPluginSettings(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestRulesUnmarshal(t *testing.T) {
+	tests := []struct {
+		name        string
+		json        string
+		expectedErr bool
+		expected    Object
+	}{
+		{
+			name: "okay rule object",
+			json: `{"name": "Geo Rule Tester",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "GeoipFilterRuleObject",
+                         "description": "Whatever",
+                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                         "action": {
+                            "type": "SET_CONFIGURATION",
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+                            "key": "GeoipFilterRuleObject"
+                            }
+                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:         "Geo Rule Tester",
+				Type:         "GeoipFilterRuleObject",
+				Description:  "Whatever",
+				ConditionIDs: []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "GeoipFilterRuleObject",
+				},
+				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
+			}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var actual Object
+			if !tt.expectedErr {
+				assert.Nil(t, json.Unmarshal([]byte(tt.json), &actual))
+				assert.EqualValues(t, tt.expected, actual)
+			} else {
+				assert.NotNil(t, json.Unmarshal([]byte(tt.json), &actual))
+			}
+		})
+	}
+}
+
 func TestGroupUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
 	policySettings := PolicySettings{}
