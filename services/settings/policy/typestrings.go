@@ -1,5 +1,7 @@
 package policy
 
+// ObjectType is a string used to demux the actual type of an object
+// when loading from JSON.
 type ObjectType string
 
 // GroupType is the type of group that a Group is, used to demux the
