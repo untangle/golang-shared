@@ -103,9 +103,34 @@
         "description": "",
         "type": "IPAddrList",
         "items": ["192.167.10.23"]
+      },
+      {
+        "id": "b821864e-18ef-409c-a7bc-defc2d049d96",
+        "name": "Europe 1",
+        "description": "",
+        "type": "GeoIPLocation",
+        "items": ["DZ", "BE", "BY", "BD"]
+      },
+      {
+        "id": "3c5856f1-f182-40d0-ac2a-e586c7413f4f",
+        "name": "Europe 2",
+        "description": "",
+        "type": "GeoIPLocation",
+        "items": ["HN", "HU", "IS", "KW", "LA"]
       }
     ],
-    "object_groups": [],
+    "object_groups": [
+      {
+        "id": "0893af13-3ed9-45c3-9301-a70a2cc8ffd2",
+        "name": "Europe",
+        "description": "",
+        "type": "GeoipObjectGroup",
+        "items": [
+          "b821864e-18ef-409c-a7bc-defc2d049d96",
+          "3c5856f1-f182-40d0-ac2a-e586c7413f4f"
+        ]
+      }
+    ],
     "conditions": [
       {
         "id": "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",

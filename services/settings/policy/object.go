@@ -102,6 +102,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[PolicyCondition](obj)()
 	case ConditionGroup:
 		defer setList[string](obj)()
+	case GeoIPListGroup:
+		defer setList[string](obj)()
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
