@@ -75,10 +75,10 @@ func TestRulesUnmarshal(t *testing.T) {
                           }`,
 			expectedErr: false,
 			expected: Object{
-				Name:         "Geo Rule Tester",
-				Type:         "GeoipFilterRuleObject",
-				Description:  "Whatever",
-				ConditionIDs: []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Name:        "Geo Rule Tester",
+				Type:        "GeoipFilterRuleObject",
+				Description: "Whatever",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",

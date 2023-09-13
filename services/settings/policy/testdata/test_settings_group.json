@@ -278,7 +278,7 @@
     "enabled": true,
     "flows": [
       {
-        "conditions": [
+        "items": [
           {
             "op": "==",
             "type": "CLIENT_ADDRESS",
@@ -295,7 +295,7 @@
         "name": "Students Flow"
       },
       {
-        "conditions": [
+        "items": [
           {
             "op": "==",
             "type": "CLIENT_PORT",
@@ -307,7 +307,7 @@
         "name": "Teachers Flow"
       },
       {
-        "conditions": [
+        "items": [
           {
             "op": "==",
             "type": "SERVER_ADDRESS",
@@ -319,7 +319,7 @@
         "name": "Teachers Flow"
       },
       {
-        "conditions": [
+        "items": [
           {
             "op": "==",
             "type": "CLIENT_ADDRESS",
@@ -341,7 +341,7 @@
         "name": "Common Flow"
       },
       {
-        "conditions": [
+        "items": [
           {
             "op": "==",
             "type": "CLIENT_PORT",
