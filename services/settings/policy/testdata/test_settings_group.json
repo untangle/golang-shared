@@ -96,11 +96,58 @@
             "port": 12345
           }
         ]
+      },
+      {
+        "id": "cbee1455-1777-48ef-9e54-c4d4ee81632a",
+        "name": "HR",
+        "description": "",
+        "type": "IPAddrList",
+        "items": ["192.167.10.23"]
       }
     ],
     "object_groups": [],
-    "conditions": [],
-    "condition_groups": [],
+    "conditions": [
+      {
+        "id": "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",
+        "name": "Policy Cond 1",
+        "description": "",
+        "type": "ConditionObject",
+        "items": [
+          {
+            "type": "DESTINATION_ADDRESS",
+            "op": "==",
+            "value": "192.10.2.20"
+          }
+        ]
+      },
+      {
+        "id": "1458dc12-a9c2-4d0c-8203-1340c61c2c3b",
+        "name": "Policy 8/28/2023 8:10:48 PM",
+        "description": "",
+        "type": "ConditionObject",
+        "items": [
+          {
+            "type": "SOURCE_ADDRESS",
+            "op": "match",
+            "object": ["cbee1455-1777-48ef-9e54-c4d4ee81632a"]
+          },
+          {
+            "type": "DESTINATION_ADDRESS",
+            "op": "==",
+            "value": "192.20.3.10"
+          }
+        ]
+      }
+    ],
+    "condition_groups": [
+      {
+        "id": "8d09ef73-8e5d-4f8b-a4e8-30af1f685273",
+        "name": "Sample condition group",
+        "description": "",
+        "type": "ConditionGroup",
+        "items": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"]
+      }
+    ],
     "configurations": [
       {
         "description": "Students",

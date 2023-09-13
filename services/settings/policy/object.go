@@ -98,6 +98,10 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[uint](obj)()
 	case WebFilterCategoryType:
 		defer setList[uint](obj)()
+	case Condition:
+		fmt.Printf("Not implemented\n")
+	case ConditionGroup:
+		fmt.Printf("Not implemented\n")
 	default:
 		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
 	}
