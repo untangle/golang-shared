@@ -203,7 +203,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
 						 "description": "Description",
                          "type": "ServiceEndpoint",
-                          "items": [    
+                          "items": [
                               {"protocol": 17, "port": 2222},
                               {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
@@ -250,13 +250,41 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			expectedErr: true,
 			expected:    Group{},
 		},
+		{
+			name: "condition object",
+			json: `{
+                            "name": "blooblah",
+                            "id": "702d4c99-9599-455f-8271-215e5680f039",
+                            "type": "mfw-object-condition",
+                            "items": [
+                                {
+                                 "op": "==",
+                                 "type": "SERVER_ADDRESS",
+                                 "value": []
+                                }
+                            ]
+                        }`,
+			expectedErr: false,
+			expected: Object{
+				Name: "blooblah",
+				ID:   "702d4c99-9599-455f-8271-215e5680f039",
+				Type: ConditionType,
+				Items: []*PolicyCondition{
+					{
+						Op:    "==",
+						CType: "SERVER_ADDRESS",
+						Value: []string{},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var actual Group
 			if !tt.expectedErr {
-				assert.Nil(t, json.Unmarshal([]byte(tt.json), &actual))
+				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
 				assert.EqualValues(t, tt.expected, actual)
 			} else {
 				assert.NotNil(t, json.Unmarshal([]byte(tt.json), &actual))
@@ -332,7 +360,7 @@ func TestGroupMarshal(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			data, err := json.Marshal(&tt.group)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			assert.JSONEq(t, tt.expectedJSON, string(data))
 		})
 	}

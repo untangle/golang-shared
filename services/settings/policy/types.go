@@ -99,7 +99,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	case InterfaceType, InterfaceObjectType:
 		defer setList[uint](obj)()
 	case ConditionType:
-		defer setList[PolicyCondition](obj)()
+		defer setList[*PolicyCondition](obj)()
 	case ConditionGroupType:
 		defer setList[string](obj)()
 	case ThreatPreventionType:
