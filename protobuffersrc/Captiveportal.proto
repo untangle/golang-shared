@@ -54,7 +54,8 @@ message UserGetRequest {
 message UserGetResponse {
   string ClientIp = 1;
   string PolicyId = 2;
-  CpSettingType PolicyConfig = 3;
+  string ConfigId = 3;
+  CpSettingType PolicyConfig = 4;
 }
 
 message UserSetRequest {
