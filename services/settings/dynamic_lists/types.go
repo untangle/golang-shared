@@ -1,9 +1,13 @@
 package dynamic_lists
 
-// Example for this struct is present on mfw_schema
+// DynamicListSettings is the data structure for the dynamic_lists service, including whether it is enabled and its configurations
+type DynamicListSettings struct {
+	Enabled        bool                         `json:"enabled"`
+	Configurations []*DynamicListConfigurations `json:"configurations"`
+}
 
-// Configs is the data structure for JSON marshalling and unamrshalling Dynamic Lists configurations under dynamic_lists package
-type Config struct {
+// DynamicListConfigurations is the data strcuture for dynamic_lists configurations
+type DynamicListConfigurations struct {
 	Name        string `json:"name"`
 	ID          string `json:"id"`
 	Type        string `json:"type"`
