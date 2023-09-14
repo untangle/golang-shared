@@ -13,6 +13,70 @@ const (
 
 var logger = logService.GetLoggerInstance()
 
+// PolicySettings is the main data structure for Policy Management.
+// It contains an array of PolicyConfigurations, an array of PolicyFlowCategory's
+// and an array of Policy which reference the Configurations and FlowCategories by id.
+// Those arrays are loaded from the json primarily by mapstructure.
+// facilitate lookup.
+type PolicySettings struct {
+	Enabled         bool                   `json:"enabled"`
+	Configurations  []*PolicyConfiguration `json:"configurations"`
+	Objects         []*Group               `json:"objects"`
+	ObjectGroups    []*Object              `json:"object_groups"`
+	Conditions      []*Object              `json:"conditions"`
+	ConditionGroups []*Object              `json:"condition_groups"`
+	Rules           []*Object              `json:"rules"`
+	Policies        []*Policy              `json:"policies"`
+
+	//DEPRECATED
+	Flows []*PolicyFlow `json:"flows"`
+}
+
+func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
+	for _, config := range p.Configurations {
+		if config.ID == c {
+			return config
+		}
+	}
+	return nil
+}
+
+// Returns the policy flow given the ID.
+func (p *PolicySettings) FindFlow(id string) *PolicyFlow {
+	for _, flow := range p.Flows {
+		if flow.ID == id {
+			return flow
+		}
+	}
+	return nil
+}
+
+// FindConfigsWithEnabled returns the configs with enabled status.
+func (p *PolicySettings) FindConfigsWithEnabled(pol *Policy, enabled bool) []string {
+	configs := []string{}
+	for _, configID := range pol.Configurations {
+		config := p.findConfiguration(configID)
+		if config != nil && config.AppSettings != nil {
+			for pluginName, pluginSettings := range config.AppSettings {
+				if pluginSettings.(map[string]interface{})["enabled"] == enabled {
+					configs = append(configs, pluginName)
+				}
+			}
+		}
+	}
+	return configs
+}
+
+// Returns a list of disabled app services for a given policy ID.
+func (p *PolicySettings) FindDisabledConfigs(pol *Policy) []string {
+	return p.FindConfigsWithEnabled(pol, false)
+}
+
+// FindEnabledConfigs returns enabled configs for this policy
+func (p *PolicySettings) FindEnabledConfigs(pol *Policy) []string {
+	return p.FindConfigsWithEnabled(pol, true)
+}
+
 // Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
 // the policy name and interface{} is the plugin settings.
 func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName string) (map[string]interface{}, error) {

@@ -53,18 +53,91 @@ func TestErrorGetPolicyPluginSettings(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestRulesUnmarshal(t *testing.T) {
+	tests := []struct {
+		name        string
+		json        string
+		expectedErr bool
+		expected    Object
+	}{
+		{
+			name: "okay rule object",
+			json: `{"name": "Geo Rule Tester",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "GeoipFilterRuleObject",
+                         "description": "Whatever",
+                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                         "action": {
+                            "type": "SET_CONFIGURATION",
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+                            "key": "GeoipFilterRuleObject"
+                            }
+                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "Geo Rule Tester",
+				Type:        "GeoipFilterRuleObject",
+				Description: "Whatever",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "GeoipFilterRuleObject",
+				},
+				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
+			}},
+		{
+			name: "bad rule object type",
+			json: `{"name": "Geo Rule Tester",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "asdfasdf",
+                         "description": "Whatever",
+                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                         "action": {
+                            "type": "SET_CONFIGURATION",
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+                            "key": "GeoipFilterRuleObject"
+                            }
+                          }`,
+			expectedErr: true,
+			expected:    Object{}},
+		{
+			name: "rule object without action",
+			json: `{"name": "Geo Rule Tester",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "GeoipFilterRuleObject",
+                         "description": "Whatever",
+                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                          }`,
+			expectedErr: true,
+			expected:    Object{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var actual Object
+			if !tt.expectedErr {
+				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
+				assert.EqualValues(t, tt.expected, actual)
+			} else {
+				assert.Error(t, json.Unmarshal([]byte(tt.json), &actual))
+			}
+		})
+	}
+}
+
 func TestGroupUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
 	policySettings := PolicySettings{}
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
-	strlist, ok := policySettings.Groups[0].ItemsIPSpecList()
+	strlist, ok := policySettings.Objects[0].ItemsIPSpecList()
 	assert.True(t, ok)
 
 	assert.Equal(t, []net.IPSpecifierString{
 		"1.2.3.4",
 		"1.2.3.5/24",
 		"1.2.3.4-1.2.3.20"}, strlist)
-	endpointList, ok := policySettings.Groups[2].ItemsServiceEndpointList()
+	endpointList, ok := policySettings.Objects[2].ItemsServiceEndpointList()
 	assert.True(t, ok)
 	assert.EqualValues(t, []ServiceEndpoint{
 		{
@@ -466,7 +539,7 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			expected: PolicyCondition{
 				Op:    "==",
 				CType: "SERVER_ADDRESS",
-				Value: []string{"fd00::1/64"},
+				Value: []string{"fd00::1/128"},
 			},
 		},
 		{
