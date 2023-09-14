@@ -86,16 +86,41 @@ func TestRulesUnmarshal(t *testing.T) {
 				},
 				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
 			}},
+		{
+			name: "bad rule object type",
+			json: `{"name": "Geo Rule Tester",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "asdfasdf",
+                         "description": "Whatever",
+                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                         "action": {
+                            "type": "SET_CONFIGURATION",
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+                            "key": "GeoipFilterRuleObject"
+                            }
+                          }`,
+			expectedErr: true,
+			expected:    Object{}},
+		{
+			name: "rule object without action",
+			json: `{"name": "Geo Rule Tester",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "GeoipFilterRuleObject",
+                         "description": "Whatever",
+                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                          }`,
+			expectedErr: true,
+			expected:    Object{}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var actual Object
 			if !tt.expectedErr {
-				assert.Nil(t, json.Unmarshal([]byte(tt.json), &actual))
+				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
 				assert.EqualValues(t, tt.expected, actual)
 			} else {
-				assert.NotNil(t, json.Unmarshal([]byte(tt.json), &actual))
+				assert.Error(t, json.Unmarshal([]byte(tt.json), &actual))
 			}
 		})
 	}
