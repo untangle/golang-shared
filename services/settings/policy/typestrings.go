@@ -71,6 +71,16 @@ const (
 	ConditionType      ObjectType = "mfw-object-condition"
 	ConditionGroupType ObjectType = "mfw-object-condition-group"
 
-	// RuleType
-	RuleType ObjectType = "mfw-object-rule"
+	// RuleTypes
+	ApplicationControlRule ObjectType = "mfw-rule-applicationcontrol"
+	CaptivePortalRule      ObjectType = "mfw-rule-captiveportal"
+	DnsRule                ObjectType = "mfw-rule-dns"
+	GeoIPFilterRule        ObjectType = "mfw-rule-geoipfilter"
+	NATRule                ObjectType = "mfw-rule-nat"
+	PortForwardRule        ObjectType = "mfw-rule-portforward"
+	SecurityRule           ObjectType = "mfw-rule-security"
+	ShapingRule            ObjectType = "mfw-rule-shaping"
+	ThreadPreventionRule   ObjectType = "mfw-rule-threatprevention"
+	WANPolicyRule          ObjectType = "mfw-rule-wanpolicy"
+	WebFilterRule          ObjectType = "mfw-rule-webfilter"
 )
