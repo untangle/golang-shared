@@ -70,4 +70,7 @@ const (
 	// object and the group.
 	ConditionType      ObjectType = "mfw-object-condition"
 	ConditionGroupType ObjectType = "mfw-object-condition-group"
+
+	// RuleType
+	RuleType ObjectType = "mfw-object-rule"
 )
