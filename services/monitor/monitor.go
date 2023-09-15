@@ -55,7 +55,6 @@ func RoutineStarted(routineName string) {
 	defer activeRoutinesMutex.Unlock()
 	activeRoutinesMutex.Lock()
 	logger.Debug("Start Routine called: %s \n", routineName)
-	logger.Debug("Start Routine called: %s ", routineName)
 	routineInfoWatcher <- &RoutineInfo{Name: routineName, Action: start}
 	activeRoutines[routineName] = true
 }

@@ -91,9 +91,6 @@ func TestRoutineError(t *testing.T) {
 	activeRoutinesMutex.RLock()
 	_, exist := activeRoutines["routineInfoWatcher3"]
 	activeRoutinesMutex.RUnlock()
-
-	logger.Err("Unable to get ClassD %s table: %s %s\n", exist, err, activeRoutines)
-
 	// check current status of routine
 	assert.False(t, exist)
 
