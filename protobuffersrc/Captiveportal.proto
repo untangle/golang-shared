@@ -2,6 +2,26 @@ syntax = "proto3";
 package captiveportal;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/CaptivePortal";
 
+// Captive portal condition
+message CpRuleCondition {
+  string Op = 1 [json_name = "op"];
+  string Type = 2 [json_name = "type"];
+  string Value = 3 [json_name = "value"];
+}
+// Captive portal action enum
+enum CpRulesAction {
+  DISABLE = 0;
+  ENABLE = 1;
+}
+// Captive portal rule
+message CpRules {
+  string RuleId = 1 [json_name = "rule_id"];
+  bool Enabled = 2 [json_name = "enabled"];
+  string Description = 3 [json_name = "description"];
+  repeated CpRuleCondition Conditions = 4 [json_name = "conditions"];
+  CpRulesAction Action = 5 [json_name = "action"];
+}
+
 message ImageDetails {
   string imageData = 1 [json_name = "imageData"];
   string imageName = 2 [json_name = "imageName"];
@@ -18,6 +38,7 @@ message CpSettingType {
   string WelcomeText = 8 [json_name = "welcomeText"];
   string PageTitle = 9 [json_name = "pageTitle"];
   ImageDetails logo = 10 [json_name = "logo"];
+  repeated CpRules Rules = 11 [json_name = "rules"];
 }
 
 service CaptivePortalGrpcService {
@@ -33,7 +54,8 @@ message UserGetRequest {
 message UserGetResponse {
   string ClientIp = 1;
   string PolicyId = 2;
-  CpSettingType PolicyConfig = 3;
+  string ConfigId = 3;
+  CpSettingType PolicyConfig = 4;
 }
 
 message UserSetRequest {
@@ -43,4 +65,15 @@ message UserSetRequest {
 // Update captive portal t&c accepted status.
 message UserSetResponse {
   bool Done = 1;
+}
+
+message CpUserEntry {
+  string PolicyId = 1;
+  string ConfigId = 2;
+  CpSettingType PolicyConfig = 3;
+  int64 TimeoutDuration = 4;
+  int64 LastAcceptedTimeStamp = 5;
+  int64 LastSeenTimeStamp = 6;
+  string Description = 7;
+  string Host = 8;
 }
