@@ -132,7 +132,28 @@
       }
     ],
     "enabled": true,
-    "objects": [],
+    "objects": [
+      {
+        "id": "8105f355-cb98-43eb-9ac7-74542a524abb",
+        "name": "Dummy endpoint",
+        "description": "Some endpoint",
+        "type": "mfw-object-service",
+        "items": [
+          {
+            "port": 88,
+            "protocol": [6, 17]
+          },
+          {
+            "port": 123,
+            "protocol": [51, 112]
+          },
+          {
+            "port": 23,
+            "protocol": [27, 6]
+          }
+        ]
+      }
+    ],
     "object_groups": [],
     "conditions": [],
     "condition_groups": [],
