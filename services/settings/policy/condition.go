@@ -15,7 +15,7 @@ type PolicyCondition struct {
 	GroupIDs []string `json:"object,omitempty"`
 
 	// Deprecated
-	GroupID string `json:"groupid,omitempty"`
+	GroupID string `json:"groupId"`
 }
 
 // Unmarshal policy condition so that types of values can be checked
