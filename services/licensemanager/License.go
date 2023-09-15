@@ -6,7 +6,7 @@ type License struct {
 	Type        string `json:"type"`
 	End         int64  `json:"end"`
 	Start       int64  `json:"start"`
-	Seats       int64  `json:"seats" default:"-1"`
+	Seats       *int64  `json:"seats" default:"nil"`
 	DisplayName string `json:"displayName"`
 	Key         string `json:"key"`
 	KeyVersion  int    `json:"keyVersion"`
