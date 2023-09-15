@@ -47,6 +47,16 @@ const (
 	InterfaceObjectType      ObjectType = "mfw-interfacezone-object"
 	InterfaceObjectGroupType ObjectType = "mfw-interfacezone-group"
 
+	// RuleTypes
+	ApplicationControlRuleObject ObjectType = "mfw-rule-applicationcontrol"
+	CaptivePortalRuleObject      ObjectType = "mfw-rule-captiveportal"
+	DnsRuleObject                ObjectType = "mfw-rule-dns"
+	NATRuleObject                ObjectType = "mfw-rule-nat"
+	PortForwardRuleObject        ObjectType = "mfw-rule-portforward"
+	SecurityRuleObject           ObjectType = "mfw-rule-security"
+	ShapingRuleObject            ObjectType = "mfw-rule-shaping"
+	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
+
 	// Deprecated: WebFilter* will be removed.
 	// WebFilterCategoryType means that the Items of the Group are web filter categories.
 	WebFilterCategoryType ObjectType = "WebFilterCategory"
@@ -57,21 +67,8 @@ const (
 	// threat prevention score.
 	ThreatPreventionType ObjectType = "ThreatPrevention"
 
-	// ConditionType,ConditionGrouType: type id strings, for the
+	// ConditionType,ConditionGroupType: type id strings, for the
 	// object and the group.
 	ConditionType      ObjectType = "mfw-object-condition"
 	ConditionGroupType ObjectType = "mfw-object-condition-group"
-
-	// RuleTypes
-	ApplicationControlRule ObjectType = "mfw-rule-applicationcontrol"
-	CaptivePortalRule      ObjectType = "mfw-rule-captiveportal"
-	DnsRule                ObjectType = "mfw-rule-dns"
-	GeoIPFilterRule        ObjectType = "mfw-rule-geoipfilter"
-	NATRule                ObjectType = "mfw-rule-nat"
-	PortForwardRule        ObjectType = "mfw-rule-portforward"
-	SecurityRule           ObjectType = "mfw-rule-security"
-	ShapingRule            ObjectType = "mfw-rule-shaping"
-	ThreadPreventionRule   ObjectType = "mfw-rule-threatprevention"
-	WANPolicyRule          ObjectType = "mfw-rule-wanpolicy"
-	WebFilterRule          ObjectType = "mfw-rule-webfilter"
 )
