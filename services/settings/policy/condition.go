@@ -13,6 +13,9 @@ type PolicyCondition struct {
 	CType    string   `json:"type"`
 	Value    []string `json:"value,omitempty"`
 	GroupIDs []string `json:"object,omitempty"`
+
+	// Deprecated
+	GroupID string `json:"groupId",omitempty`
 }
 
 // Unmarshal policy condition so that types of values can be checked

@@ -29,7 +29,8 @@ type PolicySettings struct {
 	Policies        []*Policy              `json:"policies"`
 
 	//DEPRECATED
-	Flows []*PolicyFlow `json:"flows"`
+	Flows  []*PolicyFlow `json:"flows",omitempty`
+	Groups []*Group      `json:"groups",omitempty`
 }
 
 func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
