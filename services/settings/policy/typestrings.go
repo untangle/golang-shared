@@ -61,4 +61,29 @@ const (
 	// object and the group.
 	ConditionType      ObjectType = "mfw-object-condition"
 	ConditionGroupType ObjectType = "mfw-object-condition-group"
+
+	// Configuration Types used for marshalling configs out of configuration sections
+	GeoipConfigType              ObjectType = "mfw-template-geoipfilter"
+	WebFilterConfigType          ObjectType = "mfw-template-webfilter"
+	ThreatPreventionConfigType   ObjectType = "mfw-template-threatprevention"
+	WANPolicyConfigType          ObjectType = "mfw-template-wanpolicy"
+	ApplicationControlConfigType ObjectType = "mfw-template-applicationcontrol"
+	CaptivePortalConfigType      ObjectType = "mfw-template-captiveportal"
+	SecurityConfigType           ObjectType = "mfw-template-security"
+
+	// TODO: Impelment these object/group types
+	HostType      ObjectType = "mfw-object-host"
+	HostGroupType ObjectType = "mfw-object-host-group"
+
+	DomainType      ObjectType = "mfw-object-domain"
+	DomainGroupType ObjectType = "mfw-object-domain-group"
+
+	UserType      ObjectType = "mfw-object-user"
+	UserGroupType ObjectType = "mfw-object-user-group"
+
+	VLANTagType      ObjectType = "mfw-object-vlantag"
+	VLANTagGroupType ObjectType = "mfw-object-vlantag-group"
+
+	ApplicationType      ObjectType = "mfw-object-application"
+	ApplicationGroupType ObjectType = "mfw-object-application-group"
 )

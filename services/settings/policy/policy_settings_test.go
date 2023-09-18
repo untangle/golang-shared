@@ -28,13 +28,13 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 	policySettings, err := getAllPolicyConfigurationSettings(settingsFile)
 	assert.Nil(t, err)
 	assert.NotNil(t, policySettings)
-	assert.Equal(t, 3, len(policySettings["threatprevention"]))
-	assert.Equal(t, 1, len(policySettings["webfilter"]))
-	assert.Equal(t, 1, len(policySettings["geoip"]))
+	assert.Equal(t, 2, len(policySettings["mfw-template-threatprevention"]))
+	assert.Equal(t, 1, len(policySettings["mfw-template-webfilter"]))
+	assert.Equal(t, 2, len(policySettings["mfw-template-geoipfilter"]))
 
-	teachersUID := "60a9e031-4188-4d06-8083-108ebec63a9e"
+	teachersUID := "7ed1558e-ae30-4699-beab-77e09babecb3"
 	// Spot check a plugin setting.
-	assert.EqualValues(t, result, policySettings["threatprevention"][teachersUID])
+	assert.EqualValues(t, result, policySettings["mfw-template-threatprevention"][teachersUID].Settings)
 }
 
 func TestGetPolicyPluginSettings(t *testing.T) {
@@ -607,7 +607,7 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 		wantMarshalledJson     string
 	}{
 		{
-			name: "validJsonWithAppSettings",
+			name: "validJsonWithSettings",
 			inputData: `{
 					"id": "A1",
 					"name": "B2",
@@ -619,7 +619,7 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
-				AppSettings: map[string]any{
+				Settings: map[string]any{
 					"setting_field": "D4",
 					"key":           "value",
 				},
@@ -633,7 +633,7 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 			}`,
 		},
 		{
-			name: "validJsonWithoutAppSettings",
+			name: "validJsonWithoutSettings",
 			inputData: `{
 					"id": "A1",
 					"name": "B2",
@@ -643,7 +643,7 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
-				AppSettings: map[string]any{},
+				Settings:    map[string]any{},
 			},
 			wantMarshalledJson: `{
 				"id": "A1",

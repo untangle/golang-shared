@@ -1,6 +1,8 @@
 package policy
 
 import (
+	"fmt"
+
 	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -33,10 +35,21 @@ type PolicySettings struct {
 	Groups []*Group      `json:"groups",omitempty`
 }
 
-func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
+// FindConfiguration searches this PolicySetting to load a configuration by ID
+func (p *PolicySettings) FindConfiguration(c string) *PolicyConfiguration {
 	for _, config := range p.Configurations {
 		if config.ID == c {
 			return config
+		}
+	}
+	return nil
+}
+
+// FindRule searches this PolicySetting to load a rule by ID
+func (p *PolicySettings) FindRule(c string) *Object {
+	for _, rule := range p.Rules {
+		if rule.ID == c {
+			return rule
 		}
 	}
 	return nil
@@ -121,23 +134,29 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 		if !p.Enabled {
 			continue
 		}
-		for _, config := range p.Configurations {
-			config := policySettings.findConfiguration(config)
-			if config == nil {
-				logger.Warn("Can't find configuration in settings: %s(%s)\n",
-					config.ID,
-					config.Name)
-				// No matching configuration found, skip. Although this should never happen.
-				continue
-			}
-			// Add the plugins into the map. Wish there was a better way to do this
-			logger.Debug("getAllPolicyConfigurationSettings: %v, %+v\n", p.Name, config)
 
-			for name, settings := range config.AppSettings {
-				if pluginSettings[name] == nil {
-					pluginSettings[name] = make(map[string]interface{})
+		for _, ruleID := range p.Rules {
+			ruleDetails := policySettings.FindRule(ruleID)
+			if ruleDetails != nil {
+				// if action type is not SET_CONFIGURATION then do what?
+				if ruleDetails.Action.Type == "SET_CONFIGURATION" {
+					config := policySettings.FindConfiguration(ruleDetails.Action.UUID)
+
+					if config == nil {
+						logger.Warn("Can't find configuration in settings: %s(%s)\n",
+							ruleDetails.Action.Key,
+							ruleDetails.Action.UUID)
+						// No matching configuration found, skip. Although this should never happen.
+						continue
+					}
+
+					logger.Debug("Attaching action details of %v", ruleDetails.Action)
+
+					if pluginSettings[string(config.Type)] == nil {
+						pluginSettings[string(config.Type)] = make(map[string]interface{})
+					}
+					pluginSettings[string(config.Type)][config.ID] = config
 				}
-				pluginSettings[name][p.ID] = settings
 			}
 		}
 	}
