@@ -72,7 +72,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	var typeField GroupTypeField
 
 	if err := json.Unmarshal(data, &typeField); err != nil {
-		return fmt.Errorf("unable to unmarshal generic object: %w", err)
+		return fmt.Errorf("unable to unmarshal generic object type: %w", err)
 	}
 	type aliasObject Object
 
@@ -102,7 +102,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	case WebFilterCategoryType:
 		defer setList[uint](obj)()
 	default:
-		return fmt.Errorf("error unmarshalling generic object: invalid group type: %s", typeField.Type)
+		return fmt.Errorf("error unmarshalling generic object: object type: %s", typeField.Type)
 	}
 
 	// unmarshal PolicyConfiguration using struct tags

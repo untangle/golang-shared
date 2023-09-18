@@ -118,13 +118,12 @@ func TestRulesUnmarshal(t *testing.T) {
 			name: "ApplicationControlRuleObject test",
 			json: `{"name": "ApplicationControlRuleObject Tester",
                          "id": "c2428365-65be-4902-bfc0-bde2b310fedf",
-                         "type": "mfw-object-application-rule",
+                         "type": "mfw-object-applicationcontrol-rule",
                          "description": "ApplicationControlRuleObject",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
-                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "ApplicationControlRuleObject"
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031"
                             }
                           }`,
 			expectedErr: false,
@@ -136,7 +135,6 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "GeoipFilterRuleObject",
 				},
 				ID: "c2428365-65be-4902-bfc0-bde2b310fedf",
 			},
@@ -150,8 +148,7 @@ func TestRulesUnmarshal(t *testing.T) {
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
-                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "CaptivePortalRuleObject"
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031"
                             }
                           }`,
 			expectedErr: false,
@@ -163,7 +160,6 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "CaptivePortalRuleObject",
 				},
 				ID: "c2428365-65be-4903-bfc0-bde2b310fedf",
 			},
@@ -177,8 +173,7 @@ func TestRulesUnmarshal(t *testing.T) {
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
-                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "NATRuleObject"
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031"
                             }
                           }`,
 			expectedErr: false,
@@ -190,7 +185,6 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "NATRuleObject",
 				},
 				ID: "c2428365-65be-4904-bfc0-bde2b310fedf",
 			},
@@ -199,13 +193,12 @@ func TestRulesUnmarshal(t *testing.T) {
 			name: "PortForwardRuleObject test",
 			json: `{"name": "PortForwardRuleObject Tester",
                          "id": "c2428365-65be-4905-bfc0-bde2b310fedf",
-                         "type": "mfw-object-portforeward-rule",
+                         "type": "mfw-object-portforward-rule",
                          "description": "PortForwardRuleObject",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
-                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "PortForwardRuleObject"
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031"
                             }
                           }`,
 			expectedErr: false,
@@ -217,36 +210,54 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "PortForwardRuleObject",
 				},
 				ID: "c2428365-65be-4905-bfc0-bde2b310fedf",
 			},
 		},
 		{
-			name: "SecurityRuleObject test",
-			json: `{"name": "SecurityRuleObject Tester",
+			name: "SecurityRuleObject Accept",
+			json: `{"name": "SecurityRuleObject Accept",
                          "id": "c2428365-65be-4906-bfc0-bde2b310fedf",
                          "type": "mfw-object-security-rule",
-                         "description": "SecurityRuleObject",
+                         "description": "SecurityRuleObject Accept",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
-                            "type": "SET_CONFIGURATION",
-                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "SecurityRuleObject"
+                            "type": "ACCEPT"
                             }
                           }`,
 			expectedErr: false,
 			expected: Object{
-				Name:        "SecurityRuleObject Tester",
+				Name:        "SecurityRuleObject Accept",
 				Type:        SecurityRuleObject,
-				Description: "SecurityRuleObject",
+				Description: "SecurityRuleObject Accept",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
-					Type: "SET_CONFIGURATION",
-					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "SecurityRuleObject",
+					Type: "ACCEPT",
 				},
 				ID: "c2428365-65be-4906-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "SecurityRuleObject Reject",
+			json: `{"name": "SecurityRuleObject Reject",
+                         "id": "c2428365-65be-4916-bfc0-bde2b310fedf",
+                         "type": "mfw-object-security-rule",
+                         "description": "SecurityRuleObject Reject",
+                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                         "action": {
+                            "type": "REJECT"
+                            }
+                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "SecurityRuleObject Reject",
+				Type:        SecurityRuleObject,
+				Description: "SecurityRuleObject Reject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "REJECT",
+				},
+				ID: "c2428365-65be-4916-bfc0-bde2b310fedf",
 			},
 		},
 		{
@@ -258,8 +269,7 @@ func TestRulesUnmarshal(t *testing.T) {
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
-                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "ShapingRuleObject"
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031"
                             }
                           }`,
 			expectedErr: false,
@@ -271,7 +281,6 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "ShapingRuleObject",
 				},
 				ID: "c2428365-65be-4906-bfc0-bde2b310fedf",
 			},
@@ -285,8 +294,7 @@ func TestRulesUnmarshal(t *testing.T) {
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
-                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "WANPolicyRuleObject"
+                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031"
                             }
                           }`,
 			expectedErr: false,
@@ -298,7 +306,6 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "WANPolicyRuleObject",
 				},
 				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
 			},
