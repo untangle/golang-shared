@@ -21,7 +21,7 @@ const (
 	// geoip objects and groups.
 	GeoIPObjectType       ObjectType = "mfw-object-geoip"
 	GeoIPObjectGroupType  ObjectType = "mfw-object-geoip-group"
-	GeoipFilterRuleObject ObjectType = "GeoipFilterRuleObject"
+	GeoipFilterRuleObject ObjectType = "mfw-object-geoip-rule"
 
 	// Deprecated: IPAddrListType means that the Items of the Group are ip
 	// specifications (ranges, CIDRs, or single IPs). (old)
@@ -48,14 +48,13 @@ const (
 	InterfaceObjectGroupType ObjectType = "mfw-interfacezone-group"
 
 	// RuleTypes
-	ApplicationControlRuleObject ObjectType = "mfw-rule-applicationcontrol"
-	CaptivePortalRuleObject      ObjectType = "mfw-rule-captiveportal"
-	DnsRuleObject                ObjectType = "mfw-rule-dns"
-	NATRuleObject                ObjectType = "mfw-rule-nat"
-	PortForwardRuleObject        ObjectType = "mfw-rule-portforward"
-	SecurityRuleObject           ObjectType = "mfw-rule-security"
-	ShapingRuleObject            ObjectType = "mfw-rule-shaping"
-	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
+	ApplicationControlRuleObject ObjectType = "mfw-object-applicationcontrol-rule"
+	CaptivePortalRuleObject      ObjectType = "mfw-object-captiveportal-rule"
+	NATRuleObject                ObjectType = "mfw-object-nat-rule"
+	PortForwardRuleObject        ObjectType = "mfw-object-portforward-rule"
+	SecurityRuleObject           ObjectType = "mfw-object-security-rule"
+	ShapingRuleObject            ObjectType = "mfw-object-shaping-rule"
+	WANPolicyRuleObject          ObjectType = "mfw-object-wanpolicy-rule"
 
 	// Deprecated: WebFilter* will be removed.
 	// WebFilterCategoryType means that the Items of the Group are web filter categories.
