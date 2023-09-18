@@ -78,8 +78,10 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	switch typeField.Type {
 	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
-	case "", ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipFilterRuleObject, NATRuleObject,
-		PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject:
+	case "", ApplicationControlRuleObject, CaptivePortalRuleObject,
+		// Npt sure whether these are the same things
+		GeoipRuleObject, GeoipFilterRuleObject,
+		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject:
 		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
 			return fmt.Errorf("unable to unmarshal generic object: %w", err)
 		}
