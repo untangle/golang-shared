@@ -12,16 +12,23 @@ import (
 
 func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 
-	var result = map[string]interface{}{
-		"enabled": true,
-		"passList": []interface{}{
-			map[string]interface{}{
-				"description": "some test",
-				"host":        "3.4.5.6/32",
+	var result = PolicyConfiguration{
+		Description: "TP students",
+		Type:        "mfw-template-threatprevention",
+		Name:        "TP for students",
+		ID:          "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
+		Enabled:     false,
+		Settings: map[string]interface{}{
+			"enabled": true,
+			"passList": []interface{}{
+				map[string]interface{}{
+					"description": "some test",
+					"host":        "3.4.5.6/32",
+				},
 			},
+			"redirect":    false,
+			"sensitivity": float64(60),
 		},
-		"redirect":    false,
-		"sensitivity": float64(60),
 	}
 
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
@@ -32,9 +39,9 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 	assert.Equal(t, 1, len(policySettings["mfw-template-webfilter"]))
 	assert.Equal(t, 2, len(policySettings["mfw-template-geoipfilter"]))
 
-	teachersUID := "7ed1558e-ae30-4699-beab-77e09babecb3"
+	teachersUID := "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
 	// Spot check a plugin setting.
-	assert.EqualValues(t, result, policySettings["mfw-template-threatprevention"][teachersUID].Settings)
+	assert.EqualValues(t, &result, policySettings["mfw-template-threatprevention"][teachersUID])
 }
 
 func TestGetPolicyPluginSettings(t *testing.T) {
