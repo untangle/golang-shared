@@ -4,6 +4,10 @@ package policy
 // when loading from JSON.
 type ObjectType string
 
+// ObjectParentType is a string used for representing the parent grouping of
+// a specific object
+type ObjectParentType string
+
 // GroupType is the type of group that a Group is, used to demux the
 // Items field.
 type GroupType = ObjectType
@@ -13,14 +17,35 @@ type GroupTypeField struct {
 	Type GroupType `json:"type"`
 }
 
+// ObjectMetaLookup is a map for retrieving additional metadata about objects
+var ObjectMetaLookup map[ObjectType]ObjectMetadata
+
+// SettingsMetaLookup is a map for retrieving metadata from a specific settings
+var SettingsMetaLookup map[string]ObjectMetadata
+
+// ObjectMetadata keeps track of a set of metadata for each enumeration value
+// for object enumerations.
+type ObjectMetadata struct {
+	// The object type
+	Type ObjectType
+	// The object parent type
+	ParentType ObjectParentType
+	// Decode function is called for unmarshalling a specific way
+	Decode func(obj *Object)
+	// The original settings name
+	SettingsName string
+}
+
 const (
 	// Deprecated: GeoIPListType means that the Items of a Group are geoip countries.
 	GeoIPListType ObjectType = "GeoIPLocation"
 
 	// GeoIPObjectGroupType/GeoIPListType are new-style type names for
 	// geoip objects and groups.
-	GeoIPObjectType       ObjectType = "mfw-object-geoip"
-	GeoIPObjectGroupType  ObjectType = "mfw-object-geoip-group"
+	GeoIPObjectType      ObjectType = "mfw-object-geoip"
+	GeoIPObjectGroupType ObjectType = "mfw-object-geoip-group"
+
+	// Deprecated: remove
 	GeoipFilterRuleObject ObjectType = "GeoipFilterRuleObject"
 
 	// Deprecated: IPAddrListType means that the Items of the Group are ip
@@ -86,4 +111,63 @@ const (
 
 	ApplicationType      ObjectType = "mfw-object-application"
 	ApplicationGroupType ObjectType = "mfw-object-application-group"
+
+	PolicyParent         ObjectParentType = "policy"
+	RuleParent           ObjectParentType = "rule"
+	ConditionParent      ObjectParentType = "condition"
+	ConditionGroupParent ObjectParentType = "conditiongroup"
+	ConfigurationParent  ObjectParentType = "configuration"
+	ObjectParent         ObjectParentType = "object"
+	ObjectGroupParent    ObjectParentType = "objectgroup"
+
+	GeoipSettingsKey      string = "geoip"
+	WebfilterSettingsKey  string = "webfilter"
+	TPSettingsKey         string = "threatprevention"
+	AppControlSettingsKey string = "application_control"
+	CaptiveSettingsKey    string = "captiveportal"
 )
+
+// init() builds the object metadata map
+func init() {
+	buildObjectMetadata()
+}
+
+// buildObjectMetadata constructs a metadata map used for retrieving details or properties of specific objects
+func buildObjectMetadata() {
+
+	// we can probably size these since we know all the values
+	ObjectMetaLookup = make(map[ObjectType]ObjectMetadata)
+	SettingsMetaLookup = make(map[string]ObjectMetadata)
+
+	ObjectMetaLookup[GeoIPObjectType] = ObjectMetadata{Type: GeoIPObjectType, ParentType: RuleParent, Decode: nil}
+
+	// Configs exist in both the SettingsMetaLookup and ObjectMetaLookup - so that we can easily translate settings config name -> template meta details
+	var geoipMeta ObjectMetadata = ObjectMetadata{SettingsName: GeoipSettingsKey, Type: GeoipConfigType, ParentType: ConfigurationParent, Decode: nil}
+	SettingsMetaLookup[GeoipSettingsKey] = geoipMeta
+	ObjectMetaLookup[GeoipConfigType] = geoipMeta
+
+	var webfilterMeta ObjectMetadata = ObjectMetadata{SettingsName: WebfilterSettingsKey, Type: WebFilterConfigType, ParentType: ConfigurationParent, Decode: nil}
+	SettingsMetaLookup[WebfilterSettingsKey] = webfilterMeta
+	ObjectMetaLookup[WebFilterConfigType] = webfilterMeta
+
+	var tpMeta ObjectMetadata = ObjectMetadata{SettingsName: TPSettingsKey, Type: ThreatPreventionConfigType, ParentType: ConfigurationParent, Decode: nil}
+	SettingsMetaLookup[TPSettingsKey] = tpMeta
+	ObjectMetaLookup[ThreatPreventionConfigType] = tpMeta
+
+	var appMeta ObjectMetadata = ObjectMetadata{SettingsName: AppControlSettingsKey, Type: ApplicationControlConfigType, ParentType: ConfigurationParent, Decode: nil}
+	SettingsMetaLookup[AppControlSettingsKey] = appMeta
+	ObjectMetaLookup[ApplicationControlConfigType] = appMeta
+
+	var captiveMeta ObjectMetadata = ObjectMetadata{SettingsName: CaptiveSettingsKey, Type: CaptivePortalConfigType, ParentType: ConfigurationParent, Decode: nil}
+	SettingsMetaLookup[CaptiveSettingsKey] = captiveMeta
+	ObjectMetaLookup[CaptivePortalConfigType] = captiveMeta
+
+	// do we really need these? they don't have 'default configuration' per se
+	var securityMeta ObjectMetadata = ObjectMetadata{SettingsName: "security", Type: SecurityConfigType, ParentType: ConfigurationParent, Decode: nil}
+	SettingsMetaLookup["security"] = securityMeta
+	ObjectMetaLookup[SecurityConfigType] = securityMeta
+
+	var wanMeta ObjectMetadata = ObjectMetadata{SettingsName: "wan_policy", Type: WANPolicyConfigType, ParentType: ConfigurationParent, Decode: nil}
+	SettingsMetaLookup["wan_policy"] = wanMeta
+	ObjectMetaLookup[WANPolicyConfigType] = wanMeta
+}
