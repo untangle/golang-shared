@@ -619,13 +619,17 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 					"id": "A1",
 					"name": "B2",
 					"description": "C3",
-					"key": "value",
-					"setting_field": "D4"
+					"type": "",
+					"settings": {
+						"setting_field": "D4",
+						"key": "value"
+					}
 				}`,
 			wantUnmarshalledConfig: PolicyConfiguration{
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
+				Type:        "",
 				Settings: map[string]any{
 					"setting_field": "D4",
 					"key":           "value",
@@ -635,8 +639,11 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 				"id": "A1",
 				"name": "B2",
 				"description": "C3",
-				"key": "value",
-				"setting_field": "D4"
+				"type": "",
+				"settings": {
+					"key": "value",
+					"setting_field": "D4"
+				}
 			}`,
 		},
 		{
@@ -644,18 +651,20 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 			inputData: `{
 					"id": "A1",
 					"name": "B2",
-					"description": "C3"
+					"description": "C3",
+					"type": ""
 				}`,
 			wantUnmarshalledConfig: PolicyConfiguration{
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
-				Settings:    map[string]any{},
+				Type:        "",
 			},
 			wantMarshalledJson: `{
 				"id": "A1",
 				"name": "B2",
-				"description": "C3"
+				"description": "C3",
+				"type": ""
 			}`,
 		},
 	}
