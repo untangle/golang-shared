@@ -90,7 +90,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		}
 		return nil
 	default:
-		fmt.Printf("Parent type is missing for: %v - Continuing to original evaluation\n", ObjectMetaLookup[typeField.Type].ParentType)
+		fmt.Printf("Parent type is missing for type: %v - Continuing to original evaluation\n", typeField.Type)
 	}
 
 	switch typeField.Type {
