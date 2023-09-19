@@ -336,7 +336,7 @@ func TestRulesUnmarshal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var actual Object
 			if !tt.expectedErr {
-				assert.NoError(t, actual.UnmarshalJSON([]byte(tt.json)))
+				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
 				assert.EqualValues(t, actual, tt.expected)
 			} else {
 				assert.Error(t, actual.UnmarshalJSON([]byte(tt.json)))
