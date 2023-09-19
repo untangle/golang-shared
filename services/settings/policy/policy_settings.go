@@ -29,8 +29,8 @@ type PolicySettings struct {
 	Policies        []*Policy              `json:"policies"`
 
 	//DEPRECATED
-	Flows  []*PolicyFlow `json:"flows",omitempty`
-	Groups []*Group      `json:"groups",omitempty`
+	Flows  []*PolicyFlow `json:"flows,omitempty"`
+	Groups []*Group      `json:"groups,omitempty"`
 }
 
 // FindConfiguration searches this PolicySetting to load a configuration by ID
