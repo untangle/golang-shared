@@ -1,5 +1,9 @@
 package policy
 
+import (
+	"encoding/json"
+)
+
 // ObjectType is a string used to demux the actual type of an object
 // when loading from JSON.
 type ObjectType string
@@ -31,7 +35,7 @@ type ObjectMetadata struct {
 	// The object parent type
 	ParentType ObjectParentType
 	// Decode function is called for unmarshalling a specific way
-	Decode func(obj *Object)
+	Decode func(data []byte, obj any) error
 	// The original settings name
 	SettingsName string
 }
@@ -141,33 +145,40 @@ func buildObjectMetadata() {
 
 	ObjectMetaLookup[GeoIPObjectType] = ObjectMetadata{Type: GeoIPObjectType, ParentType: RuleParent, Decode: nil}
 
+	// Here's a null type item for this map - this is to get unmarshal on the defaultDecoder working correctly
+	ObjectMetaLookup[""] = ObjectMetadata{Type: "", ParentType: "", Decode: defaultDecoder}
+
 	// Configs exist in both the SettingsMetaLookup and ObjectMetaLookup - so that we can easily translate settings config name -> template meta details
-	var geoipMeta ObjectMetadata = ObjectMetadata{SettingsName: GeoipSettingsKey, Type: GeoipConfigType, ParentType: ConfigurationParent, Decode: nil}
+	var geoipMeta ObjectMetadata = ObjectMetadata{SettingsName: GeoipSettingsKey, Type: GeoipConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
 	SettingsMetaLookup[GeoipSettingsKey] = geoipMeta
 	ObjectMetaLookup[GeoipConfigType] = geoipMeta
 
-	var webfilterMeta ObjectMetadata = ObjectMetadata{SettingsName: WebfilterSettingsKey, Type: WebFilterConfigType, ParentType: ConfigurationParent, Decode: nil}
+	var webfilterMeta ObjectMetadata = ObjectMetadata{SettingsName: WebfilterSettingsKey, Type: WebFilterConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
 	SettingsMetaLookup[WebfilterSettingsKey] = webfilterMeta
 	ObjectMetaLookup[WebFilterConfigType] = webfilterMeta
 
-	var tpMeta ObjectMetadata = ObjectMetadata{SettingsName: TPSettingsKey, Type: ThreatPreventionConfigType, ParentType: ConfigurationParent, Decode: nil}
+	var tpMeta ObjectMetadata = ObjectMetadata{SettingsName: TPSettingsKey, Type: ThreatPreventionConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
 	SettingsMetaLookup[TPSettingsKey] = tpMeta
 	ObjectMetaLookup[ThreatPreventionConfigType] = tpMeta
 
-	var appMeta ObjectMetadata = ObjectMetadata{SettingsName: AppControlSettingsKey, Type: ApplicationControlConfigType, ParentType: ConfigurationParent, Decode: nil}
+	var appMeta ObjectMetadata = ObjectMetadata{SettingsName: AppControlSettingsKey, Type: ApplicationControlConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
 	SettingsMetaLookup[AppControlSettingsKey] = appMeta
 	ObjectMetaLookup[ApplicationControlConfigType] = appMeta
 
-	var captiveMeta ObjectMetadata = ObjectMetadata{SettingsName: CaptiveSettingsKey, Type: CaptivePortalConfigType, ParentType: ConfigurationParent, Decode: nil}
+	var captiveMeta ObjectMetadata = ObjectMetadata{SettingsName: CaptiveSettingsKey, Type: CaptivePortalConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
 	SettingsMetaLookup[CaptiveSettingsKey] = captiveMeta
 	ObjectMetaLookup[CaptivePortalConfigType] = captiveMeta
 
 	// do we really need these? they don't have 'default configuration' per se
-	var securityMeta ObjectMetadata = ObjectMetadata{SettingsName: "security", Type: SecurityConfigType, ParentType: ConfigurationParent, Decode: nil}
+	var securityMeta ObjectMetadata = ObjectMetadata{SettingsName: "security", Type: SecurityConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
 	SettingsMetaLookup["security"] = securityMeta
 	ObjectMetaLookup[SecurityConfigType] = securityMeta
 
-	var wanMeta ObjectMetadata = ObjectMetadata{SettingsName: "wan_policy", Type: WANPolicyConfigType, ParentType: ConfigurationParent, Decode: nil}
+	var wanMeta ObjectMetadata = ObjectMetadata{SettingsName: "wan_policy", Type: WANPolicyConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
 	SettingsMetaLookup["wan_policy"] = wanMeta
 	ObjectMetaLookup[WANPolicyConfigType] = wanMeta
+}
+
+func defaultDecoder(data []byte, obj any) error {
+	return json.Unmarshal(data, obj)
 }

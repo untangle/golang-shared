@@ -81,12 +81,21 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	}
 	type aliasObject Object
 
+	// If parent type exists - lets switch on that for now
+	// this does not return on default, so that the other case statement can run
+	switch ObjectMetaLookup[typeField.Type].ParentType {
+	case RuleParent, ConfigurationParent:
+		if err := ObjectMetaLookup[typeField.Type].Decode(data, (*aliasObject)(obj)); err != nil {
+			return fmt.Errorf("unable to unmarshal %s type object: %w", RuleParent, err)
+		}
+		return nil
+	default:
+		fmt.Printf("Parent type is missing for: %v - Continuing to original evaluation\n", ObjectMetaLookup[typeField.Type].ParentType)
+	}
+
 	switch typeField.Type {
 	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
-	case "", GeoipFilterRuleObject,
-		GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
-		WANPolicyConfigType, ApplicationControlConfigType, CaptivePortalConfigType,
-		SecurityConfigType:
+	case "", GeoipFilterRuleObject:
 		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
 			return fmt.Errorf("unable to unmarshal generic object: %w", err)
 		}
