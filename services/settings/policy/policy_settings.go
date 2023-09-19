@@ -89,8 +89,10 @@ func (p *PolicySettings) FindEnabledConfigs(pol *Policy) []string {
 	return p.FindConfigsWithEnabled(pol, true)
 }
 
-// Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
+// GetPolicyPluginSettings Returns a map of policy plugin settings for a given plugin.
+// E.g. map[policy]interface{} where policy is
 // the policy name and interface{} is the plugin settings.
+// This returns default settings as well
 func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName string) (map[string]interface{}, error) {
 
 	var pluginSettings map[string]map[string]interface{}
@@ -103,15 +105,15 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 
 	// Add default settings into map with key default.
 	// This needs plugin metadata to figure out that 'mfw-template-XXX' is the same as the top level settings name
-	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, pluginName); err != nil {
+	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, SettingsMetaLookup[pluginName].SettingsName); err != nil {
 		return nil, err
 	}
 
-	if _, ok := pluginSettings[pluginName]; !ok {
-		pluginSettings[pluginName] = map[string]any{}
+	if _, ok := pluginSettings[string(SettingsMetaLookup[pluginName].Type)]; !ok {
+		pluginSettings[string(SettingsMetaLookup[pluginName].Type)] = map[string]any{}
 	}
-	pluginSettings[pluginName][DefaultSettingUUID] = defaultPluginSettings
-	return pluginSettings[pluginName], nil
+	pluginSettings[string(SettingsMetaLookup[pluginName].Type)][DefaultSettingUUID] = defaultPluginSettings
+	return pluginSettings[string(SettingsMetaLookup[pluginName].Type)], nil
 }
 
 // GetAllPolicyConfigs Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
