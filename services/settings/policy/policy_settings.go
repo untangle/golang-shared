@@ -97,11 +97,12 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 	var defaultPluginSettings interface{}
 	var err error
 
-	if pluginSettings, err = getAllPolicyConfigurationSettings(settingsFile); err != nil {
+	if pluginSettings, err = GetAllPolicyConfigs(settingsFile); err != nil {
 		return nil, err
 	}
 
 	// Add default settings into map with key default.
+	// This needs plugin metadata to figure out that 'mfw-template-XXX' is the same as the top level settings name
 	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, pluginName); err != nil {
 		return nil, err
 	}
@@ -113,10 +114,10 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 	return pluginSettings[pluginName], nil
 }
 
-// Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
+// GetAllPolicyConfigs Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
 // plugin and policyare a strings. This will allow for easy access to policy settings for a plugin.
 // Each plugin is still responsible for adding the default entry.
-func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map[string]map[string]interface{}, error) {
+func GetAllPolicyConfigs(settingsFile *settings.SettingsFile) (map[string]map[string]interface{}, error) {
 
 	policySettings := &PolicySettings{}
 

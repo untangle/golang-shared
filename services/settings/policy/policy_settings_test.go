@@ -10,7 +10,7 @@ import (
 	"github.com/untangle/golang-shared/util/net"
 )
 
-func TestGetAllPolicyConfigurationSettings(t *testing.T) {
+func TestGetAllPolicyConfigs(t *testing.T) {
 
 	var result = PolicyConfiguration{
 		Description: "TP students",
@@ -32,7 +32,7 @@ func TestGetAllPolicyConfigurationSettings(t *testing.T) {
 	}
 
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
-	policySettings, err := getAllPolicyConfigurationSettings(settingsFile)
+	policySettings, err := GetAllPolicyConfigs(settingsFile)
 	assert.Nil(t, err)
 	assert.NotNil(t, policySettings)
 	assert.Equal(t, 2, len(policySettings["mfw-template-threatprevention"]))
