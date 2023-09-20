@@ -80,9 +80,9 @@ func TestRulesUnmarshal(t *testing.T) {
 				Description: "GeoipRuleObject Description",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
-					Type:  "SET_CONFIGURATION",
-					UUID:  "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					"key": "mfw-rule-geoip",
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-geoip",
 				},
 				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
 			},
