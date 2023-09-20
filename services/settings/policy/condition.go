@@ -27,7 +27,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 	}
 
 	// Only use value if Group is not configured
-	if pCondition.GroupIDs == nil {
+	if pCondition.Op != "match" && pCondition.Op != "in" {
 		// check that pCondition.Value is formatted correctly for the CType
 		for i, value := range pCondition.Value {
 			switch pCondition.CType {
