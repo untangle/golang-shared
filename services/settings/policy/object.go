@@ -95,11 +95,13 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	switch typeField.Type {
 	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
-	case "", GeoipFilterRuleObject:
-		if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
-			return fmt.Errorf("unable to unmarshal generic object: %w", err)
-		}
-		return nil
+	case "":
+		// Policies typically don't have a Type
+		// drop down to the defaul return
+
+	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject,
+		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject:
+		// drop down to the defaul return
 
 	case IPAddrListType, IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
@@ -150,9 +152,4 @@ func (g *Group) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
 }
 
 // PolicyFlow contains policy flow configuration.
-type PolicyFlow struct {
-	ID          string             `json:"id"`
-	Name        string             `json:"name"`
-	Description string             `json:"description"`
-	Conditions  []*PolicyCondition `json:"conditions"`
-}
+type PolicyFlow = Object

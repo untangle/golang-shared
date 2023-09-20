@@ -29,7 +29,7 @@ type PolicySettings struct {
 	Policies        []*Policy              `json:"policies"`
 
 	//DEPRECATED
-	Flows  []*PolicyFlow `json:"flows,omitempty"`
+	Flows  []*PolicyFlow `json:"flows,omitempty" `
 	Groups []*Group      `json:"groups,omitempty"`
 }
 
@@ -54,7 +54,7 @@ func (p *PolicySettings) FindRule(ruleID string) *Object {
 }
 
 // Returns the policy flow given the ID.
-func (p *PolicySettings) FindFlow(id string) *PolicyFlow {
+func (p *PolicySettings) FindFlow(id string) *Object {
 	for _, flow := range p.Flows {
 		if flow.ID == id {
 			return flow

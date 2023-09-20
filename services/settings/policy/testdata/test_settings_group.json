@@ -358,7 +358,7 @@
         "name": "GeoIP rule",
         "description": "Whatever",
         "enabled": true,
-        "type": "GeoipFilterRuleObject",
+        "type": "mfw-rule-geoip",
         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
         "action": {
           "type": "SET_CONFIGURATION",
