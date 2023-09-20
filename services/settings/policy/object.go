@@ -82,9 +82,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		// Policies typically don't have a Type
 		// drop down to the defaul return
 
-	case ApplicationControlRuleObject, CaptivePortalRuleObject,
-		// Npt sure whether these are the same things
-		GeoipRuleObject, GeoipFilterRuleObject,
+	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject,
 		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject:
 		// drop down to the defaul return
 

@@ -19,9 +19,8 @@ const (
 
 	// GeoIPObjectGroupType/GeoIPListType are new-style type names for
 	// geoip objects and groups.
-	GeoIPObjectType       ObjectType = "mfw-object-geoip"
-	GeoIPObjectGroupType  ObjectType = "mfw-object-geoip-group"
-	GeoipFilterRuleObject ObjectType = "GeoipFilterRuleObject"
+	GeoIPObjectType      ObjectType = "mfw-object-geoip"
+	GeoIPObjectGroupType ObjectType = "mfw-object-geoip-group"
 
 	// Deprecated: IPAddrListType means that the Items of the Group are ip
 	// specifications (ranges, CIDRs, or single IPs). (old)

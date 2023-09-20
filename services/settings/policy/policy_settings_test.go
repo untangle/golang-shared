@@ -70,7 +70,7 @@ func TestRulesUnmarshal(t *testing.T) {
                          "action": {
                             "type": "SET_CONFIGURATION",
                             "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "GeoipRuleObject"
+                            "key": "mfw-rule-geoip"
                             }
                           }`,
 			expectedErr: false,
@@ -80,9 +80,9 @@ func TestRulesUnmarshal(t *testing.T) {
 				Description: "GeoipRuleObject Description",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
-					Type: "SET_CONFIGURATION",
-					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "GeoipRuleObject",
+					Type:  "SET_CONFIGURATION",
+					UUID:  "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					"key": "mfw-rule-geoip",
 				},
 				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
 			},
@@ -97,7 +97,7 @@ func TestRulesUnmarshal(t *testing.T) {
                          "action": {
                             "type": "SET_CONFIGURATION",
                             "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "GeoipFilterRuleObject"
+                            "key": "GeoipRuleObject"
                             }
                           }`,
 			expectedErr: true,
@@ -107,7 +107,7 @@ func TestRulesUnmarshal(t *testing.T) {
 			name: "rule object without action",
 			json: `{"name": "Geo Rule Tester",
                          "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
-                         "type": "GeoipFilterRuleObject",
+                         "type": "mfw-rule-geoip",
                          "description": "Whatever",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                           }`,
@@ -124,7 +124,7 @@ func TestRulesUnmarshal(t *testing.T) {
 										"action": {
 										"type": "SET_CONFIGURATION",
 										"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-										"key": "ApplicationControlRuleObject"
+										"key": "mfw-rule-applicationcontrol"
 										}
 										}`,
 			expectedErr: false,
@@ -136,7 +136,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "ApplicationControlRuleObject",
+					Key:  "mfw-rule-applicationcontrol",
 				},
 				ID: "c2428365-65be-4902-bfc0-bde2b310fedf",
 			},
@@ -151,7 +151,7 @@ func TestRulesUnmarshal(t *testing.T) {
 									"action": {
 									"type": "SET_CONFIGURATION",
 									"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-									"key": "CaptivePortalRuleObject"
+									"key": "mfw-rule-captiveportal"
 									}
 									}`,
 			expectedErr: false,
@@ -163,7 +163,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "CaptivePortalRuleObject",
+					Key:  "mfw-rule-captiveportal",
 				},
 				ID: "c2428365-65be-4903-bfc0-bde2b310fedf",
 			},
@@ -178,7 +178,7 @@ func TestRulesUnmarshal(t *testing.T) {
 							"action": {
 							"type": "SET_CONFIGURATION",
 							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-							"key": "NATRuleObject"
+							"key": "mfw-rule-nat"
 							}
 							}`,
 			expectedErr: false,
@@ -190,7 +190,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "NATRuleObject",
+					Key:  "mfw-rule-nat",
 				},
 				ID: "c2428365-65be-4904-bfc0-bde2b310fedf",
 			},
@@ -205,7 +205,7 @@ func TestRulesUnmarshal(t *testing.T) {
 							"action": {
 							"type": "SET_CONFIGURATION",
 							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-							"key": "PortForwardRuleObject"
+							"key": "mfw-rule-portforward"
 							}
 							}`,
 			expectedErr: false,
@@ -217,7 +217,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "PortForwardRuleObject",
+					Key:  "mfw-rule-portforward",
 				},
 				ID: "c2428365-65be-4905-bfc0-bde2b310fedf",
 			},
@@ -232,7 +232,7 @@ func TestRulesUnmarshal(t *testing.T) {
 			                         "action": {
 			                            "type": "ACCEPT",
 			                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-			                            "key": "SecurityRuleObject"
+			                            "key": "mfw-rule-security"
 			                            }
 			                          }`,
 			expectedErr: false,
@@ -244,7 +244,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "ACCEPT",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "SecurityRuleObject",
+					Key:  "mfw-rule-security",
 				},
 				ID: "c2428365-65be-4906-bfc0-bde2b310fedf",
 			},
@@ -259,7 +259,7 @@ func TestRulesUnmarshal(t *testing.T) {
 			                         "action": {
 			                            "type": "REJECT",
 			                            "configuration_id": "1202b42e-2f21-49ea-b42c-5614e04d0031",
-			                            "key": "SecurityRuleObject"
+			                            "key": "mfw-rule-security"
 			                            }
 			                          }`,
 			expectedErr: false,
@@ -271,7 +271,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "REJECT",
 					UUID: "1202b42e-2f21-49ea-b42c-5614e04d0031",
-					Key:  "SecurityRuleObject",
+					Key:  "mfw-rule-security",
 				},
 				ID: "c2428365-65be-4916-bfc0-bde2b310fedf",
 			},
@@ -286,7 +286,7 @@ func TestRulesUnmarshal(t *testing.T) {
 							"action": {
 							"type": "SET_CONFIGURATION",
 							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-							"key": "ShapingRuleObject"
+							"key": "mfw-rule-shaping"
 							}
 							}`,
 			expectedErr: false,
@@ -298,7 +298,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "ShapingRuleObject",
+					Key:  "mfw-rule-shaping",
 				},
 				ID: "c2428365-65be-4906-bfc0-bde2b310fedf",
 			},
@@ -313,7 +313,7 @@ func TestRulesUnmarshal(t *testing.T) {
 							"action": {
 							"type": "SET_CONFIGURATION",
 							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-							"key": "WANPolicyRuleObject"
+							"key": "mfw-rule-wanpolicy"
 							}
 							}`,
 			expectedErr: false,
@@ -325,7 +325,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "WANPolicyRuleObject",
+					Key:  "mfw-rule-wanpolicy",
 				},
 				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
 			},
