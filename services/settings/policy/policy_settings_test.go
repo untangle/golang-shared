@@ -61,31 +61,32 @@ func TestRulesUnmarshal(t *testing.T) {
 		expected    Object
 	}{
 		{
-			name: "okay rule object",
-			json: `{"name": "Geo Rule Tester",
+			name: "Geo Rule Tester",
+			json: `{"name": "GeoipRuleObject Name",
                          "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
-                         "type": "GeoipFilterRuleObject",
-                         "description": "Whatever",
+                         "type": "mfw-rule-geoip",
+                         "description": "GeoipRuleObject Description",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
                             "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "GeoipFilterRuleObject"
+                            "key": "mfw-rule-geoip"
                             }
                           }`,
 			expectedErr: false,
 			expected: Object{
-				Name:        "Geo Rule Tester",
-				Type:        "GeoipFilterRuleObject",
-				Description: "Whatever",
+				Name:        "GeoipRuleObject Name",
+				Type:        GeoipRuleObject,
+				Description: "GeoipRuleObject Description",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "GeoipFilterRuleObject",
+					Key:  "mfw-rule-geoip",
 				},
 				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
-			}},
+			},
+		},
 		{
 			name: "bad rule object type",
 			json: `{"name": "Geo Rule Tester",
@@ -96,21 +97,239 @@ func TestRulesUnmarshal(t *testing.T) {
                          "action": {
                             "type": "SET_CONFIGURATION",
                             "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "GeoipFilterRuleObject"
+                            "key": "GeoipRuleObject"
                             }
                           }`,
 			expectedErr: true,
-			expected:    Object{}},
+			expected:    Object{},
+		},
 		{
 			name: "rule object without action",
 			json: `{"name": "Geo Rule Tester",
                          "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
-                         "type": "GeoipFilterRuleObject",
+                         "type": "mfw-rule-geoip",
                          "description": "Whatever",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                           }`,
 			expectedErr: true,
-			expected:    Object{}},
+			expected:    Object{},
+		},
+		{
+			name: "ApplicationControlRuleObject test",
+			json: `{"name": "ApplicationControlRuleObject Tester",
+										"id": "c2428365-65be-4902-bfc0-bde2b310fedf",
+										"type": "mfw-rule-applicationcontrol",
+										"description": "ApplicationControlRuleObject",
+										"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+										"action": {
+										"type": "SET_CONFIGURATION",
+										"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+										"key": "mfw-rule-applicationcontrol"
+										}
+										}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "ApplicationControlRuleObject Tester",
+				Type:        ApplicationControlRuleObject,
+				Description: "ApplicationControlRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-applicationcontrol",
+				},
+				ID: "c2428365-65be-4902-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "CaptivePortalRuleObject test",
+			json: `{"name": "CaptivePortalRuleObject Tester",
+									"id": "c2428365-65be-4903-bfc0-bde2b310fedf",
+									"type": "mfw-rule-captiveportal",
+									"description": "CaptivePortalRuleObject",
+									"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+									"action": {
+									"type": "SET_CONFIGURATION",
+									"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+									"key": "mfw-rule-captiveportal"
+									}
+									}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "CaptivePortalRuleObject Tester",
+				Type:        CaptivePortalRuleObject,
+				Description: "CaptivePortalRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-captiveportal",
+				},
+				ID: "c2428365-65be-4903-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "NATRuleObject test",
+			json: `{"name": "NATRuleObject Tester",
+							"id": "c2428365-65be-4904-bfc0-bde2b310fedf",
+							"type": "mfw-rule-nat",
+							"description": "NATRuleObject",
+							"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+							"action": {
+							"type": "SET_CONFIGURATION",
+							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+							"key": "mfw-rule-nat"
+							}
+							}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "NATRuleObject Tester",
+				Type:        NATRuleObject,
+				Description: "NATRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-nat",
+				},
+				ID: "c2428365-65be-4904-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "PortForwardRuleObject test",
+			json: `{"name": "PortForwardRuleObject Tester",
+							"id": "c2428365-65be-4905-bfc0-bde2b310fedf",
+							"type": "mfw-rule-portforward",
+							"description": "PortForwardRuleObject",
+							"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+							"action": {
+							"type": "SET_CONFIGURATION",
+							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+							"key": "mfw-rule-portforward"
+							}
+							}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "PortForwardRuleObject Tester",
+				Type:        PortForwardRuleObject,
+				Description: "PortForwardRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-portforward",
+				},
+				ID: "c2428365-65be-4905-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "SecurityRuleObject Accept test",
+			json: `{"name": "SecurityRuleObject Accept Tester",
+			                         "id": "c2428365-65be-4906-bfc0-bde2b310fedf",
+			                         "type": "mfw-rule-security",
+			                         "description": "SecurityRuleObject",
+			                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+			                         "action": {
+			                            "type": "ACCEPT",
+			                            "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+			                            "key": "mfw-rule-security"
+			                            }
+			                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "SecurityRuleObject Accept Tester",
+				Type:        SecurityRuleObject,
+				Description: "SecurityRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "ACCEPT",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-security",
+				},
+				ID: "c2428365-65be-4906-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "SecurityRuleObject Reject test",
+			json: `{"name": "SecurityRuleObject Reject Tester",
+			                         "id": "c2428365-65be-4916-bfc0-bde2b310fedf",
+			                         "type": "mfw-rule-security",
+			                         "description": "SecurityRuleObject",
+			                         "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+			                         "action": {
+			                            "type": "REJECT",
+			                            "configuration_id": "1202b42e-2f21-49ea-b42c-5614e04d0031",
+			                            "key": "mfw-rule-security"
+			                            }
+			                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "SecurityRuleObject Reject Tester",
+				Type:        SecurityRuleObject,
+				Description: "SecurityRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "REJECT",
+					UUID: "1202b42e-2f21-49ea-b42c-5614e04d0031",
+					Key:  "mfw-rule-security",
+				},
+				ID: "c2428365-65be-4916-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "ShapingRuleObject test",
+			json: `{"name": "ShapingRuleObject Tester",
+							"id": "c2428365-65be-4906-bfc0-bde2b310fedf",
+							"type": "mfw-rule-shaping",
+							"description": "ShapingRuleObject",
+							"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+							"action": {
+							"type": "SET_CONFIGURATION",
+							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+							"key": "mfw-rule-shaping"
+							}
+							}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "ShapingRuleObject Tester",
+				Type:        ShapingRuleObject,
+				Description: "ShapingRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-shaping",
+				},
+				ID: "c2428365-65be-4906-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "WANPolicyRuleObject test",
+			json: `{"name": "WANPolicyRuleObject Tester",
+							"id": "c2428365-65be-4907-bfc0-bde2b310fedf",
+							"type": "mfw-rule-wanpolicy",
+							"description": "WANPolicyRuleObject",
+							"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+							"action": {
+							"type": "SET_CONFIGURATION",
+							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+							"key": "mfw-rule-wanpolicy"
+							}
+							}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "WANPolicyRuleObject Tester",
+				Type:        WANPolicyRuleObject,
+				Description: "WANPolicyRuleObject",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
+					Key:  "mfw-rule-wanpolicy",
+				},
+				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -118,9 +337,9 @@ func TestRulesUnmarshal(t *testing.T) {
 			var actual Object
 			if !tt.expectedErr {
 				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
-				assert.EqualValues(t, tt.expected, actual)
+				assert.EqualValues(t, actual, tt.expected)
 			} else {
-				assert.Error(t, json.Unmarshal([]byte(tt.json), &actual))
+				assert.Error(t, actual.UnmarshalJSON([]byte(tt.json)))
 			}
 		})
 	}
