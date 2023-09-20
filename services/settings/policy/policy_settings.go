@@ -43,7 +43,7 @@ func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
 }
 
 // Returns the policy flow given the ID.
-func (p *PolicySettings) FindFlow(id string) *PolicyFlow {
+func (p *PolicySettings) FindFlow(id string) *Object {
 	for _, flow := range p.Flows {
 		if flow.ID == id {
 			return flow
