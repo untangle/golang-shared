@@ -8,11 +8,12 @@ message CpRuleCondition {
   string Type = 2 [json_name = "type"];
   string Value = 3 [json_name = "value"];
 }
-// Captive portal action enum
-enum CpRulesAction {
-  DISABLE = 0;
-  ENABLE = 1;
+
+// Captive portal action
+message CpRulesAction {
+  string Type = 1 [json_name = "type"];
 }
+
 // Captive portal rule
 message CpRules {
   string RuleId = 1 [json_name = "rule_id"];
