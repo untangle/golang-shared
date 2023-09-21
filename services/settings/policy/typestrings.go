@@ -144,8 +144,6 @@ func buildObjectMetadata() {
 	ObjectMetaLookup = make(map[ObjectType]ObjectMetadata)
 	SettingsMetaLookup = make(map[string]ObjectMetadata)
 
-	ObjectMetaLookup[GeoIPObjectType] = ObjectMetadata{Type: GeoIPObjectType, ParentType: RuleParent}
-
 	// Configs exist in both the SettingsMetaLookup and ObjectMetaLookup - so that we can easily translate settings config name -> template meta details
 	var geoipMeta ObjectMetadata = ObjectMetadata{SettingsName: GeoipSettingsKey, Type: GeoipConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup[GeoipSettingsKey] = geoipMeta
