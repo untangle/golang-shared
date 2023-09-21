@@ -1,7 +1,6 @@
 package policy
 
 import (
-	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
 
@@ -10,8 +9,6 @@ const (
 	PolicyConfigName   = "policy_manager"
 	DefaultSettingUUID = "00000000-0000-0000-0000-000000000000"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // PolicySettings is the main data structure for Policy Management.
 // It contains an array of PolicyConfigurations, an array of PolicyFlowCategory's
