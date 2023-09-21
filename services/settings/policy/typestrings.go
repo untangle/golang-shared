@@ -1,9 +1,5 @@
 package policy
 
-import (
-	"encoding/json"
-)
-
 // ObjectType is a string used to demux the actual type of an object
 // when loading from JSON.
 type ObjectType string
@@ -34,8 +30,6 @@ type ObjectMetadata struct {
 	Type ObjectType
 	// The object parent type
 	ParentType ObjectParentType
-	// Decode function is called for unmarshalling a specific way
-	Decode func(data []byte, obj any) error
 	// The original settings name
 	SettingsName string
 }
@@ -150,42 +144,35 @@ func buildObjectMetadata() {
 	ObjectMetaLookup = make(map[ObjectType]ObjectMetadata)
 	SettingsMetaLookup = make(map[string]ObjectMetadata)
 
-	ObjectMetaLookup[GeoIPObjectType] = ObjectMetadata{Type: GeoIPObjectType, ParentType: RuleParent, Decode: nil}
-
-	// Here's a null type item for this map - this is to get unmarshal on the defaultDecoder working correctly
-	ObjectMetaLookup[""] = ObjectMetadata{Type: "", ParentType: "", Decode: defaultDecoder}
+	ObjectMetaLookup[GeoIPObjectType] = ObjectMetadata{Type: GeoIPObjectType, ParentType: RuleParent}
 
 	// Configs exist in both the SettingsMetaLookup and ObjectMetaLookup - so that we can easily translate settings config name -> template meta details
-	var geoipMeta ObjectMetadata = ObjectMetadata{SettingsName: GeoipSettingsKey, Type: GeoipConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
+	var geoipMeta ObjectMetadata = ObjectMetadata{SettingsName: GeoipSettingsKey, Type: GeoipConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup[GeoipSettingsKey] = geoipMeta
 	ObjectMetaLookup[GeoipConfigType] = geoipMeta
 
-	var webfilterMeta ObjectMetadata = ObjectMetadata{SettingsName: WebfilterSettingsKey, Type: WebFilterConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
+	var webfilterMeta ObjectMetadata = ObjectMetadata{SettingsName: WebfilterSettingsKey, Type: WebFilterConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup[WebfilterSettingsKey] = webfilterMeta
 	ObjectMetaLookup[WebFilterConfigType] = webfilterMeta
 
-	var tpMeta ObjectMetadata = ObjectMetadata{SettingsName: TPSettingsKey, Type: ThreatPreventionConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
+	var tpMeta ObjectMetadata = ObjectMetadata{SettingsName: TPSettingsKey, Type: ThreatPreventionConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup[TPSettingsKey] = tpMeta
 	ObjectMetaLookup[ThreatPreventionConfigType] = tpMeta
 
-	var appMeta ObjectMetadata = ObjectMetadata{SettingsName: AppControlSettingsKey, Type: ApplicationControlConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
+	var appMeta ObjectMetadata = ObjectMetadata{SettingsName: AppControlSettingsKey, Type: ApplicationControlConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup[AppControlSettingsKey] = appMeta
 	ObjectMetaLookup[ApplicationControlConfigType] = appMeta
 
-	var captiveMeta ObjectMetadata = ObjectMetadata{SettingsName: CaptiveSettingsKey, Type: CaptivePortalConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
+	var captiveMeta ObjectMetadata = ObjectMetadata{SettingsName: CaptiveSettingsKey, Type: CaptivePortalConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup[CaptiveSettingsKey] = captiveMeta
 	ObjectMetaLookup[CaptivePortalConfigType] = captiveMeta
 
 	// do we really need these? they don't have 'default configuration' per se
-	var securityMeta ObjectMetadata = ObjectMetadata{SettingsName: "security", Type: SecurityConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
+	var securityMeta ObjectMetadata = ObjectMetadata{SettingsName: "security", Type: SecurityConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup["security"] = securityMeta
 	ObjectMetaLookup[SecurityConfigType] = securityMeta
 
-	var wanMeta ObjectMetadata = ObjectMetadata{SettingsName: "wan_policy", Type: WANPolicyConfigType, ParentType: ConfigurationParent, Decode: defaultDecoder}
+	var wanMeta ObjectMetadata = ObjectMetadata{SettingsName: "wan_policy", Type: WANPolicyConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup["wan_policy"] = wanMeta
 	ObjectMetaLookup[WANPolicyConfigType] = wanMeta
-}
-
-func defaultDecoder(data []byte, obj any) error {
-	return json.Unmarshal(data, obj)
 }
