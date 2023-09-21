@@ -130,36 +130,13 @@ func GetAllPolicyConfigs(settingsFile *settings.SettingsFile) (map[string]map[st
 	// Process into a map of maps
 	pluginSettings := make(map[string]map[string]interface{})
 
-	// Go through each Policy and find matching configurations.
-	for _, p := range policySettings.Policies {
-		if !p.Enabled {
-			continue
+	// Just pull policy configs from the configurations elements
+	for _, config := range policySettings.Configurations {
+		if pluginSettings[string(config.Type)] == nil {
+			pluginSettings[string(config.Type)] = make(map[string]interface{})
 		}
-
-		for _, ruleID := range p.Rules {
-			ruleDetails := policySettings.FindRule(ruleID)
-			if ruleDetails != nil {
-				// if action type is not SET_CONFIGURATION then do what?
-				if ruleDetails.Action.Type == "SET_CONFIGURATION" {
-					config := policySettings.FindConfiguration(ruleDetails.Action.UUID)
-
-					if config == nil {
-						logger.Warn("Can't find configuration in settings: %s(%s)\n",
-							ruleDetails.Action.Key,
-							ruleDetails.Action.UUID)
-						// No matching configuration found, skip. Although this should never happen.
-						continue
-					}
-
-					logger.Debug("Attaching action details of %v", ruleDetails.Action)
-
-					if pluginSettings[string(config.Type)] == nil {
-						pluginSettings[string(config.Type)] = make(map[string]interface{})
-					}
-					pluginSettings[string(config.Type)][config.ID] = config
-				}
-			}
-		}
+		pluginSettings[string(config.Type)][config.ID] = config
 	}
+
 	return pluginSettings, nil
 }

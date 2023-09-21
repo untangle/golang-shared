@@ -37,7 +37,7 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 	assert.NotNil(t, policySettings)
 	assert.Equal(t, 2, len(policySettings["mfw-template-threatprevention"]))
 	assert.Equal(t, 1, len(policySettings["mfw-template-webfilter"]))
-	assert.Equal(t, 2, len(policySettings["mfw-template-geoipfilter"]))
+	assert.Equal(t, 3, len(policySettings["mfw-template-geoipfilter"]))
 
 	teachersUID := "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
 	// Spot check a plugin setting.
@@ -51,7 +51,7 @@ func TestGetPolicyPluginSettings(t *testing.T) {
 	webFilterPolicies, _ := GetPolicyPluginSettings(settingsFile, "webfilter")
 	assert.Equal(t, 2, len(webFilterPolicies))
 	geoIPPolicies, _ := GetPolicyPluginSettings(settingsFile, "geoip")
-	assert.Equal(t, 3, len(geoIPPolicies))
+	assert.Equal(t, 4, len(geoIPPolicies))
 }
 
 func TestErrorGetPolicyPluginSettings(t *testing.T) {
