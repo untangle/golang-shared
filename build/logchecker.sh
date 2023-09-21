@@ -10,20 +10,20 @@ if [ -d .git ]; then
    echo ".git directory exists in the current directory."
 
    # Get the list of added/modified lines in the most recent commit for the specified directory
-   modified_lines=$(git diff --staged --unified=0 | grep -E '^\+' | grep -E "$LOG_REGEX1|$LOG_REGEX2")
+   modified_lines=$(git diff --unified=0 HEAD | grep -E '^\+' | grep -E "$LOG_REGEX1|$LOG_REGEX2")
    echo "Modified lines: $modified_lines"
 
-    echo $modified_lines | while IFS= read -r line; do
-      # # Check if the line is empty or consists of only whitespace characters
-      if [[ "$(printf '%s' "$line")" =~ ^[[:space:]]*$ ]]; then
-         continue
-      fi
+   echo $modified_lines | while IFS= read -r line; do
+   # # Check if the line is empty or consists of only whitespace characters
+   if [[ "$(printf '%s' "$line")" =~ ^[[:space:]]*$ ]]; then
+      continue
+   fi
 
-      # Check if the line ends with \n
-      if [[ ! "$(printf '%s' "$line")" == *$'\n'* ]]; then
-         echo "Log statement doesn't end with '\\n': $line"
+   # Check if the line ends with \n
+   if [[ ! "$(printf '%s' "$line")" == *$'\n'* ]]; then
+      echo "Log statement doesn't end with '\\n': $line"
 
-      fi
+   fi
    done
 else
     echo ".git directory does not exist in the current directory."

@@ -24,7 +24,6 @@ all: build lint
 
 logscan:
 	$(call LOG_FUNCTION,"Running git pre-commit hook script...")
-	@echo "Checking staged code logs ending with \n..."
 	@if [ -x build/logchecker.sh ]; then \
 		echo "Execute permissions are already set for build/logchecker.sh script"; \
 	else \
