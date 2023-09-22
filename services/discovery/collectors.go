@@ -42,8 +42,7 @@ type CallCollectorsResponse struct {
 }
 
 // fromRPCResponse - converts the RPC response into a wrapper
-// nolint copylocks
-func fromRPCResponse(rpcResponse disco.CallDiscoveryResponse) CallCollectorsResponse {
+func fromRPCResponse(rpcResponse *disco.CallDiscoveryResponse) CallCollectorsResponse {
 	return CallCollectorsResponse{
 		int32(rpcResponse.Result),
 	}

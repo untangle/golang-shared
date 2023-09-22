@@ -233,7 +233,7 @@ func GetLicenseFileDoesNotExistStr() string {
 // SetServices will disable any disabled services to un-enabled in
 // settings, and the appstate file.
 func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
-	var err error = nil // nolint:ineffassign
+	var err error
 	for serviceName, isEnabled := range enabledServices {
 		if service, err := lm.findService(serviceName); err != nil {
 			lm.logger.Warn("LicenseManager: when updating services, given nonexistent service: %s\n",

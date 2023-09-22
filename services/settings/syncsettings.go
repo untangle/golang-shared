@@ -34,7 +34,6 @@ func NewSyncSettings(settingsfile string, defaultsfile string, currentfile strin
 	s.UIDFile = uidfile
 
 	return s
-
 }
 
 // CreateDefaults creates the settings defauls.json file
@@ -122,27 +121,28 @@ func (s *SyncSettings) runSyncSettings(cmdArgs []string) error {
 	cmd := exec.Command(s.SyncSettingsExecutable, cmdArgs...)
 	outbytes, err := cmd.CombinedOutput()
 	output := string(outbytes)
-	var runErr error
-	runErr = nil
+
 	if err != nil {
-		// if just a non-zero exit code, just use standard language
-		// otherwise use the real error message
+		// If just a non-zero exit code, just use standard language
+		// Otherwise use the real error message
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				if status.ExitStatus() != 0 {
 					logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-					runErr = errors.New("Failed to save settings") // nolint ineffassign
+					return errors.New("Failed to save settings")
 				}
 			}
 		}
+
 		logger.Err("Failed to run sync-settings: %v\n", err.Error())
-		runErr = err
+		return err
 	}
-	outputErr := s.logSyncSettingsOutput(output, runErr)
-	if outputErr != nil {
+
+	if outputErr := s.logSyncSettingsOutput(output, nil); outputErr != nil {
 		return outputErr
 	}
-	return runErr
+
+	return nil
 }
 
 // logSyncSettingsOutput logs the output from a sync-settings run

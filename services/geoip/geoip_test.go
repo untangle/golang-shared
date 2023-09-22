@@ -22,24 +22,11 @@ import (
 type TestGeoIP struct {
 	suite.Suite
 
-	// mock geo ip database used in some tests.
-	//nolint:unused
-	mockDB *MockGeoIPDB
-
 	// geoip plugin under test.
 	//GeoIPClassifier *GeoIPClassifier
 
 	// list of files to delete after test cases.
 	deleteFiles []string
-}
-
-// MockGeoIPDB is a mock geoIP database so we can test plugin logic
-// with a mock database.
-type MockGeoIPDB struct {
-	// ipToCountryMap is a map of string representations of IPs to
-	// country code strings.
-	//nolint:unused
-	ipToCountryMap map[string]string
 }
 
 // get a filename to extract the database to. This filename will be in

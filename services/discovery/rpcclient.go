@@ -26,14 +26,13 @@ func CallCollectors(args CallCollectorsRequest) (*CallCollectorsResponse, error)
 	defer client.Close()
 
 	rpcRequest := toRpcRequest(args)
-	var rpcResponse disco.CallDiscoveryResponse
+	var rpcResponse = &disco.CallDiscoveryResponse{}
 
 	if err := client.Call("DiscoveryRPCService.CallDiscovery", &rpcRequest, &rpcResponse); err != nil {
 		logger.Err("Failed to call DiscoveryRPCService.CallDiscovery %s\n", err.Error())
 		return nil, err
 	}
 
-	// nolint copylocks
 	response := fromRPCResponse(rpcResponse)
 	return &response, nil
 }
