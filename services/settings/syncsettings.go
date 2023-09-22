@@ -131,7 +131,7 @@ func (s *SyncSettings) runSyncSettings(cmdArgs []string) error {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				if status.ExitStatus() != 0 {
 					logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-					runErr = errors.New("Failed to save settings")
+					runErr = errors.New("Failed to save settings") // nolint ineffassign
 				}
 			}
 		}

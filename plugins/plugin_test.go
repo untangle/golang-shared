@@ -208,7 +208,7 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			},
 			assertions: func() {
 				require.Equal(t, 1, len(helloConsumerPluginRegistry))
-				_, ok := helloConsumerPluginRegistry[0].(HelloType)
+				_, ok := helloConsumerPluginRegistry[0].(HelloType) // nolint:gosimple
 				assert.True(t, ok)
 				helloConsumerPluginRegistry = []HelloType{}
 			},
@@ -249,9 +249,9 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			assertions: func() {
 				require.Equal(t, 1, len(helloConsumerPluginRegistry))
 				require.Equal(t, 1, len(goodbyeConsumerPluginRegistry))
-				_, ok := helloConsumerPluginRegistry[0].(HelloType)
+				_, ok := helloConsumerPluginRegistry[0].(HelloType) // nolint:gosimple
 				assert.True(t, ok)
-				_, ok = goodbyeConsumerPluginRegistry[0].(GoodbyeType)
+				_, ok = goodbyeConsumerPluginRegistry[0].(GoodbyeType) // nolint:gosimple
 				assert.True(t, ok)
 
 				// here check that the same plugin,

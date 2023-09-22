@@ -51,9 +51,12 @@ func NewPluginControl() *PluginControl {
 	ctrl := &PluginControl{
 		Container:          *container,
 		enableStartupPanic: true}
-	ctrl.Provide(func() *PluginControl {
+	err := ctrl.Provide(func() *PluginControl {
 		return ctrl
 	})
+	if err != nil {
+		logger.Warn("Failed to provide return value: %v\n", err.Error())
+	}
 	return ctrl
 }
 
@@ -85,7 +88,7 @@ type ConstructorWrapperFactory any
 func makeWrapperConstructor(
 	wrapper ConstructorWrapper, ctor any, metadata []any) reflect.Value {
 	ctorType := reflect.TypeOf(ctor)
-	inputTypes := make([]reflect.Type, ctorType.NumIn(), ctorType.NumIn())
+	inputTypes := make([]reflect.Type, ctorType.NumIn())
 	for t := 0; t < ctorType.NumIn(); t++ {
 		inputTypes[t] = ctorType.In(t)
 	}

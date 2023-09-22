@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	zmq "github.com/pebbe/zmq4"
 	"github.com/stretchr/testify/assert"
 	zreq "github.com/untangle/golang-shared/structs/protocolbuffers/ZMQRequest"
+	"google.golang.org/protobuf/proto"
 )
 
 // MockProcesser is a mock implementation of the Processer interface for testing purposes.
@@ -40,7 +40,10 @@ func TestSocketServer(t *testing.T) {
 
 	// Create a ZMQ request and send it to the server
 	reqSocket, _ := zmq.NewSocket(zmq.REQ)
-	reqSocket.Connect("tcp://localhost:5555")
+	err := reqSocket.Connect("tcp://localhost:5555")
+	if err != nil {
+		logger.Warn("Failed to create connection from socket: %v \n", err.Error())
+	}
 	defer reqSocket.Close()
 
 	inputData := "ZMQ Request Data"
@@ -51,7 +54,10 @@ func TestSocketServer(t *testing.T) {
 	if err != nil {
 		logger.Warn("error in proto marshalling: %v \n", err.Error())
 	}
-	reqSocket.SendMessage(zmqRequest)
+	_, err = reqSocket.SendMessage(zmqRequest)
+	if err != nil {
+		logger.Warn("Failed to send message : %v \n", err.Error())
+	}
 
 	// Wait for the server to process the request and receive the response.
 	time.Sleep(1 * time.Second)

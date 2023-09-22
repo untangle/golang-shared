@@ -76,10 +76,7 @@ func (hs *SignalHandler) PrintStats() {
 
 // GetShutdownFlag returns the shutdown flag for kernel
 func (hs *SignalHandler) GetShutdownFlag() bool {
-	if atomic.LoadUint32(&hs.shutdownFlag) != 0 {
-		return true
-	}
-	return false
+	return atomic.LoadUint32(&hs.shutdownFlag) != 0
 }
 
 // SetShutdownFlag sets the shutdown flag for kernel

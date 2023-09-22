@@ -57,6 +57,7 @@ lint: modules logscan
 	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0 
 
 test: build
+	$(call LOG_FUNCTION,"Running unit tests...")
 	if [ $(GOTEST_COVERAGE) = "yes" ]; \
 	then \
 		go test -vet=off $(EXTRA_TEST_FLAGS) -coverprofile=$(GO_COVERPROFILE) ./...; \

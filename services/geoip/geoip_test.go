@@ -23,6 +23,7 @@ type TestGeoIP struct {
 	suite.Suite
 
 	// mock geo ip database used in some tests.
+	//nolint:unused
 	mockDB *MockGeoIPDB
 
 	// geoip plugin under test.
@@ -37,6 +38,7 @@ type TestGeoIP struct {
 type MockGeoIPDB struct {
 	// ipToCountryMap is a map of string representations of IPs to
 	// country code strings.
+	//nolint:unused
 	ipToCountryMap map[string]string
 }
 

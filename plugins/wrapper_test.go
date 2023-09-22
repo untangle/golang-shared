@@ -39,7 +39,10 @@ func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 	if _, found := d.decorated[pol]; !found {
 		policyPlugin = d.newPluginCallback().(SettingsInjectablePlugin)
 		d.decorated[pol] = policyPlugin
-		d.decorated[pol].Startup()
+		err := d.decorated[pol].Startup()
+		if err != nil {
+			logger.Warn("Failed to startup plugin %s with error: %s\n", d.Name(), err.Error())
+		}
 	} else {
 		policyPlugin = d.decorated[pol]
 	}
@@ -59,7 +62,11 @@ func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 		Result:  settings,
 	}
 	decoder, _ := mapstructure.NewDecoder(config)
-	decoder.Decode(fakeSettings)
+	err := decoder.Decode(fakeSettings)
+	if err != nil {
+		logger.Warn("Failed to decode the given raw interface: %s\n", err.Error())
+
+	}
 	policyPlugin.SetSettings(settings)
 }
 
@@ -91,9 +98,12 @@ func TestWrapper(t *testing.T) {
 	controller.RegisterConstructorWrapper(func() ConstructorWrapper {
 		return newWrapperTest(decorator)
 	})
-	controller.Provide(func() *Config {
+	err := controller.Provide(func() *Config {
 		return &Config{}
 	})
+	if err != nil {
+		logger.Warn("Failed to provide return value: %v\n", err.Error())
+	}
 
 	controller.RegisterPlugin(NewMockPlugin)
 	controller.Startup()

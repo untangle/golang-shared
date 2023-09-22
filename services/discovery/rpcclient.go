@@ -33,6 +33,7 @@ func CallCollectors(args CallCollectorsRequest) (*CallCollectorsResponse, error)
 		return nil, err
 	}
 
+	// nolint copylocks
 	response := fromRPCResponse(rpcResponse)
 	return &response, nil
 }

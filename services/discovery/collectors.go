@@ -42,6 +42,7 @@ type CallCollectorsResponse struct {
 }
 
 // fromRPCResponse - converts the RPC response into a wrapper
+// nolint copylocks
 func fromRPCResponse(rpcResponse disco.CallDiscoveryResponse) CallCollectorsResponse {
 	return CallCollectorsResponse{
 		int32(rpcResponse.Result),
@@ -50,7 +51,8 @@ func fromRPCResponse(rpcResponse disco.CallDiscoveryResponse) CallCollectorsResp
 
 // Normalizes the data in each collector entry
 // Returns an error if the data couldn't be normalized or
-// 	if the provided argument isn't a pointer to a collector struct
+//
+//	if the provided argument isn't a pointer to a collector struct
 func NormalizeCollectorEntry(collector interface{}) error {
 	switch collectorWithType := collector.(type) {
 	case *disco.LLDP:
@@ -71,7 +73,7 @@ func NormalizeCollectorEntry(collector interface{}) error {
 
 // Wraps an LLDP, NMAP, or NEIGH collector struct in a device entry
 // If the collector struct is missing a field needed to initialize the
-// 	collector struct, and error is returned.
+// collector struct, and error is returned.
 func WrapCollectorInDeviceEntry(collector interface{}) (*DeviceEntry, error) {
 	var deviceEntry DeviceEntry
 

@@ -233,25 +233,31 @@ func GetLicenseFileDoesNotExistStr() string {
 // SetServices will disable any disabled services to un-enabled in
 // settings, and the appstate file.
 func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
-	var err error = nil
+	var err error = nil // nolint:ineffassign
 	for serviceName, isEnabled := range enabledServices {
 		if service, err := lm.findService(serviceName); err != nil {
 			lm.logger.Warn("LicenseManager: when updating services, given nonexistent service: %s\n",
 				serviceName)
 		} else if isEnabled {
-			service.setServiceState(StateEnable)
+			setServiceStateErr := service.setServiceState(StateEnable)
+			lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", serviceName, setServiceStateErr.Error())
 		} else {
 			lm.disableService(service)
 		}
 	}
 	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
-	util.RunSighup(lm.config.Executable)
+	RunSighupErr := util.RunSighup(lm.config.Executable)
+	if RunSighupErr != nil {
+		lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
+	}
+
 	return err
 }
 
 // disableService disables a service
 func (lm *LicenseManager) disableService(service *Service) {
-	service.setServiceState(StateDisable)
+	err := service.setServiceState(StateDisable)
+	lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", service, err.Error())
 	if service.Hook.Disabled == nil {
 		return
 	}
@@ -289,9 +295,13 @@ func (lm *LicenseManager) shutdownServices() {
 		lm.logger.Warn("Failure to write non-license file: %v\n", err)
 	}
 	for _, service := range lm.services {
-		service.setServiceState(StateDisable)
+		_ = service.setServiceState(StateDisable)
 	}
-	util.RunSighup(lm.config.Executable)
+
+	RunSighupErr := util.RunSighup(lm.config.Executable)
+	if RunSighupErr != nil {
+		lm.logger.Warn("Failed to run RunSighup given executable: %v\n", RunSighupErr.Error())
+	}
 }
 
 // findService finds the service in the services map
