@@ -109,7 +109,7 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 	if _, ok := pluginSettings[string(SettingsMetaLookup[pluginName].Type)]; !ok {
 		pluginSettings[string(SettingsMetaLookup[pluginName].Type)] = map[string]any{}
 	}
-	pluginSettings[string(SettingsMetaLookup[pluginName].Type)][DefaultSettingUUID] = defaultPluginSettings
+	pluginSettings[string(SettingsMetaLookup[pluginName].Type)][DefaultSettingUUID] = Object{ID: DefaultSettingUUID, Settings: defaultPluginSettings, Type: SettingsMetaLookup[pluginName].Type}
 	return pluginSettings[string(SettingsMetaLookup[pluginName].Type)], nil
 }
 
