@@ -52,6 +52,20 @@ func TestGetPolicyPluginSettings(t *testing.T) {
 	assert.Equal(t, 2, len(webFilterPolicies))
 	geoIPPolicies, _ := GetPolicyPluginSettings(settingsFile, "geoip")
 	assert.Equal(t, 4, len(geoIPPolicies))
+
+	// Get the default and make sure it matches the expected object
+	var defaultObj = PolicyConfiguration{
+		Name:        "",
+		ID:          "00000000-0000-0000-0000-000000000000",
+		Description: "",
+		Type:        "mfw-template-threatprevention",
+		Settings: map[string]interface{}{
+			"enabled":     false,
+			"passList":    []interface{}{},
+			"redirect":    false,
+			"sensitivity": (float64)(20),
+		}}
+	assert.Equal(t, &defaultObj, tpPolicies["00000000-0000-0000-0000-000000000000"])
 }
 
 func TestErrorGetPolicyPluginSettings(t *testing.T) {
