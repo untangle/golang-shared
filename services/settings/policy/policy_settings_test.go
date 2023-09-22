@@ -379,14 +379,13 @@ func TestGroupUnmarshal(t *testing.T) {
 		"1.2.3.4-1.2.3.20"}, strlist)
 	endpointList, ok := policySettings.Objects[2].ItemsServiceEndpointList()
 	assert.True(t, ok)
-
 	assert.EqualValues(t, []ServiceEndpoint{
 		{
-			Protocol: []uint{uint(layers.IPProtocolTCP)},
+			Protocol: uint(layers.IPProtocolTCP),
 			Port:     12345,
 		},
 		{
-			Protocol: []uint{uint(layers.IPProtocolUDP)},
+			Protocol: uint(layers.IPProtocolUDP),
 			Port:     12345,
 		},
 	}, endpointList)
@@ -518,8 +517,8 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 						 "description": "Description",
                          "type": "ServiceEndpoint",
                           "items": [
-                              {"protocol": [17], "port": 2222},
-                              {"protocol": [6], "port": 2223}]}`,
+                              {"protocol": 17, "port": 2222},
+                              {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
 			expected: Group{
 				Name:        "ServiceEndpointTest",
@@ -528,11 +527,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
-						Protocol: []uint{uint(layers.IPProtocolUDP)},
+						Protocol: uint(layers.IPProtocolUDP),
 						Port:     2222,
 					},
 					{
-						Protocol: []uint{uint(layers.IPProtocolTCP)},
+						Protocol: uint(layers.IPProtocolTCP),
 						Port:     2223,
 					},
 				},
@@ -672,11 +671,11 @@ func TestGroupMarshal(t *testing.T) {
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
-						Protocol: []uint{uint(layers.IPProtocolUDP)},
+						Protocol: uint(layers.IPProtocolUDP),
 						Port:     2222,
 					},
 					{
-						Protocol: []uint{uint(layers.IPProtocolTCP)},
+						Protocol: uint(layers.IPProtocolTCP),
 						Port:     2223,
 					},
 				},
@@ -686,8 +685,8 @@ func TestGroupMarshal(t *testing.T) {
 						 "description": "Description",
                          "type": "ServiceEndpoint",
                           "items": [
-                              {"protocol": [17], "port": 2222},
-                              {"protocol": [6], "port": 2223}]}`,
+                              {"protocol": 17, "port": 2222},
+                              {"protocol": 6, "port": 2223}]}`,
 		},
 	}
 

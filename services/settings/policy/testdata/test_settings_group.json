@@ -88,11 +88,11 @@
         "type": "ServiceEndpoint",
         "items": [
           {
-            "protocol": [6],
+            "protocol": 6,
             "port": 12345
           },
           {
-            "protocol": [17],
+            "protocol": 17,
             "port": 12345
           }
         ]

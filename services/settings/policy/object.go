@@ -54,8 +54,8 @@ type Action struct {
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
 type ServiceEndpoint struct {
-	Protocol []uint `json:"protocol"`
-	Port     uint   `json:"port"`
+	Protocol uint `json:"protocol"`
+	Port     uint `json:"port"`
 }
 
 // setList is a utility function for setting a list in the Group.Items field. We
