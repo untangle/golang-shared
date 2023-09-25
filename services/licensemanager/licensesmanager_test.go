@@ -71,7 +71,7 @@ func TestClsWatchdog(t *testing.T) {
 	}()
 
 	go lm.clsWatchdog()
-	time.Sleep(time.Second * 4)
+	time.Sleep(time.Second * 2)
 
 	assert.True(t, watchdogAlerted)
 

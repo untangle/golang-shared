@@ -39,8 +39,7 @@ func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 	if _, found := d.decorated[pol]; !found {
 		policyPlugin = d.newPluginCallback().(SettingsInjectablePlugin)
 		d.decorated[pol] = policyPlugin
-		err := d.decorated[pol].Startup()
-		if err != nil {
+		if err := d.decorated[pol].Startup(); err != nil {
 			logger.Warn("Failed to startup plugin %s with error: %s\n", d.Name(), err.Error())
 		}
 	} else {

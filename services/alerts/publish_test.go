@@ -17,9 +17,7 @@ func TestAlertPublisher(t *testing.T) {
 	//Set up
 	handler := newTestAlertHandler()
 	startupErr := handler.Startup()
-	if startupErr != nil {
-		fmt.Printf("Failed to startup Zmq publisher in background %v\n", startupErr.Error())
-	}
+	assert.Nil(t, startupErr, "Failed to startup Zmq publisher in background")
 
 	subscriberSocket, err := createTestSubscriberSocket(testSocketAddress)
 	assert.Nil(t, err)

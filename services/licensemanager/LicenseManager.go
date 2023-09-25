@@ -239,8 +239,9 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 			lm.logger.Warn("LicenseManager: when updating services, given nonexistent service: %s\n",
 				serviceName)
 		} else if isEnabled {
-			setServiceStateErr := service.setServiceState(StateEnable)
-			lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", serviceName, setServiceStateErr.Error())
+			if setServiceStateErr := service.setServiceState(StateEnable); setServiceStateErr != nil {
+				lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", serviceName, setServiceStateErr.Error())
+			}
 		} else {
 			lm.disableService(service)
 		}
