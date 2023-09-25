@@ -23,7 +23,7 @@ WARN_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(YELLOW)$(1)$(NC)
 all: build lint
 
 logscan:
-	$(call LOG_FUNCTION,"Running git pre-commit...")
+	$(call LOG_FUNCTION,"Running logcheck...")
 	@if [ -x build/logchecker.sh ]; then \
 		echo "Execute permissions are already set for build/logchecker.sh script"; \
 	else \
