@@ -4,26 +4,30 @@
 LOG_REGEX1='[lL]ogger.(Alert|Err|Notice|Info|Debug|Trace|Fatal|Warning|OCTrace|OCWarn|OCDebug|OCErr|OCCrit)\("([^"]*)"\)'
 LOG_REGEX2='[lL]ogger.(Alert|Err|Notice|Info|Debug|Trace|Fatal|Warning|OCTrace|OCWarn|OCDebug|OCErr|OCCrit)\("([^"]*)",\s*([^)]*)\)'
 
+# Check if the current directory is a Git repository
 if [ -d .git ]; then
 
+   # Configure a global Git setting for the safe directory
    git config --global --add safe.directory /go/untangle-shared
    echo ".git directory exists in the current directory."
 
-   # Get the list of added/modified lines in the most recent commit for the specified directory
-   modified_lines=$(git diff --unified=0 HEAD | grep -E '^\+' | grep -E "$LOG_REGEX1|$LOG_REGEX2")
-   echo "Modified lines: $modified_lines"
+   # Get the list of added/modified files in the most recent commit
+   modified_files=$(git status -uno | grep "modified:" | awk '{print $2}')
 
-   echo $modified_lines | while IFS= read -r line; do
-   # # Check if the line is empty or consists of only whitespace characters
-   if [[ "$(printf '%s' "$line")" =~ ^[[:space:]]*$ ]]; then
-      continue
-   fi
+   # Iterate over the list of modified files
+   for file in $modified_files; do
+      # Use grep with a negative lookahead assertion to exclude lines ending with \n
+      modified_lines=$(grep -HnE "$LOG_REGEX1|$LOG_REGEX2" "$file" | grep -vE '.*\\n.*')
 
-   # Check if the line ends with \n
-   if [[ ! "$(printf '%s' "$line")" == *$'\n'* ]]; then
-      echo "Log statement doesn't end with '\\n': $line"
+      # Check if the modified_lines variable is empty or consists of only whitespace characters
+      if [[ "$(printf '%s' "$modified_lines")" =~ ^[[:space:]]*$ ]]; then
+         continue  # Skip to the next file if there are no relevant log statements
+      fi
 
-   fi
+      # Check if there are any log statements that don't end with \n
+      if [ -n "$modified_lines" ]; then
+         echo -e '\nLog statement doesn'"'"'t end with \\n\n'"$modified_lines"
+      fi
    done
 else
     echo ".git directory does not exist in the current directory."
