@@ -21,7 +21,19 @@ LOG_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(GREEN)$(1)$(NC)
 WARN_FUNCTION = @/bin/echo -e $(shell date +%T.%3N) $(YELLOW)$(1)$(NC)
 
 all: build lint
-build:
+
+logscan:
+	$(call LOG_FUNCTION,"Running logcheck...")
+	@if [ -x build/logchecker.sh ]; then \
+		echo "Execute permissions are already set for build/logchecker.sh script"; \
+	else \
+		echo "Adding execute permissions to build/logchecker.sh script..."; \
+		chmod +x build/logchecker.sh; \
+	fi
+	@echo "executing the build/logchecker.sh script" 
+	sh +x build/logchecker.sh
+
+build: 
 	$(call LOG_FUNCTION,"Compiling protocol buffers...")
 	rm -rf structs/protocolbuffers/*
 	protoc --proto_path=protobuffersrc --go_out=. --go_opt=module=github.com/untangle/golang-shared --go-grpc_out=require_unimplemented_servers=false:. --go-grpc_opt=module=github.com/untangle/golang-shared protobuffersrc/*
@@ -37,12 +49,12 @@ modules: environment
 	$(call LOG_FUNCTION,"Vendoring modules...")
 	$(GOPRIVATE) go mod vendor
 
-lint: modules
+lint: modules logscan
 	$(call LOG_FUNCTION,"Running golang linter...")
 	cd /tmp; GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 	$(shell go env GOPATH)/bin/golangci-lint --version
         # IMPORTANT --issues-exit-code 0 will let the build continue without failing lint checks - this should be removed eventually
-	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
+	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0 
 
 test: build
 	if [ $(GOTEST_COVERAGE) = "yes" ]; \

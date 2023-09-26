@@ -55,7 +55,7 @@ func TestRoutineStartedAndRoutineEnd(t *testing.T) {
 	assert.Equal(t, len(activeRoutines), tests[0].numberOfActiveRoutines-1)
 
 	// stop all started routines
-	for routineName, _ := range activeRoutines {
+	for routineName := range activeRoutines {
 		RoutineEnd(routineName)
 	}
 }
@@ -98,7 +98,7 @@ func TestRoutineError(t *testing.T) {
 	// check number of the activeRoutines
 	assert.Equal(t, len(activeRoutines), tests[0].numberOfActiveRoutines-1)
 
-	for routineName, _ := range activeRoutines {
+	for routineName := range activeRoutines {
 		RoutineEnd(routineName)
 	}
 }
