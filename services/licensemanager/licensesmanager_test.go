@@ -61,8 +61,7 @@ func TestClsWatchdog(t *testing.T) {
 		return nil
 	}
 
-	startupErr := lm.Startup()
-	if startupErr != nil {
+	if startupErr := lm.Startup(); startupErr != nil {
 		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
 	}
 
@@ -74,7 +73,6 @@ func TestClsWatchdog(t *testing.T) {
 	time.Sleep(time.Second * 2)
 
 	assert.True(t, watchdogAlerted)
-
 }
 
 func TestLoadServiceStates(t *testing.T) {
@@ -180,8 +178,7 @@ func TestLicenseFileExists(t *testing.T) {
 func TestShutdownServices(t *testing.T) {
 	lm := NewLicenseManager(getTestConfig(), &mocks.LoggerHelper{})
 
-	startupErr := lm.Startup()
-	if startupErr != nil {
+	if startupErr := lm.Startup(); startupErr != nil {
 		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
 	}
 
@@ -203,8 +200,7 @@ func TestSaveServiceStatesFrom(t *testing.T) {
 	serviceStatesTestUpdatesLock.Lock()
 	defer serviceStatesTestUpdatesLock.Unlock()
 
-	startupErr := lm.Startup()
-	if startupErr != nil {
+	if startupErr := lm.Startup(); startupErr != nil {
 		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
 	}
 
@@ -248,8 +244,7 @@ func TestSaveServiceStates(t *testing.T) {
 	serviceStatesTestUpdatesLock.Lock()
 	defer serviceStatesTestUpdatesLock.Unlock()
 
-	startupErr := lm.Startup()
-	if startupErr != nil {
+	if startupErr := lm.Startup(); startupErr != nil {
 		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
 	}
 
@@ -300,8 +295,7 @@ func TestSetServiceStateLicenseManager(t *testing.T) {
 	serviceStatesTestUpdatesLock.Lock()
 	defer serviceStatesTestUpdatesLock.Unlock()
 
-	startupErr := lm.Startup()
-	if startupErr != nil {
+	if startupErr := lm.Startup(); startupErr != nil {
 		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
 	}
 
@@ -368,8 +362,7 @@ func (suite *LicenseManagerTestSuite) SetupSuite() {
 		"untangle-node-captiveportal":     {Name: "untangle-node-captiveportal", State: ServiceState{AllowedState: 0}},
 	}
 
-	startupErr := suite.lm.Startup()
-	if startupErr != nil {
+	if startupErr := suite.lm.Startup(); startupErr != nil {
 		suite.lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
 	}
 }

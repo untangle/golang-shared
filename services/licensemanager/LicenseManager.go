@@ -88,8 +88,7 @@ func (lm *LicenseManager) Startup() error {
 			newServiceState := ServiceState{Name: name, AllowedState: StateDisable}
 			blankServiceStates = append(blankServiceStates, newServiceState)
 		}
-		err = saveServiceStates(lm.config.ServiceStateLocation, blankServiceStates)
-		if err != nil {
+		if err = saveServiceStates(lm.config.ServiceStateLocation, blankServiceStates); err != nil {
 			return fmt.Errorf("unable to initialize service states file. %w", err)
 		}
 	}
@@ -108,8 +107,7 @@ func (lm *LicenseManager) Startup() error {
 	}
 
 	// restart licenses
-	err = lm.RefreshLicenses()
-	if err != nil {
+	if err = lm.RefreshLicenses(); err != nil {
 		lm.logger.Warn("Not able to restart CLS: %v\n", err)
 	}
 
@@ -129,8 +127,7 @@ func (lm *LicenseManager) clsWatchdog() {
 			// on watch dog seen, restart license server
 			// shutdown license items if restart did not work
 			lm.logger.Warn("Watch seen\n")
-			refreshErr := lm.RefreshLicenses()
-			if refreshErr != nil {
+			if refreshErr := lm.RefreshLicenses(); refreshErr != nil {
 				lm.logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
 				lm.shutdownServices()
 			} else {
@@ -246,9 +243,9 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 			lm.disableService(service)
 		}
 	}
+
 	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
-	RunSighupErr := util.RunSighup(lm.config.Executable)
-	if RunSighupErr != nil {
+	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
 		lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
 	}
 
@@ -269,8 +266,7 @@ func (lm *LicenseManager) disableService(service *Service) {
 	}
 
 	// Set settings
-	_, err = settings.SetSettings(settingsSegs, newSettings, true)
-	if err != nil {
+	if _, err = settings.SetSettings(settingsSegs, newSettings, true); err != nil {
 		lm.logger.Warn("Failed to set disabled settings for service %s\n", service.Name)
 	}
 }
@@ -287,21 +283,19 @@ func licenseFileExists(filename string) bool {
 
 // shutdownServices iterates servicesToShutdown and calls the shutdown hook on them, and also removes the license file
 func (lm *LicenseManager) shutdownServices() {
-	err := os.Remove(lm.config.LicenseLocation)
-	if err != nil {
+	if err := os.Remove(lm.config.LicenseLocation); err != nil {
 		lm.logger.Err("Could not remove the license file when shutting down services: %v\n", err)
 	}
 
-	err = ioutil.WriteFile(lm.config.LicenseLocation, []byte("{\"list\": []}"), 0444)
-	if err != nil {
+	if err := ioutil.WriteFile(lm.config.LicenseLocation, []byte("{\"list\": []}"), 0444); err != nil {
 		lm.logger.Warn("Failure to write non-license file: %v\n", err)
 	}
+
 	for _, service := range lm.services {
 		_ = service.setServiceState(StateDisable)
 	}
 
-	RunSighupErr := util.RunSighup(lm.config.Executable)
-	if RunSighupErr != nil {
+	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
 		lm.logger.Warn("Failed to run RunSighup given executable: %v\n", RunSighupErr.Error())
 	}
 }
@@ -356,14 +350,12 @@ func saveServiceStates(fileLocation string, serviceStates []ServiceState) error 
 		logger.Warn("Failure to marshal states: %s\n", err.Error())
 		return err
 	}
-	err = ioutil.WriteFile(fileLocation, data, 0644)
-	if err != nil {
+	if err = ioutil.WriteFile(fileLocation, data, 0644); err != nil {
 		logger.Warn("Failure to write state file: %s\n", err.Error())
 		return err
 	}
 
 	return nil
-
 }
 
 // LoadServiceStates retrieves the previously saved service state
@@ -378,8 +370,7 @@ func LoadServiceStates(fileLocation string) ([]ServiceState, error) {
 		return nil, nil
 	}
 
-	err = json.Unmarshal(fileContent, &serviceStates)
-	if err != nil {
+	if err = json.Unmarshal(fileContent, &serviceStates); err != nil {
 		logger.Warn("Not able to read content of service state file.%v \n ", err)
 		return nil, err
 	}

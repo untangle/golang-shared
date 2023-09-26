@@ -227,8 +227,8 @@ func writeSettingsFileJSON(jsonObject map[string]interface{}, file *os.File) (bo
 	if err != nil {
 		return false, err
 	}
-	err = file.Sync()
-	if err != nil {
+
+	if err = file.Sync(); err != nil {
 		logger.Warn("Failed to commit current content of file to storage : %v\n", err.Error())
 	}
 
@@ -510,8 +510,8 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 	}
 	defer outfile.Close()
 
-	_, err = tmpfile.Seek(0, 0) // go back to start of file
-	if err != nil {
+	// go back to start of file
+	if _, err = tmpfile.Seek(0, 0); err != nil {
 		logger.Warn("Failed to set offset for read/write on a file: %v\n", err.Error())
 	}
 	_, err = io.Copy(outfile, tmpfile)

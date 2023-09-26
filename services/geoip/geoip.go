@@ -133,8 +133,7 @@ func (db *MaxMindGeoIPManager) extractDBFile(reader io.ReadCloser) error {
 
 	// Get the index of the last slash so we can isolate the path and create the directory
 	if marker > 0 {
-		err := os.MkdirAll(db.databaseFilename[0:marker], 0755)
-		if err != nil {
+		if err := os.MkdirAll(db.databaseFilename[0:marker], 0755); err != nil {
 			logger.Err("Failed to create a directory %v with error: %v\n", db.databaseFilename[0:marker], err.Error())
 		}
 	}

@@ -61,8 +61,7 @@ func (d *decorator) NotifyNewPolicy(pol string, fakeSettings map[string]any) {
 		Result:  settings,
 	}
 	decoder, _ := mapstructure.NewDecoder(config)
-	err := decoder.Decode(fakeSettings)
-	if err != nil {
+	if err := decoder.Decode(fakeSettings); err != nil {
 		logger.Warn("Failed to decode the given raw interface: %s\n", err.Error())
 
 	}

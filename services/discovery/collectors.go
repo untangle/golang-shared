@@ -50,8 +50,7 @@ func fromRPCResponse(rpcResponse *disco.CallDiscoveryResponse) CallCollectorsRes
 
 // Normalizes the data in each collector entry
 // Returns an error if the data couldn't be normalized or
-//
-//	if the provided argument isn't a pointer to a collector struct
+// if the provided argument isn't a pointer to a collector struct
 func NormalizeCollectorEntry(collector interface{}) error {
 	switch collectorWithType := collector.(type) {
 	case *disco.LLDP:

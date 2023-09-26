@@ -41,8 +41,7 @@ func TestAlertPublisher(t *testing.T) {
 	})
 
 	// Tear down
-	shutdownErr := handler.Shutdown()
-	if shutdownErr != nil {
+	if shutdownErr := handler.Shutdown(); shutdownErr != nil {
 		fmt.Printf("Failed to stop the goroutine running the ZMQ subscriber %v\n", shutdownErr.Error())
 	}
 	_ = subscriberSocket.Close()

@@ -40,8 +40,7 @@ func TestSocketServer(t *testing.T) {
 
 	// Create a ZMQ request and send it to the server
 	reqSocket, _ := zmq.NewSocket(zmq.REQ)
-	err := reqSocket.Connect("tcp://localhost:5555")
-	if err != nil {
+	if err := reqSocket.Connect("tcp://localhost:5555"); err != nil {
 		logger.Warn("Failed to create connection from socket: %v \n", err.Error())
 	}
 	defer reqSocket.Close()
@@ -54,8 +53,7 @@ func TestSocketServer(t *testing.T) {
 	if err != nil {
 		logger.Warn("error in proto marshalling: %v \n", err.Error())
 	}
-	_, err = reqSocket.SendMessage(zmqRequest)
-	if err != nil {
+	if _, err = reqSocket.SendMessage(zmqRequest); err != nil {
 		logger.Warn("Failed to send message : %v \n", err.Error())
 	}
 
