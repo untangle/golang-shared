@@ -14,7 +14,7 @@ if [ -d .git ]; then
    # Get the list of added/modified files in the most recent commit
    modified_files=$(git status -uno | grep "modified:" | awk '{print $2}')
 
-   # Iterate over the list of modified files
+   # Iterate over the list of added/modified files
    for file in $modified_files; do
       # Use grep with a negative lookahead assertion to exclude lines ending with \n
       modified_lines=$(grep -HnE "$LOG_REGEX1|$LOG_REGEX2" "$file" | grep -vE '.*\\n.*')
