@@ -114,7 +114,7 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 }
 
 // GetAllPolicyConfigs Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
-// plugin and policyare a strings. This will allow for easy access to policy settings for a plugin.
+// plugin and policy are a strings. This will allow for easy access to policy settings for a plugin.
 // Each plugin is still responsible for adding the default entry.
 func GetAllPolicyConfigs(settingsFile *settings.SettingsFile) (map[string]map[string]interface{}, error) {
 
