@@ -35,9 +35,9 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 	policySettings, err := GetAllPolicyConfigs(settingsFile)
 	assert.Nil(t, err)
 	assert.NotNil(t, policySettings)
-	assert.Equal(t, 2, len(policySettings["mfw-template-threatprevention"]))
-	assert.Equal(t, 1, len(policySettings["mfw-template-webfilter"]))
-	assert.Equal(t, 3, len(policySettings["mfw-template-geoipfilter"]))
+	assert.Len(t, policySettings["mfw-template-threatprevention"], 2)
+	assert.Len(t, policySettings["mfw-template-webfilter"], 1)
+	assert.Len(t, policySettings["mfw-template-geoipfilter"], 3)
 
 	teachersUID := "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
 	// Spot check a plugin setting.
@@ -47,11 +47,11 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 func TestGetPolicyPluginSettings(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
 	tpPolicies, _ := GetPolicyPluginSettings(settingsFile, "threatprevention")
-	assert.Equal(t, 3, len(tpPolicies))
+	assert.Len(t, tpPolicies, 3)
 	webFilterPolicies, _ := GetPolicyPluginSettings(settingsFile, "webfilter")
-	assert.Equal(t, 2, len(webFilterPolicies))
+	assert.Len(t, webFilterPolicies, 2)
 	geoIPPolicies, _ := GetPolicyPluginSettings(settingsFile, "geoip")
-	assert.Equal(t, 4, len(geoIPPolicies))
+	assert.Len(t, geoIPPolicies, 4)
 
 	// Get the default and make sure it matches the expected object
 	var defaultObj = PolicyConfiguration{
