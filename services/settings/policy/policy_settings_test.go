@@ -10,41 +10,62 @@ import (
 	"github.com/untangle/golang-shared/util/net"
 )
 
-func TestGetAllPolicyConfigurationSettings(t *testing.T) {
+func TestGetAllPolicyConfigs(t *testing.T) {
 
-	var result = map[string]interface{}{
-		"enabled": true,
-		"passList": []interface{}{
-			map[string]interface{}{
-				"description": "some test",
-				"host":        "3.4.5.6/32",
+	var result = PolicyConfiguration{
+		Description: "TP students",
+		Type:        "mfw-template-threatprevention",
+		Name:        "TP for students",
+		ID:          "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
+		Enabled:     false,
+		Settings: map[string]interface{}{
+			"enabled": true,
+			"passList": []interface{}{
+				map[string]interface{}{
+					"description": "some test",
+					"host":        "3.4.5.6/32",
+				},
 			},
+			"redirect":    false,
+			"sensitivity": float64(60),
 		},
-		"redirect":    false,
-		"sensitivity": float64(60),
 	}
 
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
-	policySettings, err := getAllPolicyConfigurationSettings(settingsFile)
+	policySettings, err := GetAllPolicyConfigs(settingsFile)
 	assert.Nil(t, err)
 	assert.NotNil(t, policySettings)
-	assert.Equal(t, 3, len(policySettings["threatprevention"]))
-	assert.Equal(t, 1, len(policySettings["webfilter"]))
-	assert.Equal(t, 1, len(policySettings["geoip"]))
+	assert.Len(t, policySettings["mfw-template-threatprevention"], 2)
+	assert.Len(t, policySettings["mfw-template-webfilter"], 1)
+	assert.Len(t, policySettings["mfw-template-geoipfilter"], 3)
 
-	teachersUID := "60a9e031-4188-4d06-8083-108ebec63a9e"
+	teachersUID := "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
 	// Spot check a plugin setting.
-	assert.EqualValues(t, result, policySettings["threatprevention"][teachersUID])
+	assert.EqualValues(t, &result, policySettings["mfw-template-threatprevention"][teachersUID])
 }
 
 func TestGetPolicyPluginSettings(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
 	tpPolicies, _ := GetPolicyPluginSettings(settingsFile, "threatprevention")
-	assert.Equal(t, 4, len(tpPolicies))
+	assert.Len(t, tpPolicies, 3)
 	webFilterPolicies, _ := GetPolicyPluginSettings(settingsFile, "webfilter")
-	assert.Equal(t, 2, len(webFilterPolicies))
+	assert.Len(t, webFilterPolicies, 2)
 	geoIPPolicies, _ := GetPolicyPluginSettings(settingsFile, "geoip")
-	assert.Equal(t, 2, len(geoIPPolicies))
+	assert.Len(t, geoIPPolicies, 4)
+
+	// Get the default and make sure it matches the expected object
+	var defaultObj = PolicyConfiguration{
+		Name:        "",
+		ID:          "00000000-0000-0000-0000-000000000000",
+		Description: "",
+		Type:        "mfw-template-threatprevention",
+		Settings: map[string]interface{}{
+			"enabled":     false,
+			"passList":    []interface{}{},
+			"redirect":    false,
+			"sensitivity": (float64)(20),
+		}}
+	assert.Equal(t, &defaultObj, tpPolicies["00000000-0000-0000-0000-000000000000"])
 }
 
 func TestErrorGetPolicyPluginSettings(t *testing.T) {
@@ -825,19 +846,23 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 		wantMarshalledJson     string
 	}{
 		{
-			name: "validJsonWithAppSettings",
+			name: "validJsonWithSettings",
 			inputData: `{
 					"id": "A1",
 					"name": "B2",
 					"description": "C3",
-					"key": "value",
-					"setting_field": "D4"
+					"type": "",
+					"settings": {
+						"setting_field": "D4",
+						"key": "value"
+					}
 				}`,
 			wantUnmarshalledConfig: PolicyConfiguration{
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
-				AppSettings: map[string]any{
+				Type:        "",
+				Settings: map[string]any{
 					"setting_field": "D4",
 					"key":           "value",
 				},
@@ -846,27 +871,32 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 				"id": "A1",
 				"name": "B2",
 				"description": "C3",
-				"key": "value",
-				"setting_field": "D4"
+				"type": "",
+				"settings": {
+					"key": "value",
+					"setting_field": "D4"
+				}
 			}`,
 		},
 		{
-			name: "validJsonWithoutAppSettings",
+			name: "validJsonWithoutSettings",
 			inputData: `{
 					"id": "A1",
 					"name": "B2",
-					"description": "C3"
+					"description": "C3",
+					"type": ""
 				}`,
 			wantUnmarshalledConfig: PolicyConfiguration{
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
-				AppSettings: map[string]any{},
+				Type:        "",
 			},
 			wantMarshalledJson: `{
 				"id": "A1",
 				"name": "B2",
-				"description": "C3"
+				"description": "C3",
+				"type": ""
 			}`,
 		},
 	}

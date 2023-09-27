@@ -1,7 +1,6 @@
 package policy
 
 import (
-	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
 
@@ -10,8 +9,6 @@ const (
 	PolicyConfigName   = "policy_manager"
 	DefaultSettingUUID = "00000000-0000-0000-0000-000000000000"
 )
-
-var logger = logService.GetLoggerInstance()
 
 // PolicySettings is the main data structure for Policy Management.
 // It contains an array of PolicyConfigurations, an array of PolicyFlowCategory's
@@ -33,10 +30,21 @@ type PolicySettings struct {
 	Groups []*Group      `json:"groups,omitempty"`
 }
 
-func (p *PolicySettings) findConfiguration(c string) *PolicyConfiguration {
+// FindConfiguration searches this PolicySetting to load a configuration by ID
+func (p *PolicySettings) FindConfiguration(configID string) *PolicyConfiguration {
 	for _, config := range p.Configurations {
-		if config.ID == c {
+		if config.ID == configID {
 			return config
+		}
+	}
+	return nil
+}
+
+// FindRule searches this PolicySetting to load a rule by ID
+func (p *PolicySettings) FindRule(ruleID string) *Object {
+	for _, rule := range p.Rules {
+		if rule.ID == ruleID {
+			return rule
 		}
 	}
 	return nil
@@ -52,20 +60,20 @@ func (p *PolicySettings) FindFlow(id string) *Object {
 	return nil
 }
 
-// FindConfigsWithEnabled returns the configs with enabled status.
+// FindConfigsWithEnabled returns the names of configs with enabled status that are attached to this policy
 func (p *PolicySettings) FindConfigsWithEnabled(pol *Policy, enabled bool) []string {
-	configs := []string{}
-	for _, configID := range pol.Configurations {
-		config := p.findConfiguration(configID)
-		if config != nil && config.AppSettings != nil {
-			for pluginName, pluginSettings := range config.AppSettings {
-				if pluginSettings.(map[string]interface{})["enabled"] == enabled {
-					configs = append(configs, pluginName)
-				}
+	configNames := []string{}
+	for _, ruleID := range pol.Rules {
+		rule := p.FindRule(ruleID)
+		if rule != nil {
+			// We also have to check if this config is enabled/disabled...
+			configDetails := p.FindConfiguration(rule.Action.UUID)
+			if configDetails.Enabled == enabled {
+				configNames = append(configNames, rule.Action.Key)
 			}
 		}
 	}
-	return configs
+	return configNames
 }
 
 // Returns a list of disabled app services for a given policy ID.
@@ -78,34 +86,37 @@ func (p *PolicySettings) FindEnabledConfigs(pol *Policy) []string {
 	return p.FindConfigsWithEnabled(pol, true)
 }
 
-// Returns a map of policy plugin settings for a given plugin. E.g. map[policy]interface{} where policy is
+// GetPolicyPluginSettings Returns a map of policy plugin settings for a given plugin.
+// E.g. map[policy]interface{} where policy is
 // the policy name and interface{} is the plugin settings.
+// This returns default settings as well
 func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName string) (map[string]interface{}, error) {
 
 	var pluginSettings map[string]map[string]interface{}
 	var defaultPluginSettings interface{}
 	var err error
 
-	if pluginSettings, err = getAllPolicyConfigurationSettings(settingsFile); err != nil {
+	if pluginSettings, err = GetAllPolicyConfigs(settingsFile); err != nil {
 		return nil, err
 	}
 
 	// Add default settings into map with key default.
-	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, pluginName); err != nil {
+	// This needs plugin metadata to figure out that 'mfw-template-XXX' is the same as the top level settings name
+	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, SettingsMetaLookup[pluginName].SettingsName); err != nil {
 		return nil, err
 	}
 
-	if _, ok := pluginSettings[pluginName]; !ok {
-		pluginSettings[pluginName] = map[string]any{}
+	if _, ok := pluginSettings[string(SettingsMetaLookup[pluginName].Type)]; !ok {
+		pluginSettings[string(SettingsMetaLookup[pluginName].Type)] = map[string]any{}
 	}
-	pluginSettings[pluginName][DefaultSettingUUID] = defaultPluginSettings
-	return pluginSettings[pluginName], nil
+	pluginSettings[string(SettingsMetaLookup[pluginName].Type)][DefaultSettingUUID] = &Object{ID: DefaultSettingUUID, Settings: defaultPluginSettings, Type: SettingsMetaLookup[pluginName].Type}
+	return pluginSettings[string(SettingsMetaLookup[pluginName].Type)], nil
 }
 
-// Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
-// plugin and policyare a strings. This will allow for easy access to policy settings for a plugin.
+// GetAllPolicyConfigs Returns a double map of policy plugin settings. E.g. map["plugin"]map[policy]interface{} where
+// plugin and policy are a strings. This will allow for easy access to policy settings for a plugin.
 // Each plugin is still responsible for adding the default entry.
-func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map[string]map[string]interface{}, error) {
+func GetAllPolicyConfigs(settingsFile *settings.SettingsFile) (map[string]map[string]interface{}, error) {
 
 	policySettings := &PolicySettings{}
 
@@ -116,30 +127,13 @@ func getAllPolicyConfigurationSettings(settingsFile *settings.SettingsFile) (map
 	// Process into a map of maps
 	pluginSettings := make(map[string]map[string]interface{})
 
-	// Go through each Policy and find matching configurations.
-	for _, p := range policySettings.Policies {
-		if !p.Enabled {
-			continue
+	// Just pull policy configs from the configurations elements
+	for _, config := range policySettings.Configurations {
+		if pluginSettings[string(config.Type)] == nil {
+			pluginSettings[string(config.Type)] = make(map[string]interface{})
 		}
-		for _, config := range p.Configurations {
-			config := policySettings.findConfiguration(config)
-			if config == nil {
-				logger.Warn("Can't find configuration in settings: %s(%s)\n",
-					config.ID,
-					config.Name)
-				// No matching configuration found, skip. Although this should never happen.
-				continue
-			}
-			// Add the plugins into the map. Wish there was a better way to do this
-			logger.Debug("getAllPolicyConfigurationSettings: %v, %+v\n", p.Name, config)
-
-			for name, settings := range config.AppSettings {
-				if pluginSettings[name] == nil {
-					pluginSettings[name] = make(map[string]interface{})
-				}
-				pluginSettings[name][p.ID] = settings
-			}
-		}
+		pluginSettings[string(config.Type)][config.ID] = config
 	}
+
 	return pluginSettings, nil
 }

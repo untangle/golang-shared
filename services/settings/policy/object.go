@@ -27,6 +27,9 @@ type Object struct {
 	//Action overlaps a bit with Policy type
 	Action *Action `json:"action,omitempty"`
 
+	// Used for policy configuration objects
+	Settings any `json:"settings,omitempty"`
+
 	// DEPRECATED
 	Configurations []string `json:"configurations,omitempty"`
 	Flows          []string `json:"flows,omitempty"`
@@ -38,6 +41,8 @@ type Group = Object
 
 // Policies are the root of our policy configurations. It includes pointers to substructure.
 type Policy = Object
+
+type PolicyConfiguration = Object
 
 // Action struct is used for rule object types (Conditions + Action)
 type Action struct {
@@ -80,15 +85,20 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
 	case "":
 		// Policies typically don't have a Type
-		// drop down to the defaul return
+		// drop down to the default return
 
 	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject,
 		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject:
-		// drop down to the defaul return
+		// drop down to the default return
+
+	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
+		WANPolicyConfigType, ApplicationControlConfigType, CaptivePortalConfigType,
+		SecurityConfigType:
+		// drop to default return
 
 	case IPAddrListType, IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
-	case GeoIPListType, GeoIPObjectType, GeoIPObjectGroupType:
+	case GeoIPListType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType:
 		defer setList[string](obj)()
 	case ServiceEndpointType, ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
@@ -103,7 +113,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	case WebFilterCategoryType:
 		defer setList[uint](obj)()
 	default:
-		return fmt.Errorf("error unmarshalling policy group: invalid group type: %s", typeField.Type)
+		return fmt.Errorf("error unmarshalling policy object: invalid object type: %s", typeField.Type)
 	}
 
 	// unmarshal PolicyConfiguration using struct tags
