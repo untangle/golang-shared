@@ -93,7 +93,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
 		WANPolicyConfigType, ApplicationControlConfigType, CaptivePortalConfigType,
-		SecurityConfigType, DnsConfigType:
+		SecurityConfigType:
 		// drop to default return
 
 	case IPAddrListType, IPObjectType:
