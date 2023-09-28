@@ -100,6 +100,7 @@ const (
 	ApplicationControlConfigType ObjectType = "mfw-template-applicationcontrol"
 	CaptivePortalConfigType      ObjectType = "mfw-template-captiveportal"
 	SecurityConfigType           ObjectType = "mfw-template-security"
+	DnsConfigType                ObjectType = "mfw-template-dns"
 
 	// TODO: Impelment these object/group types
 	HostType      ObjectType = "mfw-object-host"

@@ -93,12 +93,12 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
 		WANPolicyConfigType, ApplicationControlConfigType, CaptivePortalConfigType,
-		SecurityConfigType:
+		SecurityConfigType, DnsConfigType:
 		// drop to default return
 
 	case IPAddrListType, IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
-	case GeoIPListType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType:
+	case GeoIPListType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
 		defer setList[string](obj)()
 	case ServiceEndpointType, ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
