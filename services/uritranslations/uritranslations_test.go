@@ -55,7 +55,7 @@ func TestGetURIWithPath(t *testing.T) {
 	assert.Equal(t, expectedResponse, actualResponse)
 
 	// Test non-existent URI
-	result, err = GetURIWithPath("https://example.com/test3")
+	_, err = GetURIWithPath("https://example.com/test3")
 	assert.Nil(t, err, "Failed to get error")
 }
 
