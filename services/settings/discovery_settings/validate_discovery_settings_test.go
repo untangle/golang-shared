@@ -2,7 +2,7 @@ package discovery_settings
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ func TestValidateDiscoverySettings(t *testing.T) {
 		Description string      `json:"description"`
 	}
 
-	raw, err := ioutil.ReadFile("./../testdata/discovery_settings_types.json")
+	raw, err := os.ReadFile("./../testdata/discovery_settings_types.json")
 	assert.Nil(t, err, "error reading test file")
 
 	testObject := []testCase{}

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -204,7 +203,7 @@ func (lm *LicenseManager) GetLicenseDetails() (LicenseInfo, error) {
 		return retLicense, errors.New(LicenseFileDoesNotExistStr)
 	}
 
-	jsonLicense, err := ioutil.ReadFile(lm.config.LicenseLocation)
+	jsonLicense, err := os.ReadFile(lm.config.LicenseLocation)
 	if err != nil {
 		lm.logger.Warn("Error opening license file: %s\n", err.Error())
 		return retLicense, err
@@ -287,7 +286,7 @@ func (lm *LicenseManager) shutdownServices() {
 		lm.logger.Err("Could not remove the license file when shutting down services: %v\n", err)
 	}
 
-	if err := ioutil.WriteFile(lm.config.LicenseLocation, []byte("{\"list\": []}"), 0444); err != nil {
+	if err := os.WriteFile(lm.config.LicenseLocation, []byte("{\"list\": []}"), 0444); err != nil {
 		lm.logger.Warn("Failure to write non-license file: %v\n", err)
 	}
 
@@ -350,7 +349,7 @@ func saveServiceStates(fileLocation string, serviceStates []ServiceState) error 
 		logger.Warn("Failure to marshal states: %s\n", err.Error())
 		return err
 	}
-	if err = ioutil.WriteFile(fileLocation, data, 0644); err != nil {
+	if err = os.WriteFile(fileLocation, data, 0644); err != nil {
 		logger.Warn("Failure to write state file: %s\n", err.Error())
 		return err
 	}
@@ -364,7 +363,7 @@ func saveServiceStates(fileLocation string, serviceStates []ServiceState) error 
 // @return error - associated errors
 func LoadServiceStates(fileLocation string) ([]ServiceState, error) {
 	var serviceStates = make([]ServiceState, 0)
-	fileContent, err := ioutil.ReadFile(fileLocation)
+	fileContent, err := os.ReadFile(fileLocation)
 	if err != nil {
 		logger.Warn("Not able to find service state file.\n", err)
 		return nil, nil

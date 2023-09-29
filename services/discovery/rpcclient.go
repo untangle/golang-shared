@@ -28,7 +28,7 @@ func CallCollectors(args CallCollectorsRequest) (*CallCollectorsResponse, error)
 	rpcRequest := toRpcRequest(args)
 	var rpcResponse = &disco.CallDiscoveryResponse{}
 
-	if err := client.Call("DiscoveryRPCService.CallDiscovery", &rpcRequest, &rpcResponse); err != nil {
+	if err := client.Call("DiscoveryRPCService.CallDiscovery", &rpcRequest, rpcResponse); err != nil {
 		logger.Err("Failed to call DiscoveryRPCService.CallDiscovery %s\n", err.Error())
 		return nil, err
 	}

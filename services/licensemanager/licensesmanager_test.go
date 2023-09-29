@@ -22,6 +22,7 @@ var (
 	// Service states files starting at an expected state
 	servicesStatesMixedFile    = "./testdata/appstates/appstate_mixed.json"
 	servicesStatesEnabledFile  = "./testdata/appstates/appstate_enabled.json"
+	setServicesStatesMixedFile = "./testdata/appstates/appstate_service_state.json"
 	servicesStatesDisabledFile = "./testdata/appstates/appstate_disabled.json"
 	servicesStatesInvalidFile  = "./testdata/appstates/appstate_invalid.json"
 
@@ -78,6 +79,8 @@ func TestClsWatchdog(t *testing.T) {
 func TestLoadServiceStates(t *testing.T) {
 	// Test reading in
 	actualEnabled, err := LoadServiceStates(servicesStatesEnabledFile)
+	println("actualEnabled : ", actualEnabled)
+	t.Log("actualEnabled : ", actualEnabled)
 	assert.NoError(t, err)
 	if len(actualEnabled) < 1 {
 		t.Fatalf("No services read from %s could be used to conduct the test.\n", servicesStatesEnabledFile)
@@ -505,4 +508,32 @@ func disableDiscovery() (interface{}, []string, error) {
 // DisableApplicationControl
 func disableApplicationControl() (interface{}, []string, error) {
 	return false, []string{"application_control", "enabled"}, nil
+}
+
+func TestSetServices(t *testing.T) {
+	config := getTestConfig()
+	config.ServiceStateLocation = setServicesStatesMixedFile
+	lm := NewLicenseManager(config, &mocks.LoggerHelper{})
+
+	if startupErr := lm.Startup(); startupErr != nil {
+		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
+
+	defer func() {
+		_ = lm.Shutdown()
+	}()
+
+	enabledServicesMap := make(map[string]bool)
+	services := lm.GetServices()
+
+	for _, service := range services {
+		key := service.Name
+		value := service.State.AllowedState
+		if value == 0 {
+			enabledServicesMap[key] = true
+		}
+	}
+
+	err := lm.SetServices(enabledServicesMap)
+	assert.Nil(t, err)
 }

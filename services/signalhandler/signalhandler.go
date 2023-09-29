@@ -1,7 +1,6 @@
 package signalhandler
 
 import (
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"runtime"
@@ -57,7 +56,7 @@ func (hs *SignalHandler) HandleSignals() {
 func (hs *SignalHandler) dumpStack() {
 	buf := make([]byte, 1<<20)
 	stacklen := runtime.Stack(buf, true)
-	if err := ioutil.WriteFile("/tmp/reportd.stack", buf[:stacklen], 0644); err != nil {
+	if err := os.WriteFile("/tmp/reportd.stack", buf[:stacklen], 0644); err != nil {
 		logger.Warn("Failed to write data to file /tmp/reportd/stack with error : %v\n", err)
 	}
 	logger.Warn("Printing Thread Dump...\n")

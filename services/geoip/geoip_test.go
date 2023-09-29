@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -33,7 +32,7 @@ type TestGeoIP struct {
 // a temporary directory created for the test case. It will contain a
 // non-existent directory inside that directory.
 func (suite *TestGeoIP) getDBFilename() string {
-	tmpDir, err := ioutil.TempDir("", "GeoIPUnitTest")
+	tmpDir, err := os.MkdirTemp("", "GeoIPUnitTest")
 	suite.failIferror(err, "Can't open tmpDir")
 	fullFileName := path.Join(tmpDir, "extraComponent", MaxMindDbFileName)
 	suite.addDeleteFile(tmpDir)
@@ -110,7 +109,7 @@ func (suite *TestGeoIP) TestDBExtract() {
 		"85f9fef478a5366daac20c71b5d6784b90bce61fafc90502ff974f083c09563c"
 	openedFile, err := os.Open(fullFileName)
 	suite.failIferror(err, "Can't open produced file")
-	bytes, err := ioutil.ReadAll(openedFile)
+	bytes, err := io.ReadAll(openedFile)
 	suite.failIferror(err, "Couldn't read produced DB file")
 
 	hash := sha256.Sum256(bytes)
@@ -251,7 +250,7 @@ func (suite *TestGeoIP) getReaderCloserForFile(fname string) io.ReadCloser {
 	goodTarFile := data.GetTestFileLocation(fname)
 	file, err := os.Open(goodTarFile)
 	suite.failIferror(err, "Can't open GEOIP tar file.")
-	return ioutil.NopCloser(file)
+	return io.NopCloser(file)
 
 }
 func TestGeoIPSuite(t *testing.T) {

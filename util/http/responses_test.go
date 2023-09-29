@@ -2,7 +2,7 @@ package http
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -112,7 +112,7 @@ func TestResponseDecode(t *testing.T) {
 		resp := &http.Response{
 			Status:     "OK",
 			StatusCode: test.statusCode,
-			Body:       ioutil.NopCloser(bytes.NewBuffer(jsonValue)),
+			Body:       io.NopCloser(bytes.NewBuffer(jsonValue)),
 		}
 		okay, err := DecodeResponse(resp)
 

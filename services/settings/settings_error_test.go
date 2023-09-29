@@ -3,7 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 	"testing"
 
@@ -133,7 +133,7 @@ func TestDetermineSettingsError(t *testing.T) {
 	}
 
 	for _, testFile := range testFiles {
-		raw, err := ioutil.ReadFile(testFile)
+		raw, err := os.ReadFile(testFile)
 		assert.Nil(t, err, fmt.Sprintf("Cannot read testFile %s", testFile))
 
 		test := testCase{}
@@ -168,4 +168,49 @@ func TestDetermineSettingsError(t *testing.T) {
 			assert.Equal(t, test.ExpectedResult[i].AffectedValue, result[i].AffectedValue, testFile)
 		}
 	}
+}
+
+func TestDetermineChangeSet(t *testing.T) {
+	// Sample old and new settings with multiple key-value pairs
+	oldSettings := map[string]interface{}{
+		"key1": true,
+		"key2": false,
+		"key3": "value",
+		"key4": 42,
+		"key5": []string{"a", "b", "c"},
+	}
+
+	newSettings := map[string]interface{}{
+		"key2": true,
+		"key3": "new_value",
+		"key4": 100,
+		"key5": []string{"x", "y", "z"},
+		"key6": "new_key",
+	}
+
+	// Call the determineChangeSet function with the sample settings
+	deletedChanges, disableChanges, enableChanges, err := determineChangeSet(oldSettings, newSettings)
+
+	logger.Info("deletedChanges: %v\n", deletedChanges)
+	logger.Info("disableChanges: %v\n", disableChanges)
+	logger.Info("enableChanges: %v\n", enableChanges)
+	logger.Info("err: %v\n", err)
+
+	// Check the behavior and output
+	assert.NoError(t, err, "Expected no error")
+
+	// Validate the deleted changes
+	assert.Equal(t, 1, len(deletedChanges), "Expected one deleted change")
+	assert.Equal(t, "delete", deletedChanges[0].Type, "Expected deleted change type")
+	assert.Equal(t, "key1", deletedChanges[0].Path[0], "Expected deleted field 'key6'")
+
+	// Validate the disable changes
+	assert.Equal(t, 0, len(disableChanges), "Expected one disable change")
+
+	// Validate the enable changes
+	assert.Equal(t, 1, len(enableChanges), "Expected one enable change")
+	assert.Equal(t, "update", enableChanges[0].Type, "Expected enable change type")
+	assert.Equal(t, "key2", enableChanges[0].Path[0], "Expected enable field 'key2'")
+	assert.True(t, enableChanges[0].To.(bool), "Expected enable change 'To' value to be true")
+	assert.False(t, enableChanges[0].From.(bool), "Expected enable change 'From' value to be false")
 }

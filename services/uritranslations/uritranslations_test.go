@@ -32,11 +32,6 @@ func TestGetURI(t *testing.T) {
 	// Test non-existent URI
 	_, err = GetURI("https://example.com/test3")
 	assert.Error(t, err, "Failed to get error")
-
-	/*
-		if found --> error = nil
-		not found --> error = error exist
-	*/
 }
 
 func TestGetURIWithPath(t *testing.T) {

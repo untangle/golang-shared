@@ -1,7 +1,6 @@
 package settingsutil
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,13 +14,13 @@ import (
 // basically, use the returned string to refer to the new copied
 // filename and defer calling the second argument.
 func CopySettingsToTemp(t testing.TB, original string) (string, func()) {
-	dir, err := ioutil.TempDir("/tmp/", "unit-test")
+	dir, err := os.MkdirTemp("/tmp/", "unit-test")
 	require.Nil(t, err)
-	settingsBytes, err := ioutil.ReadFile(original)
+	settingsBytes, err := os.ReadFile(original)
 	require.Nil(t, err)
 	newName := filepath.Base(original)
 	fullPath := filepath.Join(dir, newName)
-	err = ioutil.WriteFile(fullPath, settingsBytes, 0666)
+	err = os.WriteFile(fullPath, settingsBytes, 0666)
 	require.Nil(t, err)
 	return fullPath, func() {
 		os.RemoveAll(dir)

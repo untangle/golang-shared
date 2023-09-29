@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -195,7 +194,7 @@ func RegisterSyncCallback(callback func()) {
 func readSettingsFileJSON(filename string) (map[string]interface{}, error) {
 	saveLocker.RLock()
 	defer saveLocker.RUnlock()
-	raw, err := ioutil.ReadFile(filename)
+	raw, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

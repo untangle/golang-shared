@@ -3,7 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/mitchellh/mapstructure"
@@ -54,7 +54,7 @@ func IsApiError(err error) bool {
 func unmarshalResponse(
 	resp *http.Response,
 	value interface{}) error {
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf(
 			"unable to read http response: %w",
