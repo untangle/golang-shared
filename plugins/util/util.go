@@ -26,11 +26,6 @@ func PluginShutdown() {
 // @param executable - executable to run sighup on
 // @return any error from running
 func RunSighup(executable string) error {
-	logger.Info("Calling script /usr/bin/updateSysdbSignal")
-	pidStr, err := exec.Command("/usr/bin/updateSysdbSignal").CombinedOutput()
-	if err != nil {
-		logger.Info("Failure to run script /usr/bin/updateSysdbSignal")
-	}
 	return SendSignal(executable, syscall.SIGHUP)
 }
 
@@ -46,7 +41,7 @@ func RunSigusr1(executable string) error {
 // @param signal syscall.Signal - the signal type to send
 func SendSignal(executable string, signal syscall.Signal) error {
 
-	logger.Info("Sending %s to %s\n", signal, executable)
+	logger.Debug("Sending %s to %s\n", signal, executable)
 
 	pidStr, err := exec.Command("pgrep", "-of", executable).CombinedOutput()
 	if err != nil {
