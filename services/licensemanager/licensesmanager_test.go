@@ -79,8 +79,6 @@ func TestClsWatchdog(t *testing.T) {
 func TestLoadServiceStates(t *testing.T) {
 	// Test reading in
 	actualEnabled, err := LoadServiceStates(servicesStatesEnabledFile)
-	println("actualEnabled : ", actualEnabled)
-	t.Log("actualEnabled : ", actualEnabled)
 	assert.NoError(t, err)
 	if len(actualEnabled) < 1 {
 		t.Fatalf("No services read from %s could be used to conduct the test.\n", servicesStatesEnabledFile)

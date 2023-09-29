@@ -191,11 +191,6 @@ func TestDetermineChangeSet(t *testing.T) {
 	// Call the determineChangeSet function with the sample settings
 	deletedChanges, disableChanges, enableChanges, err := determineChangeSet(oldSettings, newSettings)
 
-	logger.Info("deletedChanges: %v\n", deletedChanges)
-	logger.Info("disableChanges: %v\n", disableChanges)
-	logger.Info("enableChanges: %v\n", enableChanges)
-	logger.Info("err: %v\n", err)
-
 	// Check the behavior and output
 	assert.NoError(t, err, "Expected no error")
 

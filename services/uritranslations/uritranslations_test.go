@@ -22,7 +22,6 @@ func TestGetURI(t *testing.T) {
 
 	// Test existing URI
 	result, err := GetURI("https://example.com/test1")
-	logger.Warn("result: %v\n", result)
 	assert.NoError(t, err, "Failed to get URI")
 
 	expectedResponse := testURI
@@ -49,8 +48,6 @@ func TestGetURIWithPath(t *testing.T) {
 
 	// Test existing URI with path substitution
 	result, err := GetURIWithPath("https://example.com/test1/api")
-	logger.Warn("result: %v\n", result)
-	logger.Warn("err: %v\n", err)
 	assert.NoError(t, err, "Failed to get URI with path")
 
 	expectedResponse := url1
@@ -59,8 +56,6 @@ func TestGetURIWithPath(t *testing.T) {
 
 	// Test non-existent URI
 	result, err = GetURIWithPath("https://example.com/test3")
-	logger.Warn("result: %v\n", result)
-	logger.Warn("err: %v\n", err)
 	assert.Nil(t, err, "Failed to get error")
 }
 
