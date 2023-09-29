@@ -524,8 +524,8 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 		cb()
 	}
 
-	logger.Debug("Sighup: %v\n", ShouldRunSighup)
-	logger.Debug("Executables: %v\n", SighupExecutables)
+	logger.Info("Sighup: %v\n", ShouldRunSighup)
+	logger.Info("Executables: %v\n", SighupExecutables)
 	//Check if network discovery is enabled
 	isDiscoveryEnabled, err := getSettingsFromJSON(jsonObject, []string{"discovery", "enabled"})
 	if err != nil {
@@ -538,8 +538,11 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 				logger.Info("Discovery is not enabled hence skipping sighup\n")
 				continue
 			}
+			logger.Info("Calling RunSighup\n")
 			err = util.RunSighup(executable)
+			logger.Info("Completed RunSighup\n")
 			if err != nil {
+				logger.Info("Failed RunSighup\n")
 				logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
 				// do not return err here to the consumer when sighup fails
 				return output, nil
