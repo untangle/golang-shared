@@ -26,6 +26,8 @@ func PluginShutdown() {
 // @param executable - executable to run sighup on
 // @return any error from running
 func RunSighup(executable string) error {
+	logger.Info("Calling the script!\n")
+	exec.Command("/usr/bin/updateSysdbSignal")
 	return SendSignal(executable, syscall.SIGHUP)
 }
 
