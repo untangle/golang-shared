@@ -48,7 +48,7 @@ type LicenseManager struct {
 // this is being used by the GlobalPluginManager
 func NewLicenseManager(config *Config, logger loggerModel.LoggerLevels) *LicenseManager {
 	if config == nil {
-		logger.Err("Invalid config used when creating the License Manager")
+		logger.Err("Invalid config used when creating the License Manager\n")
 		return nil
 	}
 
@@ -281,7 +281,7 @@ func licenseFileExists(filename string) bool {
 func (lm *LicenseManager) shutdownServices() {
 	err := os.Remove(lm.config.LicenseLocation)
 	if err != nil {
-		lm.logger.Err("Could not remove the license file when shutting down services: %v", err)
+		lm.logger.Err("Could not remove the license file when shutting down services: %v\n", err)
 	}
 
 	err = ioutil.WriteFile(lm.config.LicenseLocation, []byte("{\"list\": []}"), 0444)

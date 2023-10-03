@@ -200,7 +200,7 @@ func (file *SettingsFile) RestoreSettingsFromFile(fileData []byte, exceptions ..
 	} else {
 		if data, ok := foundFiles[fileName]; ok {
 			settingsData = data
-			logger.Debug("Retrieved settings restore file from tar.")
+			logger.Debug("Retrieved settings restore file from tar.\n")
 		}
 	}
 

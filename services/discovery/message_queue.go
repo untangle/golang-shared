@@ -37,7 +37,7 @@ func MergeZmqMessageIntoDeviceList(devlist *DevicesList, device *DeviceEntry, ca
 func checkStaleNeigh(devices map[string]*DeviceEntry, neighDevice map[string]*disco.NEIGH, macAddress string) bool {
 	oldEntry, ok := devices[macAddress]
 	if !ok {
-		logger.Debug("Error reading device list")
+		logger.Debug("Error reading device list\n")
 		return false
 	}
 	var knownNeighState, newNeighState *disco.NEIGH

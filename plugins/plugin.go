@@ -213,7 +213,7 @@ func (control *PluginControl) Startup() {
 					plugin.Name(),
 					err))
 			} else {
-				logger.Crit("couldn't startup plugin %s: %s",
+				logger.Crit("couldn't startup plugin %s: %s\n",
 					plugin.Name(),
 					err)
 			}

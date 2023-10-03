@@ -88,7 +88,7 @@ func (cache *LruCache) Put(key string, value interface{}) {
 		cache.list.MoveToFront(node)
 		node.Value.(*list.Element).Value = KeyPair{Key: key, Value: value}
 
-		logger.Debug("Updated the element with key %s in the cache named %s", key, cache.cacheName)
+		logger.Debug("Updated the element with key %s in the cache named %s\n", key, cache.cacheName)
 	} else {
 		// Remove least recently used item in cache if the cache's capacity has reached its limit
 		if uint(cache.list.Len()) >= cache.capacity {
@@ -97,7 +97,7 @@ func (cache *LruCache) Put(key string, value interface{}) {
 			delete(cache.elements, elementToRemove)
 
 			cache.list.Remove(cache.list.Back())
-			logger.Debug("Removed element with key %s from the cache named %s", key, cache.cacheName)
+			logger.Debug("Removed element with key %s from the cache named %s\n", key, cache.cacheName)
 		}
 
 		newNode := &list.Element{
@@ -109,7 +109,7 @@ func (cache *LruCache) Put(key string, value interface{}) {
 
 		mostRecentlyUsed := cache.list.PushFront(newNode)
 		cache.elements[key] = mostRecentlyUsed
-		logger.Debug("Added element with key %s to the cache named %s", key, cache.cacheName)
+		logger.Debug("Added element with key %s to the cache named %s\n", key, cache.cacheName)
 	}
 }
 
@@ -120,7 +120,7 @@ func (cache *LruCache) removeElementNoLock(key string) {
 	if node, ok := cache.elements[key]; ok {
 		delete(cache.elements, key)
 		cache.list.Remove(node)
-		logger.Debug("Removed element with key %s from the cache name %s", key, cache.cacheName)
+		logger.Debug("Removed element with key %s from the cache name %s\n", key, cache.cacheName)
 	}
 }
 
@@ -137,7 +137,7 @@ func (cache *LruCache) Clear() {
 	defer cache.cacheMutex.Unlock()
 	cache.elements = make(map[string]*list.Element)
 	cache.list.Init()
-	logger.Debug("Cleared cache of name %s", cache.cacheName)
+	logger.Debug("Cleared cache of name %s\n", cache.cacheName)
 }
 
 // Gets the most recently looked up value in the cache

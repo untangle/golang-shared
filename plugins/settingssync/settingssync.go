@@ -42,14 +42,14 @@ func (settingsSync *SettingsSync) SyncSettings() {
 
 		updatedSettings, err := syncer.GetCurrentSettingsStruct()
 		if err != nil {
-			logger.Err("An error occurred and could not sync settings: %s", err.Error())
+			logger.Err("An error occurred and could not sync settings: %s\n", err.Error())
 			continue
 		}
 
 		if !syncer.InSync(updatedSettings) {
 
 			if err := syncer.SyncSettings(updatedSettings); err != nil {
-				logger.Err("SettingsSync: %s", err.Error())
+				logger.Err("SettingsSync: %s\n", err.Error())
 				continue
 			}
 		}

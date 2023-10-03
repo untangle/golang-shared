@@ -26,7 +26,7 @@ func TestValidateDiscoverySettings(t *testing.T) {
 	assert.Nil(t, err, "error unmarshalling test file")
 
 	for testIndex, test := range testObject {
-		logger.Info("Test %v:%v", testIndex, test.Description)
+		logger.Info("Test %v:%v\n", testIndex, test.Description)
 		bodyBytes, err := json.Marshal(test.SettingsObj)
 		assert.Nil(t, err, "error marshalling test case %v:%v", testIndex, test.Description)
 

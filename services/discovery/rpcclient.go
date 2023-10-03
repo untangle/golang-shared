@@ -15,7 +15,7 @@ const (
 func CallCollectors(args CallCollectorsRequest) (*CallCollectorsResponse, error) {
 	logger.Debug("CallCollectors called\n")
 	if len(args.Collectors) == 0 {
-		logger.Warn("CallCollectors called but no collector specified!")
+		logger.Warn("CallCollectors called but no collector specified!\n")
 	}
 
 	client, err := rpc.DialHTTP(network, address)
