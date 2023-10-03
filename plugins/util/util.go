@@ -27,7 +27,7 @@ func PluginShutdown() {
 // @return any error from running
 func RunSighup(executable string) error {
 	logger.Info("Calling the script!\n")
-	outBytes, err := exec.Command("/usr/bin/updateSysdbSignal").CombinedOutput()
+	exec.Command("/usr/bin/updateSysdbSignal").Run()
 	return SendSignal(executable, syscall.SIGHUP)
 }
 
