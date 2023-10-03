@@ -59,7 +59,7 @@ func TestSocketServer(t *testing.T) {
 	// Capture the server's response
 	response, err := reqSocket.RecvMessageBytes(zmq.DONTWAIT)
 	if err != nil {
-		t.Fatalf("Error receiving response from server: %v", err)
+		t.Fatalf("Error receiving response from server: %v\n", err)
 	}
 
 	// Check the server's response

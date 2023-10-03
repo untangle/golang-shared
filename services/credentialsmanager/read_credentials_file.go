@@ -15,7 +15,7 @@ func (cm *credentialsManager) readFile() error {
 
 	credentials := map[string]string{}
 	if err := json.Unmarshal(raw, &credentials); err != nil {
-		cm.logger.Err("Error unmarshalling file at path %s: %s", cm.fileLocation, err)
+		cm.logger.Err("Error unmarshalling file at path %s: %s\n", cm.fileLocation, err)
 		return err
 	}
 

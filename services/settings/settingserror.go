@@ -169,7 +169,7 @@ func determineChangeSet(jsonSettingsOld map[string]interface{}, jsonSettings map
 	// use the diff package to get the diff changes
 	changes, diffErr := diff.Diff(jsonSettingsOld, jsonSettings)
 	if diffErr != nil {
-		logger.Warn("Failed to diff the json settings")
+		logger.Warn("Failed to diff the json settings\n")
 		return nil, nil, nil, diffErr
 	}
 

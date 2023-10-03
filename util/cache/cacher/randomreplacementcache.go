@@ -93,7 +93,7 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 	// Update element if already present in cache
 	if _, ok := cache.elements[key]; ok {
 		cache.elements[key].value = value
-		logger.Debug("Updated the element with key %s in the cache named %s", key, cache.cacheName)
+		logger.Debug("Updated the element with key %s in the cache named %s\n", key, cache.cacheName)
 	} else {
 		// Remove element randomly if the capacity has been met
 		if cache.totalElements >= cache.maxCapacity {
@@ -101,14 +101,14 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 			keyToRemove := cache.keys[indexToSwap]
 			cache.removeWithoutLock(keyToRemove)
 
-			logger.Debug("Removed element with key %s from the cache named %s", key, cache.cacheName)
+			logger.Debug("Removed element with key %s from the cache named %s\n", key, cache.cacheName)
 		}
 
 		// Add new element
 		cache.totalElements += 1
 		cache.elements[key] = &Value{keyIndex: cache.totalElements - 1, value: value}
 		cache.keys[cache.totalElements-1] = key
-		logger.Debug("Added element with key %s to the cache named %s", key, cache.cacheName)
+		logger.Debug("Added element with key %s to the cache named %s\n", key, cache.cacheName)
 	}
 }
 
@@ -147,7 +147,7 @@ func (cache *RandomReplacementCache) Clear() {
 	cache.elements = make(map[string]*Value, cache.maxCapacity)
 	cache.keys = make([]string, cache.maxCapacity)
 	cache.totalElements = 0
-	logger.Debug("Cleared cache of name %s", cache.cacheName)
+	logger.Debug("Cleared cache of name %s\n", cache.cacheName)
 }
 
 // Returns the total elements currently in the cache
