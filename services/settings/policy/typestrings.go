@@ -64,8 +64,8 @@ const (
 	// InterfaceType is a group type where all items are interface
 	// IDs (integers)
 	InterfaceType            ObjectType = "Interface"
-	InterfaceObjectType      ObjectType = "mfw-interfacezone-object"
-	InterfaceObjectGroupType ObjectType = "mfw-interfacezone-group"
+	InterfaceObjectType      ObjectType = "mfw-object-interfacezone"
+	InterfaceObjectGroupType ObjectType = "mfw-object-interfacezone-group"
 
 	// RuleTypes
 	ApplicationControlRuleObject ObjectType = "mfw-rule-applicationcontrol"
