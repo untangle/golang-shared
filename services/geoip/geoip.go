@@ -100,7 +100,6 @@ func (db *MaxMindGeoIPManager) downloadAndExtractDB() error {
 	if err != nil {
 		uid = "00000000-0000-0000-0000-000000000000"
 		logger.Warn("Unable to read UID: %s - Using all zeros\n", err.Error())
-		logger.Info("Unable to read UID: %s - Using all zeros\n", err.Error())
 	}
 	target := fmt.Sprintf(
 		"https://downloads.untangle.com/download.php?resource=geoipCountry&uid=%s",
@@ -111,14 +110,12 @@ func (db *MaxMindGeoIPManager) downloadAndExtractDB() error {
 	}
 	resp, err := http.Get(target)
 	if err != nil {
-		logger.Info("HTTP GET failure with target:", target)
 		return fmt.Errorf("HTTP GET failure: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		logger.Info("Failure in server response")
 		return fmt.Errorf("HTTP bad return code: %v, %v",
 			resp.StatusCode,
 			resp.Status)
@@ -215,19 +212,13 @@ func (db *MaxMindGeoIPManager) extractDBFile(reader io.ReadCloser) error {
 // validityOfDbDuration.
 func (db *MaxMindGeoIPManager) checkForDBFile() (bool, bool) {
 	filename := db.databaseFilename
-	logger.Info("checkForDBFile entrypoint")
 	if fileinfo, err := os.Stat(filename); err != nil {
-		logger.Info("No file is present")
 		return false, false
 	} else if fileinfo.Size() == 0 {
-		logger.Info("File size is zero")
 		return false, false
 	} else {
-		logger.Info("File is present")
 		filetime := fileinfo.ModTime()
-		logger.Info("File modification time:", filetime)
 		currtime := time.Now()
-		logger.Info("Current time is:", currtime)
 
 		// Return true if the time since the file modification time to
 		// now is less than the validity period (i.e. return true if
@@ -313,15 +304,11 @@ func (db *MaxMindGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 func (db *MaxMindGeoIPManager) Refresh() error {
 	is_file_valid, is_file_stale := db.checkForDBFile()
 	if !is_file_valid {
-		logger.Info("File is not valid\n")
 		err := db.downloadAndExtractDB()
 		if err != nil {
-			logger.Info("Error in downloading :%s\n", err.Error())
 			if !is_file_stale {
-				logger.Info("File is neither stale not valid :%s\n", err.Error())
 				return err
 			}
-			logger.Info("Download failed but stale file is present\n")
 		}
 		err = db.openDBFile()
 		if err != nil {
