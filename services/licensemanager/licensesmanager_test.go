@@ -67,7 +67,9 @@ func TestClsWatchdog(t *testing.T) {
 	}
 
 	defer func() {
-		_ = lm.Shutdown()
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
 	}()
 
 	go lm.clsWatchdog()
@@ -184,7 +186,9 @@ func TestShutdownServices(t *testing.T) {
 	}
 
 	defer func() {
-		_ = lm.Shutdown()
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
 	}()
 
 	lm.shutdownServices()
@@ -206,15 +210,23 @@ func TestSaveServiceStatesFrom(t *testing.T) {
 	}
 
 	defer func() {
-		_ = lm.Shutdown()
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
 	}()
 
 	// Setup the test by setting the service to a known state
-	_ = lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	setServiceStateErr := lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	if setServiceStateErr != nil {
+		lm.logger.Warn("Failed to set the desired state for service untangle-node-discovery with error %v\n", setServiceStateErr.Error())
+	}
 
 	lm.services["untangle-node-discovery"].State.AllowedState = StateDisable
 
-	_ = saveServiceStatesFromServices(serviceStatesTestUpdates, lm.services)
+	saveServiceStatesFromServicesErr := saveServiceStatesFromServices(serviceStatesTestUpdates, lm.services)
+	if saveServiceStatesFromServicesErr != nil {
+		lm.logger.Warn("Failed to set the desired state for service untangle-node-discovery with error %v\n", saveServiceStatesFromServicesErr.Error())
+	}
 
 	// Read back in the states
 	statesFromFile, err := LoadServiceStates(serviceStatesTestUpdates)
@@ -250,11 +262,17 @@ func TestSaveServiceStates(t *testing.T) {
 	}
 
 	defer func() {
-		_ = lm.Shutdown()
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
 	}()
 
 	// Setup the test by setting the service to a known state
-	_ = lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	setServiceStateErr := lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	if setServiceStateErr != nil {
+		lm.logger.Warn("Failed to set the desired state for service untangle-node-discovery with error %v\n", setServiceStateErr.Error())
+	}
+
 	lm.services["untangle-node-discovery"].State.AllowedState = StateDisable
 
 	serviceStates := []ServiceState{}
@@ -262,7 +280,10 @@ func TestSaveServiceStates(t *testing.T) {
 		serviceStates = append(serviceStates, v.State)
 	}
 
-	_ = saveServiceStates(serviceStatesTestUpdates, serviceStates)
+	saveServiceStatesErr := saveServiceStates(serviceStatesTestUpdates, serviceStates)
+	if saveServiceStatesErr != nil {
+		lm.logger.Warn("Failed to saves the services states for service with error %v\n", saveServiceStatesErr.Error())
+	}
 
 	// Read back in the states
 	statesFromFile, err := LoadServiceStates(serviceStatesTestUpdates)
@@ -301,7 +322,9 @@ func TestSetServiceStateLicenseManager(t *testing.T) {
 	}
 
 	defer func() {
-		_ = lm.Shutdown()
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
 	}()
 
 	// Service can be found, and its state is updated only in the internal data structures
@@ -518,7 +541,9 @@ func TestSetServices(t *testing.T) {
 	}
 
 	defer func() {
-		_ = lm.Shutdown()
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
 	}()
 
 	enabledServicesMap := make(map[string]bool)

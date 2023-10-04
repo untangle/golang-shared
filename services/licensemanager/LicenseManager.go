@@ -291,7 +291,9 @@ func (lm *LicenseManager) shutdownServices() {
 	}
 
 	for _, service := range lm.services {
-		_ = service.setServiceState(StateDisable)
+		if err := service.setServiceState(StateDisable); err != nil {
+			lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", service, err.Error())
+		}
 	}
 
 	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
