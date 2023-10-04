@@ -1,8 +1,12 @@
 package util
 
 import (
+	"math/rand"
 	"os"
+	"reflect"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -12,6 +16,94 @@ const (
 	testTar   string = "./testdata/settings_test_unzip.backup.tar"
 	testJson  string = "./testdata/expected_settings.json"
 )
+
+// Test RandomizeSlice
+func TestRandomizeSlice(t *testing.T) {
+	seeds := []int64{10, 20, 30}
+	tests := []struct {
+		name   string
+		actual []interface{}
+	}{
+		{
+			name:   "Randomize empty slice",
+			actual: []interface{}{},
+		},
+		{
+			name:   "Randomize single-element slice",
+			actual: []interface{}{1},
+		},
+		{
+			name:   "Randomize multiple-element slice",
+			actual: []interface{}{1, 2, 3, 4, 5},
+		},
+	}
+
+	for _, seed := range seeds {
+		rand.Seed(seed)
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				// Make a copy of the input slice to compare with the result
+				inputCopy := make([]interface{}, len(test.actual))
+				copy(inputCopy, test.actual)
+
+				randomizeSlice(test.actual)
+
+				// Check if the input slice is not equal to the expected slice.
+				// lists of size <= 1 excluded.
+				if len(test.actual) > 1 && reflect.DeepEqual(test.actual, inputCopy) {
+					t.Errorf("Expected slice to be randomized, but it's the same as the original: %v", test.actual)
+				}
+			})
+		}
+	}
+}
+
+func TestWaitTimeout(t *testing.T) {
+	tests := []struct {
+		name      string
+		timeout   time.Duration
+		expectErr bool
+	}{
+		{
+			name:      "No timeout",
+			timeout:   2 * time.Second,
+			expectErr: false,
+		},
+		{
+			name:      "Timeout",
+			timeout:   500 * time.Millisecond,
+			expectErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var wg sync.WaitGroup
+
+			// Simulate some work
+			wg.Add(1)
+			go func() {
+				time.Sleep(1 * time.Second)
+				wg.Done()
+			}()
+
+			start := time.Now()
+			err := waitTimeout(&wg, test.timeout)
+			elapsed := time.Since(start)
+
+			if test.expectErr && !err {
+				t.Error("Expected timeout error, but got none")
+			} else if !test.expectErr && err {
+				t.Error("Expected no timeout error, but got one")
+			}
+
+			if test.expectErr && elapsed < test.timeout {
+				t.Errorf("Expected elapsed time (%v) to be greater than or equal to the timeout (%v)", elapsed, test.timeout)
+			}
+		})
+	}
+}
 
 // Tests extracting a tar from an array of bytes
 func TestExtractSettingsFromTar(t *testing.T) {
