@@ -197,9 +197,8 @@ func TestRulesUnmarshal(t *testing.T) {
 							"description": "NATRuleObject",
 							"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
 							"action": {
-							"type": "SET_CONFIGURATION",
-							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-							"key": "mfw-rule-nat"
+							"type": "SNAT",
+                                                        "snat_address": "192.168.56.2"
 							}
 							}`,
 			expectedErr: false,
@@ -209,9 +208,8 @@ func TestRulesUnmarshal(t *testing.T) {
 				Description: "NATRuleObject",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
-					Type: "SET_CONFIGURATION",
-					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "mfw-rule-nat",
+					Type:        "SNAT",
+					SNATAddress: "192.168.56.2",
 				},
 				ID: "c2428365-65be-4904-bfc0-bde2b310fedf",
 			},
@@ -224,10 +222,11 @@ func TestRulesUnmarshal(t *testing.T) {
 							"description": "PortForwardRuleObject",
 							"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
 							"action": {
-							"type": "SET_CONFIGURATION",
-							"configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-							"key": "mfw-rule-portforward"
-							}
+							    "type": "DNAT",
+                                                            "dnat_address": "192.168.100.3",
+                                                            "dnat_port": "81"
+                                                         }
+
 							}`,
 			expectedErr: false,
 			expected: Object{
@@ -236,9 +235,9 @@ func TestRulesUnmarshal(t *testing.T) {
 				Description: "PortForwardRuleObject",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
-					Type: "SET_CONFIGURATION",
-					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "mfw-rule-portforward",
+					Type:        "DNAT",
+					DNATAddress: "192.168.100.3",
+					DNATPort:    "81",
 				},
 				ID: "c2428365-65be-4905-bfc0-bde2b310fedf",
 			},

@@ -46,9 +46,12 @@ type PolicyConfiguration = Object
 
 // Action struct is used for rule object types (Conditions + Action)
 type Action struct {
-	Key  string `json:"key"`
-	UUID string `json:"configuration_id"`
-	Type string `json:"type"`
+	Key         string `json:"key"`
+	UUID        string `json:"configuration_id"`
+	Type        string `json:"type"`
+	DNATAddress string `json:"dnat_address"`
+	DNATPort    string `json:"dnat_port"`
+	SNATAddress string `json:"snat_address"`
 }
 
 // ServiceEndpoint is a particular group type, a group may be
