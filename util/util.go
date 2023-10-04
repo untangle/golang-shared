@@ -21,9 +21,9 @@ func ContainsString(s []string, e string) bool {
 	return false
 }
 
-// waitTimeout waits for the waitgroup for the specified max timeout.
+// WaitGroupDoneOrTimeout waits for the waitgroup for the specified max timeout.
 // Returns true if waiting timed out.
-func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
+func WaitGroupDoneOrTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 	c := make(chan struct{})
 	go func() {
 		defer close(c)
@@ -31,14 +31,14 @@ func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 	}()
 	select {
 	case <-c:
-		return false // completed normally
+		return false
 	case <-time.After(timeout):
-		return true // timed out
+		return true
 	}
 }
 
 // Helper function to randomize the order of an array
-func randomizeSlice[T any](slice []T) {
+func RandomizeSlice[T any](slice []T) {
 	n := len(slice)
 
 	// Shuffle

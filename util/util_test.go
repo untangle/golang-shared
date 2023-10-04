@@ -47,7 +47,7 @@ func TestRandomizeSlice(t *testing.T) {
 				inputCopy := make([]interface{}, len(test.actual))
 				copy(inputCopy, test.actual)
 
-				randomizeSlice(test.actual)
+				RandomizeSlice(test.actual)
 
 				// Check if the input slice is not equal to the expected slice.
 				// lists of size <= 1 excluded.
@@ -89,7 +89,7 @@ func TestWaitTimeout(t *testing.T) {
 			}()
 
 			start := time.Now()
-			err := waitTimeout(&wg, test.timeout)
+			err := WaitGroupDoneOrTimeout(&wg, test.timeout)
 			elapsed := time.Since(start)
 
 			if test.expectErr && !err {
