@@ -213,15 +213,15 @@ func (db *MaxMindGeoIPManager) extractDBFile(reader io.ReadCloser) error {
 // checkForDBFile checks if the MaxMind geoIP database file exists and
 // is current. 'current' is defined by the value of
 // validityOfDbDuration.
-func (db *MaxMindGeoIPManager) checkForDBFile() bool {
+func (db *MaxMindGeoIPManager) checkForDBFile() (bool, bool) {
 	filename := db.databaseFilename
 	logger.Info("checkForDBFile entrypoint")
 	if fileinfo, err := os.Stat(filename); err != nil {
 		logger.Info("No file is present")
-		return false
+		return false, false
 	} else if fileinfo.Size() == 0 {
 		logger.Info("File size is zero")
-		return false
+		return false, false
 	} else {
 		logger.Info("File is present")
 		filetime := fileinfo.ModTime()
@@ -232,7 +232,10 @@ func (db *MaxMindGeoIPManager) checkForDBFile() bool {
 		// Return true if the time since the file modification time to
 		// now is less than the validity period (i.e. return true if
 		// the file is not stale yet).
-		return currtime.Sub(filetime) < validityOfDbDuration
+		if currtime.Sub(filetime) < validityOfDbDuration {
+			return true, false
+		}
+		return false, true
 	}
 }
 
@@ -308,12 +311,17 @@ func (db *MaxMindGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 // this call the database should always be opened in the
 // MaxMindGeoIPManager object.
 func (db *MaxMindGeoIPManager) Refresh() error {
-	if !db.checkForDBFile() {
-		logger.Info("File is stale/doesn't exist")
+	is_file_valid, is_file_stale := db.checkForDBFile()
+	if !is_file_valid {
+		logger.Info("File is not valid\n")
 		err := db.downloadAndExtractDB()
 		if err != nil {
-			logger.Info("Error in downloading/extracting: %s", err.Error())
-			return err
+			logger.Info("Error in downloading :%s\n", err.Error())
+			if !is_file_stale {
+				logger.Info("File is neither stale not valid :%s\n", err.Error())
+				return err
+			}
+			logger.Info("Download failed but stale file is present\n")
 		}
 		err = db.openDBFile()
 		if err != nil {
