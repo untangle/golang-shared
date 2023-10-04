@@ -2,7 +2,7 @@ package licensemanager
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	"github.com/untangle/golang-shared/services/logger"
 )
@@ -26,7 +26,7 @@ func ReadCommandFileAndGetStatus(name string) (bool, error) {
 	filename := ServicesAllowedStatesLocation + name
 
 	// read file
-	fileContent, err := ioutil.ReadFile(filename)
+	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		logger.Warn("Not able to find service state file %s: %s\n", name, err.Error())
 		return false, err

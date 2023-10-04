@@ -1,7 +1,6 @@
 package signalhandler
 
 import (
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"runtime"
@@ -57,7 +56,10 @@ func (hs *SignalHandler) HandleSignals() {
 func (hs *SignalHandler) dumpStack() {
 	buf := make([]byte, 1<<20)
 	stacklen := runtime.Stack(buf, true)
-	ioutil.WriteFile("/tmp/reportd.stack", buf[:stacklen], 0644)
+	if err := os.WriteFile("/tmp/reportd.stack", buf[:stacklen], 0644); err != nil {
+		logger.Warn("Failed to write data to file /tmp/reportd/stack with error : %v\n", err)
+	}
+	logger.Warn("Printing Thread Dump...\n")
 	logger.Warn("Printing Thread Dump...\n")
 	logger.Warn("\n\n%s\n\n", buf[:stacklen])
 	logger.Warn("Thread dump complete.\n")
@@ -76,10 +78,7 @@ func (hs *SignalHandler) PrintStats() {
 
 // GetShutdownFlag returns the shutdown flag for kernel
 func (hs *SignalHandler) GetShutdownFlag() bool {
-	if atomic.LoadUint32(&hs.shutdownFlag) != 0 {
-		return true
-	}
-	return false
+	return atomic.LoadUint32(&hs.shutdownFlag) != 0
 }
 
 // SetShutdownFlag sets the shutdown flag for kernel

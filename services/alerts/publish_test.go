@@ -1,12 +1,14 @@
 package alerts
 
 import (
-	"github.com/golang/protobuf/proto"
+	"fmt"
+	"testing"
+
 	zmq "github.com/pebbe/zmq4"
 	"github.com/stretchr/testify/assert"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"github.com/untangle/golang-shared/testing/mocks"
-	"testing"
+	"google.golang.org/protobuf/proto"
 )
 
 const testSocketAddress = "inproc://testInProcDescriptor"
@@ -14,7 +16,8 @@ const testSocketAddress = "inproc://testInProcDescriptor"
 func TestAlertPublisher(t *testing.T) {
 	//Set up
 	handler := newTestAlertHandler()
-	handler.Startup()
+	startupErr := handler.Startup()
+	assert.Nil(t, startupErr, "Failed to startup Zmq publisher in background")
 
 	subscriberSocket, err := createTestSubscriberSocket(testSocketAddress)
 	assert.Nil(t, err)
@@ -38,7 +41,9 @@ func TestAlertPublisher(t *testing.T) {
 	})
 
 	// Tear down
-	handler.Shutdown()
+	if shutdownErr := handler.Shutdown(); shutdownErr != nil {
+		fmt.Printf("Failed to stop the goroutine running the ZMQ subscriber %v\n", shutdownErr.Error())
+	}
 	_ = subscriberSocket.Close()
 }
 

@@ -44,7 +44,7 @@ func Shutdown() {
 // Build maps with uri an hosts as keys.
 func buildMaps() {
 	var entry *URITranslation
-	var hostKey = ""
+	var hostKey string
 
 	path := []string{"uris", "uriTranslations"}
 
@@ -83,7 +83,6 @@ func buildMaps() {
 
 		// Parse URITranslation fields into URL
 		uri, err := url.Parse(entry.URI)
-		hostKey = ""
 		if err != nil {
 			logger.Info("Unable to parse URI=%s with error=%v\n", entry.URI, err.Error())
 			continue
@@ -146,14 +145,14 @@ func getURITranslation(uri string, path bool) (string, error) {
 		parsedURL.RawQuery = ""
 
 		mapMutex.RLock()
-		if path == true {
+		if path {
 			translatedURL, ok = hostMap[parsedURL.Host]
 		} else {
 			translatedURL, ok = uriMap[parsedURL.String()]
 		}
 		mapMutex.RUnlock()
 
-		if ok != true {
+		if !ok {
 			// Translation not found
 			logger.Err("Unable to find url=%v\n", uri)
 			err = fmt.Errorf("Unable to find url=%v", uri)
@@ -166,7 +165,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 				parsedURL.Host = translatedURL.Host
 			}
 			// Only add path if we're not explicitly overwrititng it.
-			if path == false && translatedURL.Path != "" {
+			if !path && translatedURL.Path != "" {
 				parsedURL.Path = translatedURL.Path
 			}
 			// Add query back.

@@ -1,9 +1,11 @@
 package settings
 
 import (
-	"github.com/stretchr/testify/assert"
+	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseSyncSettingsJsonOutput(t *testing.T) {
@@ -57,4 +59,49 @@ func TestParseSyncSettingsJsonOutput(t *testing.T) {
 		assert.Equal(t, expectedMap, mapOutput)
 		assert.Contains(t, err.Error(), "parse sync-settings output error:")
 	})
+}
+
+func TestWriteSettingsFileJSON(t *testing.T) {
+	// Create a temporary test file for writing
+	testFile, err := os.CreateTemp("", "test_settings.json")
+	assert.NoError(t, err, "Failed to create temporary file test_settings.json")
+	defer os.Remove(testFile.Name()) // Remove the temporary file after the test
+
+	// Define the JSON data to write to the file
+	jsonData := map[string]interface{}{
+		"key1": "value1",
+		"key2": 42,
+		"key3": true,
+	}
+
+	// Call the function to write JSON data to the test file
+	success, writeErr := writeSettingsFileJSON(jsonData, testFile)
+	assert.NoError(t, writeErr, "Error writing JSON to file")
+
+	// Ensure that the file was written successfully
+	assert.True(t, success, "writeSettingsFileJSON returned false for success")
+
+	// Read the content of the written file to verify
+	fileContent, readErr := os.ReadFile(testFile.Name())
+	assert.NoError(t, readErr, "Error reading file content")
+
+	// Unmarshal the file content to compare with the original JSON data
+	var parsedData map[string]interface{}
+	unmarshalErr := json.Unmarshal(fileContent, &parsedData)
+	assert.NoError(t, unmarshalErr, "Error unmarshalling file content")
+
+	// Compare the parsed data with the original JSON data
+	if !jsonEqual(parsedData, jsonData) {
+		t.Fatalf("Written JSON data does not match expected data")
+	}
+}
+
+// jsonEqual checks if two JSON objects are equal
+func jsonEqual(a, b map[string]interface{}) bool {
+	aJSON, errA := json.Marshal(a)
+	bJSON, errB := json.Marshal(b)
+	if errA != nil || errB != nil {
+		return false
+	}
+	return string(aJSON) == string(bJSON)
 }

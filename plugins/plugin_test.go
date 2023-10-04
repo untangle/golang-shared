@@ -208,8 +208,6 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			},
 			assertions: func() {
 				require.Equal(t, 1, len(helloConsumerPluginRegistry))
-				_, ok := helloConsumerPluginRegistry[0].(HelloType)
-				assert.True(t, ok)
 				helloConsumerPluginRegistry = []HelloType{}
 			},
 			consumers: []interface{}{
@@ -249,11 +247,6 @@ func TestPluginDependenciesAndConsumption(t *testing.T) {
 			assertions: func() {
 				require.Equal(t, 1, len(helloConsumerPluginRegistry))
 				require.Equal(t, 1, len(goodbyeConsumerPluginRegistry))
-				_, ok := helloConsumerPluginRegistry[0].(HelloType)
-				assert.True(t, ok)
-				_, ok = goodbyeConsumerPluginRegistry[0].(GoodbyeType)
-				assert.True(t, ok)
-
 				// here check that the same plugin,
 				// which implements multiple
 				// interfaces, is registered to both

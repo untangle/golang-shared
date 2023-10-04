@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -195,7 +194,7 @@ func RegisterSyncCallback(callback func()) {
 func readSettingsFileJSON(filename string) (map[string]interface{}, error) {
 	saveLocker.RLock()
 	defer saveLocker.RUnlock()
-	raw, err := ioutil.ReadFile(filename)
+	raw, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +226,10 @@ func writeSettingsFileJSON(jsonObject map[string]interface{}, file *os.File) (bo
 	if err != nil {
 		return false, err
 	}
-	file.Sync()
+
+	if err = file.Sync(); err != nil {
+		logger.Warn("Failed to commit current content of file to storage : %v\n", err.Error())
+	}
 
 	return true, nil
 }
@@ -427,7 +429,7 @@ func runSyncSettings(filename string, force bool) (string, error) {
 	logger.Warn("Failed to run sync-settings: %v\n", err.Error())
 	if err != nil && errParse == nil {
 		// return the trace and the error raised
-		return fmt.Sprintf("%v", data["traceback"]), errors.New(fmt.Sprintf("%v", data["raisedException"]))
+		return fmt.Sprintf("%v", data["traceback"]), fmt.Errorf("%v", data["raisedException"])
 	}
 
 	// in this case err is not nil, and we had a parsing error
@@ -507,7 +509,10 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 	}
 	defer outfile.Close()
 
-	tmpfile.Seek(0, 0) // go back to start of file
+	// go back to start of file
+	if _, err = tmpfile.Seek(0, 0); err != nil {
+		logger.Warn("Failed to set offset for read/write on a file: %v\n", err.Error())
+	}
 	_, err = io.Copy(outfile, tmpfile)
 	if err != nil {
 		logger.Warn("Failed to copy file: %v\n", err.Error())
@@ -529,7 +534,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 	}
 	if ShouldRunSighup {
 		for _, executable := range SighupExecutables {
-			if executable == "discoverd" && isDiscoveryEnabled.(bool) == false {
+			if executable == "discoverd" && !(isDiscoveryEnabled.(bool)) {
 				logger.Info("Discovery is not enabled hence skipping sighup\n")
 				continue
 			}

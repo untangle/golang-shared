@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -74,7 +73,7 @@ func (file *SettingsFile) GetAllSettings() (map[string]interface{}, error) {
 	file.mutex.RLock()
 	defer file.mutex.RUnlock()
 
-	raw, err := ioutil.ReadFile(file.filename)
+	raw, err := os.ReadFile(file.filename)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +261,7 @@ func (file *SettingsFile) GenerateBackupFile(backupGenerationScript string, scri
 		return "", nil, fmt.Errorf("failed to create the default settings file")
 	}
 
-	fileData, err := ioutil.ReadFile(settingsFile)
+	fileData, err := os.ReadFile(settingsFile)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to read the default settings file")
 	}

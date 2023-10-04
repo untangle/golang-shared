@@ -42,7 +42,10 @@ func (cpuProfiler *CPUProfiler) StartCPUProfile() error {
 		return err
 	}
 	logger.Alert("+++++ CPU profiling is active. Output file: %s +++++\n", cpuProfiler.CPUProfileFileName)
-	pprof.StartCPUProfile(cpu)
+
+	if err = pprof.StartCPUProfile(cpu); err != nil {
+		logger.Warn("Failed to enables CPU profiling for process: %v \n", err.Error())
+	}
 	cpuProfiler.IsRunning = true
 	return nil
 }

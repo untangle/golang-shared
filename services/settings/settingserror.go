@@ -191,11 +191,11 @@ func determineChangeSet(jsonSettingsOld map[string]interface{}, jsonSettings map
 				continue
 			}
 			// disable changes
-			if changeRaw.Type == "update" && change == false && oldVal == true {
+			if changeRaw.Type == "update" && !change && oldVal {
 				disableChanges = append(disableChanges, changeRaw)
 			}
 			// enable changes
-			if changeRaw.Type == "update" && change == true && oldVal == false {
+			if changeRaw.Type == "update" && change && !oldVal {
 				enableChanges = append(enableChanges, changeRaw)
 			}
 		}

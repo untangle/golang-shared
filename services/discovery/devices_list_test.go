@@ -103,9 +103,9 @@ func (suite *DeviceListTestSuite) TestMergeCollectors() {
 	expectedHostnameNmap := "new"
 
 	// Since maps have a random order, have to hard code the IPs to match up
-	lldpMerge := *suite.devicesTable[suite.mac4]
-	neighMerge := *suite.devicesTable[suite.mac3]
-	nmapMerge := *suite.devicesTable[suite.mac2]
+	lldpMerge := suite.devicesTable[suite.mac4]
+	neighMerge := suite.devicesTable[suite.mac3]
+	nmapMerge := suite.devicesTable[suite.mac2]
 
 	ipLldpMerge := lldpMerge.GetDeviceIPs()[0]
 	ipNeighMerge := neighMerge.GetDeviceIPs()[0]
@@ -115,9 +115,9 @@ func (suite *DeviceListTestSuite) TestMergeCollectors() {
 	neighMerge.Neigh = map[string]*disco.NEIGH{ipNeighMerge: {State: expectedStateNeigh, Ip: ipNeighMerge}}
 	nmapMerge.Nmap = map[string]*disco.NMAP{ipNmapMerge: {Hostname: expectedHostnameNmap, Ip: ipNmapMerge}}
 
-	suite.deviceList.MergeOrAddDeviceEntry(&lldpMerge, func() {})
-	suite.deviceList.MergeOrAddDeviceEntry(&neighMerge, func() {})
-	suite.deviceList.MergeOrAddDeviceEntry(&nmapMerge, func() {})
+	suite.deviceList.MergeOrAddDeviceEntry(lldpMerge, func() {})
+	suite.deviceList.MergeOrAddDeviceEntry(neighMerge, func() {})
+	suite.deviceList.MergeOrAddDeviceEntry(nmapMerge, func() {})
 
 	lldpDevice := suite.deviceList.getDeviceFromIPUnsafe(ipLldpMerge)
 	neighDevice := suite.deviceList.getDeviceFromIPUnsafe(ipNeighMerge)

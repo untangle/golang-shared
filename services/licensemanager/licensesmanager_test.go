@@ -22,6 +22,7 @@ var (
 	// Service states files starting at an expected state
 	servicesStatesMixedFile    = "./testdata/appstates/appstate_mixed.json"
 	servicesStatesEnabledFile  = "./testdata/appstates/appstate_enabled.json"
+	setServicesStatesMixedFile = "./testdata/appstates/appstate_service_state.json"
 	servicesStatesDisabledFile = "./testdata/appstates/appstate_disabled.json"
 	servicesStatesInvalidFile  = "./testdata/appstates/appstate_invalid.json"
 
@@ -61,14 +62,20 @@ func TestClsWatchdog(t *testing.T) {
 		return nil
 	}
 
-	lm.Startup()
-	defer lm.Shutdown()
+	if startupErr := lm.Startup(); startupErr != nil {
+		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
+
+	defer func() {
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
+	}()
 
 	go lm.clsWatchdog()
 	time.Sleep(time.Second * 2)
 
 	assert.True(t, watchdogAlerted)
-
 }
 
 func TestLoadServiceStates(t *testing.T) {
@@ -174,8 +181,15 @@ func TestLicenseFileExists(t *testing.T) {
 func TestShutdownServices(t *testing.T) {
 	lm := NewLicenseManager(getTestConfig(), &mocks.LoggerHelper{})
 
-	lm.Startup()
-	defer lm.Shutdown()
+	if startupErr := lm.Startup(); startupErr != nil {
+		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
+
+	defer func() {
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
+	}()
 
 	lm.shutdownServices()
 
@@ -191,15 +205,28 @@ func TestSaveServiceStatesFrom(t *testing.T) {
 	serviceStatesTestUpdatesLock.Lock()
 	defer serviceStatesTestUpdatesLock.Unlock()
 
-	lm.Startup()
-	defer lm.Shutdown()
+	if startupErr := lm.Startup(); startupErr != nil {
+		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
+
+	defer func() {
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
+	}()
 
 	// Setup the test by setting the service to a known state
-	lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	setServiceStateErr := lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	if setServiceStateErr != nil {
+		lm.logger.Warn("Failed to set the desired state for service untangle-node-discovery with error %v\n", setServiceStateErr.Error())
+	}
 
 	lm.services["untangle-node-discovery"].State.AllowedState = StateDisable
 
-	saveServiceStatesFromServices(serviceStatesTestUpdates, lm.services)
+	saveServiceStatesFromServicesErr := saveServiceStatesFromServices(serviceStatesTestUpdates, lm.services)
+	if saveServiceStatesFromServicesErr != nil {
+		lm.logger.Warn("Failed to set the desired state for service untangle-node-discovery with error %v\n", saveServiceStatesFromServicesErr.Error())
+	}
 
 	// Read back in the states
 	statesFromFile, err := LoadServiceStates(serviceStatesTestUpdates)
@@ -230,11 +257,22 @@ func TestSaveServiceStates(t *testing.T) {
 	serviceStatesTestUpdatesLock.Lock()
 	defer serviceStatesTestUpdatesLock.Unlock()
 
-	lm.Startup()
-	defer lm.Shutdown()
+	if startupErr := lm.Startup(); startupErr != nil {
+		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
+
+	defer func() {
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
+	}()
 
 	// Setup the test by setting the service to a known state
-	lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	setServiceStateErr := lm.services["untangle-node-discovery"].setServiceState(StateEnable)
+	if setServiceStateErr != nil {
+		lm.logger.Warn("Failed to set the desired state for service untangle-node-discovery with error %v\n", setServiceStateErr.Error())
+	}
+
 	lm.services["untangle-node-discovery"].State.AllowedState = StateDisable
 
 	serviceStates := []ServiceState{}
@@ -242,7 +280,10 @@ func TestSaveServiceStates(t *testing.T) {
 		serviceStates = append(serviceStates, v.State)
 	}
 
-	saveServiceStates(serviceStatesTestUpdates, serviceStates)
+	saveServiceStatesErr := saveServiceStates(serviceStatesTestUpdates, serviceStates)
+	if saveServiceStatesErr != nil {
+		lm.logger.Warn("Failed to saves the services states for service with error %v\n", saveServiceStatesErr.Error())
+	}
 
 	// Read back in the states
 	statesFromFile, err := LoadServiceStates(serviceStatesTestUpdates)
@@ -276,8 +317,15 @@ func TestSetServiceStateLicenseManager(t *testing.T) {
 	serviceStatesTestUpdatesLock.Lock()
 	defer serviceStatesTestUpdatesLock.Unlock()
 
-	lm.Startup()
-	defer lm.Shutdown()
+	if startupErr := lm.Startup(); startupErr != nil {
+		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
+
+	defer func() {
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
+	}()
 
 	// Service can be found, and its state is updated only in the internal data structures
 	err := lm.services["untangle-node-discovery"].setServiceState(StateEnable)
@@ -338,11 +386,13 @@ func (suite *LicenseManagerTestSuite) SetupSuite() {
 		"untangle-node-captiveportal":     {Name: "untangle-node-captiveportal", State: ServiceState{AllowedState: 0}},
 	}
 
-	suite.lm.Startup()
+	if startupErr := suite.lm.Startup(); startupErr != nil {
+		suite.lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
 }
 
 func (suite *LicenseManagerTestSuite) TearDownSuite() {
-	suite.lm.Shutdown()
+	_ = suite.lm.Shutdown()
 }
 
 func TestLicenseManagerTestSuite(t *testing.T) {
@@ -479,4 +529,34 @@ func disableDiscovery() (interface{}, []string, error) {
 // DisableApplicationControl
 func disableApplicationControl() (interface{}, []string, error) {
 	return false, []string{"application_control", "enabled"}, nil
+}
+
+func TestSetServices(t *testing.T) {
+	config := getTestConfig()
+	config.ServiceStateLocation = setServicesStatesMixedFile
+	lm := NewLicenseManager(config, &mocks.LoggerHelper{})
+
+	if startupErr := lm.Startup(); startupErr != nil {
+		lm.logger.Warn("Failed to to start Licence manager service : %v \n", startupErr.Error())
+	}
+
+	defer func() {
+		if shutdownErr := lm.Shutdown(); shutdownErr != nil {
+			lm.logger.Warn("Failed to to stop Licence manager service : %v \n", shutdownErr.Error())
+		}
+	}()
+
+	enabledServicesMap := make(map[string]bool)
+	services := lm.GetServices()
+
+	for _, service := range services {
+		key := service.Name
+		value := service.State.AllowedState
+		if value == 0 {
+			enabledServicesMap[key] = true
+		}
+	}
+
+	err := lm.SetServices(enabledServicesMap)
+	assert.Nil(t, err)
 }

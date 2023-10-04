@@ -3,7 +3,6 @@ package settings
 import (
 	"bufio"
 	"errors"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -34,7 +33,6 @@ func NewSyncSettings(settingsfile string, defaultsfile string, currentfile strin
 	s.UIDFile = uidfile
 
 	return s
-
 }
 
 // CreateDefaults creates the settings defauls.json file
@@ -48,13 +46,13 @@ func (s *SyncSettings) CreateDefaults() error {
 	}
 
 	// move the defaults. Have to read/write file to avoid docker copy errors
-	defaultsBytes, readErr := ioutil.ReadFile(s.TmpSettingsFile)
+	defaultsBytes, readErr := os.ReadFile(s.TmpSettingsFile)
 	if readErr != nil {
 		logger.Warn("Failure copying defaults over: %s\n", readErr.Error())
 		return readErr
 	}
 
-	writeErr := ioutil.WriteFile(s.DefaultsFile, defaultsBytes, 0660)
+	writeErr := os.WriteFile(s.DefaultsFile, defaultsBytes, 0660)
 	if writeErr != nil {
 		logger.Warn("Failure copying defaults over: %s\n", writeErr.Error())
 		return writeErr
@@ -123,8 +121,8 @@ func (s *SyncSettings) runSyncSettings(cmdArgs []string) error {
 	outbytes, err := cmd.CombinedOutput()
 	output := string(outbytes)
 	var runErr error
-	runErr = nil
 	if err != nil {
+		runErr = err
 		// if just a non-zero exit code, just use standard language
 		// otherwise use the real error message
 		if exiterr, ok := err.(*exec.ExitError); ok {
@@ -136,10 +134,8 @@ func (s *SyncSettings) runSyncSettings(cmdArgs []string) error {
 			}
 		}
 		logger.Err("Failed to run sync-settings: %v\n", err.Error())
-		runErr = err
 	}
-	outputErr := s.logSyncSettingsOutput(output, runErr)
-	if outputErr != nil {
+	if outputErr := s.logSyncSettingsOutput(output, runErr); outputErr != nil {
 		return outputErr
 	}
 	return runErr
