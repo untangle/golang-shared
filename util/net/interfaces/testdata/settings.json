@@ -16,6 +16,33 @@
                 "v4StaticAddress": "asdf",
                 "v4StaticPrefix": 0,
                 "device": "qwer"
+            },
+            {
+                "boundInterfaceId": 3,
+                "bridgedTo": 2,
+                "enabled": true,
+                "v4StaticAddress": "192.168.59.2",
+                "v4StaticPrefix": 24,
+                "virtual": true,
+                "vlanid": "2",
+                "wan": false
+            },
+            {
+                "boundInterfaceId": 4,
+                "bridgedTo": 2,
+                "enabled": false,
+                "v4StaticAddress": "192.168.88.2",
+                "v4StaticPrefix": 24,
+                "virtual": true,
+                "vlanid": "3",
+                "wan": false
+            },
+            {
+                "wan": true,
+                "enabled": true,
+                "v4StaticAddress": "50.50.50.50",
+                "v4StaticPrefix": 8,
+                "device": "wan0"
             }
         ]
     }
