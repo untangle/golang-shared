@@ -42,24 +42,24 @@ func NewInterfaceSettings(file *settings.SettingsFile) *InterfaceSettings {
 // GetInterfacesWithFilter returns a slice of all interfaces for which
 // the filter function returns true.
 func (ifaces *InterfaceSettings) GetInterfacesWithFilter(filter func(Interface) bool) (interfaces []Interface) {
-	err := ifaces.UnmarshalJson(&interfaces)
-	if err != nil {
+	if err := ifaces.UnmarshalJson(&interfaces); err != nil {
 		logger.Warn("Unable to read network settings: %s\n", err.Error())
 		return nil
 	}
 
-	if filter != nil {
-		var filteredInterfaces []Interface
-		for _, intf := range interfaces {
-			if filter(intf) {
-				filteredInterfaces = append(filteredInterfaces, intf)
-			}
-		}
-
-		return filteredInterfaces
-	} else {
+	// Don't bother with filtering if no filter was given
+	if filter == nil {
 		return interfaces
 	}
+
+	var filteredInterfaces []Interface
+	for _, intf := range interfaces {
+		if filter(intf) {
+			filteredInterfaces = append(filteredInterfaces, intf)
+		}
+	}
+
+	return filteredInterfaces
 }
 
 // GetAllInterfaces returns all interfaces in the ifaces object.

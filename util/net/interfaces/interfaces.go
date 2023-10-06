@@ -41,6 +41,7 @@ type Interface struct {
 	IsVirtual        bool   `json:"virtual"`
 	VlanID           string `json:"vlanid"`
 }
+
 type V4IpAliases struct {
 	V4Address string `json:"v4Address"`
 	V4Prefix  uint32 `json:"v4Prefix"`
