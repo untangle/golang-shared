@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the regular expressions for log statements
-LOG_REGEX1='[lL]ogger.(Alert|Err|Notice|Info|Debug|Trace|Fatal|Warning|OCTrace|OCWarn|OCDebug|OCErr|OCCrit)\("([^"]*)"\)'
-LOG_REGEX2='[lL]ogger.(Alert|Err|Notice|Info|Debug|Trace|Fatal|Warning|OCTrace|OCWarn|OCDebug|OCErr|OCCrit)\("([^"]*)",\s*([^)]*)\)'
+LOG_REGEX1='[lL]ogger.(Emerg|Alert|Crit|Err|Warn|Notice|Info|Debug|Trace|OCTrace|OCWarn|OCDebug|OCErr|OCCrit)\("([^"]*)"\)'
+LOG_REGEX2='[lL]ogger.(Emerg|Alert|Crit|Err|Warn|Notice|Info|Debug|Trace|OCTrace|OCWarn|OCDebug|OCErr|OCCrit)\("([^"]*)",\s*([^)]*)\)'
 
 # Check if the current directory is a Git repository
 if [ -d .git ]; then
