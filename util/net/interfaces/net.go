@@ -82,7 +82,7 @@ func (ifaces *InterfaceSettings) GetLocalInterfaces() (interfaces []Interface) {
 func (ifaces *InterfaceSettings) GetVLANInterfaces() (interfaces []Interface) {
 	return ifaces.GetInterfacesWithFilter(
 		func(intf Interface) bool {
-			return intf.Enabled && intf.IsVirtual && !intf.IsWAN
+			return intf.Enabled && intf.VlanID != ""
 		})
 }
 
