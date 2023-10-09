@@ -5,6 +5,8 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
+type InterfaceFilter func(Interface) bool
+
 // InterfaceSettings is an object for manipulating the network/interfaces list in the
 // settings.json file.
 type InterfaceSettings struct {
@@ -41,7 +43,7 @@ func NewInterfaceSettings(file *settings.SettingsFile) *InterfaceSettings {
 
 // GetInterfacesWithFilter returns a slice of all interfaces for which
 // the filter function returns true.
-func (ifaces *InterfaceSettings) GetInterfacesWithFilter(filter func(Interface) bool) (interfaces []Interface) {
+func (ifaces *InterfaceSettings) GetInterfacesWithFilter(filter InterfaceFilter) (interfaces []Interface) {
 	if err := ifaces.UnmarshalJson(&interfaces); err != nil {
 		logger.Warn("Unable to read network settings: %s\n", err.Error())
 		return nil
@@ -89,7 +91,7 @@ func (ifaces *InterfaceSettings) GetVLANInterfaces() (interfaces []Interface) {
 // GetInterfaces returns a list of interfaces, filtered by any propeties passed in
 // @param - filter func(InterfaceDetail) bool - a function filter to filter results if needed
 // @return - []InterfaceDetail - an array of InterfaceDetail types
-func GetInterfaces(intfSettings InterfaceSettings, filter func(Interface) bool) (interfaces []Interface) {
+func GetInterfaces(intfSettings InterfaceSettings, filter InterfaceFilter) (interfaces []Interface) {
 	return intfSettings.GetInterfacesWithFilter(filter)
 }
 
