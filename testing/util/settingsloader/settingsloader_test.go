@@ -1,4 +1,4 @@
-package settingsutil
+package settingsloader
 
 import (
 	"testing"
