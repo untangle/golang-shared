@@ -83,9 +83,14 @@ func (ifaces *InterfaceSettings) GetLocalInterfaces() (interfaces []Interface) {
 // GetVLANInterfaces returns all interfaces that are VLANs
 func (ifaces *InterfaceSettings) GetVLANInterfaces() (interfaces []Interface) {
 	return ifaces.GetInterfacesWithFilter(
-		func(intf Interface) bool {
-			return intf.Enabled && intf.VlanID != ""
-		})
+		GetVLANFilter())
+}
+
+// Returns an InterfaceFilter function used to get VLANs
+func GetVLANFilter() InterfaceFilter {
+	return func(intf Interface) bool {
+		return intf.Enabled && intf.VlanID != ""
+	}
 }
 
 // GetInterfaces returns a list of interfaces, filtered by any propeties passed in
