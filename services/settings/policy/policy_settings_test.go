@@ -819,6 +819,30 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				Value: []string{"9:00am"},
 			},
 		},
+		{
+			name: "test application object",
+			json: `{
+				"op": "==",
+				"type": "CLIENT",
+				"ports": [80,443],
+				"ipaddresslist": [
+					"1.2.3.4",
+					"2.3.4.5-3.4.5.6"
+				]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    "==",
+				CType: "CLIENT",
+				AppObjectGroup: &ApplicationObjectGroup{
+					Items: []ApplicationObject{
+						{
+							Ports: []int{80, 443}, IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -936,7 +960,6 @@ func TestApplicationObject(t *testing.T) {
 					]
 				}`,
 			wantUnmarshalledConfig: ApplicationObject{
-				Protocol:   "tcp",
 				Ports:      []int{80, 443},
 				IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
 			},
@@ -953,7 +976,6 @@ func TestApplicationObject(t *testing.T) {
 					]
 				}`,
 			wantUnmarshalledConfig: ApplicationObject{
-				Protocol:   "",
 				Ports:      []int{80, 443},
 				IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
 			},
@@ -961,7 +983,6 @@ func TestApplicationObject(t *testing.T) {
 		{
 			name: "UDP Settings",
 			inputData: `{
-					"protocol": "udp",
 					"ports": [
 						1719, 5129, 12345
 					],
@@ -971,7 +992,6 @@ func TestApplicationObject(t *testing.T) {
 					]
 				}`,
 			wantUnmarshalledConfig: ApplicationObject{
-				Protocol:   "udp",
 				Ports:      []int{1719, 5129, 12345},
 				IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
 			},
@@ -1001,7 +1021,6 @@ func TestApplicationObjectGroup(t *testing.T) {
 			inputData: `{
 				"applicationobject": [
 					{
-						"protocol": "tcp",
 						"ports": [
 							80, 443
 						],
@@ -1018,7 +1037,6 @@ func TestApplicationObjectGroup(t *testing.T) {
 							"2.3.4.5-3.4.5.6"
 						]
 					},{
-						"protocol": "udp",
 						"ports": [
 							1719, 5129, 12345
 						],
@@ -1032,15 +1050,12 @@ func TestApplicationObjectGroup(t *testing.T) {
 			wantUnmarshalledConfig: ApplicationObjectGroup{
 				Items: []ApplicationObject{
 					{
-						Protocol:   "tcp",
 						Ports:      []int{80, 443},
 						IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
 					}, {
-						Protocol:   "",
 						Ports:      []int{80, 443},
 						IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
 					}, {
-						Protocol:   "udp",
 						Ports:      []int{1719, 5129, 12345},
 						IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
 					},

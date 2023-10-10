@@ -58,7 +58,6 @@ type Action struct {
 type ApplicationObject struct {
 	// Not sure we need protocol
 	// If not present, treat as TCP
-	Protocol   string   `json:"protocol"`
 	Ports      []int    `json:"ports"`
 	IPAddrList []string `json:"ipaddresslist"`
 }
