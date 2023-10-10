@@ -54,6 +54,20 @@ type Action struct {
 	SNATAddress string `json:"snat_address"`
 }
 
+// Application Object
+type ApplicationObject struct {
+	// Not sure we need protocol
+	// If not present, treat as TCP
+	Protocol   string   `json:"protocol"`
+	Ports      []int    `json:"ports"`
+	IPAddrList []string `json:"ipaddresslist"`
+}
+
+// Application Object Group
+type ApplicationObjectGroup struct {
+	Items []ApplicationObject `json:"applicationobject"`
+}
+
 // ServiceEndpoint is a particular group type, a group may be
 // identified by a list of these.
 type ServiceEndpoint struct {
