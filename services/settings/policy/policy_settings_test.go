@@ -914,3 +914,147 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 		})
 	}
 }
+
+// Test ApplicationObject loading
+func TestApplicationObject(t *testing.T) {
+	tests := []struct {
+		name                   string
+		inputData              string
+		wantErr                bool
+		wantUnmarshalledConfig ApplicationObject
+	}{
+		{
+			name: "TCP Settings",
+			inputData: `{
+					"protocol": "tcp",
+					"ports": [
+						80, 443
+					],
+					"ipaddresslist": [
+						"1.2.3.4",
+						"2.3.4.5-3.4.5.6"
+					]
+				}`,
+			wantUnmarshalledConfig: ApplicationObject{
+				Protocol:   "tcp",
+				Ports:      []int{80, 443},
+				IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+			},
+		},
+		{
+			name: "defaul to TCP protocol",
+			inputData: `{
+					"ports": [
+						80, 443
+					],
+					"ipaddresslist": [
+						"1.2.3.4",
+						"2.3.4.5-3.4.5.6"
+					]
+				}`,
+			wantUnmarshalledConfig: ApplicationObject{
+				Protocol:   "",
+				Ports:      []int{80, 443},
+				IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+			},
+		},
+		{
+			name: "UDP Settings",
+			inputData: `{
+					"protocol": "udp",
+					"ports": [
+						1719, 5129, 12345
+					],
+					"ipaddresslist": [
+						"1.2.3.4",
+						"2.3.4.5-3.4.5.6"
+					]
+				}`,
+			wantUnmarshalledConfig: ApplicationObject{
+				Protocol:   "udp",
+				Ports:      []int{1719, 5129, 12345},
+				IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appObject ApplicationObject
+			err := json.Unmarshal(([]byte)(tt.inputData), &appObject)
+			assert.NoError(t, err)
+
+			assert.EqualValues(t, &tt.wantUnmarshalledConfig, &appObject)
+		})
+	}
+}
+
+// Test ApplicationObjectGroup loading
+func TestApplicationObjectGroup(t *testing.T) {
+	tests := []struct {
+		name                   string
+		inputData              string
+		wantErr                bool
+		wantUnmarshalledConfig ApplicationObjectGroup
+	}{
+		{
+			name: "validJsonWithSettings",
+			inputData: `{
+				"applicationobject": [
+					{
+						"protocol": "tcp",
+						"ports": [
+							80, 443
+						],
+						"ipaddresslist": [
+							"1.2.3.4",
+							"2.3.4.5-3.4.5.6"
+						]
+					},{
+						"ports": [
+							80, 443
+						],
+						"ipaddresslist": [
+							"1.2.3.4",
+							"2.3.4.5-3.4.5.6"
+						]
+					},{
+						"protocol": "udp",
+						"ports": [
+							1719, 5129, 12345
+						],
+						"ipaddresslist": [
+							"1.2.3.4",
+							"2.3.4.5-3.4.5.6"
+						]
+					}
+				]
+			}`,
+			wantUnmarshalledConfig: ApplicationObjectGroup{
+				Items: []ApplicationObject{
+					{
+						Protocol:   "tcp",
+						Ports:      []int{80, 443},
+						IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+					}, {
+						Protocol:   "",
+						Ports:      []int{80, 443},
+						IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+					}, {
+						Protocol:   "udp",
+						Ports:      []int{1719, 5129, 12345},
+						IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appObjGroup ApplicationObjectGroup
+			err := json.Unmarshal(([]byte)(tt.inputData), &appObjGroup)
+			assert.NoError(t, err)
+
+			assert.EqualValues(t, &tt.wantUnmarshalledConfig, &appObjGroup)
+		})
+	}
+}
