@@ -2,11 +2,15 @@ package settingsloader
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"net/http"
 
 	"github.com/untangle/golang-shared/services/settings"
+)
+
+const (
+	// DefaultSettingsURL is the default URL to load settings from
+	DefaultSettingsURL = "https://raw.githubusercontent.com/untangle/mfw_schema/master/v1/policy_manager/test_settings.json"
 )
 
 // Load a global settings file via URL, return the settings object
@@ -14,7 +18,7 @@ func LoadSettingsFromURL(output interface{}, url string, key []string) error {
 
 	// Get settings from URL
 	if url == "" {
-		return errors.New("No URL provided")
+		url = DefaultSettingsURL
 	}
 	// Load settings file
 	if resp, err := http.Get(url); err == nil {
