@@ -73,13 +73,13 @@
       {
         "name": "IPAddrList Student IP",
         "id": "702d4c99-9599-455f-8271-215e5680f038",
-        "type": "IPAddrList",
+        "type": "mfw-object-ipaddress",
         "items": ["1.2.3.4", "1.2.3.5/24", "1.2.3.4-1.2.3.20"]
       },
       {
         "name": "Geo IP Location Test Group",
         "id": "702d4c99-9599-455f-8271-315e5680f038",
-        "type": "GeoIPLocation",
+        "type": "mfw-object-geoip",
         "items": ["AE", "AF", "AG"]
       },
       {
@@ -101,21 +101,21 @@
         "id": "cbee1455-1777-48ef-9e54-c4d4ee81632a",
         "name": "HR",
         "description": "",
-        "type": "IPAddrList",
+        "type": "mfw-object-ipaddress",
         "items": ["192.167.10.23"]
       },
       {
         "id": "b821864e-18ef-409c-a7bc-defc2d049d96",
         "name": "Europe 1",
         "description": "",
-        "type": "GeoIPLocation",
+        "type": "mfw-object-geoip",
         "items": ["DZ", "BE", "BY", "BD"]
       },
       {
         "id": "3c5856f1-f182-40d0-ac2a-e586c7413f4f",
         "name": "Europe 2",
         "description": "",
-        "type": "GeoIPLocation",
+        "type": "mfw-object-geoip",
         "items": ["HN", "HU", "IS", "KW", "LA"]
       }
     ],

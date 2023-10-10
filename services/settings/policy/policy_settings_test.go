@@ -365,7 +365,7 @@ func TestRulesUnmarshal(t *testing.T) {
 	}
 }
 
-func TestGroupUnmarshal(t *testing.T) {
+func TestObjectUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
 	policySettings := PolicySettings{}
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
@@ -395,9 +395,9 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 		name        string
 		json        string
 		expectedErr bool
-		expected    Group
+		expected    Object
 	}{
-		{name: "emptyjson", json: ``, expectedErr: true, expected: Group{}},
+		{name: "emptyjson", json: ``, expectedErr: true, expected: Object{}},
 		{
 			name: "Basic bad type test",
 			json: `{"name": "someBogus",
@@ -405,18 +405,18 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "badType",
                           "items:" []}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "okay ip list",
 			json: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "IPAddrList",
+                         "type": "mfw-object-ipaddress",
                           "items": ["132.123.123"]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: Object{
 				Name:  "someBogus",
-				Type:  "IPAddrList",
+				Type:  "mfw-object-ipaddress",
 				Items: []net.IPSpecifierString{"132.123.123"},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
 			}},
@@ -424,12 +424,12 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			name: "okay geoip list",
 			json: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "GeoIPLocation",
+                         "type": "mfw-object-geoip",
                           "items": ["AE", "AF"]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: Object{
 				Name:  "someBogus",
-				Type:  "GeoIPLocation",
+				Type:  "mfw-object-geoip",
 				Items: []string{"AE", "AF"},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
 			}},
@@ -437,19 +437,19 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			name: "malformed JSON",
 			json: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "IPAddrList",
+                         "type": "mfw-object-ipaddress",
                           "items": [{]]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "bad ip addrlist",
 			json: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "IPAddrList",
+                         "type": "mfw-object-ipaddress",
                           "items": [{}]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "bad type",
@@ -458,25 +458,25 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "IPAddrListBOGUS",
                           "items": []}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "bad items",
 			json: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "IPAddrList",
+                         "type": "mfw-object-ipaddress",
                           "items": false}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "bad items2",
 			json: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "IPAddrList",
+                         "type": "mfw-object-ipaddress",
                           "items": [{}, {}, {}]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "bad service endpoint",
@@ -485,7 +485,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "ServiceEndpoint",
                           "items": ["googlywoogly"]}`,
 			expectedErr: true,
-			expected:    Group{}},
+			expected:    Object{}},
 		{
 			name: "emptylist",
 			json: `{"name": "ServiceEndpointTest",
@@ -493,7 +493,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "ServiceEndpoint",
                           "items": []}`,
 			expectedErr: false,
-			expected: Group{
+			expected: Object{
 				Name:  "ServiceEndpointTest",
 				Type:  "ServiceEndpoint",
 				Items: []ServiceEndpoint{},
@@ -507,7 +507,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "ServiceEndpoint",
                           "items": [{"protocol": 17]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "good sg endpoint list",
@@ -519,7 +519,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                               {"protocol": 17, "port": 2222},
                               {"protocol": 6, "port": 2223}]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: Object{
 				Name:        "ServiceEndpointTest",
 				Description: "Description",
 				Type:        ServiceEndpointType,
@@ -544,7 +544,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "Interface",
                           "items": [1, 2, 3]}`,
 			expectedErr: false,
-			expected: Group{
+			expected: Object{
 				Name:        "InterfaceListTest",
 				Description: "description",
 				Type:        InterfaceType,
@@ -560,7 +560,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                          "type": "Interface",
                           "items": [1, "boog", 3]}`,
 			expectedErr: true,
-			expected:    Group{},
+			expected:    Object{},
 		},
 		{
 			name: "condition object",
@@ -614,7 +614,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var actual Group
+			var actual Object
 			if !tt.expectedErr {
 				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
 				assert.EqualValues(t, tt.expected, actual)
@@ -628,42 +628,42 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 func TestGroupMarshal(t *testing.T) {
 	tests := []struct {
 		name         string
-		group        Group
+		object       Object
 		expectedJSON string
 	}{
 		{
 			name: "okay ip list",
-			group: Group{
+			object: Object{
 				Name:        "someBogus",
 				Description: "Description",
-				Type:        "IPAddrList",
+				Type:        "mfw-object-ipaddress",
 				Items:       []net.IPSpecifierString{"132.123.123"},
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 			},
 			expectedJSON: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
 						 "description": "Description",
-                         "type": "IPAddrList",
+                         "type": "mfw-object-ipaddress",
                           "items": ["132.123.123"]}`,
 		},
 		{
 			name: "okay geoip list",
-			group: Group{
+			object: Object{
 				Name:        "someBogus",
 				Description: "Description",
-				Type:        "GeoIPLocation",
+				Type:        "mfw-object-geoip",
 				Items:       []string{"AE", "AF"},
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 			},
 			expectedJSON: `{"name": "someBogus",
 			"id": "702d4c99-9599-455f-8271-215e5680f038",
 			"description": "Description",
-			"type": "GeoIPLocation",
+			"type": "mfw-object-geoip",
 			"items": ["AE", "AF"]}`,
 		},
 		{
 			name: "good sg endpoint list",
-			group: Group{
+			object: Object{
 				Name:        "ServiceEndpointTest",
 				Description: "Description",
 				Type:        ServiceEndpointType,
@@ -691,7 +691,7 @@ func TestGroupMarshal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data, err := json.Marshal(&tt.group)
+			data, err := json.Marshal(&tt.object)
 			assert.NoError(t, err)
 			assert.JSONEq(t, tt.expectedJSON, string(data))
 		})

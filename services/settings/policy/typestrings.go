@@ -35,17 +35,10 @@ type ObjectMetadata struct {
 }
 
 const (
-	// Deprecated: GeoIPListType means that the Items of a Group are geoip countries.
-	GeoIPListType ObjectType = "GeoIPLocation"
-
 	// GeoIPObjectGroupType/GeoIPListType are new-style type names for
 	// geoip objects and groups.
 	GeoIPObjectType      ObjectType = "mfw-object-geoip"
 	GeoIPObjectGroupType ObjectType = "mfw-object-geoip-group"
-
-	// Deprecated: IPAddrListType means that the Items of the Group are ip
-	// specifications (ranges, CIDRs, or single IPs). (old)
-	IPAddrListType ObjectType = "IPAddrList"
 
 	// IPObjectType/IPAddressGroupType are the types for the
 	// new-style matchable object/group that relate to IPs.
@@ -76,16 +69,6 @@ const (
 	SecurityRuleObject           ObjectType = "mfw-rule-security"
 	ShapingRuleObject            ObjectType = "mfw-rule-shaping"
 	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
-
-	// Deprecated: WebFilter* will be removed.
-	// WebFilterCategoryType means that the Items of the Group are web filter categories.
-	WebFilterCategoryType ObjectType = "WebFilterCategory"
-	WebFilterRuleObject   ObjectType = "WebFilterRuleObject"
-
-	// Deprecated: ThreatPreventionType will be removed.
-	// ThreatPreventionType means that the Items of the Group are
-	// threat prevention score.
-	ThreatPreventionType ObjectType = "ThreatPrevention"
 
 	// ConditionType,ConditionGroupType: type id strings, for the
 	// object and the group.
