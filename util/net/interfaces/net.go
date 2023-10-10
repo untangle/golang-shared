@@ -5,6 +5,8 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
+type InterfaceFilter func(Interface) bool
+
 // InterfaceSettings is an object for manipulating the network/interfaces list in the
 // settings.json file.
 type InterfaceSettings struct {
@@ -41,25 +43,25 @@ func NewInterfaceSettings(file *settings.SettingsFile) *InterfaceSettings {
 
 // GetInterfacesWithFilter returns a slice of all interfaces for which
 // the filter function returns true.
-func (ifaces *InterfaceSettings) GetInterfacesWithFilter(filter func(Interface) bool) (interfaces []Interface) {
-	err := ifaces.UnmarshalJson(&interfaces)
-	if err != nil {
+func (ifaces *InterfaceSettings) GetInterfacesWithFilter(filter InterfaceFilter) (interfaces []Interface) {
+	if err := ifaces.UnmarshalJson(&interfaces); err != nil {
 		logger.Warn("Unable to read network settings: %s\n", err.Error())
 		return nil
 	}
 
-	if filter != nil {
-		var filteredInterfaces []Interface
-		for _, intf := range interfaces {
-			if filter(intf) {
-				filteredInterfaces = append(filteredInterfaces, intf)
-			}
-		}
-
-		return filteredInterfaces
-	} else {
+	// Don't bother with filtering if no filter was given
+	if filter == nil {
 		return interfaces
 	}
+
+	var filteredInterfaces []Interface
+	for _, intf := range interfaces {
+		if filter(intf) {
+			filteredInterfaces = append(filteredInterfaces, intf)
+		}
+	}
+
+	return filteredInterfaces
 }
 
 // GetAllInterfaces returns all interfaces in the ifaces object.
@@ -78,10 +80,23 @@ func (ifaces *InterfaceSettings) GetLocalInterfaces() (interfaces []Interface) {
 
 }
 
+// GetVLANInterfaces returns all interfaces that are VLANs
+func (ifaces *InterfaceSettings) GetVLANInterfaces() (interfaces []Interface) {
+	return ifaces.GetInterfacesWithFilter(
+		GetVLANFilter())
+}
+
+// Returns an InterfaceFilter function used to get VLANs
+func GetVLANFilter() InterfaceFilter {
+	return func(intf Interface) bool {
+		return intf.Enabled && intf.VlanID != ""
+	}
+}
+
 // GetInterfaces returns a list of interfaces, filtered by any propeties passed in
 // @param - filter func(InterfaceDetail) bool - a function filter to filter results if needed
 // @return - []InterfaceDetail - an array of InterfaceDetail types
-func GetInterfaces(intfSettings InterfaceSettings, filter func(Interface) bool) (interfaces []Interface) {
+func GetInterfaces(intfSettings InterfaceSettings, filter InterfaceFilter) (interfaces []Interface) {
 	return intfSettings.GetInterfacesWithFilter(filter)
 }
 
