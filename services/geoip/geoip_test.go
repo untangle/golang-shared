@@ -161,6 +161,10 @@ func (suite *TestGeoIP) TestDBStatusChecker() {
 	is_file_valid, is_file_stale = geoIP.checkForDBFile()
 	suite.False(is_file_valid)
 	suite.True(is_file_stale)
+	suite.NotNil(geoIP.geoDatabaseReader)
+	result, found := geoIP.LookupCountryCodeOfIP(net.ParseIP("3.3.3.3"))
+	suite.True(found)
+	suite.NotEqual(result, "")
 }
 
 // Test that we call the MaxMind database reader correctly and do not
