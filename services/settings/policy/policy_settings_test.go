@@ -1056,7 +1056,7 @@ func TestApplicationObjectGroup(t *testing.T) {
 		{
 			name: "validJsonWithSettings",
 			inputData: `{
-				"applicationobject": [
+				"items": [
 					{
 						"ports": [
 							80, 443
