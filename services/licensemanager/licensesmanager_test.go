@@ -123,6 +123,7 @@ func TestGetLicenseDefaults(t *testing.T) {
 		"untangle-node-sitefilter",
 		"untangle-node-geoip",
 		"untangle-node-captiveportal",
+		"untangle-node-dynamic-lists",
 	}
 
 	assert.ElementsMatch(t, expectedKeys, serviceKeys)
@@ -150,6 +151,7 @@ func TestGetLicenseDetails(t *testing.T) {
 		"Database Services",
 		"Device Discovery",
 		"Captive Portal",
+		"Dynamic Blocklists",
 	}
 
 	actualDisplayNames := []string{}
@@ -384,6 +386,7 @@ func (suite *LicenseManagerTestSuite) SetupSuite() {
 		"untangle-node-sitefilter":        {Name: "untangle-node-sitefilter", State: ServiceState{AllowedState: 0}},
 		"untangle-node-geoip":             {Name: "untangle-node-geoip", State: ServiceState{AllowedState: 0}},
 		"untangle-node-captiveportal":     {Name: "untangle-node-captiveportal", State: ServiceState{AllowedState: 0}},
+		"untangle-node-dynamic-lists":     {Name: "untangle-node-dynamic-lists", State: ServiceState{AllowedState: 0}},
 	}
 
 	if startupErr := suite.lm.Startup(); startupErr != nil {
@@ -490,6 +493,12 @@ func getTestConfig() *Config {
 			Enabled:  nil,
 			Disabled: disableApplicationControl,
 		},
+		"untangle-node-dynamic-lists": {
+			Start:    func() {},
+			Stop:     func() {},
+			Enabled:  nil,
+			Disabled: disableDynamicLists,
+		},
 	}
 
 	return &Config{
@@ -529,6 +538,11 @@ func disableDiscovery() (interface{}, []string, error) {
 // DisableApplicationControl
 func disableApplicationControl() (interface{}, []string, error) {
 	return false, []string{"application_control", "enabled"}, nil
+}
+
+// DisableDynamicLists
+func disableDynamicLists() (interface{}, []string, error) {
+	return false, []string{"dynamic_lists", "enabled"}, nil
 }
 
 func TestSetServices(t *testing.T) {
