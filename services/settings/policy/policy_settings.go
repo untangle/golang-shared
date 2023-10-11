@@ -125,7 +125,7 @@ func GetAllPolicyConfigs(settingsFile *settings.SettingsFile) (map[string]map[st
 	return pluginSettings, nil
 }
 
-// ItemsStringList returns the Items of the group as a slice of
+// ItemsStringList returns the Items of the object as a slice of
 // strings if they can be interpreted this way, or an empty slice and
 // false if not.
 func (o *Object) ItemsStringList() ([]string, bool) {
@@ -133,7 +133,7 @@ func (o *Object) ItemsStringList() ([]string, bool) {
 	return val, ok
 }
 
-// ItemsIPSpecList returns the Items of a group as a slice of
+// ItemsIPSpecList returns the Items of an object as a slice of
 // utilNet.IPSpecifierString and true if they can be interpreted this way,
 // or an empty slice and false otherwise.
 func (o *Object) ItemsIPSpecList() ([]utilNet.IPSpecifierString, bool) {
@@ -141,7 +141,7 @@ func (o *Object) ItemsIPSpecList() ([]utilNet.IPSpecifierString, bool) {
 	return val, ok
 }
 
-// ItemsServiceEndpointList returns the Items of a group as a slice of
+// ItemsServiceEndpointList returns the Items of an object as a slice of
 // ServiceEndpoint and true if they can be interpreted this way, nil
 // and false otherwise.
 func (o *Object) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {

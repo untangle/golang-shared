@@ -45,10 +45,6 @@ const (
 	IPObjectType       ObjectType = "mfw-object-ipaddress"
 	IPAddressGroupType ObjectType = "mfw-object-ipaddress-group"
 
-	// ServiceEndpointType means that the Items of a Group are
-	// service endpoints.
-	ServiceEndpointType ObjectType = "ServiceEndpoint"
-
 	// ServiceEndpointObjecttype and ServiceEndpointGroup are types
 	// for object/group in new schema, from cloud.
 	ServiceEndpointObjectType ObjectType = "mfw-object-service"

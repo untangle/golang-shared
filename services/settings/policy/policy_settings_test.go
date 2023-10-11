@@ -367,16 +367,17 @@ func TestRulesUnmarshal(t *testing.T) {
 
 func TestObjectUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
-	policySettings := PolicySettings{}
-	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&policySettings, "policy_manager"))
-	strlist, ok := policySettings.Objects[0].ItemsIPSpecList()
+	var objects []Object
+	err := settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects")
+	assert.NoError(t, err)
+	strlist, ok := objects[0].ItemsIPSpecList()
 	assert.True(t, ok)
 
 	assert.Equal(t, []net.IPSpecifierString{
 		"1.2.3.4",
 		"1.2.3.5/24",
 		"1.2.3.4-1.2.3.20"}, strlist)
-	endpointList, ok := policySettings.Objects[2].ItemsServiceEndpointList()
+	endpointList, ok := objects[2].ItemsServiceEndpointList()
 	assert.True(t, ok)
 	assert.EqualValues(t, []ServiceEndpoint{
 		{
@@ -482,7 +483,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			name: "bad service endpoint",
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "ServiceEndpoint",
+                         "type": "mfw-object-service",
                           "items": ["googlywoogly"]}`,
 			expectedErr: true,
 			expected:    Object{}},
@@ -490,12 +491,12 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			name: "emptylist",
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "ServiceEndpoint",
+                         "type": "mfw-object-service",
                           "items": []}`,
 			expectedErr: false,
 			expected: Object{
 				Name:  "ServiceEndpointTest",
-				Type:  "ServiceEndpoint",
+				Type:  "mfw-object-service",
 				Items: []ServiceEndpoint{},
 				ID:    "702d4c99-9599-455f-8271-215e5680f038",
 			},
@@ -504,7 +505,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			name: "bad sg endpoint list",
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "type": "ServiceEndpoint",
+                         "type": "mfw-object-service",
                           "items": [{"protocol": 17]}`,
 			expectedErr: true,
 			expected:    Object{},
@@ -514,7 +515,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
 						 "description": "Description",
-                         "type": "ServiceEndpoint",
+                         "type": "mfw-object-service",
                           "items": [
                               {"protocol": 17, "port": 2222},
                               {"protocol": 6, "port": 2223}]}`,
@@ -522,7 +523,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			expected: Object{
 				Name:        "ServiceEndpointTest",
 				Description: "Description",
-				Type:        ServiceEndpointType,
+				Type:        "mfw-object-service",
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
@@ -565,17 +566,17 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 		{
 			name: "condition object",
 			json: `{
-                            "name": "blooblah",
-                            "id": "702d4c99-9599-455f-8271-215e5680f039",
-                            "type": "mfw-object-condition",
-                            "items": [
-                                {
-                                 "op": "==",
-                                 "type": "SERVER_ADDRESS",
-                                 "value": []
-                                }
-                            ]
-                        }`,
+		                    "name": "blooblah",
+		                    "id": "702d4c99-9599-455f-8271-215e5680f039",
+		                    "type": "mfw-object-condition",
+		                    "items": [
+		                        {
+		                         "op": "==",
+		                         "type": "SERVER_ADDRESS",
+		                         "value": []
+		                        }
+		                    ]
+		                }`,
 			expectedErr: false,
 			expected: Object{
 				Name: "blooblah",
@@ -636,7 +637,7 @@ func TestGroupMarshal(t *testing.T) {
 			object: Object{
 				Name:        "someBogus",
 				Description: "Description",
-				Type:        "mfw-object-ipaddress",
+				Type:        IPObjectType,
 				Items:       []net.IPSpecifierString{"132.123.123"},
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 			},
@@ -651,7 +652,7 @@ func TestGroupMarshal(t *testing.T) {
 			object: Object{
 				Name:        "someBogus",
 				Description: "Description",
-				Type:        "mfw-object-geoip",
+				Type:        GeoIPObjectType,
 				Items:       []string{"AE", "AF"},
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 			},
@@ -666,7 +667,7 @@ func TestGroupMarshal(t *testing.T) {
 			object: Object{
 				Name:        "ServiceEndpointTest",
 				Description: "Description",
-				Type:        ServiceEndpointType,
+				Type:        ServiceEndpointObjectType,
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
@@ -682,7 +683,7 @@ func TestGroupMarshal(t *testing.T) {
 			expectedJSON: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
 						 "description": "Description",
-                         "type": "ServiceEndpoint",
+                         "type": "mfw-object-service",
                           "items": [
                               {"protocol": 17, "port": 2222},
                               {"protocol": 6, "port": 2223}]}`,

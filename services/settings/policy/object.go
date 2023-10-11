@@ -46,14 +46,14 @@ type Action struct {
 	SNATAddress string `json:"snat_address"`
 }
 
-// ServiceEndpoint is a particular group type, a group may be
+// ServiceEndpoint is a particular object type, a object may be
 // identified by a list of these.
 type ServiceEndpoint struct {
 	Protocol uint `json:"protocol"`
 	Port     uint `json:"port"`
 }
 
-// setList is a utility function for setting a list in the Group.Items field. We
+// setList is a utility function for setting a list in the Object.Items field. We
 // use a trick where json.Unmarshal will look at an 'any' value and if
 // it has a pointer to a specific type, unmarshall into that
 // type. However, we don't want the pointer later on, we just want the
@@ -95,7 +95,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[utilNet.IPSpecifierString](obj)()
 	case GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
 		defer setList[string](obj)()
-	case ServiceEndpointType, ServiceEndpointObjectType:
+	case ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
 	case InterfaceType, InterfaceObjectType:
 		defer setList[uint](obj)()
@@ -103,7 +103,6 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[*PolicyCondition](obj)()
 	case ConditionGroupType:
 		defer setList[string](obj)()
-		defer setList[uint](obj)()
 	default:
 		return fmt.Errorf("error unmarshalling policy object: invalid object type: %s", typeField.Type)
 	}
