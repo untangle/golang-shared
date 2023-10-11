@@ -844,43 +844,43 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				},
 			},
 		},
-		// {
-		// 	name: "test application group",
-		// 	json: `{
-		// 		"op": "==",
-		// 		"type": "SERVER",
-		// 		"items": [
-		// 			{
-		// 				"ports": [123, 1234],
-		// 				"ipaddresslist": [
-		// 					"1.2.3.4",
-		// 					"2.3.4.5-3.4.5.6"
-		// 				]
-		// 			},
-		// 			{
-		// 				"ports": [12345],
-		// 				"ipaddresslist": [
-		// 					"3.4.5.6"
-		// 				]
-		// 			}
-		// 		]
-		// 	}`,
-		// 	shouldErr: false,
-		// 	expected: PolicyCondition{
-		// 		Op:    "==",
-		// 		CType: "SERVER",
-		// 		Optional: ApplicationObjectGroup{
-		// 			Items: []ApplicationObject{
-		// 				{
-		// 					Ports: []int{123, 1234}, IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
-		// 				},
-		// 				{
-		// 					Ports: []int{12345}, IPAddrList: []string{"3.4.5.6"},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
+		{
+			name: "test application group",
+			json: `{
+				"op": "==",
+				"type": "SERVER",
+				"items": [
+					{
+						"ports": [123, 1234],
+						"ipaddresslist": [
+							"1.2.3.4",
+							"2.3.4.5-3.4.5.6"
+						]
+					},
+					{
+						"ports": [12345],
+						"ipaddresslist": [
+							"3.4.5.6"
+						]
+					}
+				]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    "==",
+				CType: "SERVER",
+				Optional: ApplicationObjectGroup{
+					Items: []ApplicationObject{
+						{
+							Ports: []int{123, 1234}, IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+						},
+						{
+							Ports: []int{12345}, IPAddrList: []string{"3.4.5.6"},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

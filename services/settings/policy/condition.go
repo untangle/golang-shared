@@ -85,11 +85,18 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 	} else {
 		// p.CType is CLIENT or SERVER
 		// Using an ApplicationObject or ...Group
-		appObjectGroup := ApplicationObjectGroup{
-			Items: make([]ApplicationObject, 1),
+		// Try for an ApplicationObjecGroup with Items first
+		appObjectGroup := ApplicationObjectGroup{}
+		if err := json.Unmarshal(data, &appObjectGroup); err != nil {
+			return err
 		}
-		if err := json.Unmarshal(data, &appObjectGroup.Items[0]); err != nil {
-			if err := json.Unmarshal(data, &appObjectGroup); err != nil {
+		if len(appObjectGroup.Items) == 0 {
+			// Otherwise try for a single ApplicationObject
+			// ApplicatoinObjectGroup with exactly 1 item
+			appObjectGroup = ApplicationObjectGroup{
+				Items: make([]ApplicationObject, 1),
+			}
+			if err := json.Unmarshal(data, &appObjectGroup.Items[0]); err != nil {
 				return err
 			}
 		}
