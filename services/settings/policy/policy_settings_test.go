@@ -705,16 +705,17 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 		json      string
 		shouldErr bool
 		expected  PolicyCondition
-	}{{
-		name: "bad type",
-		json: `{
-				"op": "==",
-				"type": "I am not a type",
-				"value": ["192.168.5.6/32"]
-			}`,
-		shouldErr: true,
-		expected:  PolicyCondition{},
-	},
+	}{
+		{
+			name: "bad type",
+			json: `{
+					"op": "==",
+					"type": "I am not a type",
+					"value": ["192.168.5.6/32"]
+				}`,
+			shouldErr: true,
+			expected:  PolicyCondition{},
+		},
 		{
 			name: "ipv4 w mask",
 			json: `{
@@ -834,7 +835,7 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			expected: PolicyCondition{
 				Op:    "==",
 				CType: "CLIENT",
-				AppObjectGroup: &ApplicationObjectGroup{
+				Optional: ApplicationObjectGroup{
 					Items: []ApplicationObject{
 						{
 							Ports: []int{80, 443}, IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
@@ -843,8 +844,44 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				},
 			},
 		},
+		// {
+		// 	name: "test application group",
+		// 	json: `{
+		// 		"op": "==",
+		// 		"type": "SERVER",
+		// 		"items": [
+		// 			{
+		// 				"ports": [123, 1234],
+		// 				"ipaddresslist": [
+		// 					"1.2.3.4",
+		// 					"2.3.4.5-3.4.5.6"
+		// 				]
+		// 			},
+		// 			{
+		// 				"ports": [12345],
+		// 				"ipaddresslist": [
+		// 					"3.4.5.6"
+		// 				]
+		// 			}
+		// 		]
+		// 	}`,
+		// 	shouldErr: false,
+		// 	expected: PolicyCondition{
+		// 		Op:    "==",
+		// 		CType: "SERVER",
+		// 		Optional: ApplicationObjectGroup{
+		// 			Items: []ApplicationObject{
+		// 				{
+		// 					Ports: []int{123, 1234}, IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
+		// 				},
+		// 				{
+		// 					Ports: []int{12345}, IPAddrList: []string{"3.4.5.6"},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var actualCondition PolicyCondition
