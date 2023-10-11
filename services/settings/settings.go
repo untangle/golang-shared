@@ -538,6 +538,9 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 				logger.Info("Discovery is not enabled hence skipping sighup\n")
 				continue
 			}
+			if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
+				logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+			}
 			err = util.RunSighup(executable)
 			if err != nil {
 				logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
