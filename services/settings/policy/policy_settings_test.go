@@ -824,7 +824,7 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			name: "test application object",
 			json: `{
 				"op": "==",
-				"type": "CLIENT",
+				"type": "APPLICATION_NAME",
 				"ports": [80,443],
 				"ipaddresslist": [
 					"1.2.3.4",
@@ -834,8 +834,8 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			shouldErr: false,
 			expected: PolicyCondition{
 				Op:    "==",
-				CType: "CLIENT",
-				Optional: ApplicationObjectGroup{
+				CType: "APPLICATION_NAME",
+				Extra: ApplicationObjectGroup{
 					Items: []ApplicationObject{
 						{
 							Ports: []int{80, 443}, IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},
@@ -848,7 +848,7 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			name: "test application group",
 			json: `{
 				"op": "==",
-				"type": "SERVER",
+				"type": "APPLICATION_NAME",
 				"items": [
 					{
 						"ports": [123, 1234],
@@ -868,8 +868,8 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			shouldErr: false,
 			expected: PolicyCondition{
 				Op:    "==",
-				CType: "SERVER",
-				Optional: ApplicationObjectGroup{
+				CType: "APPLICATION_NAME",
+				Extra: ApplicationObjectGroup{
 					Items: []ApplicationObject{
 						{
 							Ports: []int{123, 1234}, IPAddrList: []string{"1.2.3.4", "2.3.4.5-3.4.5.6"},

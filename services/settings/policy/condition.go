@@ -8,7 +8,7 @@ import (
 )
 
 // Empty interface for optoinal data in PolicyCondition
-type ConditionOptionalData interface{}
+type ConditionExtraData interface{}
 
 // PolicyCondition contains policy condition configuration.
 type PolicyCondition struct {
@@ -18,7 +18,7 @@ type PolicyCondition struct {
 	GroupIDs []string `json:"object,omitempty"`
 
 	// Extra Data for ApplicationObjectGroup or other things
-	Optional ConditionOptionalData `json:"omitempty"`
+	Extra ConditionExtraData `json:"omitempty"`
 
 	// Deprecated
 	GroupID string `json:"groupId,omitempty"`
@@ -26,7 +26,7 @@ type PolicyCondition struct {
 
 // Application Object
 type ApplicationObject struct {
-	ConditionOptionalData
+	ConditionExtraData
 	// Not sure we need protocol
 	// If not present, treat as TCP
 	Ports      []int    `json:"ports"`
@@ -38,7 +38,7 @@ type ApplicationObjectGroup struct {
 	Items []ApplicationObject `json:"items"`
 }
 
-var _ ConditionOptionalData = ApplicationObjectGroup{}
+var _ ConditionExtraData = ApplicationObjectGroup{}
 
 // Unmarshal policy condition so that types of values can be checked
 func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
@@ -48,7 +48,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	// Check to see if this is Conditions is using an ApplicationObject or ...Group
-	if pCondition.CType == "CLIENT" || pCondition.CType == "SERVER" {
+	if pCondition.CType == "APPLICATION_NAME" {
 		// Using an ApplicationObject or ...Group
 		// Try for an ApplicationObjecGroup with Items first
 		appObjectGroup := ApplicationObjectGroup{}
@@ -65,7 +65,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 				return err
 			}
 		}
-		pCondition.Optional = appObjectGroup
+		pCondition.Extra = appObjectGroup
 	} else if pCondition.Op != "match" && pCondition.Op != "in" {
 		// check that pCondition.Value is formatted correctly for the CType
 		for i, value := range pCondition.Value {
