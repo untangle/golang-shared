@@ -538,8 +538,11 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 				logger.Info("Discovery is not enabled hence skipping sighup\n")
 				continue
 			}
-			if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
-				logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+			_, err := os.Stat("/usr/bin/updateSysdbSignal")
+			if err == nil || !os.IsNotExist(err) {
+				if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
+					logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+				}
 			}
 			err = util.RunSighup(executable)
 			if err != nil {
