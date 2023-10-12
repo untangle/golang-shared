@@ -88,12 +88,12 @@
         "type": "mfw-object-service",
         "items": [
           {
-            "protocol": 6,
-            "port": 12345
+            "protocol":[ 6,17],
+            "port": [12345,80,53]
           },
           {
-            "protocol": 17,
-            "port": 12345
+            "protocol": [17],
+            "port": [12345, 11, 22, 67, 66]
           }
         ]
       },
