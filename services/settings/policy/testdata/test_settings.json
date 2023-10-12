@@ -168,16 +168,16 @@
         "type": "mfw-object-service",
         "items": [
           {
-            "port": 88,
-            "protocol": 6
+            "port": [88],
+            "protocol": [6]
           },
           {
-            "port": 123,
-            "protocol": 51
+            "port": [123],
+            "protocol": [51]
           },
           {
-            "port": 23,
-            "protocol": 27
+            "port": [23],
+            "protocol": [27]
           }
         ]
       },
