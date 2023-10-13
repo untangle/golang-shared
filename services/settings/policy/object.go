@@ -29,15 +29,7 @@ type Object struct {
 
 	// Used for policy configuration objects
 	Settings any `json:"settings,omitempty"`
-
-	// DEPRECATED
-	Configurations []string `json:"configurations,omitempty"`
-	Flows          []string `json:"flows,omitempty"`
 }
-
-// Group is a deprecated concept, please use Object.
-// Deprecated: Group is deprecated, use Object instead. See MFW-3517.
-type Group = Object
 
 // Policies are the root of our policy configurations. It includes pointers to substructure.
 type Policy = Object
@@ -47,21 +39,21 @@ type PolicyConfiguration = Object
 // Action struct is used for rule object types (Conditions + Action)
 type Action struct {
 	Key         string `json:"key"`
-	UUID        string `json:"configuration_id"`
+	UUID        string `json:"configuration_id,omitempty"`
 	Type        string `json:"type"`
-	DNATAddress string `json:"dnat_address"`
-	DNATPort    string `json:"dnat_port"`
-	SNATAddress string `json:"snat_address"`
+	DNATAddress string `json:"dnat_address,omitempty"`
+	DNATPort    string `json:"dnat_port,omitempty"`
+	SNATAddress string `json:"snat_address,omitempty"`
 }
 
-// ServiceEndpoint is a particular group type, a group may be
+// ServiceEndpoint is a particular object type, a object may be
 // identified by a list of these.
 type ServiceEndpoint struct {
 	Protocol []uint `json:"protocol"`
 	Port     []uint `json:"port"`
 }
 
-// setList is a utility function for setting a list in the Group.Items field. We
+// setList is a utility function for setting a list in the Object.Items field. We
 // use a trick where json.Unmarshal will look at an 'any' value and if
 // it has a pointer to a specific type, unmarshall into that
 // type. However, we don't want the pointer later on, we just want the
@@ -99,11 +91,11 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		SecurityConfigType:
 		// drop to default return
 
-	case IPAddrListType, IPObjectType:
+	case IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
-	case GeoIPListType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
+	case GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
 		defer setList[string](obj)()
-	case ServiceEndpointType, ServiceEndpointObjectType:
+	case ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
 	case InterfaceType, InterfaceObjectType:
 		defer setList[uint](obj)()
@@ -111,10 +103,6 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[*PolicyCondition](obj)()
 	case ConditionGroupType:
 		defer setList[string](obj)()
-	case ThreatPreventionType:
-		defer setList[uint](obj)()
-	case WebFilterCategoryType:
-		defer setList[uint](obj)()
 	default:
 		return fmt.Errorf("error unmarshalling policy object: invalid object type: %s", typeField.Type)
 	}
@@ -122,30 +110,3 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	// unmarshal PolicyConfiguration using struct tags
 	return json.Unmarshal(data, (*aliasObject)(obj))
 }
-
-// ItemsStringList returns the Items of the group as a slice of
-// strings if they can be interpreted this way, or an empty slice and
-// false if not.
-func (g *Group) ItemsStringList() ([]string, bool) {
-	val, ok := g.Items.([]string)
-	return val, ok
-}
-
-// ItemsIPSpecList returns the Items of a group as a slice of
-// utilNet.IPSpecifierString and true if they can be interpreted this way,
-// or an empty slice and false otherwise.
-func (g *Group) ItemsIPSpecList() ([]utilNet.IPSpecifierString, bool) {
-	val, ok := g.Items.([]utilNet.IPSpecifierString)
-	return val, ok
-}
-
-// ItemsServiceEndpointList returns the Items of a group as a slice of
-// ServiceEndpoint and true if they can be interpreted this way, nil
-// and false otherwise.
-func (g *Group) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
-	val, ok := g.Items.([]ServiceEndpoint)
-	return val, ok
-}
-
-// PolicyFlow contains policy flow configuration.
-type PolicyFlow = Object

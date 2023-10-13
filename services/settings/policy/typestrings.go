@@ -35,26 +35,15 @@ type ObjectMetadata struct {
 }
 
 const (
-	// Deprecated: GeoIPListType means that the Items of a Group are geoip countries.
-	GeoIPListType ObjectType = "GeoIPLocation"
-
 	// GeoIPObjectGroupType/GeoIPListType are new-style type names for
 	// geoip objects and groups.
 	GeoIPObjectType      ObjectType = "mfw-object-geoip"
 	GeoIPObjectGroupType ObjectType = "mfw-object-geoip-group"
 
-	// Deprecated: IPAddrListType means that the Items of the Group are ip
-	// specifications (ranges, CIDRs, or single IPs). (old)
-	IPAddrListType ObjectType = "IPAddrList"
-
 	// IPObjectType/IPAddressGroupType are the types for the
 	// new-style matchable object/group that relate to IPs.
 	IPObjectType       ObjectType = "mfw-object-ipaddress"
 	IPAddressGroupType ObjectType = "mfw-object-ipaddress-group"
-
-	// ServiceEndpointType means that the Items of a Group are
-	// service endpoints.
-	ServiceEndpointType ObjectType = "ServiceEndpoint"
 
 	// ServiceEndpointObjecttype and ServiceEndpointGroup are types
 	// for object/group in new schema, from cloud.

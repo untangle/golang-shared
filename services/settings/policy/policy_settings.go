@@ -2,6 +2,7 @@ package policy
 
 import (
 	"github.com/untangle/golang-shared/services/settings"
+	utilNet "github.com/untangle/golang-shared/util/net"
 )
 
 const (
@@ -18,16 +19,12 @@ const (
 type PolicySettings struct {
 	Enabled         bool                   `json:"enabled"`
 	Configurations  []*PolicyConfiguration `json:"configurations"`
-	Objects         []*Group               `json:"objects"`
+	Objects         []*Object              `json:"objects"`
 	ObjectGroups    []*Object              `json:"object_groups"`
 	Conditions      []*Object              `json:"conditions"`
 	ConditionGroups []*Object              `json:"condition_groups"`
 	Rules           []*Object              `json:"rules"`
 	Policies        []*Policy              `json:"policies"`
-
-	//DEPRECATED
-	Flows  []*PolicyFlow `json:"flows,omitempty" `
-	Groups []*Group      `json:"groups,omitempty"`
 }
 
 // FindConfiguration searches this PolicySetting to load a configuration by ID
@@ -45,16 +42,6 @@ func (p *PolicySettings) FindRule(ruleID string) *Object {
 	for _, rule := range p.Rules {
 		if rule.ID == ruleID {
 			return rule
-		}
-	}
-	return nil
-}
-
-// Returns the policy flow given the ID.
-func (p *PolicySettings) FindFlow(id string) *Object {
-	for _, flow := range p.Flows {
-		if flow.ID == id {
-			return flow
 		}
 	}
 	return nil
@@ -136,4 +123,28 @@ func GetAllPolicyConfigs(settingsFile *settings.SettingsFile) (map[string]map[st
 	}
 
 	return pluginSettings, nil
+}
+
+// ItemsStringList returns the Items of the object as a slice of
+// strings if they can be interpreted this way, or an empty slice and
+// false if not.
+func (o *Object) ItemsStringList() ([]string, bool) {
+	val, ok := o.Items.([]string)
+	return val, ok
+}
+
+// ItemsIPSpecList returns the Items of an object as a slice of
+// utilNet.IPSpecifierString and true if they can be interpreted this way,
+// or an empty slice and false otherwise.
+func (o *Object) ItemsIPSpecList() ([]utilNet.IPSpecifierString, bool) {
+	val, ok := o.Items.([]utilNet.IPSpecifierString)
+	return val, ok
+}
+
+// ItemsServiceEndpointList returns the Items of an object as a slice of
+// ServiceEndpoint and true if they can be interpreted this way, nil
+// and false otherwise.
+func (o *Object) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
+	val, ok := o.Items.([]ServiceEndpoint)
+	return val, ok
 }

@@ -5,7 +5,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io"
+	"math/rand"
 	"strings"
+	"sync"
+	"time"
 )
 
 // ContainsString checks if a string is contained in an array of strings
@@ -16,6 +19,33 @@ func ContainsString(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+// WaitGroupDoneOrTimeout waits for the waitgroup for the specified max timeout.
+// Returns true if waiting timed out.
+func WaitGroupDoneOrTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		wg.Wait()
+	}()
+	select {
+	case <-c:
+		return false
+	case <-time.After(timeout):
+		return true
+	}
+}
+
+// Helper function to randomize the order of an array
+func RandomizeSlice[T any](slice []T) {
+	n := len(slice)
+
+	// Shuffle
+	for i := n - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		slice[i], slice[j] = slice[j], slice[i]
+	}
 }
 
 // Pulls specified filenames out of a tar or tar.gz, depending on if isGzip is set.
