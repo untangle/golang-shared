@@ -219,6 +219,7 @@ type ImageDetails struct {
 
 	ImageData string `protobuf:"bytes,1,opt,name=imageData,proto3" json:"imageData,omitempty"`
 	ImageName string `protobuf:"bytes,2,opt,name=imageName,proto3" json:"imageName,omitempty"`
+	ImagePath string `protobuf:"bytes,3,opt,name=imagePath,proto3" json:"imagePath,omitempty"`
 }
 
 func (x *ImageDetails) Reset() {
@@ -263,6 +264,13 @@ func (x *ImageDetails) GetImageData() string {
 func (x *ImageDetails) GetImageName() string {
 	if x != nil {
 		return x.ImageName
+	}
+	return ""
+}
+
+func (x *ImageDetails) GetImagePath() string {
+	if x != nil {
+		return x.ImagePath
 	}
 	return ""
 }
