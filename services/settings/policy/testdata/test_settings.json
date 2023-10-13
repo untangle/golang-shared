@@ -206,6 +206,22 @@
             "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
           }
         ]
+      },
+      {
+        "id": "8105f355-cb98-43eb-deaf-74542a524abb",
+        "name": "Application Object Group Test",
+        "description": "Some Application Object Group",
+        "type": "mfw-object-application-group",
+        "items": [
+          {
+            "port": [80, 8088, 443],
+            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
+          },
+          {
+            "port": [8080, 8086],
+            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
+          }
+        ]
       }
     ],
     "object_groups": [

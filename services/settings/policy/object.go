@@ -53,10 +53,15 @@ type ServiceEndpoint struct {
 	Port     []uint `json:"port"`
 }
 
+// ApplicationObject holds an array of Ports and an array of IPSpecifiers
+// a match occurs if any of the ports are matched and any of the IPs are matched
 type ApplicationObject struct {
 	Port       []uint                      `json:"port"`
 	IPAddrList []utilNet.IPSpecifierString `json:"ipaddrlist"`
 }
+
+// ApplicationObjectGroup holds an array of ApplicationObjects
+type ApplicationObjectGroup []ApplicationObject
 
 // setList is a utility function for setting a list in the Object.Items field. We
 // use a trick where json.Unmarshal will look at an 'any' value and if
@@ -103,6 +108,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	case ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
 	case ApplicationType:
+		defer setList[ApplicationObject](obj)()
+	case ApplicationGroupType:
 		defer setList[ApplicationObject](obj)()
 	case InterfaceType, InterfaceObjectType:
 		defer setList[uint](obj)()
