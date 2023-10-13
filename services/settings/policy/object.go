@@ -61,7 +61,7 @@ type ApplicationObject struct {
 }
 
 // ApplicationObjectGroup holds an array of ApplicationObjects
-type ApplicationObjectGroup []ApplicationObject
+type ApplicationObjectGroup = []ApplicationObject
 
 // setList is a utility function for setting a list in the Object.Items field. We
 // use a trick where json.Unmarshal will look at an 'any' value and if
