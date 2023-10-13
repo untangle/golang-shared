@@ -391,6 +391,26 @@ func TestObjectUnmarshal(t *testing.T) {
 	}, endpointList)
 }
 
+func TestApplicationObjectUnmarshal(t *testing.T) {
+	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
+	var objects []Object
+	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
+	for i := range objects {
+		if objects[i].Type == "mfw-object-application" {
+			items := objects[i].Items.([]ApplicationObject)
+			applicationObject := items[0]
+			assert.Equal(t, []net.IPSpecifierString{
+				"1.2.3.4",
+				"2.3.4.5-3.4.5.6",
+				"4.5.6.7/32"}, applicationObject.IPAddrList)
+			assert.EqualValues(t, ApplicationObject{
+				Port:       []uint{80, 8088, 443},
+				IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
+			}, applicationObject)
+		}
+	}
+}
+
 func TestGroupUnmarshalEdges(t *testing.T) {
 	tests := []struct {
 		name        string
