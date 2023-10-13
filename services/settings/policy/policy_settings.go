@@ -148,3 +148,19 @@ func (o *Object) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
 	val, ok := o.Items.([]ServiceEndpoint)
 	return val, ok
 }
+
+// ItemsApplicationObject returns the Items of an object as a
+// ApplicatonObject and true if they can be interpreted this way, nil
+// and false otherwise.
+func (o *Object) ItemsApplicationObject() (ApplicationObject, bool) {
+	val, ok := o.Items.(ApplicationObject)
+	return val, ok
+}
+
+// ItemsApplicationGroup returns the Items of an object group as a
+// ApplicatonObjectGroup and true if they can be interpreted this way, nil
+// and false otherwise.
+func (o *Object) ItemsApplicationGroup() (ApplicationObjectGroup, bool) {
+	val, ok := o.Items.(ApplicationObjectGroup)
+	return val, ok
+}

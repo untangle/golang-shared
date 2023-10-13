@@ -397,16 +397,16 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
 	for i := range objects {
 		if objects[i].Type == "mfw-object-application" {
-			items := objects[i].Items.([]ApplicationObject)
-			applicationObject := items[0]
-			assert.Equal(t, []net.IPSpecifierString{
-				"1.2.3.4",
-				"2.3.4.5-3.4.5.6",
-				"4.5.6.7/32"}, applicationObject.IPAddrList)
-			assert.EqualValues(t, ApplicationObject{
-				Port:       []uint{80, 8088, 443},
-				IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
-			}, applicationObject)
+			if applicationObject, ok := objects[i].ItemsApplicationObject(); ok {
+				assert.Equal(t, []net.IPSpecifierString{
+					"1.2.3.4",
+					"2.3.4.5-3.4.5.6",
+					"4.5.6.7/32"}, applicationObject.IPAddrList)
+				assert.EqualValues(t, ApplicationObject{
+					Port:       []uint{80, 8088, 443},
+					IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
+				}, applicationObject)
+			}
 		}
 	}
 }
@@ -417,7 +417,7 @@ func TestApplicationObjectGroupUnmarshal(t *testing.T) {
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
 	for i := range objects {
 		if objects[i].Type == "mfw-object-application-group" {
-			if applicationGroup, ok := objects[i].Items.(ApplicationObjectGroup); ok {
+			if applicationGroup, ok := objects[i].ItemsApplicationGroup(); ok {
 				assert.EqualValues(t, ApplicationObjectGroup{
 					{
 						Port:       []uint{80, 8088, 443},
