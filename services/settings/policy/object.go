@@ -83,7 +83,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		// drop down to the default return
 
 	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject, ThreatPreventionRuleObject,
-		NATRuleObject, PortForwardRuleObject, WebFilterRuleObject, ShapingRuleObject, WANPolicyRuleObject:
+		NATRuleObject, PortForwardRuleObject, WebFilterRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject:
 		// drop down to the default return
 
 	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
