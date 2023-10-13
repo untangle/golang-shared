@@ -14,13 +14,21 @@ const (
 )
 
 // Load a global settings file via URL, return the settings object
-func LoadSettingsFromURL(output interface{}, url string, key []string) error {
+func LoadSettingsFromURL(output any, key []string, url string) error {
 
 	// Get settings from URL
 	if url == "" {
 		url = DefaultSettingsURL
 	}
-	// Load settings file
+
+	/*
+		// Load from file for now.
+		content := policy.PolicySettings{}
+		sFile := settings.NewSettingsFile("settings_test.json")
+		err := sFile.UnmarshalSettingsAtPath(&content, "policy_manager")
+	*/
+	// Load settings file from URL
+
 	if resp, err := http.Get(url); err == nil {
 		defer resp.Body.Close()
 		if buf, err := io.ReadAll(resp.Body); err == nil {
@@ -31,6 +39,7 @@ func LoadSettingsFromURL(output interface{}, url string, key []string) error {
 			return err
 		}
 	} else {
+
 		return err
 	}
 }
