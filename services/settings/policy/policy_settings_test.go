@@ -403,7 +403,7 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 					"2.3.4.5-3.4.5.6",
 					"4.5.6.7/32"}, applicationObject.IPAddrList)
 				assert.EqualValues(t, ApplicationObject{
-					Port:       []uint{80, 8088, 443},
+					Ports:      []uint{80, 8088, 443},
 					IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
 				}, applicationObject)
 			}
@@ -420,11 +420,11 @@ func TestApplicationObjectGroupUnmarshal(t *testing.T) {
 			if applicationGroup, ok := objects[i].ItemsApplicationGroup(); ok {
 				assert.EqualValues(t, ApplicationObjectGroup{
 					{
-						Port:       []uint{80, 8088, 443},
+						Ports:      []uint{80, 8088, 443},
 						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
 					},
 					{
-						Port:       []uint{8080, 8086},
+						Ports:      []uint{8080, 8086},
 						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"},
 					},
 				}, applicationGroup)
