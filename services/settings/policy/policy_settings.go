@@ -153,8 +153,8 @@ func (o *Object) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
 // ApplicatonObject and true if they can be interpreted this way, nil
 // and false otherwise.
 func (o *Object) ItemsApplicationObject() (ApplicationObject, bool) {
-	val, ok := o.Items.(ApplicationObject)
-	return val, ok
+	val, ok := o.Items.([]ApplicationObject)
+	return val[0], ok
 }
 
 // ItemsApplicationGroup returns the Items of an object group as a
