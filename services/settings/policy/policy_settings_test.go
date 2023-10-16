@@ -391,6 +391,7 @@ func TestObjectUnmarshal(t *testing.T) {
 	}, endpointList)
 }
 
+// Test Unmarshalling an ApplicationObject from test_settings.json
 func TestApplicationObjectUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
 	var objects []Object
