@@ -1,7 +1,6 @@
 package settingsloader
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/untangle/golang-shared/services/settings/policy"
@@ -15,10 +14,12 @@ func TestPolicyManagerSettingsFile(t *testing.T) {
 	t.Run("load_global_settings_file", func(t *testing.T) {
 		result := policy.PolicySettings{}
 		err := LoadSettingsFromURL(&result, settingskey,
-			"https://raw.githubusercontent.com/untangle/mfw_schema/MFW-3623/v1/policy_manager/test_settings.json",
+			"https://raw.githubusercontent.com/untangle/mfw_schema/master/v1/policy_manager/test_settings.json",
 		)
-		fmt.Print(err)
+
 		assert.Nil(t, err, "error should be nil, but was %v", err)
+
+		// This may change as the example settings file changes.
 		assert.Equal(t, len(result.Rules), 13)
 	})
 }
