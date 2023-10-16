@@ -7,6 +7,7 @@
 package CaptivePortal
 
 import (
+	"fmt"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -262,6 +263,7 @@ func (x *ImageDetails) GetImageData() string {
 }
 
 func (x *ImageDetails) GetImageName() string {
+	fmt.Println("Lin2 ======2")
 	if x != nil {
 		return x.ImageName
 	}
@@ -269,9 +271,12 @@ func (x *ImageDetails) GetImageName() string {
 }
 
 func (x *ImageDetails) GetImagePath() string {
+	fmt.Println("Lin2 ======")
 	if x != nil {
+		fmt.Println("Li2n2 ======")
 		return x.ImagePath
 	}
+	fmt.Println("Lin21 ======")
 	return ""
 }
 
