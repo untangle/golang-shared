@@ -59,7 +59,6 @@ const (
 	// RuleTypes
 	ApplicationControlRuleObject ObjectType = "mfw-rule-applicationcontrol"
 	CaptivePortalRuleObject      ObjectType = "mfw-rule-captiveportal"
-	DNSRuleObject                ObjectType = "mfw-rule-dns"
 	GeoipRuleObject              ObjectType = "mfw-rule-geoip"
 	NATRuleObject                ObjectType = "mfw-rule-nat"
 	PortForwardRuleObject        ObjectType = "mfw-rule-portforward"
@@ -67,17 +66,6 @@ const (
 	ShapingRuleObject            ObjectType = "mfw-rule-shaping"
 	ThreatPreventionRuleObject   ObjectType = "mfw-rule-threatprevention"
 	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
-
-
-	// Deprecated: WebFilter* will be removed.
-	// WebFilterCategoryType means that the Items of the Group are web filter categories.
-	WebFilterCategoryType ObjectType = "WebFilterCategory"
-	WebFilterRuleObject   ObjectType = "WebFilterRuleObject"
-
-	// Deprecated: ThreatPreventionType will be removed.
-	// ThreatPreventionType means that the Items of the Group are
-	// threat prevention score.
-	ThreatPreventionType ObjectType = "ThreatPrevention"
 
 	// ConditionType,ConditionGroupType: type id strings, for the
 	// object and the group.
