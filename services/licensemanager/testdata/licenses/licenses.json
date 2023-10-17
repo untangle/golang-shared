@@ -99,6 +99,19 @@
             "keyVersion": 3,                              
             "name": "untangle-node-captive-portal",            
             "javaClass": "com.untangle.uvm.node.License"  
+        },
+        {
+                                                             
+            "UID": "43f90add-dca5-415c-9530-06fa29c9b4d9",
+            "type": "Subscription",                       
+            "end": 1716102000,                            
+            "start": 1684134000,                          
+            "seats": 1000000,                             
+            "displayName": "Dynamic Blocklists",            
+            "key": "90ba3b5264b10af43a205b7493118b3b",    
+            "keyVersion": 3,                              
+            "name": "untangle-node-dynamic-lists",            
+            "javaClass": "com.untangle.uvm.node.License"  
         }
     ]
 }
