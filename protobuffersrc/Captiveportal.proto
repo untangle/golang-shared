@@ -39,7 +39,7 @@ message CpSettingType {
   string MessageText = 7 [json_name = "messageText"];
   string WelcomeText = 8 [json_name = "welcomeText"];
   string PageTitle = 9 [json_name = "pageTitle"];
-  ImageDetails logo = 10 [json_name = "logo"];
+  ImageDetails Logo = 10 [json_name = "logo"];
   repeated CpRules Rules = 11 [json_name = "rules"];
 }
 
