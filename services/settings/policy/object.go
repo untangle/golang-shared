@@ -56,7 +56,7 @@ type ServiceEndpoint struct {
 // ApplicationObject holds an array of Ports and an array of IPSpecifiers
 // a match occurs if any of the ports are matched and any of the IPs are matched
 type ApplicationObject struct {
-	Ports      []uint                      `json:"ports"`
+	Port       []uint                      `json:"port"`
 	IPAddrList []utilNet.IPSpecifierString `json:"ipaddrlist"`
 }
 

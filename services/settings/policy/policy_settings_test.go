@@ -2,6 +2,7 @@ package policy
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/google/gopacket/layers"
@@ -404,9 +405,45 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 					"2.3.4.5-3.4.5.6",
 					"4.5.6.7/32"}, applicationObject.IPAddrList)
 				assert.EqualValues(t, ApplicationObject{
-					Ports:      []uint{80, 8088, 443},
+					Port:       []uint{80, 8088, 443},
 					IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
 				}, applicationObject)
+			}
+		}
+	}
+}
+
+// Test Unmarshalling an ApplicationObject Conditionfrom test_settings_group.json
+func TestApplicationObjectConditionUnmarshal(t *testing.T) {
+	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
+	var objects []Object
+	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
+	guidmap := make(map[string]*ApplicationObject, 0)
+	for _, object := range objects {
+		if object.Type == ApplicationType {
+			if applicationObject, ok := object.ItemsApplicationObject(); ok {
+				assert.Equal(t, []net.IPSpecifierString{
+					"1.2.3.4",
+					"2.3.4.5-3.4.5.6",
+					"4.5.6.7/32"}, applicationObject.IPAddrList)
+				assert.EqualValues(t, ApplicationObject{
+					Port:       []uint{80, 8088, 443},
+					IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
+				}, applicationObject)
+				guidmap[object.ID] = &applicationObject
+			}
+		}
+	}
+	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "conditions"))
+	for _, object := range objects {
+		if conditions, ok := object.Items.([]*PolicyCondition); ok {
+			for _, condition := range conditions {
+				for _, id := range condition.GroupIDs {
+					if object, ok := guidmap[id]; ok {
+						assert.True(t, condition.CType == "APPLICATION")
+						fmt.Printf("Found ApplicationObject: %s %v\n", condition.CType, object)
+					}
+				}
 			}
 		}
 	}
@@ -421,11 +458,11 @@ func TestApplicationObjectGroupUnmarshal(t *testing.T) {
 			if applicationGroup, ok := objects[i].ItemsApplicationGroup(); ok {
 				assert.EqualValues(t, ApplicationObjectGroup{
 					{
-						Ports:      []uint{80, 8088, 443},
+						Port:       []uint{80, 8088, 443},
 						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
 					},
 					{
-						Ports:      []uint{8080, 8086},
+						Port:       []uint{8080, 8086},
 						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"},
 					},
 				}, applicationGroup)
@@ -576,6 +613,32 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					{
 						Protocol: []uint{uint(layers.IPProtocolTCP)},
 						Port:     []uint{2223, 11, 53},
+					},
+				},
+			},
+		},
+		{
+			name: "good ApplicationObject",
+			json: `{"name": "ApplicationObject Test 1",
+					"id": "702d4c99-9599-455f-dead-215e5680f038",
+					"description": "Description",
+					"type": "mfw-object-application",
+					"items": [
+						{ 
+							"port": [2222,80,88],
+							"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
+						}
+					]}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "ApplicationObject Test 1",
+				Description: "Description",
+				Type:        "mfw-object-application",
+				ID:          "702d4c99-9599-455f-dead-215e5680f038",
+				Items: []ApplicationObject{
+					{
+						Port:       []uint{2222, 80, 88},
+						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"},
 					},
 				},
 			},

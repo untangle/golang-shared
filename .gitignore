@@ -1,2 +1,3 @@
 vendor/
 **/testdata/*appstate*
+services/licensemanager/testdata/appstates/appstate_service_state.json
