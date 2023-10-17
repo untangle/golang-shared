@@ -85,8 +85,8 @@ func GetSettings(segments []string) (interface{}, error) {
 }
 
 // SetSettings updates the settings
-func SetSettings(segments []string, value interface{}, force bool) (interface{}, error) {
-	return SetSettingsFile(segments, value, settingsFile, force)
+func SetSettings(segments []string, value interface{}, force bool, skip bool) (interface{}, error) {
+	return SetSettingsFile(segments, value, settingsFile, force, skip)
 }
 
 // TrimSettings trims the settings
@@ -136,7 +136,7 @@ func GetSettingsFile(segments []string, filename string) (interface{}, error) {
 }
 
 // SetSettingsFile updates the settings
-func SetSettingsFile(segments []string, value interface{}, filename string, force bool) (interface{}, error) {
+func SetSettingsFile(segments []string, value interface{}, filename string, force bool, skip bool) (interface{}, error) {
 	var ok bool
 	var err error
 	var jsonSettings map[string]interface{}
@@ -158,7 +158,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	}
 
 	saveLocker.Lock()
-	output, err := syncAndSave(jsonSettings, filename, force)
+	output, err := syncAndSave(jsonSettings, filename, force, skip)
 	saveLocker.Unlock()
 	if err != nil {
 		var errJSON map[string]interface{}
@@ -416,8 +416,8 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 }
 
 // runSyncSettings runs sync-settings on the specified filename
-func runSyncSettings(filename string, force bool) (string, error) {
-	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force))
+func runSyncSettings(filename string, force bool, skip bool) (string, error) {
+	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force), "skip:="+strconv.FormatBool(skip))
 	outBytes, err := cmd.CombinedOutput()
 	jsonOutput, data, errParse := parseSyncSettingsJsonOutput(outBytes)
 
@@ -473,7 +473,7 @@ func syncSystemFiles() {
 // it copies the tmp file to the destination specified in filename
 // if sync-settings does not succeed it returns the error and output
 // returns stdout, stderr, and an error
-func syncAndSave(jsonObject map[string]interface{}, filename string, force bool) (string, error) {
+func syncAndSave(jsonObject map[string]interface{}, filename string, force bool, skip bool) (string, error) {
 	// we want this to run after all files have been closed
 	// so we defer it as soon as possible
 	defer syncSystemFiles()
@@ -492,7 +492,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool)
 		return "Failed to write settings.", err
 	}
 
-	output, err := runSyncSettings(tmpfile.Name(), force)
+	output, err := runSyncSettings(tmpfile.Name(), force, skip)
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		logger.Info("sync-settings: %v\n", scanner.Text())
