@@ -12,5 +12,5 @@ type Config struct {
 	PullingUnit   string `json:"pullingUnit"`
 	PullingTime   int    `json:"pullingTime"`
 	RegexType     string `json:"regexType"`
-	SkipCertCheck bool   `json:"skipCertCheck,omitempty"`
+	SkipCertCheck bool   `json:"skipCertCheck"`
 }
