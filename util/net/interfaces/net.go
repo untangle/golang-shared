@@ -83,6 +83,13 @@ func GetLANFilter() InterfaceFilter {
 	}
 }
 
+func GetWANFilter() InterfaceFilter {
+	return func(intf Interface) bool {
+		hasIP := intf.V4StaticAddress != "" || intf.V6StaticAddress != ""
+		return intf.IsWAN && intf.Enabled && hasIP
+	}
+}
+
 // GetVLANInterfaces returns all interfaces that are VLANs
 func (ifaces *InterfaceSettings) GetVLANInterfaces() (interfaces []Interface) {
 	return ifaces.GetInterfacesWithFilter(
