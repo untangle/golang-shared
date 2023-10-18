@@ -26,6 +26,7 @@ message CpRules {
 message ImageDetails {
   string imageData = 1 [json_name = "imageData"];
   string imageName = 2 [json_name = "imageName"];
+  string imagePath = 3 [json_name = "imagePath"];
 }
 
 message CpSettingType {
