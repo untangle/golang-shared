@@ -73,11 +73,14 @@ func (ifaces *InterfaceSettings) GetAllInterfaces() []Interface {
 // enabled, and have an assigned IP address of some kind.
 func (ifaces *InterfaceSettings) GetLocalInterfaces() (interfaces []Interface) {
 	return ifaces.GetInterfacesWithFilter(
-		func(intf Interface) bool {
-			hasIP := intf.V4StaticAddress != "" || intf.V6StaticAddress != ""
-			return !intf.IsWAN && intf.Enabled && hasIP
-		})
+		GetLocalInterfacesFilter())
+}
 
+func GetLocalInterfacesFilter() InterfaceFilter {
+	return func(intf Interface) bool {
+		hasIP := intf.V4StaticAddress != "" || intf.V6StaticAddress != ""
+		return !intf.IsWAN && intf.Enabled && hasIP
+	}
 }
 
 // GetVLANInterfaces returns all interfaces that are VLANs
