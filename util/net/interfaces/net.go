@@ -73,10 +73,10 @@ func (ifaces *InterfaceSettings) GetAllInterfaces() []Interface {
 // enabled, and have an assigned IP address of some kind.
 func (ifaces *InterfaceSettings) GetLocalInterfaces() (interfaces []Interface) {
 	return ifaces.GetInterfacesWithFilter(
-		GetLocalInterfacesFilter())
+		GetLANFilter())
 }
 
-func GetLocalInterfacesFilter() InterfaceFilter {
+func GetLANFilter() InterfaceFilter {
 	return func(intf Interface) bool {
 		hasIP := intf.V4StaticAddress != "" || intf.V6StaticAddress != ""
 		return !intf.IsWAN && intf.Enabled && hasIP
