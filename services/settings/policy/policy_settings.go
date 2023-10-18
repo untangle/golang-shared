@@ -160,7 +160,7 @@ func (o *Object) ItemsApplicationObject() (ApplicationObject, bool) {
 // ItemsApplicationGroup returns the Items of an object group as a
 // ApplicatonObjectGroup and true if they can be interpreted this way, nil
 // and false otherwise.
-func (o *Object) ItemsApplicationGroup() (ApplicationObjectGroup, bool) {
+func (o *Object) ItemsApplicationObjectGroup() (ApplicationObjectGroup, bool) {
 	val, ok := o.Items.(ApplicationObjectGroup)
 	return val, ok
 }

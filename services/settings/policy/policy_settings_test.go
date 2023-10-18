@@ -455,7 +455,7 @@ func TestApplicationObjectGroupUnmarshal(t *testing.T) {
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
 	for i := range objects {
 		if objects[i].Type == "mfw-object-application-group" {
-			if applicationGroup, ok := objects[i].ItemsApplicationGroup(); ok {
+			if applicationGroup, ok := objects[i].ItemsApplicationObjectGroup(); ok {
 				assert.EqualValues(t, ApplicationObjectGroup{
 					{
 						Port:       []uint{80, 8088, 443},
