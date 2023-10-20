@@ -449,6 +449,7 @@ func TestApplicationObjectConditionUnmarshal(t *testing.T) {
 	}
 }
 
+// Test unmarshalling an ApplicationObjectGroup
 func TestApplicationObjectGroupUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
 	var objects []Object
