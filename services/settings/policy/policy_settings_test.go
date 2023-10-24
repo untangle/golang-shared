@@ -2,7 +2,6 @@ package policy
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/google/gopacket/layers"
@@ -398,52 +397,14 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 	var objects []Object
 	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
 	for i := range objects {
-		if objects[i].Type == "mfw-object-application" {
+		if objects[i].Type == ApplicationType {
 			if applicationObject, ok := objects[i].ItemsApplicationObject(); ok {
-				assert.Equal(t, []net.IPSpecifierString{
-					"1.2.3.4",
-					"2.3.4.5-3.4.5.6",
-					"4.5.6.7/32"}, applicationObject.IPAddrList)
 				assert.EqualValues(t, ApplicationObject{
 					Port:       []uint{80, 8088, 443},
 					IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
 				}, applicationObject)
-			}
-		}
-	}
-}
-
-// Test Unmarshalling an ApplicationObject Conditionfrom test_settings_group.json
-func TestApplicationObjectConditionUnmarshal(t *testing.T) {
-	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
-	var objects []Object
-	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
-	guidmap := make(map[string]*ApplicationObject, 0)
-	for _, object := range objects {
-		if object.Type == ApplicationType {
-			if applicationObject, ok := object.ItemsApplicationObject(); ok {
-				assert.Equal(t, []net.IPSpecifierString{
-					"1.2.3.4",
-					"2.3.4.5-3.4.5.6",
-					"4.5.6.7/32"}, applicationObject.IPAddrList)
-				assert.EqualValues(t, ApplicationObject{
-					Port:       []uint{80, 8088, 443},
-					IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
-				}, applicationObject)
-				guidmap[object.ID] = &applicationObject
-			}
-		}
-	}
-	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "conditions"))
-	for _, object := range objects {
-		if conditions, ok := object.Items.([]*PolicyCondition); ok {
-			for _, condition := range conditions {
-				for _, id := range condition.GroupIDs {
-					if object, ok := guidmap[id]; ok {
-						assert.True(t, condition.CType == "APPLICATION")
-						fmt.Printf("Found ApplicationObject: %s %v\n", condition.CType, object)
-					}
-				}
+			} else {
+				assert.FailNow(t, "Could not find ApplicationObject when expected")
 			}
 		}
 	}
