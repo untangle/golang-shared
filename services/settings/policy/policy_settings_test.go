@@ -410,33 +410,6 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 	}
 }
 
-/* Deferred to MFW-3793
-// Test unmarshalling an ApplicationObjectGroup
-func TestApplicationObjectGroupUnmarshal(t *testing.T) {
-	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
-	var objects []Object
-	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
-	for i := range objects {
-		if objects[i].Type == "mfw-object-application-group" {
-			if applicationGroup, ok := objects[i].ItemsApplicationObjectGroup(); ok {
-				assert.EqualValues(t, ApplicationObjectGroup{
-					AppObjects: []ApplicationObject{
-						{
-							Port:       []uint{80, 8088, 443},
-							IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
-						},
-						{
-							Port:       []uint{8080, 8086},
-							IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"},
-						},
-					},
-				}, applicationGroup)
-			}
-		}
-	}
-}
-*/
-
 func TestGroupUnmarshalEdges(t *testing.T) {
 	tests := []struct {
 		name        string
