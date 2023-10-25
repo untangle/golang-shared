@@ -60,10 +60,12 @@ type ApplicationObject struct {
 	IPAddrList []utilNet.IPSpecifierString `json:"ipaddrlist"`
 }
 
+/* Deferred to MFW-3793
 // ApplicationObjectGroup holds an array of ApplicationObjects
 type ApplicationObjectGroup struct {
 	AppObjects []ApplicationObject
 }
+*/
 
 // setList is a utility function for setting a list in the Object.Items field. We
 // use a trick where json.Unmarshal will look at an 'any' value and if
@@ -111,7 +113,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[ServiceEndpoint](obj)()
 	case ApplicationType:
 		defer setList[ApplicationObject](obj)()
-	case ApplicationGroupType:
+	case ApplicationGroupType: // Revisit this in MFW-3793
 		defer setList[ApplicationObject](obj)()
 	case InterfaceType, InterfaceObjectType:
 		defer setList[uint](obj)()

@@ -206,7 +206,7 @@
             "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
           }
         ]
-      },
+      },      
       {
         "id": "8105f355-cb98-43eb-deaf-74542a524abb",
         "name": "Application Object Group Test",

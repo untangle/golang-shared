@@ -410,6 +410,7 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 	}
 }
 
+/* Deferred to MFW-3793
 // Test unmarshalling an ApplicationObjectGroup
 func TestApplicationObjectGroupUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
@@ -434,6 +435,7 @@ func TestApplicationObjectGroupUnmarshal(t *testing.T) {
 		}
 	}
 }
+*/
 
 func TestGroupUnmarshalEdges(t *testing.T) {
 	tests := []struct {
