@@ -299,7 +299,23 @@
         }
       }
     ],
-    "conditions": [],
+    "conditions": [
+      {
+        "type": "mfw-object-condition",
+        "items": [
+            {
+                "op": "match",
+                "type": "APPLICATION",
+                "value": [
+                    "8105f355-cb98-43eb-dead-74542a524abb"
+                ]
+            }
+        ],
+        "description": "Test Application Condition 1",
+        "id": "7bb85306-c823-0000-dead-a41868d1de82",
+        "name": "Test Application Object 1"
+      }
+    ],
     "condition_groups": [],
     "policies": [
       {
@@ -309,7 +325,8 @@
         "enabled": true,
         "conditions": [
           "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",
-          "0abba9c5-67a3-419a-9b91-6a876b84765a"
+          "0abba9c5-67a3-419a-9b91-6a876b84765a",
+          "7bb85306-c823-0000-dead-a41868d1de82"          
         ],
         "rules": [
           "c2428365-65be-4901-bfc0-bde2b310fedf",
