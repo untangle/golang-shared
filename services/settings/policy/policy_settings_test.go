@@ -865,6 +865,20 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				Value: []string{"9:00am"},
 			},
 		},
+		{
+			name: "test APPLICATION",
+			json: `{
+				"op": "==",
+				"type": "APPLICATION",
+				"value": ["8105f355-cb98-43eb-dead-74542a524abb"]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    "==",
+				CType: "APPLICATION",
+				Value: []string{"8105f355-cb98-43eb-dead-74542a524abb"},
+			},
+		},
 	}
 
 	for _, tt := range tests {
