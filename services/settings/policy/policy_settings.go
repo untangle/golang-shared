@@ -148,3 +148,16 @@ func (o *Object) ItemsServiceEndpointList() ([]ServiceEndpoint, bool) {
 	val, ok := o.Items.([]ServiceEndpoint)
 	return val, ok
 }
+
+// ItemsApplicationObject returns the Items of an object as a
+// ApplicatonObject and true if they can be interpreted this way, nil
+// and false otherwise.
+func (o *Object) ItemsApplicationObject() (ApplicationObject, bool) {
+	if val, ok := o.Items.([]ApplicationObject); ok {
+		if len(val) > 0 && (len(val[0].Port) > 0 || len(val[0].IPAddrList) > 0) {
+			return val[0], true
+		}
+	}
+	// Returning an empty object prevents the objects loading from failing
+	return ApplicationObject{}, false
+}

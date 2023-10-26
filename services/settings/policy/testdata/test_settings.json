@@ -194,6 +194,58 @@
         "description": "List 2 testing",
         "type": "mfw-object-ipaddress",
         "items": ["192.168.20.1/28"]
+      },
+      {
+        "id": "8105f355-cb98-43eb-dead-74542a524abb",
+        "name": "Application Object Test",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "port": [80, 8088, 443],
+            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
+          }
+        ]
+      },
+      {
+        "id": "8105f355-cb98-43eb-deed-74542a524abbb",
+        "name": "Application Object with IPs only",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
+          }
+        ]
+      },
+      {
+        "id": "8105f355-cb98-43eb-debd-74542a524abb",
+        "name": "Application Object with Ports only",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "port": [80, 8088, 443]
+          }
+        ]
+      },
+      {
+        "id": "8105f355-cb98-43eb-dece-74542a524abb",
+        "name": "Empty Application Object Test",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": []
+      },
+      {
+        "id": "8105f355-cb98-43eb-deaf-74542a524abb",
+        "name": "Non Application Object Test",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "test": "Not an application object"
+          }
+        ]
       }
     ],
     "object_groups": [
@@ -287,7 +339,23 @@
         }
       }
     ],
-    "conditions": [],
+    "conditions": [
+      {
+        "type": "mfw-object-condition",
+        "items": [
+            {
+                "op": "match",
+                "type": "APPLICATION",
+                "value": [
+                    "8105f355-cb98-43eb-dead-74542a524abb"
+                ]
+            }
+        ],
+        "description": "Test Application Condition 1",
+        "id": "7bb85306-c823-0000-dead-a41868d1de82",
+        "name": "Test Application Object 1"
+      }
+    ],
     "condition_groups": [],
     "policies": [
       {
@@ -297,7 +365,8 @@
         "enabled": true,
         "conditions": [
           "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",
-          "0abba9c5-67a3-419a-9b91-6a876b84765a"
+          "0abba9c5-67a3-419a-9b91-6a876b84765a",
+          "7bb85306-c823-0000-dead-a41868d1de82"          
         ],
         "rules": [
           "c2428365-65be-4901-bfc0-bde2b310fedf",

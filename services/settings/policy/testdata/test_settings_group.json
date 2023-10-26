@@ -98,6 +98,18 @@
         ]
       },
       {
+        "id": "8105f355-cb98-43eb-dead-74542a524abb",
+        "name": "Application Object Test",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "port": [80, 8088, 443],
+            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
+          }
+        ]
+      },
+      {
         "id": "cbee1455-1777-48ef-9e54-c4d4ee81632a",
         "name": "HR",
         "description": "",
@@ -160,6 +172,19 @@
             "type": "DESTINATION_ADDRESS",
             "op": "==",
             "value": ["192.20.3.10"]
+          }
+        ]
+      },
+      {
+        "id": "1458dc12-a9c2-4d0c-8203-1340c61c2c3b",
+        "name": "ApplicationObject Condition",
+        "description": "",
+        "type": "mfw-object-condition",
+        "items": [
+          {
+            "type": "APPLICATION",
+            "op": "match",
+            "object": ["8105f355-cb98-43eb-dead-74542a524abb"]
           }
         ]
       }

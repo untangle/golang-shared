@@ -391,6 +391,40 @@ func TestObjectUnmarshal(t *testing.T) {
 	}, endpointList)
 }
 
+// Test Unmarshalling an ApplicationObject from test_settings.json
+func TestApplicationObjectUnmarshal(t *testing.T) {
+	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
+	var objects []Object
+	assert.Nil(t, settingsFile.UnmarshalSettingsAtPath(&objects, "policy_manager", "objects"))
+	for i := range objects {
+		if objects[i].Type == ApplicationType {
+			if applicationObject, ok := objects[i].ItemsApplicationObject(); ok {
+				if len(applicationObject.Port) > 0 && len(applicationObject.IPAddrList) > 0 {
+					assert.EqualValues(t, ApplicationObject{
+						Port:       []uint{80, 8088, 443},
+						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
+					}, applicationObject)
+				} else if len(applicationObject.Port) > 0 {
+					assert.EqualValues(t, ApplicationObject{
+						Port:       []uint{80, 8088, 443},
+						IPAddrList: nil,
+					}, applicationObject)
+
+				} else if len(applicationObject.IPAddrList) > 0 {
+					assert.EqualValues(t, ApplicationObject{
+						Port:       nil,
+						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
+					}, applicationObject)
+				}
+			} else {
+				// Empty ApplicationObject is returned if anything goes wrong
+				// Returning an empty object rather than nil prevents the objects loading from failing
+				assert.Zero(t, len(applicationObject.Port)+len(applicationObject.IPAddrList))
+			}
+		}
+	}
+}
+
 func TestGroupUnmarshalEdges(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -533,6 +567,32 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					{
 						Protocol: []uint{uint(layers.IPProtocolTCP)},
 						Port:     []uint{2223, 11, 53},
+					},
+				},
+			},
+		},
+		{
+			name: "good ApplicationObject",
+			json: `{"name": "ApplicationObject Test 1",
+					"id": "702d4c99-9599-455f-dead-215e5680f038",
+					"description": "Description",
+					"type": "mfw-object-application",
+					"items": [
+						{ 
+							"port": [2222,80,88],
+							"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
+						}
+					]}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "ApplicationObject Test 1",
+				Description: "Description",
+				Type:        "mfw-object-application",
+				ID:          "702d4c99-9599-455f-dead-215e5680f038",
+				Items: []ApplicationObject{
+					{
+						Port:       []uint{2222, 80, 88},
+						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"},
 					},
 				},
 			},
@@ -818,6 +878,20 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				Op:    ">=",
 				CType: "TIME_OF_DAY",
 				Value: []string{"9:00am"},
+			},
+		},
+		{
+			name: "test APPLICATION",
+			json: `{
+				"op": "==",
+				"type": "APPLICATION",
+				"value": ["8105f355-cb98-43eb-dead-74542a524abb"]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    "==",
+				CType: "APPLICATION",
+				Value: []string{"8105f355-cb98-43eb-dead-74542a524abb"},
 			},
 		},
 	}
