@@ -208,7 +208,7 @@
         ]
       },
       {
-        "id": "8105f355-cb98-43eb-dead-74542a524abb",
+        "id": "8105f355-cb98-43eb-deed-74542a524abbb",
         "name": "Application Object with IPs only",
         "description": "Some Application Object",
         "type": "mfw-object-application",
