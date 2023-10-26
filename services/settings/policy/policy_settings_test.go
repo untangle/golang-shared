@@ -399,12 +399,27 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 	for i := range objects {
 		if objects[i].Type == ApplicationType {
 			if applicationObject, ok := objects[i].ItemsApplicationObject(); ok {
-				assert.EqualValues(t, ApplicationObject{
-					Port:       []uint{80, 8088, 443},
-					IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
-				}, applicationObject)
+				if len(applicationObject.Port) > 0 && len(applicationObject.IPAddrList) > 0 {
+					assert.EqualValues(t, ApplicationObject{
+						Port:       []uint{80, 8088, 443},
+						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
+					}, applicationObject)
+				} else if len(applicationObject.Port) > 0 {
+					assert.EqualValues(t, ApplicationObject{
+						Port:       []uint{80, 8088, 443},
+						IPAddrList: nil,
+					}, applicationObject)
+
+				} else if len(applicationObject.IPAddrList) > 0 {
+					assert.EqualValues(t, ApplicationObject{
+						Port:       nil,
+						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
+					}, applicationObject)
+				}
 			} else {
-				assert.FailNow(t, "Could not find ApplicationObject when expected")
+				// Empty ApplicationObject is returned if anything goes wrong
+				// Returning an empty object rather than nil prevents the objects loading from failing
+				assert.Zero(t, len(applicationObject.Port)+len(applicationObject.IPAddrList))
 			}
 		}
 	}

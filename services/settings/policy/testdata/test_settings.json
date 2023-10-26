@@ -206,6 +206,46 @@
             "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
           }
         ]
+      },
+      {
+        "id": "8105f355-cb98-43eb-dead-74542a524abb",
+        "name": "Application Object with IPs only",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
+          }
+        ]
+      },
+      {
+        "id": "8105f355-cb98-43eb-debd-74542a524abb",
+        "name": "Application Object with Ports only",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "port": [80, 8088, 443]
+          }
+        ]
+      },
+      {
+        "id": "8105f355-cb98-43eb-dece-74542a524abb",
+        "name": "Empty Application Object Test",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": []
+      },
+      {
+        "id": "8105f355-cb98-43eb-deaf-74542a524abb",
+        "name": "Non Application Object Test",
+        "description": "Some Application Object",
+        "type": "mfw-object-application",
+        "items": [
+          {
+            "test": "Not an application object"
+          }
+        ]
       }
     ],
     "object_groups": [
