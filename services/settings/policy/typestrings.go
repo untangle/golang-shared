@@ -66,6 +66,7 @@ const (
 	ShapingRuleObject            ObjectType = "mfw-rule-shaping"
 	ThreatPreventionRuleObject   ObjectType = "mfw-rule-threatprevention"
 	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
+	webfilterRuleObject          ObjectType = "mfw-rule-webfilter"
 
 	// ConditionType,ConditionGroupType: type id strings, for the
 	// object and the group.
