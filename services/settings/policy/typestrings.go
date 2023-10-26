@@ -64,6 +64,7 @@ const (
 	PortForwardRuleObject        ObjectType = "mfw-rule-portforward"
 	SecurityRuleObject           ObjectType = "mfw-rule-security"
 	ShapingRuleObject            ObjectType = "mfw-rule-shaping"
+	ThreatPreventionRuleObject   ObjectType = "mfw-rule-threatprevention"
 	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
 
 	// ConditionType,ConditionGroupType: type id strings, for the
