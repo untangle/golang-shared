@@ -73,6 +73,10 @@ func FillDeviceListWithZMQDeviceMessages(
 					logger.Warn("Could not unmarshal LLDP ZMQ Message: %s\n", err.Error())
 					break
 				}
+				if strings.Contains(lldp.Interface, "MGMT") {
+					// skipping Management interfaces
+					break
+				}
 
 				macAddress := strings.ToUpper(lldp.Mac)
 				ipAddr := strings.ToUpper(lldp.Ip)
@@ -83,16 +87,18 @@ func FillDeviceListWithZMQDeviceMessages(
 				lldpDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Lldp: entryMap,
 					MacAddress: macAddress,
 					LastUpdate: lldp.LastUpdate}}
-				if !strings.Contains(lldp.Interface, "MGMT") {
-					if err := MergeZmqMessageIntoDeviceList(devlist, lldpDeviceEntry, callback); err != nil {
-						logger.Warn("Could not process LLDP ZMQ message: %\n", err.Error())
-					}
+				if err := MergeZmqMessageIntoDeviceList(devlist, lldpDeviceEntry, callback); err != nil {
+					logger.Warn("Could not process LLDP ZMQ message: %\n", err.Error())
 				}
 			case NEIGHDeviceZMQTopic:
 				neigh := &disco.NEIGH{}
 				logger.Debug("Attempting to unmarshall NEIGH ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, neigh); err != nil {
 					logger.Warn("Could not unmarshal NEIGH ZMQ Message: %s\n", err.Error())
+					break
+				}
+				if strings.Contains(neigh.Interface, "MGMT") {
+					// skipping Management interfaces
 					break
 				}
 
@@ -105,7 +111,7 @@ func FillDeviceListWithZMQDeviceMessages(
 				neighDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Neigh: entryMap,
 					MacAddress: macAddress,
 					LastUpdate: neigh.LastUpdate}}
-				if !checkStaleNeigh(devlist.Devices, entryMap, macAddress) && !strings.Contains(neigh.Interface, "MGMT") {
+				if !checkStaleNeigh(devlist.Devices, entryMap, macAddress) {
 					if err := MergeZmqMessageIntoDeviceList(devlist, neighDeviceEntry, callback); err != nil {
 						logger.Warn("Could not process NEIGH ZMQ message: %\n", err.Error())
 					}
@@ -115,6 +121,10 @@ func FillDeviceListWithZMQDeviceMessages(
 				logger.Debug("Attempting to unmarshall NMAP ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, nmap); err != nil {
 					logger.Warn("Could not unmarshal NMAP ZMQ Message: %s\n", err.Error())
+					break
+				}
+				if strings.Contains(nmap.Interface, "MGMT") {
+					// skipping Management interfaces
 					break
 				}
 
@@ -127,10 +137,8 @@ func FillDeviceListWithZMQDeviceMessages(
 				nmapDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Nmap: entryMap,
 					MacAddress: macAddress,
 					LastUpdate: nmap.LastUpdate}}
-				if !strings.Contains(nmap.Interface, "MGMT") {
-					if err := MergeZmqMessageIntoDeviceList(devlist, nmapDeviceEntry, callback); err != nil {
-						logger.Warn("Could not process NMAP ZMQ message: %\n", err.Error())
-					}
+				if err := MergeZmqMessageIntoDeviceList(devlist, nmapDeviceEntry, callback); err != nil {
+					logger.Warn("Could not process NMAP ZMQ message: %\n", err.Error())
 				}
 			}
 		case <-shutdownChannel:
