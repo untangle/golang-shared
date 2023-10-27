@@ -19,6 +19,7 @@ enum AlertType {
     VPN = 11;
     CAPTIVEPORTAL = 12;
     TRAFFIC = 13;
+    DYNAMICLIST = 14;
 }
 
 enum AlertSeverity {
