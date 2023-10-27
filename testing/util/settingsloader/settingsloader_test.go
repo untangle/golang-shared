@@ -19,7 +19,7 @@ func TestPolicyManagerSettingsFile(t *testing.T) {
 
 		assert.Nil(t, err, "error should be nil, but was %v", err)
 
-		// This may change as the example settings file changes.
+		// This may change, when the example settings file changes.
 		assert.Equal(t, len(result.Rules), 13)
 	})
 }
