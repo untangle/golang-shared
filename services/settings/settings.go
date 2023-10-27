@@ -356,7 +356,7 @@ func TrimSettingsFile(segments []string, filename string) (interface{}, error) {
 		}
 	}
 
-	output, err := syncAndSave(jsonSettings, filename, false)
+	output, err := syncAndSave(jsonSettings, filename, false, false)
 	if err != nil {
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
