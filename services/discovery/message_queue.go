@@ -83,8 +83,10 @@ func FillDeviceListWithZMQDeviceMessages(
 				lldpDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Lldp: entryMap,
 					MacAddress: macAddress,
 					LastUpdate: lldp.LastUpdate}}
-				if err := MergeZmqMessageIntoDeviceList(devlist, lldpDeviceEntry, callback); err != nil {
-					logger.Warn("Could not process LLDP ZMQ message: %\n", err.Error())
+				if !strings.Contains(lldp.Interface, "MGMT") {
+					if err := MergeZmqMessageIntoDeviceList(devlist, lldpDeviceEntry, callback); err != nil {
+						logger.Warn("Could not process LLDP ZMQ message: %\n", err.Error())
+					}
 				}
 			case NEIGHDeviceZMQTopic:
 				neigh := &disco.NEIGH{}
@@ -103,7 +105,7 @@ func FillDeviceListWithZMQDeviceMessages(
 				neighDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Neigh: entryMap,
 					MacAddress: macAddress,
 					LastUpdate: neigh.LastUpdate}}
-				if !checkStaleNeigh(devlist.Devices, entryMap, macAddress) {
+				if !checkStaleNeigh(devlist.Devices, entryMap, macAddress) && !strings.Contains(neigh.Interface, "MGMT") {
 					if err := MergeZmqMessageIntoDeviceList(devlist, neighDeviceEntry, callback); err != nil {
 						logger.Warn("Could not process NEIGH ZMQ message: %\n", err.Error())
 					}
@@ -125,8 +127,10 @@ func FillDeviceListWithZMQDeviceMessages(
 				nmapDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Nmap: entryMap,
 					MacAddress: macAddress,
 					LastUpdate: nmap.LastUpdate}}
-				if err := MergeZmqMessageIntoDeviceList(devlist, nmapDeviceEntry, callback); err != nil {
-					logger.Warn("Could not process NMAP ZMQ message: %\n", err.Error())
+				if !strings.Contains(nmap.Interface, "MGMT") {
+					if err := MergeZmqMessageIntoDeviceList(devlist, nmapDeviceEntry, callback); err != nil {
+						logger.Warn("Could not process NMAP ZMQ message: %\n", err.Error())
+					}
 				}
 			}
 		case <-shutdownChannel:
