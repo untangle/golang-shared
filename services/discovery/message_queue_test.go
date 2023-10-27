@@ -24,9 +24,9 @@ func TestFillDeviceListWithZMQDeviceMessages(t *testing.T) {
 	lldpMessage, _ := proto.Marshal(&disco.LLDP{Mac: "11:11:11:11:11:11", Ip: "192.168.11.22"})
 	neighMessage, _ := proto.Marshal(&disco.NEIGH{Mac: "22:22:22:22:22:22", Ip: "192.168.33.44"})
 	nmapMessage, _ := proto.Marshal(&disco.NMAP{Mac: "33:33:33:33:33:33", Ip: "192.168.55.66"})
-	lldpMessage1, _ := proto.Marshal(&disco.LLDP{Mac: "11:11:11:11:11:11", Ip: "192.168.11.22", Interface: "MGMTeth0"})
-	neighMessage2, _ := proto.Marshal(&disco.NEIGH{Mac: "22:22:22:22:22:22", Ip: "192.168.33.44", Interface: "MGMTeth0"})
-	nmapMessage3, _ := proto.Marshal(&disco.NMAP{Mac: "33:33:33:33:33:33", Ip: "192.168.55.66", Interface: "MGMTeth0"})
+	lldpMessage1, _ := proto.Marshal(&disco.LLDP{Mac: "11:11:11:11:11:11", Ip: "192.168.11.22", Interface: "MGMT1"})
+	neighMessage2, _ := proto.Marshal(&disco.NEIGH{Mac: "22:22:22:22:22:22", Ip: "192.168.33.44", Interface: "MGMT2"})
+	nmapMessage3, _ := proto.Marshal(&disco.NMAP{Mac: "33:33:33:33:33:33", Ip: "192.168.55.66", Interface: "MGMT2"})
 
 	zmqChan <- &ZmqMessage{Topic: LLDPDeviceZMQTopic, Message: lldpMessage}
 	zmqChan <- &ZmqMessage{Topic: NEIGHDeviceZMQTopic, Message: neighMessage}
