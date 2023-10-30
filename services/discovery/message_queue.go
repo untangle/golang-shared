@@ -73,6 +73,10 @@ func FillDeviceListWithZMQDeviceMessages(
 					logger.Warn("Could not unmarshal LLDP ZMQ Message: %s\n", err.Error())
 					break
 				}
+				if strings.Contains(lldp.Interface, "MGMT") {
+					// skipping Management interfaces
+					break
+				}
 
 				macAddress := strings.ToUpper(lldp.Mac)
 				ipAddr := strings.ToUpper(lldp.Ip)
@@ -91,6 +95,10 @@ func FillDeviceListWithZMQDeviceMessages(
 				logger.Debug("Attempting to unmarshall NEIGH ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, neigh); err != nil {
 					logger.Warn("Could not unmarshal NEIGH ZMQ Message: %s\n", err.Error())
+					break
+				}
+				if strings.Contains(neigh.Interface, "MGMT") {
+					// skipping Management interfaces
 					break
 				}
 
@@ -113,6 +121,10 @@ func FillDeviceListWithZMQDeviceMessages(
 				logger.Debug("Attempting to unmarshall NMAP ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, nmap); err != nil {
 					logger.Warn("Could not unmarshal NMAP ZMQ Message: %s\n", err.Error())
+					break
+				}
+				if strings.Contains(nmap.Interface, "MGMT") {
+					// skipping Management interfaces
 					break
 				}
 
