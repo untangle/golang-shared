@@ -47,7 +47,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 					return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
 				}
 			// just string type values on these, no need to validate
-			case "DAY_OF_WEEK", "GEOIP_LOCATION", "INTERFACE", "SERVICE_ENDPOINT",
+			case "DAY_OF_WEEK", "GEOIP_LOCATION", "INTERFACE", "SERVICE_ENDPOINT", "SERVICE_ENDPOINT_SERVER", "SERVICE_ENDPOINT_CLIENT",
 				"PROTOCOL_TYPE", "APPLICATION_CATEGORY", "TIME_OF_DAY", "VLAN_ID", "THREATPREVENTION",
 				"APPLICATION":
 
