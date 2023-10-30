@@ -110,7 +110,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[uint](obj)()
 	case ConditionType:
 		defer setList[*PolicyCondition](obj)()
-	case ConditionGroupType:
+
+	case ApplicationGroupType, ConditionGroupType:
 		defer setList[string](obj)()
 	default:
 		return fmt.Errorf("error unmarshalling policy object: invalid object type: %s", typeField.Type)
