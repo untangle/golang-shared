@@ -148,7 +148,7 @@
         "id": "8105f355-cb98-43eb-deae-74542a524abb",
         "name": "Application Object Group Test",
         "description": "Some Application Object Group",
-        "type": "mfw-object-application-grup",
+        "type": "mfw-object-application-group",
         "items": [
           "8105f355-cb98-43eb-deaf-74542a524abb",
           "8105f355-cb98-43eb-dead-74542a524abb"
