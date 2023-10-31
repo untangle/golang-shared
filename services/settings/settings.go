@@ -356,7 +356,7 @@ func TrimSettingsFile(segments []string, filename string) (interface{}, error) {
 		}
 	}
 
-	output, err := syncAndSave(jsonSettings, filename, false)
+	output, err := syncAndSave(jsonSettings, filename, false, false)
 	if err != nil {
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
@@ -417,7 +417,7 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 
 // runSyncSettings runs sync-settings on the specified filename
 func runSyncSettings(filename string, force bool, skip string) (string, error) {
-	skipLoadEos = false
+	bool skipLoadEos = false
 
 	if skip != "" {
 		var parseErr error
