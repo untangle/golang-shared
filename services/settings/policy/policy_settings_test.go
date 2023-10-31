@@ -473,6 +473,18 @@ func TestUnmarshalQuotas(t *testing.T) {
 	runUnmarshalTest(t, tests)
 }
 
+// TestUnmarshalQuotaSettingsJSON test unmarshalling the settings.json
+// with quotas. Since we test quotas more thoroughly in
+// TestUnmarshalQuotas, this is just to make sure the thing works
+// together from files.
+func TestUnmarshalQuotaSettingsJSON(t *testing.T) {
+	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
+	var quotas []Object
+	err := settingsFile.UnmarshalSettingsAtPath(&quotas, "policy_manager", "quotas")
+	assert.NoError(t, err)
+	assert.Greater(t, len(quotas), 0, "There should be at least one quota in the settings.json")
+}
+
 func TestObjectUnmarshal(t *testing.T) {
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings_group.json")
 	var objects []Object
