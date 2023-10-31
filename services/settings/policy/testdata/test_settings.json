@@ -1,413 +1,425 @@
 {
-  "threatprevention": {
-    "enabled": false,
-    "passList": [],
-    "redirect": false,
-    "sensitivity": 20
-  },
-  "webfilter": {
-    "blockList": [],
-    "categories": [
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 11
-      },
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 44
-      },
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 49
-      },
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 56
-      },
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 57
-      },
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 58
-      },
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 59
-      },
-      {
-        "enabled": true,
-        "flagged": true,
-        "id": 67
-      }
-    ],
-    "enabled": false,
-    "passList": []
-  },
-  "application_control": {
-    "actions": {
-      "block": [],
-      "flag": [],
-      "reject": []
+    "threatprevention": {
+	"enabled": false,
+	"passList": [],
+	"redirect": false,
+	"sensitivity": 20
     },
-    "cloud_classification": true,
-    "custom_rules": [],
-    "enabled": false
-  },
-  "geoip": {
-    "blockedCountries": [],
-    "enabled": false,
-    "enabledLog": false,
-    "passedNetworks": []
-  },
-  "policy_manager": {
-    "configurations": [
-      {
-        "id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-        "name": "GeoIp",
-        "description": "some geoip filter",
-        "type": "mfw-template-geoipfilter",
-        "settings": {
-          "blockedCountries": [],
-          "enabled": true,
-          "enabledLog": false,
-          "passedNetworks": []
-        }
-      },
-      {
-        "description": "Students",
-        "id": "30a95c8e-594c-4530-984b-05c7ae300131",
-        "name": "Geoip fencing",
-        "type": "mfw-template-geoipfilter",
-        "settings": {
-          "blockedCountries": ["AE", "AF", "AG"],
-          "enabled": false,
-          "enabledLog": false,
-          "passedNetworks": []
-        }
-      },
-      {
-        "description": "Filtering for students",
-        "id": "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
-        "name": "WebFilter students",
-        "type": "mfw-template-webfilter",
-        "settings": {
-          "blockList": [],
-          "categories": [
-            {
-              "enabled": true,
-              "flagged": true,
-              "id": 49
-            },
-            {
-              "enabled": true,
-              "flagged": true,
-              "id": 67
-            }
-          ],
-          "enabled": true,
-          "passList": []
-        }
-      },
-      {
-        "description": "TP students",
-        "id": "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
-        "name": "TP for students",
-        "type": "mfw-template-threatprevention",
-        "settings": {
-          "enabled": true,
-          "passList": [
-            {
-              "description": "some test",
-              "host": "3.4.5.6/32"
-            }
-          ],
-          "redirect": false,
-          "sensitivity": 60
-        }
-      },
-      {
-        "description": "prevention for teachers",
-        "id": "7ed1558e-ae30-4699-beab-77e09babecb3",
-        "name": "TP Teachers",
-        "type": "mfw-template-threatprevention",
-        "settings": {
-          "enabled": true,
-          "passList": [],
-          "redirect": true,
-          "sensitivity": 40
-        }
-      },
-      {
-        "id": "f9df9aa5-4244-4344-9e62-4729fcfd3e31",
-        "name": "My GEO2",
-        "description": "GeoFilter 2",
-        "type": "mfw-template-geoipfilter",
-        "settings": {
-          "blockedCountries": ["RU", "NK"],
-          "enabled": true,
-          "enabledLog": false,
-          "passedNetworks": []
-        }
-      }
-    ],
-    "enabled": true,
-    "objects": [
-      {
-        "id": "8105f355-cb98-43eb-9ac7-74542a524abb",
-        "name": "Dummy endpoint",
-        "description": "Some endpoint",
-        "type": "mfw-object-service",
-        "items": [
-          {
-            "port": [88],
-            "protocol": [6]
-          },
-          {
-            "port": [123],
-            "protocol": [51]
-          },
-          {
-            "port": [23],
-            "protocol": [27]
-          }
-        ]
-      },
-      {
-        "id": "7819401a-46cb-4e4c-a69a-3765d0a552c1",
-        "name": "IP Addr List 1",
-        "description": "List 1 testing",
-        "type": "mfw-object-ipaddress",
-        "items": ["192.168.10.10-192.168.10.15"]
-      },
-      {
-        "id": "c4bf0325-7029-4b08-bc1b-84d3db3db736",
-        "name": "IP Addr List 2",
-        "description": "List 2 testing",
-        "type": "mfw-object-ipaddress",
-        "items": ["192.168.20.1/28"]
-      },
-      {
-        "id": "8105f355-cb98-43eb-dead-74542a524abb",
-        "name": "Application Object Test",
-        "description": "Some Application Object",
-        "type": "mfw-object-application",
-        "items": [
-          {
-            "port": [80, 8088, 443],
-            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
-          }
-        ]
-      },
-      {
-        "id": "8105f355-cb98-43eb-deed-74542a524abbb",
-        "name": "Application Object with IPs only",
-        "description": "Some Application Object",
-        "type": "mfw-object-application",
-        "items": [
-          {
-            "ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
-          }
-        ]
-      },
-      {
-        "id": "8105f355-cb98-43eb-debd-74542a524abb",
-        "name": "Application Object with Ports only",
-        "description": "Some Application Object",
-        "type": "mfw-object-application",
-        "items": [
-          {
-            "port": [80, 8088, 443]
-          }
-        ]
-      },
-      {
-        "id": "8105f355-cb98-43eb-dece-74542a524abb",
-        "name": "Empty Application Object Test",
-        "description": "Some Application Object",
-        "type": "mfw-object-application",
-        "items": []
-      },
-      {
-        "id": "8105f355-cb98-43eb-deaf-74542a524abb",
-        "name": "Non Application Object Test",
-        "description": "Some Application Object",
-        "type": "mfw-object-application",
-        "items": [
-          {
-            "test": "Not an application object"
-          }
-        ]
-      }
-    ],
-    "object_groups": [
-      {
-        "id": "c8a92afc-c666-4261-8bf7-99adde197934",
-        "name": "IP Addr list 1 + 2",
-        "description": "",
-        "type": "mfw-object-ipaddress-group",
-        "items": [
-          "c4bf0325-7029-4b08-bc1b-84d3db3db736",
-          "7819401a-46cb-4e4c-a69a-3765d0a552c1"
-        ]
-      }
-    ],
-    "rules": [
-      {
-        "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
-        "name": "GeoIP rule",
-        "description": "",
-        "enabled": true,
-        "type": "mfw-template-geoipfilter",
-        "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
-        "action": {
-          "type": "SET_CONFIGURATION",
-          "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-          "key": "mfw-template-geoipfilter"
-        }
-      },
-      {
-        "id": "d97f9f09-9adf-4a99-9851-e5086f848e82",
-        "name": "Rule",
-        "description": "",
-        "enabled": true,
-        "type": "mfw-template-geoipfilter",
-        "conditions": [],
-        "action": {
-          "type": "SET_CONFIGURATION",
-          "configuration_id": "f9df9aa5-4244-4344-9e62-4729fcfd3e31",
-          "key": "mfw-template-geoipfilter"
-        }
-      },
-      {
-        "id": "c561b522-87e9-45d9-8a2c-eb5a53e45336",
-        "name": "Security Rule 1",
-        "description": "",
-        "enabled": true,
-        "type": "mfw-template-security",
-        "conditions": ["85678956-b696-4766-bda9-1379146c512e"],
-        "action": {
-          "type": "REJECT",
-          "key": "mfw-template-security"
-        }
-      },
-      {
-        "id": "af0312ff-7842-48e6-9a5a-db140ffaf0f5",
-        "name": "WF Rule 1",
-        "description": "",
-        "enabled": true,
-        "type": "mfw-template-webfilter",
-        "conditions": ["85678956-b696-4766-bda9-1379146c512e"],
-        "action": {
-          "type": "SET_CONFIGURATION",
-          "configuration_id": "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
-          "key": "mfw-template-webfilter"
-        }
-      },
-      {
-        "id": "363f8aad-f505-4726-a880-3d9fcb77725c",
-        "name": "Rule",
-        "description": "",
-        "enabled": true,
-        "type": "mfw-template-threatprevention",
-        "conditions": ["85678956-b696-4766-bda9-1379146c512e"],
-        "action": {
-          "type": "SET_CONFIGURATION",
-          "configuration_id": "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
-          "key": "mfw-template-threatprevention"
-        }
-      },
-      {
-        "id": "11963c28-debb-480f-a462-0b15cff4e07d",
-        "name": "Rule",
-        "description": "",
-        "enabled": true,
-        "type": "mfw-template-threatprevention",
-        "conditions": [],
-        "action": {
-          "type": "SET_CONFIGURATION",
-          "configuration_id": "7ed1558e-ae30-4699-beab-77e09babecb3",
-          "key": "mfw-template-threatprevention"
-        }
-      }
-    ],
-    "conditions": [
-      {
-        "type": "mfw-object-condition",
-        "items": [
-            {
-                "op": "match",
-                "type": "APPLICATION",
-                "value": [
-                    "8105f355-cb98-43eb-dead-74542a524abb"
-                ]
-            }
-        ],
-        "description": "Test Application Condition 1",
-        "id": "7bb85306-c823-0000-dead-a41868d1de82",
-        "name": "Test Application Object 1"
-      }
-    ],
-    "condition_groups": [],
-    "policies": [
-      {
-        "id": "924435c1-2bed-446c-8921-02f98eeb3f18",
-        "name": "Policy One",
-        "description": "",
-        "enabled": true,
-        "conditions": [
-          "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",
-          "0abba9c5-67a3-419a-9b91-6a876b84765a",
-          "7bb85306-c823-0000-dead-a41868d1de82"          
-        ],
-        "rules": [
-          "c2428365-65be-4901-bfc0-bde2b310fedf",
-          "d97f9f09-9adf-4a99-9851-e5086f848e82",
-          "c561b522-87e9-45d9-8a2c-eb5a53e45336",
-          "363f8aad-f505-4726-a880-3d9fcb77725c",
-          "11963c28-debb-480f-a462-0b15cff4e07d",
-          "af0312ff-7842-48e6-9a5a-db140ffaf0f5"
-        ]
-      },
-      {
-        "configurations": [
-          "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
-          "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
-        ],
-        "description": "For students config",
-        "enabled": true,
-        "id": "30a95c8e-594c-4530-984b-05c7ae300138",
-        "name": "Students"
-      },
-      {
-        "configurations": ["d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"],
-        "description": "For teachers",
-        "enabled": true,
-        "id": "60a9e031-4188-4d06-8083-108ebec63a9e",
-        "name": "Teachers"
-      },
-      {
-        "configurations": ["30a95c8e-594c-4530-984b-05c7ae300131"],
-        "description": "test",
-        "enabled": true,
-        "id": "fa5a811e-a0eb-45e2-8f48-e20e16baabec",
-        "name": "Aux"
-      },
-      {
-        "configurations": ["7ed1558e-ae30-4699-beab-77e09babecb3"],
-        "description": "test123",
-        "enabled": true,
-        "id": "5690e8b8-c0e2-4cf4-9350-e8378cc96053",
-        "name": "test"
-      }
-    ]
-  }
+    "webfilter": {
+	"blockList": [],
+	"categories": [
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 11
+	    },
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 44
+	    },
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 49
+	    },
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 56
+	    },
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 57
+	    },
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 58
+	    },
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 59
+	    },
+	    {
+		"enabled": true,
+		"flagged": true,
+		"id": 67
+	    }
+	],
+	"enabled": false,
+	"passList": []
+    },
+    "application_control": {
+	"actions": {
+	    "block": [],
+	    "flag": [],
+	    "reject": []
+	},
+	"cloud_classification": true,
+	"custom_rules": [],
+	"enabled": false
+    },
+    "geoip": {
+	"blockedCountries": [],
+	"enabled": false,
+	"enabledLog": false,
+	"passedNetworks": []
+    },
+    "policy_manager": {
+	"configurations": [
+	    {
+		"id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+		"name": "GeoIp",
+		"description": "some geoip filter",
+		"type": "mfw-template-geoipfilter",
+		"settings": {
+		    "blockedCountries": [],
+		    "enabled": true,
+		    "enabledLog": false,
+		    "passedNetworks": []
+		}
+	    },
+	    {
+		"description": "Students",
+		"id": "30a95c8e-594c-4530-984b-05c7ae300131",
+		"name": "Geoip fencing",
+		"type": "mfw-template-geoipfilter",
+		"settings": {
+		    "blockedCountries": ["AE", "AF", "AG"],
+		    "enabled": false,
+		    "enabledLog": false,
+		    "passedNetworks": []
+		}
+	    },
+	    {
+		"description": "Filtering for students",
+		"id": "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
+		"name": "WebFilter students",
+		"type": "mfw-template-webfilter",
+		"settings": {
+		    "blockList": [],
+		    "categories": [
+			{
+			    "enabled": true,
+			    "flagged": true,
+			    "id": 49
+			},
+			{
+			    "enabled": true,
+			    "flagged": true,
+			    "id": 67
+			}
+		    ],
+		    "enabled": true,
+		    "passList": []
+		}
+	    },
+	    {
+		"description": "TP students",
+		"id": "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
+		"name": "TP for students",
+		"type": "mfw-template-threatprevention",
+		"settings": {
+		    "enabled": true,
+		    "passList": [
+			{
+			    "description": "some test",
+			    "host": "3.4.5.6/32"
+			}
+		    ],
+		    "redirect": false,
+		    "sensitivity": 60
+		}
+	    },
+	    {
+		"description": "prevention for teachers",
+		"id": "7ed1558e-ae30-4699-beab-77e09babecb3",
+		"name": "TP Teachers",
+		"type": "mfw-template-threatprevention",
+		"settings": {
+		    "enabled": true,
+		    "passList": [],
+		    "redirect": true,
+		    "sensitivity": 40
+		}
+	    },
+	    {
+		"id": "f9df9aa5-4244-4344-9e62-4729fcfd3e31",
+		"name": "My GEO2",
+		"description": "GeoFilter 2",
+		"type": "mfw-template-geoipfilter",
+		"settings": {
+		    "blockedCountries": ["RU", "NK"],
+		    "enabled": true,
+		    "enabledLog": false,
+		    "passedNetworks": []
+		}
+	    }
+	],
+	"quotas": [
+	    {
+		"id": "99df9aa5-ffff-0000-9e62-4729fcfd3e33",
+		"type": "mfw-quota",
+		"name": "quota A",
+		"description": "A Simple quota",
+		"settings": {
+		    "refresh": "1h2m",
+		    "amount_bytes": 100000
+		}
+	    }
+	],
+	"enabled": true,
+	"objects": [
+	    {
+		"id": "8105f355-cb98-43eb-9ac7-74542a524abb",
+		"name": "Dummy endpoint",
+		"description": "Some endpoint",
+		"type": "mfw-object-service",
+		"items": [
+		    {
+			"port": [88],
+			"protocol": [6]
+		    },
+		    {
+			"port": [123],
+			"protocol": [51]
+		    },
+		    {
+			"port": [23],
+			"protocol": [27]
+		    }
+		]
+	    },
+	    {
+		"id": "7819401a-46cb-4e4c-a69a-3765d0a552c1",
+		"name": "IP Addr List 1",
+		"description": "List 1 testing",
+		"type": "mfw-object-ipaddress",
+		"items": ["192.168.10.10-192.168.10.15"]
+	    },
+	    {
+		"id": "c4bf0325-7029-4b08-bc1b-84d3db3db736",
+		"name": "IP Addr List 2",
+		"description": "List 2 testing",
+		"type": "mfw-object-ipaddress",
+		"items": ["192.168.20.1/28"]
+	    },
+	    {
+		"id": "8105f355-cb98-43eb-dead-74542a524abb",
+		"name": "Application Object Test",
+		"description": "Some Application Object",
+		"type": "mfw-object-application",
+		"items": [
+		    {
+			"port": [80, 8088, 443],
+			"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
+		    }
+		]
+	    },
+	    {
+		"id": "8105f355-cb98-43eb-deed-74542a524abbb",
+		"name": "Application Object with IPs only",
+		"description": "Some Application Object",
+		"type": "mfw-object-application",
+		"items": [
+		    {
+			"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
+		    }
+		]
+	    },
+	    {
+		"id": "8105f355-cb98-43eb-debd-74542a524abb",
+		"name": "Application Object with Ports only",
+		"description": "Some Application Object",
+		"type": "mfw-object-application",
+		"items": [
+		    {
+			"port": [80, 8088, 443]
+		    }
+		]
+	    },
+	    {
+		"id": "8105f355-cb98-43eb-dece-74542a524abb",
+		"name": "Empty Application Object Test",
+		"description": "Some Application Object",
+		"type": "mfw-object-application",
+		"items": []
+	    },
+	    {
+		"id": "8105f355-cb98-43eb-deaf-74542a524abb",
+		"name": "Non Application Object Test",
+		"description": "Some Application Object",
+		"type": "mfw-object-application",
+		"items": [
+		    {
+			"test": "Not an application object"
+		    }
+		]
+	    }
+	],
+	"object_groups": [
+	    {
+		"id": "c8a92afc-c666-4261-8bf7-99adde197934",
+		"name": "IP Addr list 1 + 2",
+		"description": "",
+		"type": "mfw-object-ipaddress-group",
+		"items": [
+		    "c4bf0325-7029-4b08-bc1b-84d3db3db736",
+		    "7819401a-46cb-4e4c-a69a-3765d0a552c1"
+		]
+	    }
+	],
+	"rules": [
+	    {
+		"id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+		"name": "GeoIP rule",
+		"description": "",
+		"enabled": true,
+		"type": "mfw-template-geoipfilter",
+		"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+		"action": {
+		    "type": "SET_CONFIGURATION",
+		    "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
+		    "key": "mfw-template-geoipfilter"
+		}
+	    },
+	    {
+		"id": "d97f9f09-9adf-4a99-9851-e5086f848e82",
+		"name": "Rule",
+		"description": "",
+		"enabled": true,
+		"type": "mfw-template-geoipfilter",
+		"conditions": [],
+		"action": {
+		    "type": "SET_CONFIGURATION",
+		    "configuration_id": "f9df9aa5-4244-4344-9e62-4729fcfd3e31",
+		    "key": "mfw-template-geoipfilter"
+		}
+	    },
+	    {
+		"id": "c561b522-87e9-45d9-8a2c-eb5a53e45336",
+		"name": "Security Rule 1",
+		"description": "",
+		"enabled": true,
+		"type": "mfw-template-security",
+		"conditions": ["85678956-b696-4766-bda9-1379146c512e"],
+		"action": {
+		    "type": "REJECT",
+		    "key": "mfw-template-security"
+		}
+	    },
+	    {
+		"id": "af0312ff-7842-48e6-9a5a-db140ffaf0f5",
+		"name": "WF Rule 1",
+		"description": "",
+		"enabled": true,
+		"type": "mfw-template-webfilter",
+		"conditions": ["85678956-b696-4766-bda9-1379146c512e"],
+		"action": {
+		    "type": "SET_CONFIGURATION",
+		    "configuration_id": "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
+		    "key": "mfw-template-webfilter"
+		}
+	    },
+	    {
+		"id": "363f8aad-f505-4726-a880-3d9fcb77725c",
+		"name": "Rule",
+		"description": "",
+		"enabled": true,
+		"type": "mfw-template-threatprevention",
+		"conditions": ["85678956-b696-4766-bda9-1379146c512e"],
+		"action": {
+		    "type": "SET_CONFIGURATION",
+		    "configuration_id": "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
+		    "key": "mfw-template-threatprevention"
+		}
+	    },
+	    {
+		"id": "11963c28-debb-480f-a462-0b15cff4e07d",
+		"name": "Rule",
+		"description": "",
+		"enabled": true,
+		"type": "mfw-template-threatprevention",
+		"conditions": [],
+		"action": {
+		    "type": "SET_CONFIGURATION",
+		    "configuration_id": "7ed1558e-ae30-4699-beab-77e09babecb3",
+		    "key": "mfw-template-threatprevention"
+		}
+	    }
+	],
+	"conditions": [
+	    {
+		"type": "mfw-object-condition",
+		"items": [
+		    {
+			"op": "match",
+			"type": "APPLICATION",
+			"value": [
+			    "8105f355-cb98-43eb-dead-74542a524abb"
+			]
+		    }
+		],
+		"description": "Test Application Condition 1",
+		"id": "7bb85306-c823-0000-dead-a41868d1de82",
+		"name": "Test Application Object 1"
+	    }
+	],
+	"condition_groups": [],
+	"policies": [
+	    {
+		"id": "924435c1-2bed-446c-8921-02f98eeb3f18",
+		"name": "Policy One",
+		"description": "",
+		"enabled": true,
+		"conditions": [
+		    "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",
+		    "0abba9c5-67a3-419a-9b91-6a876b84765a",
+		    "7bb85306-c823-0000-dead-a41868d1de82"
+		],
+		"rules": [
+		    "c2428365-65be-4901-bfc0-bde2b310fedf",
+		    "d97f9f09-9adf-4a99-9851-e5086f848e82",
+		    "c561b522-87e9-45d9-8a2c-eb5a53e45336",
+		    "363f8aad-f505-4726-a880-3d9fcb77725c",
+		    "11963c28-debb-480f-a462-0b15cff4e07d",
+		    "af0312ff-7842-48e6-9a5a-db140ffaf0f5"
+		]
+	    },
+	    {
+		"configurations": [
+		    "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
+		    "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
+		],
+		"description": "For students config",
+		"enabled": true,
+		"id": "30a95c8e-594c-4530-984b-05c7ae300138",
+		"name": "Students"
+	    },
+	    {
+		"configurations": ["d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"],
+		"description": "For teachers",
+		"enabled": true,
+		"id": "60a9e031-4188-4d06-8083-108ebec63a9e",
+		"name": "Teachers"
+	    },
+	    {
+		"configurations": ["30a95c8e-594c-4530-984b-05c7ae300131"],
+		"description": "test",
+		"enabled": true,
+		"id": "fa5a811e-a0eb-45e2-8f48-e20e16baabec",
+		"name": "Aux"
+	    },
+	    {
+		"configurations": ["7ed1558e-ae30-4699-beab-77e09babecb3"],
+		"description": "test123",
+		"enabled": true,
+		"id": "5690e8b8-c0e2-4cf4-9350-e8378cc96053",
+		"name": "test"
+	    }
+	]
+    }
 }

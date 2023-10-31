@@ -24,6 +24,7 @@ type PolicySettings struct {
 	Conditions      []*Object              `json:"conditions"`
 	ConditionGroups []*Object              `json:"condition_groups"`
 	Rules           []*Object              `json:"rules"`
+	Quotas          []*Object              `json:"quotas"`
 	Policies        []*Policy              `json:"policies"`
 }
 

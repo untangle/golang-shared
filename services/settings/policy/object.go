@@ -74,9 +74,14 @@ func setList[T any](obj *Object) func() {
 	}
 }
 
+// ObjectTypeField is used to figure out what group type is being used within a group
+type ObjectTypeField struct {
+	Type ObjectType `json:"type"`
+}
+
 // UnmarshalJSON is a custom json unmarshaller for Objects.
 func (obj *Object) UnmarshalJSON(data []byte) error {
-	var typeField GroupTypeField
+	var typeField ObjectTypeField
 
 	if err := json.Unmarshal(data, &typeField); err != nil {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
@@ -98,6 +103,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		SecurityConfigType:
 		// drop to default return
 
+	case QuotaType:
+		obj.Settings = &QuotaSettings{}
 	case IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
 	case GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:

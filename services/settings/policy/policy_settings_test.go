@@ -3,6 +3,7 @@ package policy
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/google/gopacket/layers"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +34,7 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 
 	settingsFile := settings.NewSettingsFile("./testdata/test_settings.json")
 	policySettings, err := GetAllPolicyConfigs(settingsFile)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, policySettings)
 	assert.Len(t, policySettings["mfw-template-threatprevention"], 2)
 	assert.Len(t, policySettings["mfw-template-webfilter"], 1)
@@ -74,13 +75,30 @@ func TestErrorGetPolicyPluginSettings(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+type unmarshalTest struct {
+	name        string
+	json        string
+	expectedErr bool
+	expected    Object
+}
+
+// runUnmarshalTest runs the unmarshal test.
+func runUnmarshalTest(t *testing.T, tests []unmarshalTest) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var actual Object
+			if !tt.expectedErr {
+				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
+				assert.EqualValues(t, actual, tt.expected)
+			} else {
+				assert.Error(t, actual.UnmarshalJSON([]byte(tt.json)))
+			}
+		})
+	}
+}
+
 func TestRulesUnmarshal(t *testing.T) {
-	tests := []struct {
-		name        string
-		json        string
-		expectedErr bool
-		expected    Object
-	}{
+	tests := []unmarshalTest{
 		{
 			name: "Geo Rule Tester",
 			json: `{"name": "GeoipRuleObject Name",
@@ -108,6 +126,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
 			},
 		},
+
 		{
 			name: "bad rule object type",
 			json: `{"name": "Geo Rule Tester",
@@ -351,18 +370,107 @@ func TestRulesUnmarshal(t *testing.T) {
 			},
 		},
 	}
+	runUnmarshalTest(t, tests)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var actual Object
-			if !tt.expectedErr {
-				assert.NoError(t, json.Unmarshal([]byte(tt.json), &actual))
-				assert.EqualValues(t, actual, tt.expected)
-			} else {
-				assert.Error(t, actual.UnmarshalJSON([]byte(tt.json)))
-			}
-		})
+}
+
+func TestUnmarshalQuotas(t *testing.T) {
+	tests := []unmarshalTest{
+		{
+			name: "Quota test",
+			json: `{"name": "Quota",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "mfw-quota",
+                         "description": "My quota description",
+                         "settings": {
+                               "amount_bytes": 100000,
+                               "refresh": "1h"
+                          },
+                          "action": {
+                            "type": "REJECT"
+                            }
+                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "Quota",
+				Type:        QuotaType,
+				Description: "My quota description",
+				Action: &Action{
+					Type: "REJECT",
+				},
+				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Settings: &QuotaSettings{
+					AmountBytes:     100000,
+					RefreshInterval: QuotaRefreshTime(time.Hour),
+				},
+			},
+		},
+		{
+			name: "Quota test",
+			json: `{"name": "Quota",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "mfw-quota",
+                         "description": "My quota description",
+                         "settings": {
+                               "amount_bytes": "10g000",
+                               "refresh": "1h"
+                          },
+                          "action": {
+                            "type": "REJECT"
+                            }
+                          }`,
+			expectedErr: true,
+		},
+		{
+			name: "Quota test",
+			json: `{"name": "Quota",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "mfw-quota",
+                         "description": "My quota description",
+                         "settings": {
+                               "amount_bytes": 100000,
+                               "refresh": "1h1m2s"
+                          },
+                          "action": {
+                            "type": "REJECT"
+                            }
+                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "Quota",
+				Type:        QuotaType,
+				Description: "My quota description",
+				Action: &Action{
+					Type: "REJECT",
+				},
+				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Settings: &QuotaSettings{
+					AmountBytes: 100000,
+					RefreshInterval: QuotaRefreshTime(time.Hour +
+						time.Minute +
+						2*time.Second),
+				},
+			},
+		},
+		{
+			name: "Quota test",
+			json: `{"name": "Quota",
+                         "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+                         "type": "mfw-quota",
+                         "description": "My quota description",
+                         "settings": {
+                               "amount_bytes": 100000,
+                               "refresh": "1googly"
+                          },
+                          "action": {
+                            "type": "REJECT"
+                            }
+                          }`,
+			expectedErr: true,
+		},
 	}
+
+	runUnmarshalTest(t, tests)
 }
 
 func TestObjectUnmarshal(t *testing.T) {
@@ -578,7 +686,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					"description": "Description",
 					"type": "mfw-object-application",
 					"items": [
-						{ 
+						{
 							"port": [2222,80,88],
 							"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
 						}
