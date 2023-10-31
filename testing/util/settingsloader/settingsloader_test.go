@@ -17,7 +17,7 @@ func TestPolicyManagerSettingsFile(t *testing.T) {
 			"https://raw.githubusercontent.com/untangle/mfw_schema/master/v1/policy_manager/test_settings.json",
 		)
 
-		assert.Nil(t, err, "error should be nil, but was %v", err)
+		assert.NoError(t, err)
 
 		// This may change, when the example settings file changes.
 		assert.Equal(t, len(result.Rules), 13)

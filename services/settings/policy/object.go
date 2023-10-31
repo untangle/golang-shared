@@ -124,5 +124,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	}
 
 	// unmarshal PolicyConfiguration using struct tags
-	return json.Unmarshal(data, (*aliasObject)(obj))
+	if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
+		return fmt.Errorf("error unmarshalling Object of type: %s: %w", typeField.Type, err)
+	}
+	return nil
 }
