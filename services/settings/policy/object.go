@@ -100,7 +100,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	case IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
-	case GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
+	case GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType, ApplicationGroupType:
 		defer setList[string](obj)()
 	case ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
@@ -110,8 +110,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[uint](obj)()
 	case ConditionType:
 		defer setList[*PolicyCondition](obj)()
-
-	case ApplicationGroupType, ConditionGroupType:
+	case ConditionGroupType:
 		defer setList[string](obj)()
 	default:
 		return fmt.Errorf("error unmarshalling policy object: invalid object type: %s", typeField.Type)
