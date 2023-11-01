@@ -363,6 +363,7 @@
         "name": "Policy One",
         "description": "",
         "enabled": true,
+        "type":"mfw-policy",
         "conditions": [
           "59bf280a-cb71-4a3e-97dd-af7e9f4c174c",
           "0abba9c5-67a3-419a-9b91-6a876b84765a",
