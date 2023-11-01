@@ -50,7 +50,7 @@ func NewPluginControl() *PluginControl {
 	container := dig.New()
 	ctrl := &PluginControl{
 		Container:          *container,
-		enableStartupPanic: true}
+		enableStartupPanic: false}
 	err := ctrl.Provide(func() *PluginControl {
 		return ctrl
 	})
