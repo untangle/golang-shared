@@ -369,6 +369,31 @@ func TestRulesUnmarshal(t *testing.T) {
 				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
 			},
 		},
+		{
+			name: "quota rule test",
+			json: `{"name": "quota rule test",
+         			"id": "c2428365-65be-4907-bfc0-bde2b310fedf",
+                   		"type": "mfw-rule-quota",
+                   		"description": "QUOTAMAN",
+                   		"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                   		"action": {
+                            		"type": "APPLY_QUOTA",
+                                        "configuration_id": "1458dc12-a9c2-4d0c-8203-1340c61c2c3e"
+                         	 }
+			}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "quota rule test",
+				Type:        QuotaRuleObject,
+				Description: "QUOTAMAN",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type: "APPLY_QUOTA",
+					UUID: "1458dc12-a9c2-4d0c-8203-1340c61c2c3e",
+				},
+				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
+			},
+		},
 	}
 	runUnmarshalTest(t, tests)
 
