@@ -73,8 +73,8 @@ func FillDeviceListWithZMQDeviceMessages(
 					logger.Warn("Could not unmarshal LLDP ZMQ Message: %s\n", err.Error())
 					break
 				}
-				if strings.Contains(lldp.Interface, "MGMT") {
-					// skipping Management interfaces
+				if strings.Contains(lldp.Interface, "ma") {
+					// skipping Management interface
 					break
 				}
 
@@ -97,7 +97,7 @@ func FillDeviceListWithZMQDeviceMessages(
 					logger.Warn("Could not unmarshal NEIGH ZMQ Message: %s\n", err.Error())
 					break
 				}
-				if strings.Contains(neigh.Interface, "MGMT") {
+				if strings.Contains(neigh.Interface, "ma") {
 					// skipping Management interfaces
 					break
 				}
@@ -123,7 +123,7 @@ func FillDeviceListWithZMQDeviceMessages(
 					logger.Warn("Could not unmarshal NMAP ZMQ Message: %s\n", err.Error())
 					break
 				}
-				if strings.Contains(nmap.Interface, "MGMT") {
+				if strings.Contains(nmap.Interface, "ma") {
 					// skipping Management interfaces
 					break
 				}
