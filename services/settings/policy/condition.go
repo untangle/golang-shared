@@ -55,6 +55,10 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 				return fmt.Errorf("error while unmarshalling policy condition: invalid type: %s", pCondition.CType)
 			}
 		}
+	} else {
+		// The GroupIDs struct field is being unnecessarily used by the front end.
+		// Object GUIDs should be placed in the Value struct field.
+		pCondition.Value = pCondition.GroupIDs
 	}
 
 	return nil
