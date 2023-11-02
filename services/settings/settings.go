@@ -356,7 +356,7 @@ func TrimSettingsFile(segments []string, filename string) (interface{}, error) {
 		}
 	}
 
-	output, err := syncAndSave(jsonSettings, filename, false, false)
+	output, err := syncAndSave(jsonSettings, filename, false, "false")
 	if err != nil {
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
@@ -502,7 +502,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 		return "Failed to write settings.", err
 	}
 
-	output, err := runSyncSettings(tmpfile.Name(), force, skipLoadEos)
+	output, err := runSyncSettings(tmpfile.Name(), force, skip)
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		logger.Info("sync-settings: %v\n", scanner.Text())

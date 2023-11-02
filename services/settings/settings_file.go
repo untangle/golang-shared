@@ -154,7 +154,7 @@ func (file *SettingsFile) SetSettings(segments []string, value interface{}, forc
 	}
 
 	file.mutex.Lock()
-	output, err := syncAndSave(jsonSettings, file.filename, force)
+	output, err := syncAndSave(jsonSettings, file.filename, force, "")
 	file.mutex.Unlock()
 	if err != nil {
 		var errJSON map[string]interface{}
