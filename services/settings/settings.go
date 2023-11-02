@@ -417,7 +417,7 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 
 // runSyncSettings runs sync-settings on the specified filename
 func runSyncSettings(filename string, force bool, skip string) (string, error) {
-	bool skipLoadEos = false
+	bool skipLoadEos = false;
 
 	if skip != "" {
 		var parseErr error
