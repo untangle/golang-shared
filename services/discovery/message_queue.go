@@ -74,7 +74,7 @@ func FillDeviceListWithZMQDeviceMessages(
 					break
 				}
 				if strings.Contains(lldp.Interface, "ma") {
-					// skipping Management interfacloggees
+					// skipping Management interface
 					break
 				}
 
