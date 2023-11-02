@@ -88,6 +88,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	case "":
 		// Policies typically don't have a Type
 		// drop down to the default return
+	case PolicyType:
+		// drop to default return
 
 	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject, ThreatPreventionRuleObject,
 		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject, WebFilterRuleObject:

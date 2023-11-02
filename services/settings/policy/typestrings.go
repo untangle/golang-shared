@@ -82,6 +82,9 @@ const (
 	CaptivePortalConfigType      ObjectType = "mfw-template-captiveportal"
 	SecurityConfigType           ObjectType = "mfw-template-security"
 
+	//Policy Type
+	PolicyType ObjectType = "mfw-policy"
+
 	// TODO: Impelment these object/group types
 	HostType      ObjectType = "mfw-object-host"
 	HostGroupType ObjectType = "mfw-object-host-group"
