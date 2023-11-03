@@ -628,6 +628,39 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			},
 		},
 		{
+			name: "good ApplicationObjectGroup",
+			json: `{"name": "ApplicationObjectGroup Test 1",
+					"id": "702d4c99-959a-455f-dead-215e5680f038",
+					"description": "Description",
+					"type": "mfw-object-application-group",
+					"items": [
+						"8105f355-cb98-43eb-deaf-74542a524abb",
+						"8105f355-cb98-43eb-dead-74542a524abb"
+					]}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "ApplicationObjectGroup Test 1",
+				Description: "Description",
+				Type:        "mfw-object-application-group",
+				ID:          "702d4c99-959a-455f-dead-215e5680f038",
+				Items: []string{
+					"8105f355-cb98-43eb-deaf-74542a524abb",
+					"8105f355-cb98-43eb-dead-74542a524abb",
+				},
+			},
+		},
+		{
+			name: "bad ApplicationObjectGroup",
+			json: `{"name": "Bad ApplicationObjectGroup Test 1",
+					"id": "702d4c99-959a-455f-dead-215e5680f038",
+					"description": "Description",
+					"type": "mfw-object-application-group",
+					"items": [
+						12345
+					]}`,
+			expectedErr: true,
+		},
+		{
 			name: "bad iface list",
 			json: `{"name": "InterfaceListTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
