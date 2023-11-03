@@ -580,7 +580,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					"items": [
 						{ 
 							"port": [2222,80,88],
-							"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
+							"ips": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
 						}
 					]}`,
 			expectedErr: false,
@@ -606,7 +606,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					"items": [
 						{ 
 							"port": "gobus",
-							"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
+							"ips": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
 						}
 					]}`,
 			expectedErr: true,
