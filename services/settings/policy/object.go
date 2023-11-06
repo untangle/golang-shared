@@ -56,8 +56,8 @@ type ServiceEndpoint struct {
 // ApplicationObject holds an array of Ports and an array of IPSpecifiers
 // a match occurs if any of the ports are matched and any of the IPs are matched
 type ApplicationObject struct {
-	Port       []uint                      `json:"port"`
-	IPAddrList []utilNet.IPSpecifierString `json:"ips"`
+	Port       []utilNet.PortSpecifierString `json:"port"`
+	IPAddrList []utilNet.IPSpecifierString   `json:"ips"`
 }
 
 // setList is a utility function for setting a list in the Object.Items field. We

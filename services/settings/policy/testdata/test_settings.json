@@ -180,15 +180,15 @@
 		"type": "mfw-object-service",
 		"items": [
 		    {
-			"port": [88],
+			"port": ["88"],
 			"protocol": [6]
 		    },
 		    {
-			"port": [123],
+			"port": ["123"],
 			"protocol": [51]
 		    },
 		    {
-			"port": [23],
+			"port": ["23"],
 			"protocol": [27]
 		    }
 		]
@@ -214,7 +214,7 @@
 		"type": "mfw-object-application",
 		"items": [
 		    {
-			"port": [80, 8088, 443],
+			"port": ["80", "8088", "443"],
 			"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"]
 		    }
 		]
@@ -237,7 +237,7 @@
 		"type": "mfw-object-application",
 		"items": [
 		    {
-			"port": [80, 8088, 443]
+			"port": ["80", "8088", "443"]
 		    }
 		]
 	    },
