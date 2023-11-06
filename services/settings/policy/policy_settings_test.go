@@ -941,6 +941,28 @@ func TestGroupMarshal(t *testing.T) {
                               {"protocol": [17], "port": ["2222"]},
                               {"protocol": [6], "port": ["2223"]}]}`,
 		},
+		{
+			name: "ServiceEndpointTest with port ranges",
+			object: Object{
+				Name:        "ServiceEndpointTest with port ranges",
+				Description: "Description",
+				Type:        ServiceEndpointObjectType,
+				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				Items: []ServiceEndpoint{
+					{
+						Protocol: []uint{uint(layers.IPProtocolUDP)},
+						Port:     []net.PortSpecifierString{"2222", "2223-2225"},
+					},
+				},
+			},
+			expectedJSON: `{"name": "ServiceEndpointTest with port ranges",
+						 "id": "702d4c99-9599-455f-8271-215e5680f038",
+						 "description": "Description",
+						 "type": "mfw-object-service",
+						 "items": [
+							 {"protocol": [17], "port": ["2222", "2223-2225"]}
+						 ]}`,
+		},
 	}
 
 	for _, tt := range tests {
