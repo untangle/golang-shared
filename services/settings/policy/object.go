@@ -74,9 +74,14 @@ func setList[T any](obj *Object) func() {
 	}
 }
 
+// ObjectTypeField is used to figure out what group type is being used within a group
+type ObjectTypeField struct {
+	Type ObjectType `json:"type"`
+}
+
 // UnmarshalJSON is a custom json unmarshaller for Objects.
 func (obj *Object) UnmarshalJSON(data []byte) error {
-	var typeField GroupTypeField
+	var typeField ObjectTypeField
 
 	if err := json.Unmarshal(data, &typeField); err != nil {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
@@ -92,14 +97,17 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		// drop to default return
 
 	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject, ThreatPreventionRuleObject,
-		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject, WebFilterRuleObject:
+		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject,
+		WebFilterRuleObject, QuotaRuleObject:
 		// drop down to the default return
 
 	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
-		WANPolicyConfigType, ApplicationControlConfigType, CaptivePortalConfigType,
-		SecurityConfigType:
+		WANPolicyConfigType, ApplicationControlConfigType,
+		CaptivePortalConfigType, SecurityConfigType:
 		// drop to default return
 
+	case QuotaType:
+		obj.Settings = &QuotaSettings{}
 	case IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
 	case ApplicationGroupType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
@@ -119,5 +127,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	}
 
 	// unmarshal PolicyConfiguration using struct tags
-	return json.Unmarshal(data, (*aliasObject)(obj))
+	if err := json.Unmarshal(data, (*aliasObject)(obj)); err != nil {
+		return fmt.Errorf("error unmarshalling Object of type: %s: %w", typeField.Type, err)
+	}
+	return nil
 }

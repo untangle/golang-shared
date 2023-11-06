@@ -12,11 +12,6 @@ type ObjectParentType string
 // Items field.
 type GroupType = ObjectType
 
-// GroupTypeField is used to figure out what group type is being used within a group
-type GroupTypeField struct {
-	Type GroupType `json:"type"`
-}
-
 // ObjectMetaLookup is a map for retrieving additional metadata about objects
 var ObjectMetaLookup map[ObjectType]ObjectMetadata
 
@@ -56,6 +51,9 @@ const (
 	InterfaceObjectType      ObjectType = "mfw-object-interfacezone"
 	InterfaceObjectGroupType ObjectType = "mfw-object-interfacezone-group"
 
+	// QuotaType string -- a quota type.
+	QuotaType ObjectType = "mfw-quota"
+
 	// RuleTypes
 	ApplicationControlRuleObject ObjectType = "mfw-rule-applicationcontrol"
 	CaptivePortalRuleObject      ObjectType = "mfw-rule-captiveportal"
@@ -67,6 +65,7 @@ const (
 	ThreatPreventionRuleObject   ObjectType = "mfw-rule-threatprevention"
 	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
 	WebFilterRuleObject          ObjectType = "mfw-rule-webfilter"
+	QuotaRuleObject              ObjectType = "mfw-rule-quota"
 
 	// ConditionType,ConditionGroupType: type id strings, for the
 	// object and the group.
