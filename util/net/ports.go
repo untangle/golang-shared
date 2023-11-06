@@ -19,7 +19,7 @@ type PortRange struct {
 }
 
 // Parse returns the parsed specifier as one of:
-// -- int : single port.
+// -- Port : single port.
 // -- PortRange -- PortRange, if the specifier was a range <port>-<port>.
 // -- error -- if the port specifier was none of these we return an error object.
 func (ss PortSpecifierString) Parse() any {
