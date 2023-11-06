@@ -49,8 +49,8 @@ type Action struct {
 // ServiceEndpoint is a particular object type, a object may be
 // identified by a list of these.
 type ServiceEndpoint struct {
-	Protocol []uint `json:"protocol"`
-	Port     []uint `json:"port"`
+	Protocol []uint                        `json:"protocol"`
+	Port     []utilNet.PortSpecifierString `json:"port"`
 }
 
 // ApplicationObject holds an array of Ports and an array of IPSpecifiers
