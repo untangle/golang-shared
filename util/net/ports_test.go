@@ -19,7 +19,7 @@ func TestPortsSpecifierStringParse(t *testing.T) {
 			"single port",
 			PortSpecifierString("1234"),
 			false,
-			1234,
+			Port(1234),
 		},
 		{
 			"port range",
@@ -63,13 +63,19 @@ func TestPortsSpecifierStringParse(t *testing.T) {
 			true,
 			fmt.Errorf("invalid port specifier: "),
 		},
+		{
+			"Out of range port",
+			PortSpecifierString("65536"),
+			true,
+			fmt.Errorf("invalid port specifier: 65536"),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			val := tt.ps.Parse()
 			switch typed := val.(type) {
-			case int:
+			case Port:
 				assert.EqualValues(t, typed, tt.expected)
 			case PortRange:
 				assert.EqualValues(t, typed, tt.expected)
@@ -87,7 +93,7 @@ func TestPortRangeContainsPort(t *testing.T) {
 	tests := []struct {
 		name          string
 		portRange     PortRange
-		port          int
+		port          Port
 		shouldContain bool
 	}{
 		{
@@ -124,7 +130,7 @@ func TestPortRangeContainsPort(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.shouldContain, tt.portRange.ContainsPort(tt.port))
+			assert.Equal(t, tt.shouldContain, tt.portRange.Contains(tt.port))
 		})
 	}
 }
