@@ -725,7 +725,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					"items": [
 						{
 							"port": [2222,80,88],
-							"ipaddrlist": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
+							"ips": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
 						}
 					]}`,
 			expectedErr: false,
@@ -743,6 +743,20 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			},
 		},
 		{
+			name: "bad ApplicationObject",
+			json: `{"name": "Bad ApplicationObject Test 1",
+					"id": "702d4c99-9599-455f-deac-215e5680f038",
+					"description": "Description",
+					"type": "mfw-object-application",
+					"items": [
+						{ 
+							"port": "gobus",
+							"ips": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
+						}
+					]}`,
+			expectedErr: true,
+		},
+		{
 			name: "interface list",
 			json: `{"name": "InterfaceListTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
@@ -757,6 +771,39 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items:       []uint{1, 2, 3},
 			},
+		},
+		{
+			name: "good ApplicationObjectGroup",
+			json: `{"name": "ApplicationObjectGroup Test 1",
+					"id": "702d4c99-959a-455f-dead-215e5680f038",
+					"description": "Description",
+					"type": "mfw-object-application-group",
+					"items": [
+						"8105f355-cb98-43eb-deaf-74542a524abb",
+						"8105f355-cb98-43eb-dead-74542a524abb"
+					]}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "ApplicationObjectGroup Test 1",
+				Description: "Description",
+				Type:        "mfw-object-application-group",
+				ID:          "702d4c99-959a-455f-dead-215e5680f038",
+				Items: []string{
+					"8105f355-cb98-43eb-deaf-74542a524abb",
+					"8105f355-cb98-43eb-dead-74542a524abb",
+				},
+			},
+		},
+		{
+			name: "bad ApplicationObjectGroup",
+			json: `{"name": "Bad ApplicationObjectGroup Test 1",
+					"id": "702d4c99-959a-455f-dead-215e5680f038",
+					"description": "Description",
+					"type": "mfw-object-application-group",
+					"items": [
+						12345
+					]}`,
+			expectedErr: true,
 		},
 		{
 			name: "bad iface list",

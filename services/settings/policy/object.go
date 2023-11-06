@@ -57,7 +57,7 @@ type ServiceEndpoint struct {
 // a match occurs if any of the ports are matched and any of the IPs are matched
 type ApplicationObject struct {
 	Port       []uint                      `json:"port"`
-	IPAddrList []utilNet.IPSpecifierString `json:"ipaddrlist"`
+	IPAddrList []utilNet.IPSpecifierString `json:"ips"`
 }
 
 // setList is a utility function for setting a list in the Object.Items field. We
@@ -93,6 +93,8 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	case "":
 		// Policies typically don't have a Type
 		// drop down to the default return
+	case PolicyType:
+		// drop to default return
 
 	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject, ThreatPreventionRuleObject,
 		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject,
@@ -108,7 +110,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		obj.Settings = &QuotaSettings{}
 	case IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
-	case GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
+	case ApplicationGroupType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
 		defer setList[string](obj)()
 	case ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()
