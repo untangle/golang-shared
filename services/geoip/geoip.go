@@ -207,24 +207,33 @@ func (db *MaxMindGeoIPManager) extractDBFile(reader io.ReadCloser) error {
 	return nil
 }
 
-// checkForDBFile checks if the MaxMind geoIP database file exists and
-// is current. 'current' is defined by the value of
-// validityOfDbDuration.
-func (db *MaxMindGeoIPManager) checkForDBFile() bool {
+// checkForDBFile checks the status of the MaxMind GeoIP database file.
+// It returns two boolean values:
+//   - The first value indicates whether the file exists and valid.
+//   - The second value indicates whether the file is stale or not.
+func (db *MaxMindGeoIPManager) checkForDBFile() (bool, bool) {
+	// Get the filename from the manager.
 	filename := db.databaseFilename
-	if fileinfo, err := os.Stat(filename); err != nil {
-		return false
-	} else if fileinfo.Size() == 0 {
-		return false
-	} else {
 
+	// Check if the file exists and handle errors.
+	if fileinfo, err := os.Stat(filename); err != nil {
+		// Return false for both values if there is an error (file doesn't exist).
+		return false, false
+	} else if fileinfo.Size() == 0 {
+		// Return false for both values if the file is empty.
+		return false, false
+	} else {
+		// Get file modification time and current time.
 		filetime := fileinfo.ModTime()
 		currtime := time.Now()
 
-		// Return true if the time since the file modification time to
-		// now is less than the validity period (i.e. return true if
-		// the file is not stale yet).
-		return currtime.Sub(filetime) < validityOfDbDuration
+		// Check if the file is still within the validity period.
+		// Return true if the file is not stale yet.
+		if currtime.Sub(filetime) < validityOfDbDuration {
+			return true, false
+		}
+		// Return false for the first value (file is not current) and true for the second value (file is stale).
+		return false, true
 	}
 }
 
@@ -300,10 +309,13 @@ func (db *MaxMindGeoIPManager) LookupCountryCodeOfIP(ip net.IP) (string, bool) {
 // this call the database should always be opened in the
 // MaxMindGeoIPManager object.
 func (db *MaxMindGeoIPManager) Refresh() error {
-	if !db.checkForDBFile() {
+	isFileValid, isFileStale := db.checkForDBFile()
+	if !isFileValid {
 		err := db.downloadAndExtractDB()
 		if err != nil {
-			return err
+			if !isFileStale {
+				return err
+			}
 		}
 		err = db.openDBFile()
 		if err != nil {

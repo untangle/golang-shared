@@ -83,12 +83,18 @@ func (suite *TestGeoIP) TestRefreshWithGoodDbFile() {
 	result, found := geoIP.LookupCountryCodeOfIP(net.ParseIP("3.3.3.3"))
 	suite.False(found)
 	suite.Equal(result, "")
-	suite.False(geoIP.checkForDBFile())
+	isFileValid, isFileStale := geoIP.checkForDBFile()
+	suite.False(isFileValid)
+	suite.False(isFileStale)
 	suite.Nil(geoIP.extractDBFile(suite.getReaderCloserForTestTarball()))
-	suite.True(geoIP.checkForDBFile())
+	isFileValid, isFileStale = geoIP.checkForDBFile()
+	suite.True(isFileValid)
+	suite.False(isFileStale)
 	suite.Nil(geoIP.geoDatabaseReader)
 	suite.Nil(geoIP.Refresh())
-	suite.True(geoIP.checkForDBFile())
+	isFileValid, isFileStale = geoIP.checkForDBFile()
+	suite.True(isFileValid)
+	suite.False(isFileStale)
 	suite.NotNil(geoIP.geoDatabaseReader)
 	result, found = geoIP.LookupCountryCodeOfIP(net.ParseIP("3.3.3.3"))
 	suite.True(found)
@@ -119,20 +125,27 @@ func (suite *TestGeoIP) TestDBExtract() {
 }
 
 // Check that the checkForDBFile method works:
-// 1. It returns false if the file doesn't exist.
 //
-// 2. It returns false if the file is old.
+//  1. It returns false for both isFileValid and isFileStale
+//     if the file doesn't exist.
 //
-// 3. It returns true if the file exists and is not too old (as
-// determined by the value of validityOfDbDuration).
+//  2. It returns false for isFileValid and true for isFileStale
+//     if the file exists and too old when the download fails.
+//
+//  3. It returns true for isFileValid and false for isFileStale
+//     if the file exists and not too old.
 func (suite *TestGeoIP) TestDBStatusChecker() {
 	fullFileName := suite.getDBFilename()
 	geoIP := NewMaxMindGeoIPManager(fullFileName)
-	suite.False(geoIP.checkForDBFile())
+	isFileValid, isFileStale := geoIP.checkForDBFile()
+	suite.False(isFileValid)
+	suite.False(isFileStale)
 	extractResult := geoIP.extractDBFile(
 		suite.getReaderCloserForTestTarball())
 	suite.Nil(extractResult)
-	suite.True(geoIP.checkForDBFile())
+	isFileValid, isFileStale = geoIP.checkForDBFile()
+	suite.True(isFileValid)
+	suite.False(isFileStale)
 
 	// Here we use os.Chtimes to backdate the file's timestamps
 	// and make it appear old. It is one second older than
@@ -145,7 +158,14 @@ func (suite *TestGeoIP) TestDBStatusChecker() {
 		invalidTime,
 		invalidTime)
 	suite.failIferror(err, "Couldn't backdate file timestamp")
-	suite.False(geoIP.checkForDBFile())
+	isFileValid, isFileStale = geoIP.checkForDBFile()
+	suite.False(isFileValid)
+	suite.True(isFileStale)
+	suite.Nil(geoIP.geoDatabaseReader)
+	suite.failIferror(geoIP.openDBFile(), "Couldn't open DB file")
+	result, found := geoIP.LookupCountryCodeOfIP(net.ParseIP("3.3.3.3"))
+	suite.True(found)
+	suite.NotEqual(result, "")
 }
 
 // Test that we call the MaxMind database reader correctly and do not
