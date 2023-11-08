@@ -527,11 +527,11 @@ func TestObjectUnmarshal(t *testing.T) {
 	assert.EqualValues(t, []ServiceEndpoint{
 		{
 			Protocol: []uint{uint(layers.IPProtocolTCP), uint(layers.IPProtocolUDP)},
-			Port:     []uint{12345, 80, 53},
+			Port:     []net.PortSpecifierString{"12345", "80", "53"},
 		},
 		{
 			Protocol: []uint{uint(layers.IPProtocolUDP)},
-			Port:     []uint{12345, 11, 22, 67, 66},
+			Port:     []net.PortSpecifierString{"12345", "11", "22", "67", "66"},
 		},
 	}, endpointList)
 }
@@ -546,12 +546,12 @@ func TestApplicationObjectUnmarshal(t *testing.T) {
 			if applicationObject, ok := objects[i].ItemsApplicationObject(); ok {
 				if len(applicationObject.Port) > 0 && len(applicationObject.IPAddrList) > 0 {
 					assert.EqualValues(t, ApplicationObject{
-						Port:       []uint{80, 8088, 443},
+						Port:       []net.PortSpecifierString{"80", "8088", "443"},
 						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "4.5.6.7/32"},
 					}, applicationObject)
 				} else if len(applicationObject.Port) > 0 {
 					assert.EqualValues(t, ApplicationObject{
-						Port:       []uint{80, 8088, 443},
+						Port:       []net.PortSpecifierString{"80", "8088", "443"},
 						IPAddrList: nil,
 					}, applicationObject)
 
@@ -696,8 +696,9 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 						 "description": "Description",
                          "type": "mfw-object-service",
                           "items": [
-                              {"protocol": [17,6,1], "port": [2222,80,88]},
-                              {"protocol": [6], "port": [2223,11,53]}]}`,
+                              {"protocol": [17,6,1], "port": ["2222", "80", "88"]},
+                              {"protocol": [6], "port": ["2223", "11", "53"]}
+							  ]}`,
 			expectedErr: false,
 			expected: Object{
 				Name:        "ServiceEndpointTest",
@@ -707,11 +708,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Items: []ServiceEndpoint{
 					{
 						Protocol: []uint{uint(layers.IPProtocolUDP), uint(layers.IPProtocolTCP), uint(layers.IPProtocolICMPv4)},
-						Port:     []uint{2222, 80, 88},
+						Port:     []net.PortSpecifierString{"2222", "80", "88"},
 					},
 					{
 						Protocol: []uint{uint(layers.IPProtocolTCP)},
-						Port:     []uint{2223, 11, 53},
+						Port:     []net.PortSpecifierString{"2223", "11", "53"},
 					},
 				},
 			},
@@ -724,7 +725,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					"type": "mfw-object-application",
 					"items": [
 						{
-							"port": [2222,80,88],
+							"port": ["2222", "80", "88"],
 							"ips": ["1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"]
 						}
 					]}`,
@@ -736,7 +737,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				ID:          "702d4c99-9599-455f-dead-215e5680f038",
 				Items: []ApplicationObject{
 					{
-						Port:       []uint{2222, 80, 88},
+						Port:       []net.PortSpecifierString{"2222", "80", "88"},
 						IPAddrList: []net.IPSpecifierString{"1.2.3.4", "2.3.4.5-3.4.5.6", "7.8.9.0/24"},
 					},
 				},
@@ -924,11 +925,11 @@ func TestGroupMarshal(t *testing.T) {
 				Items: []ServiceEndpoint{
 					{
 						Protocol: []uint{uint(layers.IPProtocolUDP)},
-						Port:     []uint{2222},
+						Port:     []net.PortSpecifierString{"2222"},
 					},
 					{
 						Protocol: []uint{uint(layers.IPProtocolTCP)},
-						Port:     []uint{2223},
+						Port:     []net.PortSpecifierString{"2223"},
 					},
 				},
 			},
@@ -937,8 +938,30 @@ func TestGroupMarshal(t *testing.T) {
 						 "description": "Description",
                          "type": "mfw-object-service",
                           "items": [
-                              {"protocol": [17], "port": [2222]},
-                              {"protocol": [6], "port": [2223]}]}`,
+                              {"protocol": [17], "port": ["2222"]},
+                              {"protocol": [6], "port": ["2223"]}]}`,
+		},
+		{
+			name: "ServiceEndpointTest with port ranges",
+			object: Object{
+				Name:        "ServiceEndpointTest with port ranges",
+				Description: "Description",
+				Type:        ServiceEndpointObjectType,
+				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				Items: []ServiceEndpoint{
+					{
+						Protocol: []uint{uint(layers.IPProtocolUDP)},
+						Port:     []net.PortSpecifierString{"2222", "2223-2225"},
+					},
+				},
+			},
+			expectedJSON: `{"name": "ServiceEndpointTest with port ranges",
+						 "id": "702d4c99-9599-455f-8271-215e5680f038",
+						 "description": "Description",
+						 "type": "mfw-object-service",
+						 "items": [
+							 {"protocol": [17], "port": ["2222", "2223-2225"]}
+						 ]}`,
 		},
 	}
 
