@@ -176,8 +176,9 @@ func (lm *LicenseManager) GetServices() map[string]*Service {
 
 // RefreshLicenses restart the client licence service
 func RefreshLicenses() error {
-	err := util.RunSigusr1(clientLicenseService)
-	return err
+	// do not bail when license refresh fails
+	_ = util.RunSigusr1(clientLicenseService)
+	return nil
 }
 
 // IsLicenseEnabled is called from API to see if service is currently enabled.
