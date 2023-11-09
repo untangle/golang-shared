@@ -89,7 +89,7 @@ func GetPolicyPluginSettings(settingsFile *settings.SettingsFile, pluginName str
 	}
 
 	// Add default settings into map with key default.
-	// This needs plugin metadata to figure out that 'mfw-template-XXX' is the same as the top level settings name
+	// This needs plugin metadata to figure out that 'mfw-config-XXX' is the same as the top level settings name
 	if err := settingsFile.UnmarshalSettingsAtPath(&defaultPluginSettings, SettingsMetaLookup[pluginName].SettingsName); err != nil {
 		return nil, err
 	}

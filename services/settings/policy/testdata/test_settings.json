@@ -74,7 +74,7 @@
 		"id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
 		"name": "GeoIp",
 		"description": "some geoip filter",
-		"type": "mfw-template-geoipfilter",
+		"type": "mfw-config-geoipfilter",
 		"settings": {
 		    "blockedCountries": [],
 		    "enabled": true,
@@ -86,7 +86,7 @@
 		"description": "Students",
 		"id": "30a95c8e-594c-4530-984b-05c7ae300131",
 		"name": "Geoip fencing",
-		"type": "mfw-template-geoipfilter",
+		"type": "mfw-config-geoipfilter",
 		"settings": {
 		    "blockedCountries": ["AE", "AF", "AG"],
 		    "enabled": false,
@@ -98,7 +98,7 @@
 		"description": "Filtering for students",
 		"id": "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
 		"name": "WebFilter students",
-		"type": "mfw-template-webfilter",
+		"type": "mfw-config-webfilter",
 		"settings": {
 		    "blockList": [],
 		    "categories": [
@@ -121,7 +121,7 @@
 		"description": "TP students",
 		"id": "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
 		"name": "TP for students",
-		"type": "mfw-template-threatprevention",
+		"type": "mfw-config-threatprevention",
 		"settings": {
 		    "enabled": true,
 		    "passList": [
@@ -138,7 +138,7 @@
 		"description": "prevention for teachers",
 		"id": "7ed1558e-ae30-4699-beab-77e09babecb3",
 		"name": "TP Teachers",
-		"type": "mfw-template-threatprevention",
+		"type": "mfw-config-threatprevention",
 		"settings": {
 		    "enabled": true,
 		    "passList": [],
@@ -150,7 +150,7 @@
 		"id": "f9df9aa5-4244-4344-9e62-4729fcfd3e31",
 		"name": "My GEO2",
 		"description": "GeoFilter 2",
-		"type": "mfw-template-geoipfilter",
+		"type": "mfw-config-geoipfilter",
 		"settings": {
 		    "blockedCountries": ["RU", "NK"],
 		    "enabled": true,
@@ -278,12 +278,12 @@
 		"name": "GeoIP rule",
 		"description": "",
 		"enabled": true,
-		"type": "mfw-template-geoipfilter",
+		"type": "mfw-config-geoipfilter",
 		"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
 		"action": {
 		    "type": "SET_CONFIGURATION",
 		    "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-		    "key": "mfw-template-geoipfilter"
+		    "key": "mfw-config-geoipfilter"
 		}
 	    },
 	    {
@@ -291,12 +291,12 @@
 		"name": "Rule",
 		"description": "",
 		"enabled": true,
-		"type": "mfw-template-geoipfilter",
+		"type": "mfw-config-geoipfilter",
 		"conditions": [],
 		"action": {
 		    "type": "SET_CONFIGURATION",
 		    "configuration_id": "f9df9aa5-4244-4344-9e62-4729fcfd3e31",
-		    "key": "mfw-template-geoipfilter"
+		    "key": "mfw-config-geoipfilter"
 		}
 	    },
 	    {
@@ -304,11 +304,11 @@
 		"name": "Security Rule 1",
 		"description": "",
 		"enabled": true,
-		"type": "mfw-template-security",
+		"type": "mfw-config-security",
 		"conditions": ["85678956-b696-4766-bda9-1379146c512e"],
 		"action": {
 		    "type": "REJECT",
-		    "key": "mfw-template-security"
+		    "key": "mfw-config-security"
 		}
 	    },
 	    {
@@ -316,12 +316,12 @@
 		"name": "WF Rule 1",
 		"description": "",
 		"enabled": true,
-		"type": "mfw-template-webfilter",
+		"type": "mfw-config-webfilter",
 		"conditions": ["85678956-b696-4766-bda9-1379146c512e"],
 		"action": {
 		    "type": "SET_CONFIGURATION",
 		    "configuration_id": "ae25229b-c3d5-4e06-9da2-ceeaa9b1c50c",
-		    "key": "mfw-template-webfilter"
+		    "key": "mfw-config-webfilter"
 		}
 	    },
 	    {
@@ -329,12 +329,12 @@
 		"name": "Rule",
 		"description": "",
 		"enabled": true,
-		"type": "mfw-template-threatprevention",
+		"type": "mfw-config-threatprevention",
 		"conditions": ["85678956-b696-4766-bda9-1379146c512e"],
 		"action": {
 		    "type": "SET_CONFIGURATION",
 		    "configuration_id": "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
-		    "key": "mfw-template-threatprevention"
+		    "key": "mfw-config-threatprevention"
 		}
 	    },
 	    {
@@ -342,12 +342,12 @@
 		"name": "Rule",
 		"description": "",
 		"enabled": true,
-		"type": "mfw-template-threatprevention",
+		"type": "mfw-config-threatprevention",
 		"conditions": [],
 		"action": {
 		    "type": "SET_CONFIGURATION",
 		    "configuration_id": "7ed1558e-ae30-4699-beab-77e09babecb3",
-		    "key": "mfw-template-threatprevention"
+		    "key": "mfw-config-threatprevention"
 		}
 	    }
 	],
