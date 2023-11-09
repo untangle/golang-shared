@@ -97,6 +97,7 @@ func runUnmarshalTest(t *testing.T, tests []unmarshalTest) {
 	}
 }
 
+// TestUnmarshalObject tests unmarshalling rules
 func TestRulesUnmarshal(t *testing.T) {
 	tests := []unmarshalTest{
 		{
@@ -394,6 +395,31 @@ func TestRulesUnmarshal(t *testing.T) {
 				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
 			},
 		},
+		{
+			name: "wan rule test",
+			json: `{"name": "wan rule test",
+         			"id": "c2428365-65be-4907-bfc0-bde2b310fedf",
+                   		"type": "mfw-rule-wanpolicy",
+                   		"description": "WANMAN",
+                   		"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
+                   		"action": {
+                            		"type": "WAN_POLICY",
+                                    "wan_policy": "1458dc12-a9c2-4d0c-8203-1340c61c2c3e"
+                         	 }
+			}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "wan rule test",
+				Type:        WANPolicyRuleObject,
+				Description: "WANMAN",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Action: &Action{
+					Type:      "WAN_POLICY",
+					WANPolicy: "1458dc12-a9c2-4d0c-8203-1340c61c2c3e",
+				},
+				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
+			},
+		},
 	}
 	runUnmarshalTest(t, tests)
 
@@ -508,6 +534,66 @@ func TestUnmarshalQuotaSettingsJSON(t *testing.T) {
 	err := settingsFile.UnmarshalSettingsAtPath(&quotas, "policy_manager", "quotas")
 	assert.NoError(t, err)
 	assert.Greater(t, len(quotas), 0, "There should be at least one quota in the settings.json")
+}
+
+// TestUnmarshalWANs tests unmarshalling a WAN policy.
+func TestUnmarshallWANs(t *testing.T) {
+	tests := []unmarshalTest{
+		{
+			name: "WAN test",
+			json: `{
+						"name": "WAN",
+						"id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+						"type": "mfw-wanpolicy",
+						"description": "My WAN description",
+						"settings": 
+							{         
+								"best_of_metric": "LOWEST_LATENCY",
+								"criteria": [   
+									{    
+										"type": "ALWAYS_UP"
+									}       
+								],         
+								"interfaces": [                 
+									{                                          
+										"interfaceId": 0
+									}
+								],     
+								"type": "BEST_OF"               
+							},
+						"action": {
+							"type": "WAN_POLICY",
+							"wan_policy": "c2428365-65be-4901-bfc0-bde2b310fedf"
+						}
+					}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "WAN",
+				Type:        WANPolicyType,
+				Description: "My WAN description",
+				ID:          "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Settings: &WANPolicySettings{
+					BestOfMetric: "LOWEST_LATENCY",
+					Criteria: []WANCriteriaType{
+						{
+							Type: "ALWAYS_UP",
+						},
+					},
+					Interfaces: []WANInterfaceType{
+						{
+							ID: 0,
+						},
+					},
+					Type: "BEST_OF",
+				},
+				Action: &Action{
+					Type:      "WAN_POLICY",
+					WANPolicy: "c2428365-65be-4901-bfc0-bde2b310fedf",
+				},
+			},
+		},
+	}
+	runUnmarshalTest(t, tests)
 }
 
 func TestObjectUnmarshal(t *testing.T) {
