@@ -15,7 +15,7 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 
 	var result = PolicyConfiguration{
 		Description: "TP students",
-		Type:        "mfw-template-threatprevention",
+		Type:        "mfw-config-threatprevention",
 		Name:        "TP for students",
 		ID:          "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
 		Enabled:     false,
@@ -36,13 +36,13 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 	policySettings, err := GetAllPolicyConfigs(settingsFile)
 	assert.NoError(t, err)
 	assert.NotNil(t, policySettings)
-	assert.Len(t, policySettings["mfw-template-threatprevention"], 2)
-	assert.Len(t, policySettings["mfw-template-webfilter"], 1)
-	assert.Len(t, policySettings["mfw-template-geoipfilter"], 3)
+	assert.Len(t, policySettings["mfw-config-threatprevention"], 2)
+	assert.Len(t, policySettings["mfw-config-webfilter"], 1)
+	assert.Len(t, policySettings["mfw-config-geoipfilter"], 3)
 
 	teachersUID := "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
 	// Spot check a plugin setting.
-	assert.EqualValues(t, &result, policySettings["mfw-template-threatprevention"][teachersUID])
+	assert.EqualValues(t, &result, policySettings["mfw-config-threatprevention"][teachersUID])
 }
 
 func TestGetPolicyPluginSettings(t *testing.T) {
@@ -59,7 +59,7 @@ func TestGetPolicyPluginSettings(t *testing.T) {
 		Name:        "",
 		ID:          "00000000-0000-0000-0000-000000000000",
 		Description: "",
-		Type:        "mfw-template-threatprevention",
+		Type:        "mfw-config-threatprevention",
 		Settings: map[string]interface{}{
 			"enabled":     false,
 			"passList":    []interface{}{},
