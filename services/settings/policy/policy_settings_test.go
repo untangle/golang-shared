@@ -404,7 +404,7 @@ func TestRulesUnmarshal(t *testing.T) {
                    		"conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                    		"action": {
                             		"type": "WAN_POLICY",
-                                    "wan_policy": "1458dc12-a9c2-4d0c-8203-1340c61c2c3e"
+                                    "configuration_id": "1458dc12-a9c2-4d0c-8203-1340c61c2c3e"
                          	 }
 			}`,
 			expectedErr: false,
@@ -414,8 +414,8 @@ func TestRulesUnmarshal(t *testing.T) {
 				Description: "WANMAN",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
-					Type:      "WAN_POLICY",
-					WANPolicy: "1458dc12-a9c2-4d0c-8203-1340c61c2c3e",
+					Type: "WAN_POLICY",
+					UUID: "1458dc12-a9c2-4d0c-8203-1340c61c2c3e",
 				},
 				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
 			},
@@ -563,7 +563,7 @@ func TestUnmarshallWANs(t *testing.T) {
 							},
 						"action": {
 							"type": "WAN_POLICY",
-							"wan_policy": "c2428365-65be-4901-bfc0-bde2b310fedf"
+							"configuration_id": "c2428365-65be-4901-bfc0-bde2b310fedf"
 						}
 					}`,
 			expectedErr: false,
@@ -587,8 +587,8 @@ func TestUnmarshallWANs(t *testing.T) {
 					Type: "BEST_OF",
 				},
 				Action: &Action{
-					Type:      "WAN_POLICY",
-					WANPolicy: "c2428365-65be-4901-bfc0-bde2b310fedf",
+					Type: "WAN_POLICY",
+					UUID: "c2428365-65be-4901-bfc0-bde2b310fedf",
 				},
 			},
 		},
