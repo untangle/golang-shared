@@ -673,7 +673,7 @@ func TestUnmarshallWANs(t *testing.T) {
 							},
 						"action": {
 							"type": "WAN_POLICY",
-							"configuration_id": "c2428365-65be-4901-bfc0-bde2b310fedf"
+							"policy": "c2428365-65be-4901-bfc0-bde2b310fedf"
 						}
 					}`,
 			expectedErr: false,
@@ -697,8 +697,8 @@ func TestUnmarshallWANs(t *testing.T) {
 					Type: "BEST_OF",
 				},
 				Action: &Action{
-					Type: "WAN_POLICY",
-					UUID: "c2428365-65be-4901-bfc0-bde2b310fedf",
+					Type:      "WAN_POLICY",
+					WANConfig: "c2428365-65be-4901-bfc0-bde2b310fedf",
 				},
 			},
 		},
