@@ -55,7 +55,7 @@ const (
 	QuotaType ObjectType = "mfw-quota"
 
 	// WANPolicyType string -- a WAN policy type.
-	WANPolicyType ObjectType = "mfw-wanpolicy"
+	WANPolicyType ObjectType = "mfw-config-wanpolicy"
 
 	// RuleTypes
 	ApplicationControlRuleObject ObjectType = "mfw-rule-applicationcontrol"

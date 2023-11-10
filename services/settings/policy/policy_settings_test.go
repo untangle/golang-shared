@@ -702,6 +702,61 @@ func TestUnmarshallWANs(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "WAN test - extra fields",
+			json: `{
+						"name": "WAN",
+						"id": "c2428365-65be-4901-bfc0-bde2b310fedf",
+						"type": "mfw-config-wanpolicy",
+						"description": "My WAN description",
+						"policyId": "c2428365-65be-4901-bfc0-bde2b310fedf",
+						"settings": 
+							{   
+								"policyId": "c2428365-65be-4901-bfc0-bde2b310fedf",
+								"best_of_metric": "LOWEST_LATENCY",
+								"criteria": [   
+									{    
+										"type": "ALWAYS_UP"
+									}       
+								],         
+								"interfaces": [                 
+									{                                          
+										"interfaceId": 0
+									}
+								],     
+								"type": "BEST_OF"               
+							},
+						"action": {
+							"type": "WAN_POLICY",
+							"configuration_id": "c2428365-65be-4901-bfc0-bde2b310fedf"
+						}
+					}`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "WAN",
+				Type:        WANPolicyType,
+				Description: "My WAN description",
+				ID:          "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Settings: &WANPolicySettings{
+					BestOfMetric: "LOWEST_LATENCY",
+					Criteria: []WANCriteriaType{
+						{
+							Type: "ALWAYS_UP",
+						},
+					},
+					Interfaces: []WANInterfaceType{
+						{
+							ID: 0,
+						},
+					},
+					Type: "BEST_OF",
+				},
+				Action: &Action{
+					Type: "WAN_POLICY",
+					UUID: "c2428365-65be-4901-bfc0-bde2b310fedf",
+				},
+			},
+		},
 	}
 	runUnmarshalTest(t, tests)
 }
