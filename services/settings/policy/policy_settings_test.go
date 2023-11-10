@@ -864,6 +864,25 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "interfacezone object",
+			json: `{
+						"id": "115705e0-e010-4288-b36b-e79a0992e177",
+						"name": "Test Interface Zone",
+						"description": "",
+						"type": "mfw-object-interfacezone",
+						"items": [
+						  "AristaCorp"
+						]
+					}`,
+			expectedErr: false,
+			expected: Object{
+				Name:  "Test Interface Zone",
+				ID:    "115705e0-e010-4288-b36b-e79a0992e177",
+				Type:  InterfaceObjectType,
+				Items: []string{"AristaCorp"},
+			},
+		},
 	}
 
 	for _, tt := range tests {
