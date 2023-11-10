@@ -73,13 +73,13 @@ const (
 	ConditionGroupType ObjectType = "mfw-object-condition-group"
 
 	// Configuration Types used for marshalling configs out of configuration sections
-	GeoipConfigType              ObjectType = "mfw-template-geoipfilter"
-	WebFilterConfigType          ObjectType = "mfw-template-webfilter"
-	ThreatPreventionConfigType   ObjectType = "mfw-template-threatprevention"
-	WANPolicyConfigType          ObjectType = "mfw-template-wanpolicy"
-	ApplicationControlConfigType ObjectType = "mfw-template-applicationcontrol"
-	CaptivePortalConfigType      ObjectType = "mfw-template-captiveportal"
-	SecurityConfigType           ObjectType = "mfw-template-security"
+	GeoipConfigType              ObjectType = "mfw-config-geoipfilter"
+	WebFilterConfigType          ObjectType = "mfw-config-webfilter"
+	ThreatPreventionConfigType   ObjectType = "mfw-config-threatprevention"
+	WANPolicyConfigType          ObjectType = "mfw-config-wanpolicy"
+	ApplicationControlConfigType ObjectType = "mfw-config-applicationcontrol"
+	CaptivePortalConfigType      ObjectType = "mfw-config-captiveportal"
+	SecurityConfigType           ObjectType = "mfw-config-security"
 
 	//Policy Type
 	PolicyType ObjectType = "mfw-policy"
