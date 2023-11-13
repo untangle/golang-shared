@@ -103,13 +103,13 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		// drop down to the default return
 
 	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
-		WANPolicyConfigType, ApplicationControlConfigType,
+		ApplicationControlConfigType,
 		CaptivePortalConfigType, SecurityConfigType:
 		// drop to default return
 
 	case QuotaType:
 		obj.Settings = &QuotaSettings{}
-	case WANPolicyType:
+	case WANPolicyConfigType:
 		obj.Settings = &WANPolicySettings{}
 	case IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
