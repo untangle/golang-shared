@@ -84,8 +84,8 @@ const (
 	//Policy Type
 	PolicyType ObjectType = "mfw-policy"
 
-	HostType      ObjectType = "mfw-object-host"
-	HostGroupType ObjectType = "mfw-object-host-group"
+	HostType      ObjectType = "mfw-object-hostname"
+	HostGroupType ObjectType = "mfw-object-hostname-group"
 
 	DomainType      ObjectType = "mfw-object-domain"
 	DomainGroupType ObjectType = "mfw-object-domain-group"
