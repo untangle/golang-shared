@@ -734,7 +734,7 @@ func TestUnmarshallWANs(t *testing.T) {
 			expectedErr: false,
 			expected: Object{
 				Name:        "WAN",
-				Type:        WANPolicyType,
+				Type:        WANPolicyConfigType,
 				Description: "My WAN description",
 				ID:          "c2428365-65be-4901-bfc0-bde2b310fedf",
 				Settings: &WANPolicySettings{
