@@ -44,6 +44,7 @@ type Action struct {
 	DNATAddress string `json:"dnat_address,omitempty"`
 	DNATPort    string `json:"dnat_port,omitempty"`
 	SNATAddress string `json:"snat_address,omitempty"`
+	WANConfig   string `json:"policy,omitempty"`
 }
 
 // ServiceEndpoint is a particular object type, a object may be
@@ -102,12 +103,14 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		// drop down to the default return
 
 	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
-		WANPolicyConfigType, ApplicationControlConfigType,
+		ApplicationControlConfigType,
 		CaptivePortalConfigType, SecurityConfigType:
 		// drop to default return
 
 	case QuotaType:
 		obj.Settings = &QuotaSettings{}
+	case WANPolicyConfigType:
+		obj.Settings = &WANPolicySettings{}
 	case IPObjectType:
 		defer setList[utilNet.IPSpecifierString](obj)()
 	case ApplicationGroupType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType:
