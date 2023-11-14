@@ -84,21 +84,23 @@ const (
 	//Policy Type
 	PolicyType ObjectType = "mfw-policy"
 
-	// TODO: Impelment these object/group types
-	HostType      ObjectType = "mfw-object-host"
-	HostGroupType ObjectType = "mfw-object-host-group"
+	HostType      ObjectType = "mfw-object-hostname"
+	HostGroupType ObjectType = "mfw-object-hostname-group"
 
 	DomainType      ObjectType = "mfw-object-domain"
 	DomainGroupType ObjectType = "mfw-object-domain-group"
-
-	UserType      ObjectType = "mfw-object-user"
-	UserGroupType ObjectType = "mfw-object-user-group"
 
 	VLANTagType      ObjectType = "mfw-object-vlantag"
 	VLANTagGroupType ObjectType = "mfw-object-vlantag-group"
 
 	ApplicationType      ObjectType = "mfw-object-application"
 	ApplicationGroupType ObjectType = "mfw-object-application-group"
+
+	// TODO: implemented fully when the UserType diverges from IPObjectType.
+	// As of right now, they are functionally the same so the front end is using
+	// IPObjectType
+	UserType      ObjectType = "mfw-object-user"
+	UserGroupType ObjectType = "mfw-object-user-group"
 
 	PolicyParent         ObjectParentType = "policy"
 	RuleParent           ObjectParentType = "rule"
