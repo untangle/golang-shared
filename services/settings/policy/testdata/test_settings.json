@@ -181,15 +181,15 @@
 		"items": [
 		    {
 			"port": ["88"],
-			"protocol": [6]
+			"protocol": ["6"]
 		    },
 		    {
 			"port": ["123"],
-			"protocol": [51]
+			"protocol": ["51"]
 		    },
 		    {
 			"port": ["23"],
-			"protocol": [27]
+			"protocol": ["27"]
 		    }
 		]
 	    },

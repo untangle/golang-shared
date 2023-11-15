@@ -50,7 +50,7 @@ type Action struct {
 // ServiceEndpoint is a particular object type, a object may be
 // identified by a list of these.
 type ServiceEndpoint struct {
-	Protocol []uint                        `json:"protocol"`
+	Protocol []string                      `json:"protocol"`
 	Port     []utilNet.PortSpecifierString `json:"port"`
 }
 
