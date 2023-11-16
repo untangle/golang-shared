@@ -28,7 +28,7 @@ type functionInfoType struct {
 	functionName string
 }
 
-var pcFunctionCache = make(map[uintptr]functionInfoType)
+var PcFunctionCache = make(map[uintptr]functionInfoType)
 
 // Read/write lock for cache
 var mapMutex sync.RWMutex
@@ -495,7 +495,7 @@ func findCallingFunction() (packageName string, functionName string) {
 
 	// See if program counter is in our cache
 	mapMutex.RLock()
-	functionInfo, found := pcFunctionCache[pc[0]]
+	functionInfo, found := PcFunctionCache[pc[0]]
 	mapMutex.RUnlock()
 	if found {
 		return functionInfo.packageName, functionInfo.functionName
@@ -521,8 +521,9 @@ func findCallingFunction() (packageName string, functionName string) {
 		packageName = functionName[0:dot]
 	}
 
+	// Add to cache
 	mapMutex.Lock()
-	pcFunctionCache[pc[0]] = functionInfoType{packageName: packageName, functionName: functionName}
+	PcFunctionCache[pc[0]] = functionInfoType{packageName: packageName, functionName: functionName}
 	mapMutex.Unlock()
 
 	return packageName, functionName

@@ -514,8 +514,8 @@ func (suite *TestLogger) TestPerformance() {
 	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
 
 	// Dump cache
-	fmt.Printf("pcFunctionCache")
-	for cp, function := range pcFunctionCache {
+	fmt.Printf("PcFunctionCache contents:")
+	for cp, function := range PcFunctionCache {
 		fmt.Println(cp, function)
 	}
 }
