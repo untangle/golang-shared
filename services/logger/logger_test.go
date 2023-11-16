@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -84,7 +86,7 @@ func (suite *TestLogger) TestStartup() {
 	logger.Startup()
 }
 
-//Test default service name
+// Test default service name
 func (suite *TestLogger) TestName() {
 	logger := Logger{}
 	assert.Equal(suite.T(), "logger", logger.Name())
@@ -397,11 +399,9 @@ func (suite *TestLogger) TestSendAlertToCMD() {
 
 func (suite *TestLogger) TestFindCallingFunction() {
 
-	fileName, lineNumber, packageName, functionName := findCallingFunction()
+	packageName, functionName := findCallingFunction()
 
-	assert.Contains(suite.T(), fileName, "reflect")
 	// The line number varies dependng on where this is run from
-	assert.Greater(suite.T(), lineNumber, 0)
 	assert.Equal(suite.T(), "reflect", packageName)
 	assert.Contains(suite.T(), functionName, "reflect.Value.Call")
 }
@@ -428,6 +428,15 @@ func (suite *TestLogger) TestGetInstanceWithConfig() {
 
 func (suite *TestLogger) TestPerformance() {
 	iterations := 100
+	environment_iterations := os.Getenv("TESTLOGGER_TESTPERFORMANCE_ITERATIONS")
+	if environment_iterations != "" {
+		environment_iterations, err := strconv.Atoi(environment_iterations)
+		if err == nil {
+			iterations = environment_iterations
+		} else {
+			fmt.Println("unable to parse")
+		}
+	}
 	logInstance := NewLogger()
 
 	startTime := time.Now()
@@ -503,4 +512,10 @@ func (suite *TestLogger) TestPerformance() {
 	fmt.Printf("Unoptimized duration without IsTraceEnabled() for %d unlogged Trace() calls was %s\n", iterations, durationUnopt)
 
 	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
+
+	// Dump cache
+	fmt.Printf("PcFunctionCache contents:")
+	for cp, function := range PcFunctionCache {
+		fmt.Println(cp, function)
+	}
 }

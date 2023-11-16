@@ -22,6 +22,17 @@ type Ocname struct {
 	limit int64
 }
 
+// Cache for mapping program counters to program/function names
+type functionInfoType struct {
+	packageName  string
+	functionName string
+}
+
+var PcFunctionCache = make(map[uintptr]functionInfoType)
+
+// Read/write lock for cache
+var mapMutex sync.RWMutex
+
 // Logger struct retains information about the logger related information
 type Logger struct {
 	config           *LoggerConfig
@@ -401,7 +412,7 @@ func logFormatter(format string, newOcname Ocname, args ...interface{}) string {
 
 // isLogEnabled returns true if logging is enabled for the caller at the specified level, false otherwise
 func (logger *Logger) isLogEnabled(level int32) bool {
-	_, _, packageName, functionName := findCallingFunction()
+	packageName, functionName := findCallingFunction()
 	if logger.IsLogEnabledSource(level, packageName) {
 		return true
 	}
@@ -419,7 +430,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	if level > logger.config.LogLevelHighest {
 		return
 	}
-	_, _, packageName, functionName := findCallingFunction()
+	packageName, functionName := findCallingFunction()
 
 	testLevel := logger.getLogLevel(packageName, functionName)
 
@@ -473,17 +484,25 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 // LINE: 827
 // We find the last / in caller.Function and use the entire string as the function name (dict.cleanDictionary)
 // We find the dot in the function name and use the left side as the package name (dict)
-func findCallingFunction() (file string, lineNumber int, packageName string, functionName string) {
+func findCallingFunction() (packageName string, functionName string) {
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
-	// number of frames to skip over so we get the single stack frame we need
-	stack := make([]uintptr, 1)
-	count := runtime.Callers(4, stack)
+	// number of frames to skip over so we get the single program_counters frame we need
+	pc := make([]uintptr, 1)
+	count := runtime.Callers(4, pc)
 	if count != 1 {
-		return "unknown", 0, "unknown", "unknown"
+		return "unknown", "unknown"
+	}
+
+	// See if program counter is in our cache
+	mapMutex.RLock()
+	functionInfo, found := PcFunctionCache[pc[0]]
+	mapMutex.RUnlock()
+	if found {
+		return functionInfo.packageName, functionInfo.functionName
 	}
 
 	// get the frame object for the caller
-	frames := runtime.CallersFrames(stack)
+	frames := runtime.CallersFrames(pc)
 	caller, _ := frames.Next()
 
 	// Find the index of the last slash to isolate the package.FunctionName
@@ -502,7 +521,12 @@ func findCallingFunction() (file string, lineNumber int, packageName string, fun
 		packageName = functionName[0:dot]
 	}
 
-	return caller.File, caller.Line, packageName, functionName
+	// Add to cache
+	mapMutex.Lock()
+	PcFunctionCache[pc[0]] = functionInfoType{packageName: packageName, functionName: functionName}
+	mapMutex.Unlock()
+
+	return packageName, functionName
 }
 
 // getPrefix returns a log message prefix
