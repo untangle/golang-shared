@@ -45,11 +45,10 @@ const (
 	ServiceEndpointObjectType ObjectType = "mfw-object-service"
 	ServiceEndpointGroupType  ObjectType = "mfw-object-service-group"
 
-	// InterfaceType is a group type where all items are interface
+	// InterfacezoneObjectType is a group type where all items are interface
 	// IDs (integers)
-	InterfaceType            ObjectType = "Interface"
-	InterfaceObjectType      ObjectType = "mfw-object-interfacezone"
-	InterfaceObjectGroupType ObjectType = "mfw-object-interfacezone-group"
+	InterfacezoneObjectType      ObjectType = "mfw-object-interfacezone"
+	InterfacezoneObjectGroupType ObjectType = "mfw-object-interfacezone-group"
 
 	// QuotaType string -- a quota type.
 	QuotaType ObjectType = "mfw-quota"

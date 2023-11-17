@@ -120,7 +120,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[ServiceEndpoint](obj)()
 	case ApplicationType:
 		defer setList[ApplicationObject](obj)()
-	case InterfaceObjectType:
+	case InterfacezoneObjectType:
 		defer setList[string](obj)()
 	case ConditionType:
 		defer setList[*PolicyCondition](obj)()

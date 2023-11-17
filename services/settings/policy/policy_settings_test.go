@@ -1009,22 +1009,6 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "interface list",
-			json: `{"name": "InterfaceListTest",
-                         "id": "702d4c99-9599-455f-8271-215e5680f038",
-                         "description": "description",
-                         "type": "Interface",
-                          "items": [1, 2, 3]}`,
-			expectedErr: false,
-			expected: Object{
-				Name:        "InterfaceListTest",
-				Description: "description",
-				Type:        InterfaceType,
-				ID:          "702d4c99-9599-455f-8271-215e5680f038",
-				Items:       []uint{1, 2, 3},
-			},
-		},
-		{
 			name: "good ApplicationObjectGroup",
 			json: `{"name": "ApplicationObjectGroup Test 1",
 					"id": "702d4c99-959a-455f-dead-215e5680f038",
@@ -1130,7 +1114,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			expected: Object{
 				Name:  "Test Interface Zone",
 				ID:    "115705e0-e010-4288-b36b-e79a0992e177",
-				Type:  InterfaceObjectType,
+				Type:  InterfacezoneObjectType,
 				Items: []string{"AristaCorp"},
 			},
 		},
