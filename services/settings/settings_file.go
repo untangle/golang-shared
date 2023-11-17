@@ -232,7 +232,7 @@ func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]in
 	newSettings["system"].(map[string]interface{})["httpPort"] = currentSettings["system"].(map[string]interface{})["httpPort"].(string)
 	newSettings["system"].(map[string]interface{})["httpsPort"] = currentSettings["system"].(map[string]interface{})["httpsPort"].(string)
 
-	return file.SetSettings(nil, newSettings, true)
+	return file.SetSettings(nil, newSettings, true, false)
 }
 
 // Generates a backup of a settings file using a provided script. Locks the settings file before generation.
