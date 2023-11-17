@@ -85,7 +85,7 @@ func GetSettings(segments []string) (interface{}, error) {
 }
 
 // SetSettings updates the settings
-func SetSettings(segments []string, value interface{}, force bool, skip string) (interface{}, error) {
+func SetSettings(segments []string, value interface{}, force bool, skip bool) (interface{}, error) {
 	return SetSettingsFile(segments, value, settingsFile, force, skip)
 }
 
@@ -136,7 +136,7 @@ func GetSettingsFile(segments []string, filename string) (interface{}, error) {
 }
 
 // SetSettingsFile updates the settings
-func SetSettingsFile(segments []string, value interface{}, filename string, force bool, skip string) (interface{}, error) {
+func SetSettingsFile(segments []string, value interface{}, filename string, force bool, skip bool) (interface{}, error) {
 	var ok bool
 	var err error
 	var jsonSettings map[string]interface{}
@@ -356,7 +356,7 @@ func TrimSettingsFile(segments []string, filename string) (interface{}, error) {
 		}
 	}
 
-	output, err := syncAndSave(jsonSettings, filename, false, "false")
+	output, err := syncAndSave(jsonSettings, filename, false, false)
 	if err != nil {
 		return map[string]interface{}{"error": err.Error(), "output": output}, err
 	}
@@ -416,18 +416,9 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 }
 
 // runSyncSettings runs sync-settings on the specified filename
-func runSyncSettings(filename string, force bool, skip string) (string, error) {
-	var skipLoadEos bool = false
+func runSyncSettings(filename string, force bool, skip bool) (string, error) {
 
-	if skip != "" {
-		var parseErr error
-		skipLoadEos, parseErr = strconv.ParseBool(skip)
-		if parseErr != nil {
-			skipLoadEos = false
-		}
-	}
-
-	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force), "-w", "skip="+strconv.FormatBool(skipLoadEos))
+	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force), "-w", "skip="+strconv.FormatBool(skip))
 	outBytes, err := cmd.CombinedOutput()
 	jsonOutput, data, errParse := parseSyncSettingsJsonOutput(outBytes)
 
@@ -483,7 +474,7 @@ func syncSystemFiles() {
 // it copies the tmp file to the destination specified in filename
 // if sync-settings does not succeed it returns the error and output
 // returns stdout, stderr, and an error
-func syncAndSave(jsonObject map[string]interface{}, filename string, force bool, skip string) (string, error) {
+func syncAndSave(jsonObject map[string]interface{}, filename string, force bool, skip bool) (string, error) {
 	// we want this to run after all files have been closed
 	// so we defer it as soon as possible
 	defer syncSystemFiles()
