@@ -42,7 +42,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 						return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
 					}
 				}
-			case "CLIENT_PORT", "SERVER_PORT":
+			case "CLIENT_PORT", "SERVER_PORT", "SOURCE_INTERFACE_TYPE", "DESTINATION_INTERFACE_TYPE":
 				if _, err := strconv.ParseUint(value, 10, 32); err != nil {
 					return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
 				}
