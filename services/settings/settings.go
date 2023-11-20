@@ -418,7 +418,7 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 // runSyncSettings runs sync-settings on the specified filename
 func runSyncSettings(filename string, force bool, skip bool) (string, error) {
 
-	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force), "-w", "skip="+strconv.FormatBool(skip))
+	cmd := exec.Command("/usr/bin/sync-settings", "-f", filename, "-v", "force="+strconv.FormatBool(force), "-v", "skip="+strconv.FormatBool(skip))
 	outBytes, err := cmd.CombinedOutput()
 	jsonOutput, data, errParse := parseSyncSettingsJsonOutput(outBytes)
 
