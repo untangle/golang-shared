@@ -151,6 +151,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 			translatedURL, ok = uriMap[parsedURL.String()]
 		}
 		mapMutex.RUnlock()
+
 		if !ok {
 			// Translation not found
 			err = fmt.Errorf("Unable to find url=%v", uri)
@@ -171,6 +172,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 			uri = parsedURL.String()
 		}
 	}
+
 	return uri, err
 }
 
