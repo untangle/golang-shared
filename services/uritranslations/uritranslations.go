@@ -126,36 +126,49 @@ func buildMaps() {
 //
 // If a match is not found, an error will be returned.
 func getURITranslation(uri string, path bool) (string, error) {
+	logger.Warn("Inside get URITransaltion --------- \n")
 	var err error = nil
 	var ok bool
 	var translatedURL *url.URL
 
 	if uriMap == nil {
+		logger.Warn("URITransaltion 1--------- \n")
 		buildMaps()
+		logger.Warn("URITransaltion 2--------- \n")
 	}
 
+	logger.Warn("URITransaltion 3--------- \n")
 	parsedURL, err := url.Parse(uri)
+	logger.Warn("URITransaltion 4--------- \n")
 	if err != nil {
 		// Unable to parse uri.
+		logger.Warn("URITransaltion 5--------- \n")
 		logger.Info("Unable to parse uri=%s with error=%v\n", uri, err.Error())
 		err = fmt.Errorf("Unable to parse uri=%v", uri)
+		logger.Warn("URITransaltion 6--------- \n")
 	} else {
 		// Get and clear query from parsed
+		logger.Warn("URITransaltion 7--------- \n")
 		rawQuery := parsedURL.RawQuery
 		parsedURL.RawQuery = ""
 
 		mapMutex.RLock()
 		if path {
+			logger.Warn("URITransaltion 8--------- \n")
 			translatedURL, ok = hostMap[parsedURL.Host]
 		} else {
+			logger.Warn("URITransaltion 9--------- \n")
 			translatedURL, ok = uriMap[parsedURL.String()]
 		}
+		logger.Warn("URITransaltion 10--------- \n")
 		mapMutex.RUnlock()
-
+		logger.Warn("URITransaltion 11--------- \n")
 		if !ok {
 			// Translation not found
+			logger.Warn("URITransaltion 12--------- \n")
 			logger.Err("Unable to find url=%v\n", uri)
 			err = fmt.Errorf("Unable to find url=%v", uri)
+			logger.Warn("URITransaltion 13--------- \n")
 		} else {
 			// Update the parsedURL based URL with translated values.
 			if translatedURL.Scheme != "" {
@@ -172,8 +185,9 @@ func getURITranslation(uri string, path bool) (string, error) {
 			parsedURL.RawQuery = rawQuery
 			uri = parsedURL.String()
 		}
+		logger.Warn("URITransaltion 14--------- \n")
 	}
-
+	logger.Warn("URITransaltion 15--------- \n")
 	return uri, err
 }
 
