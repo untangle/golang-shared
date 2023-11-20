@@ -1134,6 +1134,44 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Items: []string{"AristaCorp"},
 			},
 		},
+		{
+			name: "condition various types",
+			json: `{
+						"name": "blooblah",
+						"id": "702d4c99-9599-455f-8271-215e5680f039",
+						"type": "mfw-object-condition",
+						"items": [
+							{
+								"op": "==",
+								"type": "SOURCE_INTERFACE_TYPE",
+								"value": ["1"]
+							},
+							{
+								"op": "!=",
+								"type": "DESTINATION_INTERFACE_TYPE",
+								"value": ["2"]
+							}
+						]
+					}`,
+			expectedErr: false,
+			expected: Object{
+				Name: "blooblah",
+				ID:   "702d4c99-9599-455f-8271-215e5680f039",
+				Type: ConditionType,
+				Items: []*PolicyCondition{
+					{
+						Op:    "==",
+						CType: "SOURCE_INTERFACE_TYPE",
+						Value: []string{"1"},
+					},
+					{
+						Op:    "!=",
+						CType: "DESTINATION_INTERFACE_TYPE",
+						Value: []string{"2"},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
