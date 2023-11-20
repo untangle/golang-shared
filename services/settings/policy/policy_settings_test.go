@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/gopacket/layers"
 	"github.com/stretchr/testify/assert"
 	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/util/net"
@@ -777,11 +776,11 @@ func TestObjectUnmarshal(t *testing.T) {
 	assert.True(t, ok)
 	assert.EqualValues(t, []ServiceEndpoint{
 		{
-			Protocol: []uint{uint(layers.IPProtocolTCP), uint(layers.IPProtocolUDP)},
+			Protocol: []string{"6", "17"},
 			Port:     []net.PortSpecifierString{"12345", "80", "53"},
 		},
 		{
-			Protocol: []uint{uint(layers.IPProtocolUDP)},
+			Protocol: []string{"17"},
 			Port:     []net.PortSpecifierString{"12345", "11", "22", "67", "66"},
 		},
 	}, endpointList)
@@ -936,7 +935,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			json: `{"name": "ServiceEndpointTest",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
                          "type": "ServiceEndpoint",
-                          "items": [{"protocol": [17]]}`,
+                          "items": [{"protocol": ["17"]]}`,
 			expectedErr: true,
 			expected:    Object{},
 		},
@@ -947,8 +946,8 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 						 "description": "Description",
                          "type": "mfw-object-service",
                           "items": [
-                              {"protocol": [17,6,1], "port": ["2222", "80", "88"]},
-                              {"protocol": [6], "port": ["2223", "11", "53"]}
+                              {"protocol": ["17","6","1"], "port": ["2222", "80", "88"]},
+                              {"protocol": ["6"], "port": ["2223", "11", "53"]}
 							  ]}`,
 			expectedErr: false,
 			expected: Object{
@@ -958,11 +957,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
-						Protocol: []uint{uint(layers.IPProtocolUDP), uint(layers.IPProtocolTCP), uint(layers.IPProtocolICMPv4)},
+						Protocol: []string{"17", "6", "1"},
 						Port:     []net.PortSpecifierString{"2222", "80", "88"},
 					},
 					{
-						Protocol: []uint{uint(layers.IPProtocolTCP)},
+						Protocol: []string{"6"},
 						Port:     []net.PortSpecifierString{"2223", "11", "53"},
 					},
 				},
@@ -1232,11 +1231,11 @@ func TestGroupMarshal(t *testing.T) {
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
-						Protocol: []uint{uint(layers.IPProtocolUDP)},
+						Protocol: []string{"17"},
 						Port:     []net.PortSpecifierString{"2222"},
 					},
 					{
-						Protocol: []uint{uint(layers.IPProtocolTCP)},
+						Protocol: []string{"6"},
 						Port:     []net.PortSpecifierString{"2223"},
 					},
 				},
@@ -1246,8 +1245,8 @@ func TestGroupMarshal(t *testing.T) {
 						 "description": "Description",
                          "type": "mfw-object-service",
                           "items": [
-                              {"protocol": [17], "port": ["2222"]},
-                              {"protocol": [6], "port": ["2223"]}]}`,
+                              {"protocol": ["17"], "port": ["2222"]},
+                              {"protocol": ["6"], "port": ["2223"]}]}`,
 		},
 		{
 			name: "ServiceEndpointTest with port ranges",
@@ -1258,7 +1257,7 @@ func TestGroupMarshal(t *testing.T) {
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
 				Items: []ServiceEndpoint{
 					{
-						Protocol: []uint{uint(layers.IPProtocolUDP)},
+						Protocol: []string{"17"},
 						Port:     []net.PortSpecifierString{"2222", "2223-2225"},
 					},
 				},
@@ -1268,7 +1267,7 @@ func TestGroupMarshal(t *testing.T) {
 						 "description": "Description",
 						 "type": "mfw-object-service",
 						 "items": [
-							 {"protocol": [17], "port": ["2222", "2223-2225"]}
+							 {"protocol": ["17"], "port": ["2222", "2223-2225"]}
 						 ]}`,
 		},
 	}
