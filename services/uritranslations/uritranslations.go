@@ -167,6 +167,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 			// Translation not found
 			logger.Warn("URITransaltion 12--------- \n")
 			logger.Err("Unable to find url=%v\n", uri)
+			logger.Warn("URI Transaltion AFTER logger.ERRRRRR before fmt.Error----------\n")
 			err = fmt.Errorf("Unable to find url=%v", uri)
 			logger.Warn("URITransaltion 13--------- \n")
 		} else {
