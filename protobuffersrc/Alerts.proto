@@ -20,6 +20,7 @@ enum AlertType {
     CAPTIVEPORTAL = 12;
     TRAFFIC = 13;
     DYNAMICLISTS = 14;
+    POLICYMANAGER = 15;
 }
 
 enum AlertSeverity {
