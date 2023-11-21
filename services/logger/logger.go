@@ -482,8 +482,16 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 // FILE: /home/username/golang/src/github.com/untangle/packetd/services/dict/dict.go
 // FUNC: github.com/untangle/packetd/services/dict.cleanDictionary
 // LINE: 827
-// We find the last / in caller.Function and use the entire string as the function name (dict.cleanDictionary)
-// We find the dot in the function name and use the left side as the package name (dict)
+//
+// packageName		Name like "dict"
+// functionName		Package path from package name to calling function.
+//
+//	This is meant to be an explict path so you can match very granular on a specific function.
+//	This can be:
+//	dict.cleanDictionary
+//	plugins.(*PluginControl).Startup
+//	plugincommon.(*BctidConsumerCommon[...]).registerOrDeregister
+//	dispatch.NetloggerCallback.func1
 func findCallingFunction() (packageName string, functionName string) {
 	// create a single entry array to hold the 5th stack frame and pass 4 as the
 	// number of frames to skip over so we get the single program_counters frame we need

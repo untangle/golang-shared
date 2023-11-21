@@ -5,7 +5,7 @@ package logger
 // For backward compatibility
 func Trace(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Trace(format, args...)
+	currentLogger.logMessage(LogLevelTrace, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -17,7 +17,7 @@ func IsTraceEnabled() bool {
 // For backward compatibility
 func Debug(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Debug(format, args...)
+	currentLogger.logMessage(LogLevelDebug, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -29,7 +29,7 @@ func IsDebugEnabled() bool {
 // For backward compatibility
 func Info(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Info(format, args...)
+	currentLogger.logMessage(LogLevelInfo, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -41,7 +41,7 @@ func IsInfoEnabled() bool {
 // For backward compatibility
 func Notice(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Notice(format, args...)
+	currentLogger.logMessage(LogLevelNotice, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -53,7 +53,7 @@ func IsNoticeEnabled() bool {
 // For backward compatibility
 func Warn(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Warn(format, args...)
+	currentLogger.logMessage(LogLevelWarn, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -65,7 +65,7 @@ func IsWarnEnabled() bool {
 // For backward compatibility
 func Err(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Err(format, args...)
+	currentLogger.logMessage(LogLevelErr, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -77,7 +77,7 @@ func IsErrEnabled() bool {
 // For backward compatibility
 func Crit(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Crit(format, args...)
+	currentLogger.logMessage(LogLevelCrit, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -89,7 +89,7 @@ func IsCritEnabled() bool {
 // For backward compatibility
 func Alert(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Alert(format, args...)
+	currentLogger.logMessage(LogLevelAlert, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -101,7 +101,7 @@ func IsAlertEnabled() bool {
 // For backward compatibility
 func Emerg(format string, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.Emerg(format, args...)
+	currentLogger.logMessage(LogLevelEmerg, format, Ocname{}, args...)
 }
 
 // For backward compatibility
@@ -113,29 +113,34 @@ func IsEmergEnabled() bool {
 // For backward compatibility
 func OCCrit(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCCrit(format, name, limit, args...)
+	newOcname := Ocname{name, limit}
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility
 func OCErr(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCErr(format, name, limit, args...)
+	newOcname := Ocname{name, limit}
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility
 func OCDebug(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCDebug(format, name, limit, args...)
+	newOcname := Ocname{name, limit}
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility
 func OCWarn(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCWarn(format, name, limit, args...)
+	newOcname := Ocname{name, limit}
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility
 func OCTrace(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
-	currentLogger.OCTrace(format, name, limit, args...)
+	newOcname := Ocname{name, limit}
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
