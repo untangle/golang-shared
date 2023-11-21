@@ -114,28 +114,28 @@ func IsEmergEnabled() bool {
 func OCCrit(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	newOcname := Ocname{name, limit}
-	currentLogger.logMessage(LogLevelCrit, format, newOcname, args...)
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility
 func OCErr(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	newOcname := Ocname{name, limit}
-	currentLogger.logMessage(LogLevelErr, format, newOcname, args...)
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility
 func OCDebug(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	newOcname := Ocname{name, limit}
-	currentLogger.logMessage(LogLevelDebug, format, newOcname, args...)
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility
 func OCWarn(format string, name string, limit int64, args ...interface{}) {
 	currentLogger := GetLoggerInstance()
 	newOcname := Ocname{name, limit}
-	currentLogger.logMessage(LogLevelWarn, format, newOcname, args...)
+	currentLogger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // For backward compatibility

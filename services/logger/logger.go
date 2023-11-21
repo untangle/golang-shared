@@ -312,25 +312,25 @@ func (logger *Logger) OCTrace(format string, name string, limit int64, args ...i
 // OCWarn is called for overseer warn messages
 func (logger *Logger) OCWarn(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelWarn, format, newOcname, args...)
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // OCDebug is called for overseer warn messages
 func (logger *Logger) OCDebug(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelDebug, format, newOcname, args...)
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // OCErr is called for overseer err messages
 func (logger *Logger) OCErr(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelErr, format, newOcname, args...)
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // OCCrit is called for overseer crit messages
 func (logger *Logger) OCCrit(format string, name string, limit int64, args ...interface{}) {
 	newOcname := Ocname{name, limit}
-	logger.logMessage(LogLevelCrit, format, newOcname, args...)
+	logger.logMessage(LogLevelTrace, format, newOcname, args...)
 }
 
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
