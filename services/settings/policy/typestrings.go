@@ -57,7 +57,7 @@ const (
 	// RuleTypes
 	ApplicationControlRuleObject ObjectType = "mfw-rule-applicationcontrol"
 	CaptivePortalRuleObject      ObjectType = "mfw-rule-captiveportal"
-	GeoipRuleObject              ObjectType = "mfw-rule-geoip"
+	GeoipRuleObject              ObjectType = "mfw-rule-geoipfilter"
 	NATRuleObject                ObjectType = "mfw-rule-nat"
 	PortForwardRuleObject        ObjectType = "mfw-rule-portforward"
 	SecurityRuleObject           ObjectType = "mfw-rule-security"

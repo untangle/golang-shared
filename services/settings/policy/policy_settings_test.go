@@ -103,13 +103,13 @@ func TestRulesUnmarshal(t *testing.T) {
 			name: "Geo Rule Tester",
 			json: `{"name": "GeoipRuleObject Name",
                          "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
-                         "type": "mfw-rule-geoip",
+                         "type": "mfw-rule-geoipfilter",
                          "description": "GeoipRuleObject Description",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                          "action": {
                             "type": "SET_CONFIGURATION",
                             "configuration_id": "1202b42e-2f21-49e9-b42c-5614e04d0031",
-                            "key": "mfw-rule-geoip"
+                            "key": "mfw-rule-geoipfilter"
                             }
                           }`,
 			expectedErr: false,
@@ -121,7 +121,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
-					Key:  "mfw-rule-geoip",
+					Key:  "mfw-rule-geoipfilter",
 				},
 				ID: "c2428365-65be-4901-bfc0-bde2b310fedf",
 			},
@@ -147,7 +147,7 @@ func TestRulesUnmarshal(t *testing.T) {
 			name: "rule object without action",
 			json: `{"name": "Geo Rule Tester",
                          "id": "c2428365-65be-4901-bfc0-bde2b310fedf",
-                         "type": "mfw-rule-geoip",
+                         "type": "mfw-rule-geoipfilter",
                          "description": "Whatever",
                          "conditions": ["1458dc12-a9c2-4d0c-8203-1340c61c2c3b"],
                           }`,
