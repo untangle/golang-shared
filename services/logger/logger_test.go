@@ -365,6 +365,40 @@ func (suite *TestLogger) TestBasicWriters() {
 	assert.Equal(suite.T(), uint64(5), logInstance.getLogCount()-startCount)
 }
 
+func (suite *TestLogger) TestBackwardsCompatibleWriters() {
+	logInstance := GetLoggerInstance()
+
+	testingOutput := "Testing output for %s\n"
+
+	assert.Equal(suite.T(), DefaultLogWriter("system"), logInstance.config.OutputWriter)
+
+	startCount := logInstance.getLogCount()
+
+	//Change log writer to print to a buffer for us to analyze
+	Info(testingOutput, logLevelName[LogLevelInfo])
+	Err(testingOutput, logLevelName[LogLevelErr])
+	Notice(testingOutput, logLevelName[LogLevelNotice])
+	Warn(testingOutput, logLevelName[LogLevelWarn])
+	Debug(testingOutput, logLevelName[LogLevelDebug])
+	Trace(testingOutput, logLevelName[LogLevelTrace])
+
+	newCount := logInstance.getLogCount()
+	assert.Equal(suite.T(), uint64(4), newCount-startCount)
+	startCount = newCount
+
+	//Bump reflect config up
+	logInstance.config.SetLogLevel("logger", NewLogLevel("DEBUG"))
+	//Change log writer to print to a buffer for us to analyze
+	Info(testingOutput, logLevelName[LogLevelInfo])
+	Err(testingOutput, logLevelName[LogLevelErr])
+	Notice(testingOutput, logLevelName[LogLevelNotice])
+	Warn(testingOutput, logLevelName[LogLevelWarn])
+	Debug(testingOutput, logLevelName[LogLevelDebug])
+	Trace(testingOutput, logLevelName[LogLevelTrace])
+
+	assert.Equal(suite.T(), uint64(5), logInstance.getLogCount()-startCount)
+}
+
 func (suite *TestLogger) TestSendAlertToCMD() {
 	logInstance := NewLogger()
 
@@ -403,7 +437,7 @@ func (suite *TestLogger) TestFindCallingFunction() {
 
 	// The line number varies dependng on where this is run from
 	assert.Equal(suite.T(), "reflect", packageName)
-	assert.Contains(suite.T(), functionName, "reflect.Value.Call")
+	assert.Equal(suite.T(), functionName, "reflect.Value.Call")
 }
 
 func (suite *TestLogger) TestGetInstanceWithConfig() {
@@ -513,9 +547,4 @@ func (suite *TestLogger) TestPerformance() {
 
 	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
 
-	// Dump cache
-	fmt.Printf("PcFunctionCache contents:")
-	for cp, function := range PcFunctionCache {
-		fmt.Println(cp, function)
-	}
 }
