@@ -416,7 +416,7 @@ func getSettingsFromJSON(jsonObject interface{}, segments []string) (interface{}
 }
 
 // runSyncSettings runs sync-settings on the specified filename
-func runSyncSettings(filename string, force bool, skipEosConfigEosConfig bool) (string, error) {
+func runSyncSettings(filename string, force bool, skipEosConfig bool) (string, error) {
 
 	//If skipEosConfig is set, we will skip load-eos-config while doing sync-settings.
 	//This flag will be set only when POST calls are made from SuperServer plugin in MFW.
