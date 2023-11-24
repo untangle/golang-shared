@@ -1149,6 +1149,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 								"op": "!=",
 								"type": "DESTINATION_INTERFACE_TYPE",
 								"value": ["2"]
+							},
+							{
+								"op": "==",
+								"type": "IP_PROTOCOL",
+								"value": ["6"]
 							}
 						]
 					}`,
@@ -1167,6 +1172,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 						Op:    "!=",
 						CType: "DESTINATION_INTERFACE_TYPE",
 						Value: []string{"2"},
+					},
+					{
+						Op:    "==",
+						CType: "IP_PROTOCOL",
+						Value: []string{"6"},
 					},
 				},
 			},
@@ -1387,6 +1397,20 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 			}`,
 			shouldErr: true,
 			expected:  PolicyCondition{},
+		},
+		{
+			name: "ip protocol",
+			json: `{
+				"op": "==",
+				"type": "IP_PROTOCOL",
+				"value": ["6"]
+			}`,
+			shouldErr: false,
+			expected: PolicyCondition{
+				Op:    "==",
+				CType: "IP_PROTOCOL",
+				Value: []string{"6"},
+			},
 		},
 		{
 			name: "test time",
