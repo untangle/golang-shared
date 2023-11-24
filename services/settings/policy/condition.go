@@ -24,7 +24,11 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 	}
 
 	// Only use value if Group is not configured
-	if pCondition.Op != "match" && pCondition.Op != "in" {
+	switch pCondition.Op {
+	case "in", "match", "not_in", "not_match":
+		// Special handling for objects
+		// The Condition will contain one or more GUIDs in its GroupIDs array
+	default:
 		// check that pCondition.Value is formatted correctly for the CType
 		for i, value := range pCondition.Value {
 			switch pCondition.CType {
@@ -58,6 +62,5 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
-
 	return nil
 }

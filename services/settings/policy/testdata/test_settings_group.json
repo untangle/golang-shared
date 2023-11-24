@@ -187,7 +187,7 @@
         "items": [
           {
             "type": "SOURCE_ADDRESS",
-            "op": "match",
+            "op": "in",
             "object": ["cbee1455-1777-48ef-9e54-c4d4ee81632a"]
           },
           {
@@ -211,6 +211,32 @@
         ]
       },
       {
+        "id": "1458dc12-a9c2-4d0c-8203-1340c61c2c3b",
+        "name": "ApplicationObject Condition",
+        "description": "",
+        "type": "mfw-object-condition",
+        "items": [
+          {
+            "type": "APPLICATION",
+            "op": "not_in",
+            "object": ["0893af13-3ed9-45c3-9301-a70a2cc8ffd2"]
+          }
+        ]
+      },
+      {
+        "id": "1458dc12-a9c2-4d0c-8203-1340c61c2c3b",
+        "name": "ApplicationObject Condition",
+        "description": "",
+        "type": "mfw-object-condition",
+        "items": [
+          {
+            "type": "APPLICATION",
+            "op": "not_match",
+            "object": ["0893af13-3ed9-45c3-9301-a70a2cc8ffd2"]
+          }
+        ]
+      },
+      {
         "id": "1458dc12-a9c2-c0de-8203-1340c61c2c3b",
         "name": "ApplicationObjectGroup Condition",
         "description": "",
@@ -218,7 +244,7 @@
         "items": [
           {
             "type": "APPLICATION_GROUP",
-            "op": "match",
+            "op": "in",
             "object": [
               "8105f355-cb98-43eb-deae-74542a524abb"
             ]
