@@ -209,6 +209,7 @@ func (control *PluginControl) Startup() {
 
 	for indx, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
+		toUnregister = append(toUnregister, indx)
 		if err := plugin.Startup(); err != nil {
 
 			if control.enableStartupPanic {
@@ -221,13 +222,13 @@ func (control *PluginControl) Startup() {
 					err)
 			}
 
-			toUnregister = append(toUnregister, indx)
 		} else {
 			control.findConsumers(plugin)
 		}
 	}
 	// Unregister the plugins that failed to startup
 	for _, pluginIndx := range toUnregister {
+		logger.Info("RAHUL removing plugin: %d\n", pluginIndx)
 		control.UnregisterPluginByIndex(pluginIndx)
 	}
 
