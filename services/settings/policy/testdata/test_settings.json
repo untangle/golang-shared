@@ -353,6 +353,21 @@
 	],
 	"conditions": [
 	    {
+			"id": "7819401a-46cb-4e4c-a69a-3765d0a552c2",
+			"name": "IP Protocol Test for TCP",
+			"description": "List 0 testing",
+			"type": "mfw-object-condition",
+			"items": [
+				{
+                    "type": "IP_PROTOCOL",
+                    "op": "==",
+                    "value": [
+                        "6" 
+                    ]
+                }
+			]
+		},
+	    {
 		"type": "mfw-object-condition",
 		"items": [
 		    {
