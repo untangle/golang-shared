@@ -227,7 +227,8 @@ func (control *PluginControl) Startup() {
 		}
 	}
 	// Unregister the plugins that failed to startup
-	for _, pluginIndx := range toUnregister {
+	for i := len(toUnregister) - 1; i >= 0; i-- {
+		pluginIndx := toUnregister[i]
 		logger.Info("RAHUL removing plugin: %d\n", pluginIndx)
 		control.UnregisterPluginByIndex(pluginIndx)
 	}
