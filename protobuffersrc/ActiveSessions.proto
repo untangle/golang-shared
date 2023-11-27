@@ -75,4 +75,5 @@ message Session {
   uint32 client_port_new = 67;
   string policy_id = 68;
   string policy_flow_id = 69;
+  string threat_prevention_threat_level = 70;
 }
