@@ -76,5 +76,5 @@ message Session {
   string policy_id = 68;
   string policy_flow_id = 69;
   string threat_prevention_blocked_address = 70;
-  int32 threat_prevention_threat_level = 71;
+  string threat_prevention_threat_level = 71;
 }
