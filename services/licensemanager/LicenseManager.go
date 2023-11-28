@@ -244,7 +244,7 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 		}
 	}
 
-	_, err := os.Stat("/usr/bin/updateSysdbSignal")
+	_, err = os.Stat("/usr/bin/updateSysdbSignal")
 	if err == nil || !os.IsNotExist(err) {
 		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
 			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
