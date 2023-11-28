@@ -249,8 +249,7 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
 			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
 		}
-	}
-	else {
+	} else {
 		err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
 		if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
 			lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
