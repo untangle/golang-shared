@@ -235,7 +235,9 @@ func (logger *Logger) IsCritEnabled() bool {
 
 // Err is called for log level ERR messages
 func (logger *Logger) Err(format string, args ...interface{}) {
+	logger.Warn("Inside Err function() ---------\n")
 	logger.logMessage(LogLevelErr, format, Ocname{}, args...)
+	logger.Warn("After ----- Inside Err function() ---------\n")
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
@@ -427,48 +429,73 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// logger.config.LogLevelMask keeps track of the logger levels that have been
 	// requested across the entire logger confguration so that we can drop out of this
 	// function quickly if the log is for something unlikely like a trace or debug.
+	logger.Warn("Inside LogMessage --------- 1\n")
 	if level > logger.config.LogLevelHighest {
+		logger.Warn("Inside LogMessage --------- 2\n")
 		return
 	}
+	logger.Warn("Inside LogMessage --------- 3\n")
 	packageName, functionName := findCallingFunction()
+	logger.Warn("Inside LogMessage --------- 4\n")
 
 	testLevel := logger.getLogLevel(packageName, functionName)
+	logger.Warn("Inside LogMessage --------- 5\n")
 
 	if level > testLevel {
+		logger.Warn("Inside LogMessage --------- 6\n")
 		return
 	}
+	logger.Warn("Inside LogMessage --------- 7\n")
 
 	defer logger.logLevelLocker.RUnlock()
+	logger.Warn("Inside LogMessage --------- 8\n")
 	logger.logLevelLocker.RLock()
+	logger.Warn("Inside LogMessage --------- 9\n")
 
 	var logMessage string
+	logger.Warn("Inside LogMessage --------- 10\n")
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
+		logger.Warn("Inside LogMessage --------- 11\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logger.Warn("Inside LogMessage --------- 12\n")
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
+		logger.Warn("Inside LogMessage --------- 13\n")
 		buffer := logFormatter(format, newOcname, args...)
+		logger.Warn("Inside LogMessage --------- 14\n")
 		if len(buffer) == 0 {
+			logger.Warn("Inside LogMessage --------- 15\n")
 			return
 		}
+		logger.Warn("Inside LogMessage --------- 16\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
+		logger.Warn("Inside LogMessage --------- 17\n")
 	}
+	logger.Warn("Inside LogMessage --------- 18\n")
 	fmt.Print(logMessage)
+	logger.Warn("Inside LogMessage --------- 19\n")
 
 	logger.configLocker.Lock()
+	logger.Warn("Inside LogMessage --------- 20\n")
 	defer logger.configLocker.Unlock()
+	logger.Warn("Inside LogMessage --------- 21\n")
 
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
+	logger.Warn("Inside LogMessage --------- 22\n")
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
+		logger.Warn("Inside LogMessage --------- 23\n")
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,
 			Message:       logMessage,
 			IsLoggerAlert: true,
 		})
+		logger.Warn("Inside LogMessage --------- 24\n")
 	}
+	logger.Warn("Inside LogMessage --------- 25\n")
 }
 
 // func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function
