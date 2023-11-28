@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
@@ -243,9 +244,16 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 		}
 	}
 
-	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
-	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
-		lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
+	_, err = os.Stat("/usr/bin/updateSysdbSignal")
+	if err == nil || !os.IsNotExist(err) {
+		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
+			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+		}
+	} else {
+		err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
+		if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
+			lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
+		}
 	}
 
 	return err
@@ -296,8 +304,15 @@ func (lm *LicenseManager) shutdownServices() {
 		}
 	}
 
-	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
-		lm.logger.Warn("Failed to run RunSighup given executable: %v\n", RunSighupErr.Error())
+	_, err := os.Stat("/usr/bin/updateSysdbSignal")
+	if err == nil || !os.IsNotExist(err) {
+		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
+			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+		}
+	} else {
+		if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
+			lm.logger.Warn("Failed to run RunSighup given executable: %v\n", RunSighupErr.Error())
+		}
 	}
 }
 
