@@ -227,7 +227,9 @@ func (control *PluginControl) Startup() {
 		}
 	}
 	// Unregister the plugins that failed to startup
-	for _, pluginIndx := range toUnregister {
+	// Need to traverse toUnregister in reverse order to avoid Index error
+	for i := len(toUnregister) - 1; i >= 0; i-- {
+		pluginIndx := toUnregister[i]
 		control.UnregisterPluginByIndex(pluginIndx)
 	}
 
