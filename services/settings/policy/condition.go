@@ -43,6 +43,8 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 					}
 				}
 			case "IP_PROTOCOL", "CLIENT_PORT", "SERVER_PORT",
+				// CLIENT and SOURCE mean the same thing - support both
+				// SERVER and DESTINATION mean the same thing - support both
 				"CLIENT_INTERFACE_TYPE", "SERVER_INTERFACE_TYPE",
 				"SOURCE_INTERFACE_TYPE", "DESTINATION_INTERFACE_TYPE",
 				"CLIENT_INTERFACE_ZONE", "SERVER_INTERFACE_ZONE",
@@ -53,6 +55,8 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 			// just string type values on these, no need to validate
 			case "CERT_SUBJECT_CN", "CERT_SUBJECT_DNS", "CERT_SUBJECT_O",
 				"DAY_OF_WEEK", "SERVER_GEOIP", "CLIENT_GEOIP", "INTERFACE", "SERVICE", "SERVER_SERVICE", "CLIENT_SERVICE",
+				// CLIENT and SOURCE mean the same thing - support both
+				// SERVER and DESTINATION mean the same thing - support both
 				"CLIENT_INTERFACE_NAME", "SERVER_INTERFACE_NAME",
 				"SOURCE_INTERFACE_NAME", "DESTINATION_INTERFACE_NAME",
 				"PROTOCOL_TYPE", "APPLICATION_CATEGORY", "TIME_OF_DAY", "VLAN_TAG", "THREATPREVENTION",
