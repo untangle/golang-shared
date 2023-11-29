@@ -446,7 +446,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	if level > testLevel {
 		fmt.Println("Inside LogMessage --------- 7\n")
-		return
+		// return
 	}
 
 	fmt.Println("Inside LogMessage --------- 8\n")
