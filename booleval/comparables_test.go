@@ -289,3 +289,21 @@ func TestStrings(t *testing.T) {
 		{eq, 1, false, false}}
 	testDriver(t, comp, tests)
 }
+
+func TestRegex(t *testing.T) {
+	comp, err := NewRegexComparable(".*_one")
+	assert.NoError(t, err)
+	tests := []valueCondTest{
+		{eq, "a_one", true, false},
+		{eq, "b_one", true, false},
+		{eq, "1", false, false}}
+	testDriver(t, comp, tests)
+
+	comp, err = NewRegexComparable("[1-9]+[0-9]*[0-9]*\\.[0-9]+[0-9]*[0-9]*\\.[0-9]+[0-9]*[0-9]*\\.[0-9]+[0-9]*[0-9]*")
+	assert.NoError(t, err)
+	tests = []valueCondTest{
+		{eq, "192.168.123.1", true, false},
+		{eq, "1.1.1.1", true, false},
+		{eq, "1", false, false}}
+	testDriver(t, comp, tests)
+}
