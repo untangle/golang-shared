@@ -102,7 +102,7 @@ func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
 	fmt.Println("Inside Send Fn()1 ---------")
 	alert.Timestamp = time.Now().Unix()
-	fmt.Println("Inside Send Fn() 2---------")
+	fmt.Println("Inside Send Fn() 2 ALERT is %v:---------", alert)
 	publisher.logger.Debug("Publish alert %v\n", alert)
 	fmt.Println("Inside Send Fn() 3---------")
 	alertMessage, err := proto.Marshal(alert)
