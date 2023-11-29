@@ -12,27 +12,33 @@ type RegexComparable struct {
 	regex   *regexp.Regexp
 }
 
+var _ Comparable = RegexComparable{}
+
 // Create a new regex pattern match comparable
-func NewRegexComparable(apattern string) (*RegexComparable, error) {
+func NewRegexComparable(apattern string) (RegexComparable, error) {
 	if aregex, err := regexp.Compile(apattern); err != nil {
-		return nil, err
+		return RegexComparable{}, err
 	} else {
 		regexComp := RegexComparable{
 			pattern: apattern,
 			regex:   aregex,
 		}
-		return &regexComp, nil
+		return regexComp, nil
 	}
 }
 
 // Test a string against a RegexComparable
-func (regexComp *RegexComparable) Equal(other any) (bool, error) {
-	switch avalue := other.(type) {
-	case []byte:
-		return regexComp.regex.Match(avalue), nil
-	case string:
-		return regexComp.regex.Match([]byte(avalue)), nil
-	default:
-		return false, fmt.Errorf("could not interpret %v for matching against pattern: %s", avalue, regexComp.pattern)
+func (regexComp RegexComparable) Equal(other any) (bool, error) {
+	if regexComp.regex != nil {
+		switch avalue := other.(type) {
+		case []byte:
+			return regexComp.regex.Match(avalue), nil
+		case string:
+			return regexComp.regex.Match([]byte(avalue)), nil
+		default:
+			return false, fmt.Errorf("could not interpret %v for matching against pattern: %s", avalue, regexComp.pattern)
+		}
+	} else {
+		return false, fmt.Errorf("could not interpret %v for matching against pattern: %s", other, regexComp.pattern)
 	}
 }
