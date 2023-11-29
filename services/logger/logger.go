@@ -235,7 +235,9 @@ func (logger *Logger) IsCritEnabled() bool {
 
 // Err is called for log level ERR messages
 func (logger *Logger) Err(format string, args ...interface{}) {
+	fmt.Println("Before LogMessage fn ()------------")
 	logger.logMessage(LogLevelErr, format, Ocname{}, args...)
+	fmt.Println("After LogMessage fn ()--------------")
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
@@ -427,17 +429,14 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// logger.config.LogLevelMask keeps track of the logger levels that have been
 	// requested across the entire logger confguration so that we can drop out of this
 	// function quickly if the log is for something unlikely like a trace or debug.
-	fmt.Println("Inside LogMessage --------- 1\n")
 	if level > logger.config.LogLevelHighest {
 		fmt.Println("Inside LogMessage --------- 2\n")
 		fmt.Println("Inside LogMessage --------- 3\n")
 		return
 	}
 	packageName, functionName := findCallingFunction()
-	fmt.Println("Inside LogMessage --------- 4\n")
 
 	testLevel := logger.getLogLevel(packageName, functionName)
-	fmt.Println("Inside LogMessage --------- 5\n")
 
 	if level > testLevel {
 		logger.Warn("Inside LogMessage --------- 6\n")
