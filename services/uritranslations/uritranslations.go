@@ -126,6 +126,7 @@ func buildMaps() {
 //
 // If a match is not found, an error will be returned.
 func getURITranslation(uri string, path bool) (string, error) {
+	logger.Warn("URITransaltion 1---------- \n")
 	var err error = nil
 	var ok bool
 	var translatedURL *url.URL
@@ -157,6 +158,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 			logger.Warn("URITransaltion 12--------- \n")
 			fmt.Print("JUST before Logger.Err")
 			logger.Err("Unable to find url=%v\n", uri)
+			logger.Warn("URITransaltion 13--------- \n")
 			err = fmt.Errorf("Unable to find url=%v", uri)
 		} else {
 			// Update the parsedURL based URL with translated values.
