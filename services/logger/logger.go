@@ -439,10 +439,10 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	testLevel := logger.getLogLevel(packageName, functionName)
 
 	if level > testLevel {
-		logger.Warn("Inside LogMessage --------- 6\n")
+		fmt.Println("Inside LogMessage --------- 6\n")
 		return
 	}
-	logger.Warn("Inside LogMessage --------- 7\n")
+	fmt.Println("Inside LogMessage --------- 7\n")
 
 	defer logger.logLevelLocker.RUnlock()
 	fmt.Println("Inside LogMessage --------- 8\n")
@@ -462,7 +462,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 		buffer := logFormatter(format, newOcname, args...)
 		fmt.Println("Inside LogMessage --------- 14\n")
 		if len(buffer) == 0 {
-			logger.Warn("Inside LogMessage --------- 15\n")
+			fmt.Println("Inside LogMessage --------- 15\n")
 			return
 		}
 		fmt.Println("Inside LogMessage --------- 16\n")
