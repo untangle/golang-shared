@@ -289,7 +289,9 @@ func (logger *Logger) IsInfoEnabled() bool {
 
 // Debug is called for log level DEBUG messages
 func (logger *Logger) Debug(format string, args ...interface{}) {
+	fmt.Println("Now Calling DEBUG Before()---------")
 	logger.logMessage(LogLevelDebug, format, Ocname{}, args...)
+	fmt.Println("Now Calling DEBUG After()---------")
 }
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
@@ -429,38 +431,54 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// logger.config.LogLevelMask keeps track of the logger levels that have been
 	// requested across the entire logger confguration so that we can drop out of this
 	// function quickly if the log is for something unlikely like a trace or debug.
+	fmt.Println("inside Log Message Level:%d LogLevelHighest:%d\n", level, logger.config.LogLevelHighest)
 	if level > logger.config.LogLevelHighest {
 		fmt.Println("Inside LogMessage --------- 2\n")
 		fmt.Println("Inside LogMessage --------- 3\n")
 		return
 	}
+	fmt.Println("Inside LogMessage --------- 4\n")
 	packageName, functionName := findCallingFunction()
+	fmt.Println("Inside LogMessage --------- 5\n")
 
 	testLevel := logger.getLogLevel(packageName, functionName)
+	fmt.Println("Inside LogMessage --------- 6\n")
 
 	if level > testLevel {
+		fmt.Println("Inside LogMessage --------- 7\n")
 		return
 	}
 
+	fmt.Println("Inside LogMessage --------- 8\n")
 	defer logger.logLevelLocker.RUnlock()
 	logger.logLevelLocker.RLock()
+	fmt.Println("Inside LogMessage --------- 9\n")
 
 	var logMessage string
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
+		fmt.Println("Inside LogMessage --------- 10\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
+		fmt.Println("Inside LogMessage --------- 10.5\n")
 		buffer := logFormatter(format, newOcname, args...)
+		fmt.Println("Inside LogMessage --------- 10.6\n")
 		if len(buffer) == 0 {
+			fmt.Println("Inside LogMessage --------- 10.7\n")
 			return
 		}
+		fmt.Println("Inside LogMessage --------- 10.8\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
+		fmt.Println("Inside LogMessage --------- 10.9\n")
 	}
+	fmt.Println("Inside LogMessage --------- 11\n")
 	fmt.Print(logMessage)
+	fmt.Println("Inside LogMessage --------- 12\n")
 
 	logger.configLocker.Lock()
 	defer logger.configLocker.Unlock()
+	fmt.Println("Inside LogMessage --------- 13\n")
 
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
