@@ -435,7 +435,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	if level > logger.config.LogLevelHighest {
 		fmt.Println("Inside LogMessage --------- 2\n")
 		fmt.Println("Inside LogMessage --------- 3\n")
-		return
+		// return
 	}
 	fmt.Println("Inside LogMessage --------- 4\n")
 	packageName, functionName := findCallingFunction()
