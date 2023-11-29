@@ -1,6 +1,7 @@
 package alerts
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -99,16 +100,22 @@ func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 	// 2 reasons to set the timestamp here:
 	// - the caller isn't responsible for setting the timestamp so we just need to set it in one place (here)
 	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
+	fmt.Println("Inside Send Fn()1 ---------")
 	alert.Timestamp = time.Now().Unix()
-
+	fmt.Println("Inside Send Fn() 2---------")
 	publisher.logger.Debug("Publish alert %v\n", alert)
+	fmt.Println("Inside Send Fn() 3---------")
 	alertMessage, err := proto.Marshal(alert)
+	fmt.Println("Inside Send Fn() 4---------")
 	if err != nil {
+		fmt.Println("Inside Send Fn() 5---------")
 		publisher.logger.Err("Unable to marshal alert entry: %s\n", err)
+		fmt.Println("Inside Send Fn() 6---------")
 		return
 	}
-
+	fmt.Println("Inside Send Fn() 7---------")
 	publisher.messagePublisherChannel <- ZmqMessage{Topic: AlertZMQTopic, Message: alertMessage}
+	fmt.Println("Inside Send Fn() 8---------")
 }
 
 // zmqPublisher initializes a ZMQ publishing socket and listens on the

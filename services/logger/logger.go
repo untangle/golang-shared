@@ -439,51 +439,36 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	testLevel := logger.getLogLevel(packageName, functionName)
 
 	if level > testLevel {
-		fmt.Println("Inside LogMessage --------- 6\n")
 		return
 	}
-	fmt.Println("Inside LogMessage --------- 7\n")
 
 	defer logger.logLevelLocker.RUnlock()
-	fmt.Println("Inside LogMessage --------- 8\n")
 	logger.logLevelLocker.RLock()
-	fmt.Println("Inside LogMessage --------- 9\n")
 
 	var logMessage string
-	fmt.Println("Inside LogMessage --------- 10\n")
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		fmt.Println("Inside LogMessage --------- 11\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
-		fmt.Println("Inside LogMessage --------- 12\n")
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
-		fmt.Println("Inside LogMessage --------- 13\n")
 		buffer := logFormatter(format, newOcname, args...)
-		fmt.Println("Inside LogMessage --------- 14\n")
 		if len(buffer) == 0 {
-			fmt.Println("Inside LogMessage --------- 15\n")
 			return
 		}
-		fmt.Println("Inside LogMessage --------- 16\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
-		fmt.Println("Inside LogMessage --------- 17\n")
 	}
-	fmt.Println("Inside LogMessage --------- 18\n")
 	fmt.Print(logMessage)
-	fmt.Println("Inside LogMessage --------- 19\n")
 
 	logger.configLocker.Lock()
-	fmt.Println("Inside LogMessage --------- 20\n")
 	defer logger.configLocker.Unlock()
-	fmt.Println("Inside LogMessage --------- 21\n")
 
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
 	fmt.Println("Inside LogMessage --------- 22\n")
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
-		fmt.Println("Inside LogMessage --------- 23\n")
+		fmt.Println("Inside LogMessage --------- 23 PREEE\n")
+		fmt.Printf("Inside LogMessage 23 POSTTT  --- logType: %d, severity: %d message: %s\n", alert.logType, alert.severity, logMessage)
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,
