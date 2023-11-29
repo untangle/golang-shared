@@ -477,6 +477,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	fmt.Println("Inside LogMessage --------- 12\n")
 
 	logger.configLocker.Lock()
+	fmt.Println("Inside LogMessage --------- 12.5\n")
 	defer logger.configLocker.Unlock()
 	fmt.Println("Inside LogMessage --------- 13\n")
 
