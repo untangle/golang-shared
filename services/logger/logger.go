@@ -462,6 +462,8 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	logger.logCount++
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
+		// explicitly Unlocking, since this calls Log.Debug which acquires lock again.
+		logger.configLocker.Unlock()
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,

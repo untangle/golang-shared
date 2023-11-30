@@ -1,7 +1,6 @@
 package alerts
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -102,7 +101,7 @@ func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
 	alert.Timestamp = time.Now().Unix()
 
-	fmt.Println("Publish alert %v\n", alert)
+	publisher.logger.Debug("Publish alert %v\n", alert)
 	alertMessage, err := proto.Marshal(alert)
 	if err != nil {
 		publisher.logger.Err("Unable to marshal alert entry: %s\n", err)
