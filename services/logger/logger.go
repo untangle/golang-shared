@@ -456,7 +456,6 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	fmt.Print(logMessage)
 
 	logger.configLocker.Lock()
-	defer logger.configLocker.Unlock()
 
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
