@@ -103,7 +103,7 @@ func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 	fmt.Println("Inside Send Fn()1 ---------")
 	alert.Timestamp = time.Now().Unix()
 	fmt.Println("Inside Send Fn() 2 ALERT is %v:---------", alert)
-	fmt.Println("Publish alert %v\n", alert)
+	fmt.Println("ERROR : Publish alert %v\n", alert)
 	fmt.Println("Inside Send Fn() 3---------")
 	alertMessage, err := proto.Marshal(alert)
 	fmt.Println("Inside Send Fn() 4---------")
