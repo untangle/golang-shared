@@ -433,20 +433,16 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// function quickly if the log is for something unlikely like a trace or debug.
 	fmt.Println("inside Log Message Level:%d LogLevelHighest:%d\n", level, logger.config.LogLevelHighest)
 	if level > logger.config.LogLevelHighest {
-		fmt.Println("Inside LogMessage --------- 2\n")
 		fmt.Println("Inside LogMessage --------- 3\n")
-		// return
+		return
 	}
-	fmt.Println("Inside LogMessage --------- 4\n")
 	packageName, functionName := findCallingFunction()
-	fmt.Println("Inside LogMessage --------- 5\n")
 
 	testLevel := logger.getLogLevel(packageName, functionName)
-	fmt.Println("Inside LogMessage --------- 6\n")
 
 	if level > testLevel {
 		fmt.Println("Inside LogMessage --------- 7\n")
-		// return
+		return
 	}
 
 	fmt.Println("Inside LogMessage --------- 8\n")
