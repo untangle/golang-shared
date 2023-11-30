@@ -65,7 +65,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 				"SOURCE_INTERFACE_ZONE", "DESTINATION_INTERFACE_ZONE",
 
 				"PROTOCOL_TYPE", "APPLICATION_CATEGORY", "TIME_OF_DAY", "VLAN_TAG", "THREATPREVENTION",
-				"APPLICATION", "SERVER_APPLICATION", "CLIENT_APPLICATION", "HOSTNAME":
+				"APPLICATION", "SERVER_APPLICATION", "CLIENT_APPLICATION", "HOSTNAME", "SERVER_DNS_HINT":
 
 			default:
 				return fmt.Errorf("error while unmarshalling policy condition: invalid type: %s", pCondition.CType)
