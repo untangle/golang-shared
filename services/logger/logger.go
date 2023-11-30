@@ -431,9 +431,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// logger.config.LogLevelMask keeps track of the logger levels that have been
 	// requested across the entire logger confguration so that we can drop out of this
 	// function quickly if the log is for something unlikely like a trace or debug.
-	fmt.Println("inside Log Message Level:%d LogLevelHighest:%d\n", level, logger.config.LogLevelHighest)
 	if level > logger.config.LogLevelHighest {
-		fmt.Println("Inside LogMessage --------- 3\n")
 		return
 	}
 	packageName, functionName := findCallingFunction()
@@ -441,58 +439,41 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	testLevel := logger.getLogLevel(packageName, functionName)
 
 	if level > testLevel {
-		fmt.Println("Inside LogMessage --------- 7\n")
 		return
 	}
 
-	fmt.Println("Inside LogMessage --------- 8\n")
 	defer logger.logLevelLocker.RUnlock()
 	logger.logLevelLocker.RLock()
-	fmt.Println("Inside LogMessage --------- 9\n")
 
 	var logMessage string
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		fmt.Println("Inside LogMessage --------- 10\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
-		fmt.Println("Inside LogMessage --------- 10.5\n")
 		buffer := logFormatter(format, newOcname, args...)
-		fmt.Println("Inside LogMessage --------- 10.6\n")
 		if len(buffer) == 0 {
 			fmt.Println("Inside LogMessage --------- 10.7\n")
 			return
 		}
-		fmt.Println("Inside LogMessage --------- 10.8\n")
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
-		fmt.Println("Inside LogMessage --------- 10.9\n")
 	}
-	fmt.Println("Inside LogMessage --------- 11\n")
 	fmt.Print(logMessage)
-	fmt.Println("Inside LogMessage --------- 12\n")
 
 	logger.configLocker.Lock()
-	fmt.Println("Inside LogMessage --------- 12.5\n")
 	defer logger.configLocker.Unlock()
-	fmt.Println("Inside LogMessage --------- 13\n")
 
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
-	fmt.Println("Inside LogMessage --------- 22\n")
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
-		fmt.Println("Inside LogMessage --------- 23 PREEE\n")
-		fmt.Printf("Inside LogMessage 23 POSTTT  --- logType: %d, severity: %d message: %s\n", alert.logType, alert.severity, logMessage)
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,
 			Message:       logMessage,
 			IsLoggerAlert: true,
 		})
-		fmt.Println("Inside LogMessage --------- 24\n")
 	}
-	fmt.Println("Inside LogMessage --------- 25\n")
 }
 
 // func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function
