@@ -235,9 +235,7 @@ func (logger *Logger) IsCritEnabled() bool {
 
 // Err is called for log level ERR messages
 func (logger *Logger) Err(format string, args ...interface{}) {
-	fmt.Println("Before LogMessage fn ()------------")
 	logger.logMessage(LogLevelErr, format, Ocname{}, args...)
-	fmt.Println("After LogMessage fn ()--------------")
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
@@ -289,9 +287,7 @@ func (logger *Logger) IsInfoEnabled() bool {
 
 // Debug is called for log level DEBUG messages
 func (logger *Logger) Debug(format string, args ...interface{}) {
-	fmt.Println("Now Calling DEBUG Before()---------")
 	logger.logMessage(LogLevelDebug, format, Ocname{}, args...)
-	fmt.Println("Now Calling DEBUG After()---------")
 }
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
@@ -453,7 +449,6 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
-			fmt.Println("Inside LogMessage --------- 10.7\n")
 			return
 		}
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
