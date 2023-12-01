@@ -235,9 +235,7 @@ func (logger *Logger) IsCritEnabled() bool {
 
 // Err is called for log level ERR messages
 func (logger *Logger) Err(format string, args ...interface{}) {
-	fmt.Println("Before Logger.Err() fn ----------")
 	logger.logMessage(LogLevelErr, format, Ocname{}, args...)
-	fmt.Println("After Logger.Err() fn ----------")
 }
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
