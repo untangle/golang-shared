@@ -459,16 +459,18 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
-	logger.configLocker.Unlock()
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
+		logger.configLocker.Unlock()
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,
 			Message:       logMessage,
 			IsLoggerAlert: true,
 		})
+		return
 	}
+	logger.configLocker.Unlock()
 }
 
 // func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function
