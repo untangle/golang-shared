@@ -438,7 +438,6 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 		return
 	}
 
-	defer logger.logLevelLocker.RUnlock()
 	logger.logLevelLocker.RLock()
 
 	var logMessage string
@@ -449,6 +448,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
+			logger.logLevelLocker.RUnlock()
 			return
 		}
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
@@ -456,19 +456,23 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	fmt.Print(logMessage)
 
 	logger.configLocker.Lock()
-	defer logger.configLocker.Unlock()
 
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
 
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
+		logger.configLocker.Unlock()
+		logger.logLevelLocker.RUnlock()
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,
 			Message:       logMessage,
 			IsLoggerAlert: true,
 		})
+		return
 	}
+	logger.configLocker.Unlock()
+	logger.logLevelLocker.RUnlock()
 }
 
 // func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function

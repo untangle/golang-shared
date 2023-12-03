@@ -154,6 +154,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 
 		if !ok {
 			// Translation not found
+			logger.Err("Unable to find url=%v\n", uri)
 			err = fmt.Errorf("Unable to find url=%v", uri)
 		} else {
 			// Update the parsedURL based URL with translated values.
