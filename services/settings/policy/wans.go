@@ -2,7 +2,8 @@ package policy
 
 // WANCriteriaType is a type of WAN criteria
 type WANCriteriaType struct {
-	Type string `json:"type"`
+	Type      string `json:"type"`
+	Attribute string `json:"attribute"`
 }
 
 // WANInterfaceType is a type of WAN interface
@@ -19,4 +20,6 @@ type WANPolicySettings struct {
 	Interfaces   []WANInterfaceType `json:"interfaces"`
 	Type         string             `json:"type"`
 	BestOfMetric string             `json:"best_of_metric"`
+	Description  string             `json:"description"`
+	Name         string             `json:"name"`
 }
