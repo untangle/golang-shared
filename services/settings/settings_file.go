@@ -132,7 +132,7 @@ func (file *SettingsFile) SetSettingsNoSync(segments []string, value any) error 
 }
 
 // SetSettings updates the settings. Calls lock/unlock on the SettingsFile's mutex
-func (file *SettingsFile) SetSettings(segments []string, value interface{}, force bool) (interface{}, error) {
+func (file *SettingsFile) SetSettings(segments []string, value interface{}, force bool, skipEosConfig bool) (interface{}, error) {
 	var ok bool
 	var err error
 	var jsonSettings map[string]interface{}
@@ -154,7 +154,7 @@ func (file *SettingsFile) SetSettings(segments []string, value interface{}, forc
 	}
 
 	file.mutex.Lock()
-	output, err := syncAndSave(jsonSettings, file.filename, force)
+	output, err := syncAndSave(jsonSettings, file.filename, force, skipEosConfig)
 	file.mutex.Unlock()
 	if err != nil {
 		var errJSON map[string]interface{}
@@ -232,7 +232,7 @@ func (file *SettingsFile) SetAllSettingsWithExceptions(newSettings map[string]in
 	newSettings["system"].(map[string]interface{})["httpPort"] = currentSettings["system"].(map[string]interface{})["httpPort"].(string)
 	newSettings["system"].(map[string]interface{})["httpsPort"] = currentSettings["system"].(map[string]interface{})["httpsPort"].(string)
 
-	return file.SetSettings(nil, newSettings, true)
+	return file.SetSettings(nil, newSettings, true, false)
 }
 
 // Generates a backup of a settings file using a provided script. Locks the settings file before generation.
