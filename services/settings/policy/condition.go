@@ -50,7 +50,9 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 				// CLIENT and SOURCE mean the same thing - support both
 				// SERVER and DESTINATION mean the same thing - support both
 				"CLIENT_INTERFACE_TYPE", "SERVER_INTERFACE_TYPE",
-				"SOURCE_INTERFACE_TYPE", "DESTINATION_INTERFACE_TYPE":
+				"SOURCE_INTERFACE_TYPE", "DESTINATION_INTERFACE_TYPE",
+				"APPLICATION_RISK", "APPLICATION_RISK_INFERRED":
+
 				if _, err := strconv.ParseUint(value, 10, 32); err != nil {
 					return fmt.Errorf("error while unmarshalling policy condition: value does not match type (%s) due to error (%v)", pCondition.CType, err)
 				}
@@ -64,8 +66,10 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 				"CLIENT_INTERFACE_ZONE", "SERVER_INTERFACE_ZONE",
 				"SOURCE_INTERFACE_ZONE", "DESTINATION_INTERFACE_ZONE",
 
-				"PROTOCOL_TYPE", "APPLICATION_CATEGORY", "TIME_OF_DAY", "VLAN_TAG", "THREATPREVENTION",
-				"APPLICATION", "SERVER_APPLICATION", "CLIENT_APPLICATION", "HOSTNAME", "SERVER_DNS_HINT":
+				"PROTOCOL_TYPE", "TIME_OF_DAY", "VLAN_TAG", "THREATPREVENTION",
+				"APPLICATION", "SERVER_APPLICATION", "CLIENT_APPLICATION", "HOSTNAME", "SERVER_DNS_HINT",
+				"APPLICATION_NAME", "APPLICATION_NAME_INFERRED", "APPLICATION_CATEGORY", "APPLICATION_CATEGORY_INFERRED",
+				"APPLICATION_PRODUCTIVITY", "APPLICATION_PRODUCTIVITY_INFERRED":
 
 			default:
 				return fmt.Errorf("error while unmarshalling policy condition: invalid type: %s", pCondition.CType)
