@@ -460,16 +460,20 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
 
-	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
-		logger.configLocker.Unlock()
-		logger.logLevelLocker.RUnlock()
-		logger.alerts.Send(&Alerts.Alert{
-			Type:          alert.logType,
-			Severity:      alert.severity,
-			Message:       logMessage,
-			IsLoggerAlert: true,
-		})
-		return
+	//if it is an log from Critical alert do not alert again
+	if !strings.Contains(logMessage, "CRITICALERROR") {
+		fmt.Println("send alert for critical error")
+		if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
+			logger.configLocker.Unlock()
+			logger.logLevelLocker.RUnlock()
+			logger.alerts.Send(&Alerts.Alert{
+				Type:          alert.logType,
+				Severity:      alert.severity,
+				Message:       logMessage,
+				IsLoggerAlert: true,
+			})
+			return
+		}
 	}
 	logger.configLocker.Unlock()
 	logger.logLevelLocker.RUnlock()
