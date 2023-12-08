@@ -73,7 +73,7 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 				"APPLICATION_NAME", "APPLICATION_NAME_INFERRED", "APPLICATION_CATEGORY", "APPLICATION_CATEGORY_INFERRED":
 
 			default:
-				return fmt.Errorf("error while unmarshalling policy condition: invalid type: %s", pCondition.CType)
+				// At the moment we allow undeclared fields.
 			}
 		}
 	}
