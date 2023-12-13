@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 
 	"github.com/untangle/golang-shared/services/logger"
@@ -244,6 +245,14 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 	}
 
 	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
+
+	_, err = os.Stat("/usr/bin/updateSysdbSignal")
+	if err == nil || !os.IsNotExist(err) {
+		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
+			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+		}
+	}
+
 	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
 		lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
 	}
@@ -293,6 +302,13 @@ func (lm *LicenseManager) shutdownServices() {
 	for _, service := range lm.services {
 		if err := service.setServiceState(StateDisable); err != nil {
 			lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", service, err.Error())
+		}
+	}
+
+	_, err := os.Stat("/usr/bin/updateSysdbSignal")
+	if err == nil || !os.IsNotExist(err) {
+		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
+			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
 		}
 	}
 
