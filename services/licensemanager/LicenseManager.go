@@ -246,10 +246,10 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 
 	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
 
-	_, err = os.Stat("/usr/bin/updateSysdbSignal")
-	if err == nil || !os.IsNotExist(err) {
-		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
-			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+	_, HybridSignalErr := os.Stat("/usr/bin/updateSysdbSignal")
+	if HybridSignalErr == nil || !os.IsNotExist(HybridSignalErr) {
+		if HybridSignalErr := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); HybridSignalErr != nil {
+			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", HybridSignalErr)
 		}
 	}
 
@@ -305,10 +305,10 @@ func (lm *LicenseManager) shutdownServices() {
 		}
 	}
 
-	_, err := os.Stat("/usr/bin/updateSysdbSignal")
-	if err == nil || !os.IsNotExist(err) {
-		if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
-			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
+	_, HybridSignalErr := os.Stat("/usr/bin/updateSysdbSignal")
+	if HybridSignalErr == nil || !os.IsNotExist(HybridSignalErr) {
+		if HybridSignalErr := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); HybridSignalErr != nil {
+			logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", HybridSignalErr)
 		}
 	}
 
