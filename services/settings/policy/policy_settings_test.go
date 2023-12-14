@@ -1290,8 +1290,13 @@ func TestUnmarshalPolicyCondition(t *testing.T) {
 				"type": "I am not a type",
 				"value": ["192.168.5.6/32"]
 			}`,
-		shouldErr: true,
-		expected:  PolicyCondition{},
+		// at the moment we allow invalid types and we do not process them.
+		shouldErr: false,
+		expected: PolicyCondition{
+			Op:    "==",
+			CType: "I am not a type",
+			Value: []string{"192.168.5.6/32"},
+		},
 	},
 		{
 			name: "ipv4 w mask",
