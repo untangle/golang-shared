@@ -231,9 +231,16 @@ func GetLicenseFileDoesNotExistStr() string {
 func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 	var err error
 	for serviceName, isEnabled := range enabledServices {
+		if isEnabled {
+			lm.logger.Info("LicenseManager: Service: %s is ENABLED!\n", serviceName)
+		} else {
+			lm.logger.Info("LicenseManager: Service: %s is DISABLED!\n", serviceName)
+		}
 		if service, err := lm.findService(serviceName); err != nil {
-			lm.logger.Warn("LicenseManager: when updating services, given nonexistent service: %s\n",
-				serviceName)
+			lm.logger.Warn("LicenseManager: when updating services, given nonexistent service: %s\n", serviceName)
+			if setServiceStateErr := service.setServiceState(StateEnable); setServiceStateErr != nil {
+				lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", serviceName, setServiceStateErr.Error())
+			}
 		} else if isEnabled {
 			if setServiceStateErr := service.setServiceState(StateEnable); setServiceStateErr != nil {
 				lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", serviceName, setServiceStateErr.Error())
