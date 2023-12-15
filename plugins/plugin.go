@@ -176,6 +176,7 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 		func(vals []reflect.Value) []reflect.Value {
 			plugin := vals[0].Interface()
 			pluginIntf := plugin.(Plugin)
+			logger.Info("RegisterAndProvidePlugin : Registering plugin: %s\n", pluginIntf.Name())
 			control.plugins = append(control.plugins, pluginIntf)
 			return []reflect.Value{}
 		})
