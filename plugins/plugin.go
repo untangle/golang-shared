@@ -221,21 +221,21 @@ func (control *PluginControl) Startup() {
 	}
 	for indx, plugin := range control.plugins {
 		logger.Info("Starting plugin: =>%s<=\n", plugin.Name())
-		if plugin.Name() == "captiveportal" {
-			logger.Info("Skipping plugin: %s\n", plugin.Name())
-			continue
-		}
+		//if plugin.Name() == "captiveportal" {
+		//	logger.Info("Skipping plugin: %s\n", plugin.Name())
+		//	continue
+		//}
 		if err := plugin.Startup(); err != nil {
 
-			//if control.enableStartupPanic {
-			//	panic(fmt.Sprintf("couldn't startup plugin %s: %s",
-			//		plugin.Name(),
-			//		err))
-			//} else {
-			//	logger.Crit("couldn't startup plugin %s: %s\n",
-			//		plugin.Name(),
-			//		err)
-			//}
+			if control.enableStartupPanic {
+				panic(fmt.Sprintf("couldn't startup plugin %s: %s",
+					plugin.Name(),
+					err))
+			} else {
+				logger.Crit("couldn't startup plugin %s: %s\n",
+					plugin.Name(),
+					err)
+			}
 			logger.Info("Starting plugin: %s FAILED! so unregistering\n", plugin.Name())
 
 			toUnregister = append(toUnregister, indx)
