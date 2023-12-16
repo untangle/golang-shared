@@ -185,6 +185,10 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 		panic(fmt.Sprintf(
 			"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
 	}
+	logger.Info("Listing all the plugins after each call of RegisterAndProvidePlugin\n")
+	for indx, plugin := range control.plugins {
+		logger.Info("Plugin : %d  : %s\n", indx, plugin.Name())
+	}
 }
 
 // UnregisterPlugin removes a plugin from the list of plugins
@@ -200,6 +204,10 @@ func (control *PluginControl) UnregisterPluginByIndex(indx int) {
 // NetlogHandler, or PacketProcessorPlugin, their handler methods are
 // registered with the backend so they will receive these events.
 func (control *PluginControl) Startup() {
+	logger.Info("Listing all the plugins st start of Plugin Startup\n")
+	for indx, plugin := range control.plugins {
+		logger.Info("Plugin : %d  : %s\n", indx, plugin.Name())
+	}
 	for _, saverFunc := range control.saverFuncs {
 		if err := control.Invoke(saverFunc.Interface()); err != nil {
 			panic(fmt.Sprintf("couldn't instantiate plugin: %s", err))
@@ -207,20 +215,24 @@ func (control *PluginControl) Startup() {
 	}
 
 	var toUnregister []int
-
+	logger.Info("Listing all the plugins at start of Plugin Startup's iteration and register\n")
+	for indx, plugin := range control.plugins {
+		logger.Info("Plugin : %d  : %s\n", indx, plugin.Name())
+	}
 	for indx, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
 
-			if control.enableStartupPanic {
-				panic(fmt.Sprintf("couldn't startup plugin %s: %s",
-					plugin.Name(),
-					err))
-			} else {
-				logger.Crit("couldn't startup plugin %s: %s\n",
-					plugin.Name(),
-					err)
-			}
+			//if control.enableStartupPanic {
+			//	panic(fmt.Sprintf("couldn't startup plugin %s: %s",
+			//		plugin.Name(),
+			//		err))
+			//} else {
+			//	logger.Crit("couldn't startup plugin %s: %s\n",
+			//		plugin.Name(),
+			//		err)
+			//}
+			logger.Info("Starting plugin: %s FAILED! so unregistering\n", plugin.Name())
 
 			toUnregister = append(toUnregister, indx)
 		} else {
