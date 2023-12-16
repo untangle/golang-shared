@@ -220,7 +220,11 @@ func (control *PluginControl) Startup() {
 		logger.Info("Plugin : %d  : %s\n", indx, plugin.Name())
 	}
 	for indx, plugin := range control.plugins {
-		logger.Info("Starting plugin: %s\n", plugin.Name())
+		logger.Info("Starting plugin: =>%s<=\n", plugin.Name())
+		if plugin.Name() == "captiveportal" {
+			logger.Info("Skipping plugin: %s\n", plugin.Name())
+			continue
+		}
 		if err := plugin.Startup(); err != nil {
 
 			//if control.enableStartupPanic {
