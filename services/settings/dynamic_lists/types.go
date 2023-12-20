@@ -9,8 +9,8 @@ type Config struct {
 	Type          string `json:"type"`
 	Enabled       bool   `json:"enabled"`
 	Source        string `json:"source"`
-	PollingUnit   string `json:"pollingUnit"`
-	PollingTime   int    `json:"pollingTime"`
+	PullingUnit   string `json:"pullingUnit"`
+	PullingTime   int    `json:"pullingTime"`
 	SkipCertCheck bool   `json:"skipCertCheck"`
 	ParsingMethod string `json:"parsingMethod"`
 }
