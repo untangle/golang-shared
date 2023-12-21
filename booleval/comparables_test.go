@@ -307,3 +307,14 @@ func TestRegex(t *testing.T) {
 		{eq, "1", false, false}}
 	testDriver(t, comp, tests)
 }
+
+func TestStringArrays(t *testing.T) {
+	comp := NewStringArrayComparable([]string{"a_one", "a_two"})
+	tests := []valueCondTest{
+		{eq, "a_one", true, false},
+		{eq, "a_two", true, false},
+		{eq, "a", false, false},
+		{eq, &valueCondTest{}, false, false},
+		{eq, 1, false, false}}
+	testDriver(t, comp, tests)
+}

@@ -43,3 +43,8 @@ func (s StringComparable) Equal(other any) (bool, error) {
 }
 
 var _ Comparable = StringComparable{}
+
+// NewStringArrayComparable returns a Comparable for an array of strings.
+func NewStringArrayComparable(val []string) ArrayComparable {
+	return NewArrayComparable(val)
+}

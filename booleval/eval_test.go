@@ -22,6 +22,7 @@ func TestExprs(t *testing.T) {
 	timeComparable1999 := TimeComparable{time: time1}
 	time2 := time.Date(2000, time.April, int(time.Monday), 0, 0, 0, 0, location)
 	timeComparable2000 := TimeComparable{time: time2}
+	stringArrayComparable := NewStringArrayComparable([]string{"doodle", "toodle"})
 	tests := []struct {
 		expr   Expression
 		result bool
@@ -290,6 +291,34 @@ func TestExprs(t *testing.T) {
 			},
 		),
 			false,
+			false,
+		},
+		{NewSimpleExpression(
+			AndOfOrsMode,
+			[][]*AtomicExpression{
+				{
+					{"==", stringArrayComparable, "myStringArray"},
+				},
+				{
+					{"==", stringArrayComparable, "toodle"},
+				},
+			},
+		),
+			false,
+			false,
+		},
+		{NewSimpleExpression(
+			OrOfAndsMode,
+			[][]*AtomicExpression{
+				{
+					{"==", stringArrayComparable, "myStringArray"},
+				},
+				{
+					{"==", stringArrayComparable, "toodle"},
+				},
+			},
+		),
+			true,
 			false,
 		},
 	}
