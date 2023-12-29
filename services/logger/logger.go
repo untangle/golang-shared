@@ -3,9 +3,12 @@ package logger
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/alerts"
@@ -105,13 +108,17 @@ func SetLoggerInstance(newSingleton *Logger) {
 
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
-	return &Logger{
+	logger := &Logger{
 		defaultConfig:    DefaultLoggerConfig(),
 		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 	}
+
+	logger.refreshConfig()
+
+	return logger
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
@@ -561,4 +568,28 @@ func FindLogLevelName(level int32) string {
 		return fmt.Sprintf("%d", level)
 	}
 	return logLevelName[level]
+}
+
+// refreshConfig reloads the config when SIGHUP signal is received
+func (logger *Logger) refreshConfig() {
+	started := make(chan struct{})
+	defer close(started)
+
+	go func() {
+		<-started
+
+		hupch := make(chan os.Signal, 1)
+		defer close(hupch)
+		signal.Notify(hupch, syscall.SIGHUP)
+
+		for {
+			sig := <-hupch
+
+			logger.Info("Received signal [%v]. Refreshing loggger config\n", sig)
+			logger.LoadConfig(logger.defaultConfig)
+		}
+
+	}()
+
+	started <- struct{}{}
 }
