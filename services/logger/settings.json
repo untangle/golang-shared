@@ -1,5 +1,5 @@
 {
-    "logger": {
+    "loggers": {
         "test": {
             "certcache": {
             "logname": "INFO"

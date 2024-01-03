@@ -52,7 +52,7 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 func createTestConfig() LoggerConfig {
 	return LoggerConfig{
 		SettingsFile:    settings.NewSettingsFile("/tmp/test.json"),
-		SettingsPath:    []string{"logger", "test"},
+		SettingsPath:    []string{"loggers", "test"},
 		LogLevelMap:     createTestMap(),
 		LogLevelHighest: LogLevelDebug,
 	}
@@ -187,7 +187,7 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 
 	// Test that load config from file works
 	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
-	logger.config.SettingsPath = []string{"logger", "test"}
+	logger.config.SettingsPath = []string{"loggers", "test"}
 	err := logger.config.LoadConfigFromFile()
 	assert.NoError(suite.T(), err)
 
@@ -536,7 +536,7 @@ func (suite *TestLogger) TestRefreshConfig() {
 
 	// Modify log config and trigger SIGHUP signal
 	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
-	logger.config.SettingsPath = []string{"logger", "test"}
+	logger.config.SettingsPath = []string{"loggers", "test"}
 
 	if err := syscall.Kill(syscall.Getpid(), syscall.SIGHUP); err != nil {
 		suite.Fail("Failed to send the SIGHUP")
