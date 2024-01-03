@@ -80,3 +80,9 @@ func (m *MockLogger) OCWarn(format string, name string, limit int64, args ...int
 	m.Called()
 	m.On("OCWarn", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 }
+
+// Trace mock method will return false
+func (m *MockLogger) IsDebugEnabled() bool {
+	m.On("IsDebugEnabled").Return(false)
+	return false
+}

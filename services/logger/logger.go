@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
@@ -125,7 +126,8 @@ func NewLogger() *Logger {
 func DefaultLoggerConfig() *LoggerConfig {
 
 	return &LoggerConfig{
-		FileLocation: "",
+		SettingsFile: settings.GetSettingsFileSingleton(),
+		SettingsPath: []string{},
 		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
@@ -146,7 +148,6 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 	err := conf.LoadConfigFromFile()
 	if err != nil {
 		logger.Warn("No existing config found - using default as current, err: %s\n", err)
-		conf.SaveConfig()
 	}
 
 	logger.configLocker.Lock()
@@ -586,7 +587,7 @@ func (logger *Logger) refreshConfig() {
 			sig := <-hupch
 
 			logger.Info("Received signal [%v]. Refreshing loggger config\n", sig)
-			logger.LoadConfig(logger.defaultConfig)
+			logger.LoadConfig(logger.config)
 		}
 
 	}()
