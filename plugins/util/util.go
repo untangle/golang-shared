@@ -14,15 +14,15 @@ import (
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
-// PluginStartup is placeholder for starting util
-func PluginStartup(loggerInstance loggerModel.LoggerLevels) {
+// Startup is placeholder for starting util
+func Startup(loggerInstance loggerModel.LoggerLevels) {
 	once.Do(func() {
 		logger = loggerInstance
 	})
 }
 
-// PluginShutdown is placeholder for shutting down util
-func PluginShutdown() {
+// Shutdown is placeholder for shutting down util
+func Shutdown() {
 
 }
 

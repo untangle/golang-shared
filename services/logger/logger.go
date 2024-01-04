@@ -568,11 +568,12 @@ func (logger *Logger) refreshConfig() {
 	defer close(started)
 
 	go func() {
-		<-started
-
 		hupch := make(chan os.Signal, 1)
 		defer close(hupch)
+
 		signal.Notify(hupch, syscall.SIGHUP)
+
+		<-started
 
 		for {
 			sig := <-hupch
