@@ -40,7 +40,6 @@ var mapMutex sync.RWMutex
 // Logger struct retains information about the logger related information
 type Logger struct {
 	config           *LoggerConfig
-	defaultConfig    *LoggerConfig
 	configLocker     sync.Mutex
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
@@ -110,7 +109,6 @@ func SetLoggerInstance(newSingleton *Logger) {
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	logger := &Logger{
-		defaultConfig:    DefaultLoggerConfig(),
 		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
@@ -128,26 +126,25 @@ func DefaultLoggerConfig() *LoggerConfig {
 	return &LoggerConfig{
 		SettingsFile: settings.GetSettingsFileSingleton(),
 		SettingsPath: []string{},
-		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
 		OutputWriter:    DefaultLogWriter("system"),
 		CmdAlertSetup:   CmdAlertDefaultSetup,
+
+		logLevelMap: map[string]LogLevel{"*": {Name: "INFO"}},
 	}
 }
 
 // LoadConfig loads the config to the current logger
-// the new config will be set to the defaultConfig
-// if we are able to load the config from file, we will
-// if the file does not exist, we will store the default config in the conf.FileLocation
+// if we are able to load the config from settings file, we will
+// if we cannot, we will set info level for all
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 
-	logger.defaultConfig = conf
-	// load from file - if this is missing or errors - then save the new default config to OS
-	// Load config from file if it exists
-	err := conf.LoadConfigFromFile()
+	err := conf.LoadConfigFromSettingsFile()
 	if err != nil {
-		logger.Warn("No existing config found - using default as current, err: %s\n", err)
+		fmt.Println("ERRORRRRR", err)
+		logger.Warn("Could not load logger config from settings file - using info level, err: %s\n", err)
+		// conf.logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
 	}
 
 	logger.configLocker.Lock()
@@ -161,11 +158,6 @@ func (logger *Logger) GetConfig() LoggerConfig {
 	defer logger.configLocker.Unlock()
 	logger.configLocker.Lock()
 	return *logger.config
-}
-
-// GetConfig returns the logger config
-func (logger *Logger) GetDefaultConfig() LoggerConfig {
-	return *logger.defaultConfig
 }
 
 // Return a count of the number of logs that were actually printed
@@ -376,7 +368,7 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(functionName) != 0 {
 		logger.logLevelLocker.RLock()
-		level, ok := logger.config.LogLevelMap[functionName]
+		level, ok := logger.config.logLevelMap[functionName]
 		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
@@ -385,12 +377,12 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		level, ok := logger.config.LogLevelMap[packageName]
+		level, ok := logger.config.logLevelMap[packageName]
 		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
 		} else {
-			if val, ok := logger.config.LogLevelMap["*"]; ok {
+			if val, ok := logger.config.logLevelMap["*"]; ok {
 				return int32(val.GetId())
 			}
 		}
