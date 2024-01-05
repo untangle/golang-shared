@@ -2,45 +2,6 @@ syntax = "proto3";
 package captiveportal;
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/CaptivePortal";
 
-// Captive portal condition
-message CpRuleCondition {
-  string Op = 1 [json_name = "op"];
-  string Type = 2 [json_name = "type"];
-  string Value = 3 [json_name = "value"];
-}
-
-// Captive portal action
-message CpRulesAction {
-  string Type = 1 [json_name = "type"];
-}
-
-// Captive portal rule
-message CpRules {
-  string RuleId = 1 [json_name = "rule_id"];
-  bool Enabled = 2 [json_name = "enabled"];
-  string Description = 3 [json_name = "description"];
-  repeated CpRuleCondition Conditions = 4 [json_name = "conditions"];
-  CpRulesAction Action = 5 [json_name = "action"];
-}
-
-message ImageDetails {
-  string imageName = 2 [json_name = "imageName"];
-}
-
-message CpSettingType {
-  bool Enabled = 1 [json_name = "enabled"];
-  int32 TimeoutValue = 2 [json_name = "timeoutValue"];
-  string TimeoutPeriod = 3 [json_name = "timeoutPeriod"];
-  string AcceptText = 4 [json_name = "acceptText"];
-  string AcceptButtonText = 5 [json_name = "acceptButtonText"];
-  string MessageHeading = 6 [json_name = "messageHeading"];
-  string MessageText = 7 [json_name = "messageText"];
-  string WelcomeText = 8 [json_name = "welcomeText"];
-  string PageTitle = 9 [json_name = "pageTitle"];
-  ImageDetails logo = 10 [json_name = "logo"];
-  repeated CpRules Rules = 11 [json_name = "rules"];
-}
-
 service CaptivePortalGrpcService {
   rpc getCaptivePortalUser (UserGetRequest) returns (UserGetResponse) {}
   rpc setCaptivePortalUser (UserSetRequest) returns (UserSetResponse) {}
