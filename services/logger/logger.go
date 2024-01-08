@@ -115,7 +115,7 @@ func NewLogger() *Logger {
 		timestampEnabled: false,
 	}
 
-	logger.refreshConfig()
+	logger.startRefreshConfigOnSIGHUP()
 
 	return logger
 }
@@ -562,8 +562,8 @@ func FindLogLevelName(level int32) string {
 	return logLevelName[level]
 }
 
-// refreshConfig reloads the config when SIGHUP signal is received
-func (logger *Logger) refreshConfig() {
+// startRefreshConfigOnSIGHUP reloads the config when SIGHUP signal is received
+func (logger *Logger) startRefreshConfigOnSIGHUP() {
 	started := make(chan struct{})
 	defer close(started)
 
