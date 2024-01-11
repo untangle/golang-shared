@@ -3,13 +3,14 @@ package logger
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
+	"syscall"
 	"testing"
 	"time"
 
+	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"github.com/untangle/golang-shared/testing/mocks"
 
@@ -33,7 +34,7 @@ type TestLogger struct {
 
 func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 	logger.config = &LoggerConfig{}
-	logger.config.LogLevelMap = map[string]LogLevel{
+	logger.config.logLevelMap = map[string]LogLevel{
 		"Emergtest":  {"EMERG", 0},
 		"Alerttest":  {"ALERT", 1},
 		"Crittest":   {"CRIT", 2},
@@ -48,22 +49,17 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 }
 
 // createTestConfig creates the logger config
-func createTestConfig() LoggerConfig {
-	return LoggerConfig{
-		FileLocation:    "/tmp/logconfig_test.json",
-		LogLevelMap:     createTestMap(),
+func createTestConfig() *LoggerConfig {
+	loggerConfig := &LoggerConfig{
+		SettingsFile:    settings.NewSettingsFile("test.json"),
+		SettingsPath:    []string{"test"},
 		LogLevelHighest: LogLevelDebug,
+		logLevelMap:     map[string]LogLevel{},
 	}
-}
 
-func createTestMap() map[string]LogLevel {
-	return map[string]LogLevel{
-		"test1": {Name: "INFO"},
-		"test2": {Name: "WARN"},
-		"test3": {Name: "ERROR"},
-		"test4": {Name: "DEBUG"},
-		"test5": {Name: "INFO"},
-	}
+	_ = loggerConfig.LoadConfigFromSettingsFile()
+
+	return loggerConfig
 }
 
 func (suite *TestLogger) SetupTest() {
@@ -78,7 +74,7 @@ func (suite *TestLogger) TestStartup() {
 	logger.Startup()
 	assert.Equal(suite.T(), nil, logger.config.OutputWriter)
 
-	logger.config.FileLocation = "LoggerConfig.json"
+	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
 	logger.Startup()
 
 	var MockWriter bytes.Buffer
@@ -181,11 +177,12 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 	logger := NewLogger()
 
 	//Test load from default file that may or may not exist
-	assert.Error(suite.T(), fmt.Errorf("Logger config FileLocation is missing"), logger.config.LoadConfigFromFile())
+	assert.Error(suite.T(), fmt.Errorf("Logger config settings path is missing"), logger.config.LoadConfigFromSettingsFile())
 
 	// Test that load config from file works
-	logger.config.FileLocation = "LoggerConfig.json"
-	err := logger.config.LoadConfigFromFile()
+	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
+	logger.config.SettingsPath = []string{"loggers", "test"}
+	err := logger.config.LoadConfigFromSettingsFile()
 	assert.NoError(suite.T(), err)
 
 	//Test that the LoggerConfig.json matches some properties
@@ -197,25 +194,6 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 	//classify is trace
 	assert.Equal(suite.T(), LogLevelDebug, logger.getLogLevel("classify", "classify"))
 
-}
-
-func (suite *TestLogger) TestLoadConfigFromJSON() {
-	loggerConf := LoggerConfig{}
-
-	testMap := createTestMap()
-
-	jsonData, err := json.Marshal(testMap)
-
-	if err != nil {
-		suite.T().Log("unable to convert test map data into json")
-	}
-
-	suite.T().Logf("testing data: %v", jsonData)
-
-	_ = loggerConf.LoadConfigFromJSON(jsonData)
-
-	assert.NotNil(suite.T(), loggerConf.LogLevelMap)
-	assert.Equal(suite.T(), testMap, loggerConf.LogLevelMap)
 }
 
 func (suite *TestLogger) TestDefaultInstance() {
@@ -238,12 +216,11 @@ func (suite *TestLogger) TestInstanceModifications() {
 
 	logInstance := GetLoggerInstance()
 	testConfig := createTestConfig()
-	testConfig.removeConfigFile()
 
 	//overwrite config
-	logInstance.LoadConfig(&testConfig)
+	logInstance.LoadConfig(testConfig)
 
-	assert.Equal(suite.T(), testConfig, logInstance.GetConfig())
+	assert.Equal(suite.T(), testConfig, logInstance.config)
 
 	//new instance - should use singleton
 	logInstance2 := GetLoggerInstance()
@@ -252,7 +229,7 @@ func (suite *TestLogger) TestInstanceModifications() {
 	assert.Equal(suite.T(), logInstance, logInstance2)
 
 	//config matches
-	assert.Equal(suite.T(), testConfig, logInstance2.GetConfig())
+	assert.Equal(suite.T(), *testConfig, logInstance2.GetConfig())
 
 }
 
@@ -262,9 +239,8 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 	logInstance := GetLoggerInstance()
 	testingOutput := "Testing output for %s\n"
 	expectedConfig := createTestConfig()
-	expectedConfig.removeConfigFile()
 
-	go func(testingOutput string, expectedConfig LoggerConfig, ctx context.Context) {
+	go func(testingOutput string, expectedConfig *LoggerConfig, ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
@@ -278,7 +254,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 				time.Sleep(time.Millisecond * 2)
 
 				// config pointer matches after waiting
-				assert.Equal(suite.T(), expectedConfig, logInstance.GetConfig())
+				assert.Equal(suite.T(), *expectedConfig, logInstance.GetConfig())
 			}
 		}
 	}(testingOutput, expectedConfig, currentCtx)
@@ -289,7 +265,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 	expectedConfig.SetLogLevel("reflect", NewLogLevel("DEBUG"))
 
 	// Load new config to the instance
-	logInstance.LoadConfig(&expectedConfig)
+	logInstance.LoadConfig(expectedConfig)
 	logInstance.Debug(testingOutput, logLevelName[LogLevelDebug])
 	logInstance.Info(testingOutput, logLevelName[LogLevelInfo])
 
@@ -299,15 +275,15 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 
 func (suite *TestLogger) TestInstanceLoadFromDisk() {
 	logInstance := NewLogger()
-	testConfig := createTestConfig()
-	testConfig.removeConfigFile()
+	testConfig := *createTestConfig()
 
 	//overwrite default config
 	logInstance.LoadConfig(&testConfig)
 
 	// now load from file
-	logInstance.config.FileLocation = "LoggerConfig.json"
-	_ = logInstance.config.LoadConfigFromFile()
+	logInstance.config.SettingsFile = settings.NewSettingsFile("settings.json")
+	logInstance.config.SettingsPath = []string{"loggers", "test"}
+	_ = logInstance.config.LoadConfigFromSettingsFile()
 
 	// verify these are different
 	assert.NotEqual(suite.T(), testConfig, logInstance.config)
@@ -324,10 +300,9 @@ func (suite *TestLogger) TestSaveToDisk() {
 
 	// Create the test config - save it, load it to the new instance and verify it loaded
 	testConfig := createTestConfig()
-	testConfig.removeConfigFile()
-	logInstance.LoadConfig(&testConfig)
+	logInstance.LoadConfig(testConfig)
 
-	assert.Equal(suite.T(), &testConfig, logInstance.config)
+	assert.Equal(suite.T(), testConfig, logInstance.config)
 
 }
 
@@ -448,15 +423,14 @@ func (suite *TestLogger) TestGetInstanceWithConfig() {
 	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
 
 	expectedConfig := createTestConfig()
-	expectedConfig.removeConfigFile()
 
-	newInstance := GetLoggerInstanceWithConfig(&expectedConfig)
+	newInstance := GetLoggerInstanceWithConfig(expectedConfig)
 
 	//Verify new instance has proper config
-	assert.Equal(suite.T(), &expectedConfig, newInstance.config)
+	assert.Equal(suite.T(), expectedConfig, newInstance.config)
 
 	// Verify old instance has this config too
-	assert.Equal(suite.T(), &expectedConfig, logInstance.config)
+	assert.Equal(suite.T(), expectedConfig, logInstance.config)
 
 }
 
@@ -547,4 +521,23 @@ func (suite *TestLogger) TestPerformance() {
 
 	assert.Equal(suite.T(), true, durationUnopt > durationOpt)
 
+}
+
+func (suite *TestLogger) TestRefreshConfig() {
+	logger := NewLogger()
+
+	// Classufy has default value beacuse it does not exisit in config
+	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("classify", "classify"))
+
+	// Modify log config and trigger SIGHUP signal
+	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
+	logger.config.SettingsPath = []string{"loggers", "test"}
+
+	if err := syscall.Kill(syscall.Getpid(), syscall.SIGHUP); err != nil {
+		suite.Fail("Failed to send the SIGHUP")
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	// Classify is trace
+	assert.Equal(suite.T(), LogLevelDebug, logger.getLogLevel("classify", "classify"))
 }

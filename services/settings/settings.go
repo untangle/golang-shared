@@ -15,11 +15,12 @@ import (
 	"sync"
 	"time"
 
+	loggerModel "github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins/util"
-	logService "github.com/untangle/golang-shared/services/logger"
 )
 
-var logger = logService.GetLoggerInstance()
+var logger loggerModel.LoggerLevels
+var once sync.Once
 
 const settingsFile = "/etc/config/settings.json"
 const defaultsFile = "/etc/config/defaults.json"
@@ -37,7 +38,11 @@ var SighupExecutables []string
 var saveLocker sync.RWMutex
 
 // Startup settings service
-func Startup() {
+func Startup(loggerInstance loggerModel.LoggerLevels) {
+	once.Do(func() {
+		logger = loggerInstance
+		util.Startup(loggerInstance)
+	})
 }
 
 // Shutdown settings service

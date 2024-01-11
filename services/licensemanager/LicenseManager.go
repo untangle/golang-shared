@@ -75,6 +75,8 @@ func (lm *LicenseManager) Name() string {
 func (lm *LicenseManager) Startup() error {
 	lm.logger.Info("Starting the license service\n")
 
+	util.Startup(lm.logger)
+
 	serviceStates, err := LoadServiceStates(lm.config.ServiceStateLocation)
 	if err != nil {
 		lm.logger.Warn("Unable to retrieve previous service state. %v\n", err)

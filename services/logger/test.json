@@ -1,0 +1,9 @@
+{
+    "test" :{
+        "test1": {"logname": "INFO"},
+		"test2": {"logname": "WARN"},
+		"test3": {"logname": "ERROR"},
+		"test4": {"logname": "DEBUG"},
+		"test5": {"logname": "INFO"}
+    }
+}

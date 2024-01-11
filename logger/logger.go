@@ -21,4 +21,5 @@ type LoggerLevels interface {
 	Debug(format string, args ...interface{})
 	Trace(format string, args ...interface{})
 	OCWarn(format string, name string, limit int64, args ...interface{})
+	IsDebugEnabled() bool
 }

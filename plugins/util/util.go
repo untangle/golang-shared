@@ -5,20 +5,24 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 
-	logService "github.com/untangle/golang-shared/services/logger"
+	loggerModel "github.com/untangle/golang-shared/logger"
 )
 
-var logger = logService.GetLoggerInstance()
+var logger loggerModel.LoggerLevels
+var once sync.Once
 
-// PluginStartup is placeholder for starting util
-func PluginStartup() {
-
+// Startup is placeholder for starting util
+func Startup(loggerInstance loggerModel.LoggerLevels) {
+	once.Do(func() {
+		logger = loggerInstance
+	})
 }
 
-// PluginShutdown is placeholder for shutting down util
-func PluginShutdown() {
+// Shutdown is placeholder for shutting down util
+func Shutdown() {
 
 }
 

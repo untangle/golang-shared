@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/untangle/golang-shared/testing/mocks"
 )
 
 func TestDetermineNextIds(t *testing.T) {
@@ -101,6 +102,8 @@ func TestDetermineNextIds(t *testing.T) {
 			expectedIds: []string{"parentID1", "parentID2"},
 		},
 	}
+
+	Startup(mocks.NewMockLogger())
 
 	for _, test := range testCases {
 		ids := determineNextIds(test.allItems, test.crtId, test.buildFrom)

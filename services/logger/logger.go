@@ -3,12 +3,16 @@ package logger
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/alerts"
+	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
@@ -36,7 +40,6 @@ var mapMutex sync.RWMutex
 // Logger struct retains information about the logger related information
 type Logger struct {
 	config           *LoggerConfig
-	defaultConfig    *LoggerConfig
 	configLocker     sync.Mutex
 	logLevelLocker   sync.RWMutex
 	launchTime       time.Time
@@ -105,41 +108,42 @@ func SetLoggerInstance(newSingleton *Logger) {
 
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
-	return &Logger{
-		defaultConfig:    DefaultLoggerConfig(),
+	logger := &Logger{
 		config:           DefaultLoggerConfig(),
 		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 	}
+
+	logger.startRefreshConfigOnSIGHUP()
+
+	return logger
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
 func DefaultLoggerConfig() *LoggerConfig {
 
 	return &LoggerConfig{
-		FileLocation: "",
-		LogLevelMap:  map[string]LogLevel{"*": {Name: "INFO"}},
+		SettingsFile: settings.GetSettingsFileSingleton(),
+		SettingsPath: []string{},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
 		OutputWriter:    DefaultLogWriter("system"),
 		CmdAlertSetup:   CmdAlertDefaultSetup,
+
+		logLevelMap: map[string]LogLevel{"*": {Name: "INFO"}},
 	}
 }
 
 // LoadConfig loads the config to the current logger
-// the new config will be set to the defaultConfig
-// if we are able to load the config from file, we will
-// if the file does not exist, we will store the default config in the conf.FileLocation
+// if we are able to load the config from settings file, we will
+// if we cannot, we will set info level for all
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 
-	logger.defaultConfig = conf
-	// load from file - if this is missing or errors - then save the new default config to OS
-	// Load config from file if it exists
-	err := conf.LoadConfigFromFile()
+	err := conf.LoadConfigFromSettingsFile()
 	if err != nil {
-		logger.Warn("No existing config found - using default as current, err: %s\n", err)
-		conf.SaveConfig()
+		logger.Warn("Could not load logger config from settings file - using info level, err: %s\n", err)
+		conf.logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
 	}
 
 	logger.configLocker.Lock()
@@ -153,11 +157,6 @@ func (logger *Logger) GetConfig() LoggerConfig {
 	defer logger.configLocker.Unlock()
 	logger.configLocker.Lock()
 	return *logger.config
-}
-
-// GetConfig returns the logger config
-func (logger *Logger) GetDefaultConfig() LoggerConfig {
-	return *logger.defaultConfig
 }
 
 // Return a count of the number of logs that were actually printed
@@ -368,7 +367,7 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(functionName) != 0 {
 		logger.logLevelLocker.RLock()
-		level, ok := logger.config.LogLevelMap[functionName]
+		level, ok := logger.config.logLevelMap[functionName]
 		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
@@ -377,12 +376,12 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(packageName) != 0 {
 		logger.logLevelLocker.RLock()
-		level, ok := logger.config.LogLevelMap[packageName]
+		level, ok := logger.config.logLevelMap[packageName]
 		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
 		} else {
-			if val, ok := logger.config.LogLevelMap["*"]; ok {
+			if val, ok := logger.config.logLevelMap["*"]; ok {
 				return int32(val.GetId())
 			}
 		}
@@ -561,4 +560,29 @@ func FindLogLevelName(level int32) string {
 		return fmt.Sprintf("%d", level)
 	}
 	return logLevelName[level]
+}
+
+// startRefreshConfigOnSIGHUP reloads the config when SIGHUP signal is received
+func (logger *Logger) startRefreshConfigOnSIGHUP() {
+	started := make(chan struct{})
+	defer close(started)
+
+	go func() {
+		hupch := make(chan os.Signal, 1)
+		defer close(hupch)
+
+		signal.Notify(hupch, syscall.SIGHUP)
+
+		<-started
+
+		for {
+			sig := <-hupch
+
+			logger.Info("Received signal [%v]. Refreshing loggger config\n", sig)
+			logger.LoadConfig(logger.config)
+		}
+
+	}()
+
+	started <- struct{}{}
 }
