@@ -41,6 +41,7 @@ var saveLocker sync.RWMutex
 func Startup(loggerInstance loggerModel.LoggerLevels) {
 	once.Do(func() {
 		logger = loggerInstance
+		util.Startup(loggerInstance)
 	})
 }
 
