@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -45,7 +46,8 @@ type Logger struct {
 	timestampEnabled bool
 	alerts           alerts.AlertPublisher
 	// logCount is added for testing purposes
-	logCount uint64
+	logCount          *uint64
+	isLogCountEnabled bool
 }
 
 // This is only used inernally.
@@ -107,10 +109,12 @@ func SetLoggerInstance(newSingleton *Logger) {
 
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
+	var logCount uint64 = 0
 	logger := &Logger{
 		config:           DefaultLoggerConfig(),
 		launchTime:       time.Time{},
 		timestampEnabled: false,
+		logCount:         &logCount,
 	}
 
 	logger.startRefreshConfigOnSIGHUP()
@@ -137,6 +141,8 @@ func DefaultLoggerConfig() *LoggerConfig {
 // if we are able to load the config from settings file, we will
 // if we cannot, we will set info level for all
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
+	logger.configLocker.Lock()
+	defer logger.configLocker.Unlock()
 
 	err := conf.LoadConfigFromSettingsFile()
 	if err != nil {
@@ -145,7 +151,7 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 	}
 
 	//Set the instance config to this config
-	logger.setConfig(conf)
+	logger.config = conf
 }
 
 // GetConfig returns the logger config
@@ -153,14 +159,6 @@ func (logger *Logger) GetConfig() LoggerConfig {
 	logger.configLocker.RLock()
 	defer logger.configLocker.RUnlock()
 	return *logger.config
-}
-
-// setConfig sets the logger config
-func (logger *Logger) setConfig(conf *LoggerConfig) {
-	logger.configLocker.Lock()
-	defer logger.configLocker.Unlock()
-
-	logger.config = conf
 }
 
 // getLogLevelHighest returns the logger highest log level
@@ -174,7 +172,7 @@ func (logger *Logger) getLogLevelHighest() int32 {
 // This is used for testing purposes.
 
 func (logger *Logger) getLogCount() uint64 {
-	return logger.logCount
+	return atomic.LoadUint64(logger.logCount)
 }
 
 // Startup starts the logging service
@@ -463,12 +461,9 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	}
 	fmt.Print(logMessage)
 
-	logger.configLocker.Lock()
-
-	// This is protected by the configLogger.Lock() to avoid concurrency problems
-	logger.logCount++
-
-	logger.configLocker.Unlock()
+	if logger.isLogCountEnabled {
+		atomic.AddUint64(logger.logCount, 1)
+	}
 
 	logger.configLocker.RLock()
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
