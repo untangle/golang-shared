@@ -479,6 +479,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 			Message:       logMessage,
 			IsLoggerAlert: true,
 		})
+		return
 	}
 	logger.configLocker.RUnlock()
 }
