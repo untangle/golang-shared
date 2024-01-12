@@ -47,7 +47,9 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 	}
 	config.LogLevelHighest = LogLevelInfo
 
-	logger.setConfig(config)
+	logger.configLocker.Lock()
+	logger.config = config
+	logger.configLocker.Unlock()
 }
 
 // createTestConfig creates the logger config
@@ -314,6 +316,7 @@ func (suite *TestLogger) TestSaveToDisk() {
 
 func (suite *TestLogger) TestBasicWriters() {
 	logInstance := NewLogger()
+	logInstance.isLogCountEnabled = true
 
 	testingOutput := "Testing output for %s\n"
 
@@ -348,6 +351,7 @@ func (suite *TestLogger) TestBasicWriters() {
 
 func (suite *TestLogger) TestBackwardsCompatibleWriters() {
 	logInstance := GetLoggerInstance()
+	logInstance.isLogCountEnabled = true
 
 	testingOutput := "Testing output for %s\n"
 
