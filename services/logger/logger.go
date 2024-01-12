@@ -146,7 +146,9 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 
 	err := conf.LoadConfigFromSettingsFile()
 	if err != nil {
+		logger.configLocker.Unlock()
 		logger.Warn("Could not load logger config from settings file - using info level, err: %s\n", err)
+		logger.configLocker.Lock()
 		conf.logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
 	}
 

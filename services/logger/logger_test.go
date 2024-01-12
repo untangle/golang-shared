@@ -553,3 +553,17 @@ func (suite *TestLogger) TestRefreshConfig() {
 	// Classify is trace
 	assert.Equal(suite.T(), LogLevelDebug, logger.getLogLevel("classify", "classify"))
 }
+
+func (suite *TestLogger) TestLoadConfig_FileDoesNotExists() {
+	logger := NewLogger()
+
+	// Modify log config and trigger SIGHUP signal
+	config := &LoggerConfig{}
+	config.SettingsFile = settings.NewSettingsFile("unkown.json")
+	config.SettingsPath = []string{"loggers", "test"}
+
+	logger.LoadConfig(config)
+
+	// Classify is default
+	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("classify", "classify"))
+}
