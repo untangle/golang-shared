@@ -471,8 +471,8 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	logger.configLocker.Unlock()
 
 	logger.configLocker.RLock()
-	defer logger.configLocker.RUnlock()
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
+		logger.configLocker.RUnlock()
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,
@@ -480,6 +480,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 			IsLoggerAlert: true,
 		})
 	}
+	logger.configLocker.RUnlock()
 }
 
 // func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function
