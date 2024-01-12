@@ -23,9 +23,6 @@ func ContainsString(s []string, e string) bool {
 
 // StringArrayToDB converts a string array into a single string, using pipe as a delimiter
 func StringArrayToDB(s []string) string {
-	if len(s) == 1 {
-		return s[0]
-	}
 	return strings.Join(s, "|")
 }
 
