@@ -47,7 +47,7 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 	}
 	config.LogLevelHighest = LogLevelInfo
 
-	logger.SetConfig(config)
+	logger.setConfig(config)
 }
 
 // createTestConfig creates the logger config
