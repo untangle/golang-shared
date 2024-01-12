@@ -40,8 +40,7 @@ var mapMutex sync.RWMutex
 // Logger struct retains information about the logger related information
 type Logger struct {
 	config           *LoggerConfig
-	configLocker     sync.Mutex
-	logLevelLocker   sync.RWMutex
+	configLocker     sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
 	alerts           alerts.AlertPublisher
@@ -110,7 +109,6 @@ func SetLoggerInstance(newSingleton *Logger) {
 func NewLogger() *Logger {
 	logger := &Logger{
 		config:           DefaultLoggerConfig(),
-		logLevelLocker:   sync.RWMutex{},
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 	}
@@ -146,17 +144,30 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 		conf.logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
 	}
 
-	logger.configLocker.Lock()
-	defer logger.configLocker.Unlock()
 	//Set the instance config to this config
-	logger.config = conf
+	logger.setConfig(conf)
 }
 
 // GetConfig returns the logger config
 func (logger *Logger) GetConfig() LoggerConfig {
-	defer logger.configLocker.Unlock()
-	logger.configLocker.Lock()
+	logger.configLocker.RLock()
+	defer logger.configLocker.RUnlock()
 	return *logger.config
+}
+
+// setConfig sets the logger config
+func (logger *Logger) setConfig(conf *LoggerConfig) {
+	logger.configLocker.Lock()
+	defer logger.configLocker.Unlock()
+
+	logger.config = conf
+}
+
+// getLogLevelHighest returns the logger highest log level
+func (logger *Logger) getLogLevelHighest() int32 {
+	logger.configLocker.RLock()
+	defer logger.configLocker.RUnlock()
+	return logger.config.LogLevelHighest
 }
 
 // Return a count of the number of logs that were actually printed
@@ -200,7 +211,7 @@ func (logger *Logger) Emerg(format string, args ...interface{}) {
 
 // IsEmergEnabled returns true if EMERG logging is enable for the caller
 func (logger *Logger) IsEmergEnabled() bool {
-	if LogLevelEmerg > logger.config.LogLevelHighest {
+	if LogLevelEmerg > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelEmerg)
@@ -213,7 +224,7 @@ func (logger *Logger) Alert(format string, args ...interface{}) {
 
 // IsAlertEnabled returns true if ALERT logging is enable for the caller
 func (logger *Logger) IsAlertEnabled() bool {
-	if LogLevelAlert > logger.config.LogLevelHighest {
+	if LogLevelAlert > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelAlert)
@@ -226,7 +237,7 @@ func (logger *Logger) Crit(format string, args ...interface{}) {
 
 // IsCritEnabled returns true if CRIT logging is enable for the caller
 func (logger *Logger) IsCritEnabled() bool {
-	if LogLevelCrit > logger.config.LogLevelHighest {
+	if LogLevelCrit > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelCrit)
@@ -239,7 +250,7 @@ func (logger *Logger) Err(format string, args ...interface{}) {
 
 // IsErrEnabled returns true if ERR logging is enable for the caller
 func (logger *Logger) IsErrEnabled() bool {
-	if LogLevelErr > logger.config.LogLevelHighest {
+	if LogLevelErr > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelErr)
@@ -252,7 +263,7 @@ func (logger *Logger) Warn(format string, args ...interface{}) {
 
 // IsWarnEnabled returns true if WARNING logging is enable for the caller
 func (logger *Logger) IsWarnEnabled() bool {
-	if LogLevelWarn > logger.config.LogLevelHighest {
+	if LogLevelWarn > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelWarn)
@@ -265,7 +276,7 @@ func (logger *Logger) Notice(format string, args ...interface{}) {
 
 // IsNoticeEnabled returns true if NOTICE logging is enable for the caller
 func (logger *Logger) IsNoticeEnabled() bool {
-	if LogLevelNotice > logger.config.LogLevelHighest {
+	if LogLevelNotice > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelNotice)
@@ -278,7 +289,7 @@ func (logger *Logger) Info(format string, args ...interface{}) {
 
 // IsInfoEnabled returns true if INFO logging is enable for the caller
 func (logger *Logger) IsInfoEnabled() bool {
-	if LogLevelInfo > logger.config.LogLevelHighest {
+	if LogLevelInfo > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelInfo)
@@ -291,7 +302,7 @@ func (logger *Logger) Debug(format string, args ...interface{}) {
 
 // IsDebugEnabled returns true if DEBUG logging is enable for the caller
 func (logger *Logger) IsDebugEnabled() bool {
-	if LogLevelDebug > logger.config.LogLevelHighest {
+	if LogLevelDebug > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelDebug)
@@ -334,7 +345,7 @@ func (logger *Logger) OCCrit(format string, name string, limit int64, args ...in
 
 // IsTraceEnabled returns true if TRACE logging is enable for the caller
 func (logger *Logger) IsTraceEnabled() bool {
-	if LogLevelTrace > logger.config.LogLevelHighest {
+	if LogLevelTrace > logger.getLogLevelHighest() {
 		return false
 	}
 	return logger.isLogEnabled(LogLevelTrace)
@@ -366,18 +377,19 @@ func (logger *Logger) DisableTimestamp() {
 func (logger *Logger) getLogLevel(packageName string, functionName string) int32 {
 
 	if len(functionName) != 0 {
-		logger.logLevelLocker.RLock()
+		logger.configLocker.RLock()
 		level, ok := logger.config.logLevelMap[functionName]
-		logger.logLevelLocker.RUnlock()
+		logger.configLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
 		}
 	}
 
 	if len(packageName) != 0 {
-		logger.logLevelLocker.RLock()
+		logger.configLocker.RLock()
+		defer logger.configLocker.RUnlock()
+
 		level, ok := logger.config.logLevelMap[packageName]
-		logger.logLevelLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
 		} else {
@@ -426,7 +438,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// logger.config.LogLevelMask keeps track of the logger levels that have been
 	// requested across the entire logger confguration so that we can drop out of this
 	// function quickly if the log is for something unlikely like a trace or debug.
-	if level > logger.config.LogLevelHighest {
+	if level > logger.getLogLevelHighest() {
 		return
 	}
 	packageName, functionName := findCallingFunction()
@@ -437,8 +449,6 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 		return
 	}
 
-	logger.logLevelLocker.RLock()
-
 	var logMessage string
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
@@ -447,7 +457,6 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
-			logger.logLevelLocker.RUnlock()
 			return
 		}
 		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
@@ -459,9 +468,11 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 	// This is protected by the configLogger.Lock() to avoid concurrency problems
 	logger.logCount++
 
+	logger.configLocker.Unlock()
+
+	logger.configLocker.RLock()
 	if alert, ok := logger.config.CmdAlertSetup[level]; ok && logger.alerts != nil {
-		logger.configLocker.Unlock()
-		logger.logLevelLocker.RUnlock()
+		logger.configLocker.RUnlock()
 		logger.alerts.Send(&Alerts.Alert{
 			Type:          alert.logType,
 			Severity:      alert.severity,
@@ -470,8 +481,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 		})
 		return
 	}
-	logger.configLocker.Unlock()
-	logger.logLevelLocker.RUnlock()
+	logger.configLocker.RUnlock()
 }
 
 // func findCallingFunction() uses runtime.Callers to get the call stack to determine the calling function

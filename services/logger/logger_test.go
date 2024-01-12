@@ -33,8 +33,8 @@ type TestLogger struct {
 }
 
 func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
-	logger.config = &LoggerConfig{}
-	logger.config.logLevelMap = map[string]LogLevel{
+	config := &LoggerConfig{}
+	config.logLevelMap = map[string]LogLevel{
 		"Emergtest":  {"EMERG", 0},
 		"Alerttest":  {"ALERT", 1},
 		"Crittest":   {"CRIT", 2},
@@ -45,7 +45,9 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 		"Debugtest":  {"DEBUG", 7},
 		"Tracetest":  {"TRACE", 8},
 	}
-	logger.config.LogLevelHighest = LogLevelInfo
+	config.LogLevelHighest = LogLevelInfo
+
+	logger.setConfig(config)
 }
 
 // createTestConfig creates the logger config
@@ -180,9 +182,11 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 	assert.Error(suite.T(), fmt.Errorf("Logger config settings path is missing"), logger.config.LoadConfigFromSettingsFile())
 
 	// Test that load config from file works
+	logger.configLocker.Lock()
 	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
 	logger.config.SettingsPath = []string{"loggers", "test"}
 	err := logger.config.LoadConfigFromSettingsFile()
+	logger.configLocker.Unlock()
 	assert.NoError(suite.T(), err)
 
 	//Test that the LoggerConfig.json matches some properties
@@ -259,7 +263,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 		}
 	}(testingOutput, expectedConfig, currentCtx)
 
-	//time.Sleep(time.Millisecond * 1)
+	// time.Sleep(time.Millisecond * 1)
 	//Change config after routine starts to enable DEBUG
 	expectedConfig.SetLogLevel("runtime", NewLogLevel("DEBUG"))
 	expectedConfig.SetLogLevel("reflect", NewLogLevel("DEBUG"))
@@ -281,9 +285,11 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 	logInstance.LoadConfig(&testConfig)
 
 	// now load from file
+	logInstance.configLocker.Lock()
 	logInstance.config.SettingsFile = settings.NewSettingsFile("settings.json")
 	logInstance.config.SettingsPath = []string{"loggers", "test"}
 	_ = logInstance.config.LoadConfigFromSettingsFile()
+	logInstance.configLocker.Unlock()
 
 	// verify these are different
 	assert.NotEqual(suite.T(), testConfig, logInstance.config)
@@ -530,8 +536,10 @@ func (suite *TestLogger) TestRefreshConfig() {
 	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("classify", "classify"))
 
 	// Modify log config and trigger SIGHUP signal
+	logger.configLocker.Lock()
 	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
 	logger.config.SettingsPath = []string{"loggers", "test"}
+	logger.configLocker.Unlock()
 
 	if err := syscall.Kill(syscall.Getpid(), syscall.SIGHUP); err != nil {
 		suite.Fail("Failed to send the SIGHUP")
