@@ -130,3 +130,35 @@ func TestExtractSettingsFromTar(t *testing.T) {
 	assert.Error(t, err)
 
 }
+
+// Tests StringArrayToDB
+func TestStringArrayToDB(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected string
+	}{
+		{
+			name:     "Empty input",
+			input:    []string{},
+			expected: "",
+		},
+		{
+			name:     "Single element",
+			input:    []string{"test"},
+			expected: "test",
+		},
+		{
+			name:     "Multiple elements",
+			input:    []string{"test", "test2", "test3"},
+			expected: "test|test2|test3",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := StringArrayToDB(test.input)
+			assert.Equal(t, test.expected, actual)
+		})
+	}
+}

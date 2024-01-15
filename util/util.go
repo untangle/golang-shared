@@ -21,6 +21,11 @@ func ContainsString(s []string, e string) bool {
 	return false
 }
 
+// StringArrayToDB converts a string array into a single string, using pipe as a delimiter
+func StringArrayToDB(s []string) string {
+	return strings.Join(s, "|")
+}
+
 // WaitGroupDoneOrTimeout waits for the waitgroup for the specified max timeout.
 // Returns true if waiting timed out.
 func WaitGroupDoneOrTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
