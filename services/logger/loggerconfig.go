@@ -36,27 +36,29 @@ type LoggerConfig struct {
 	logLevelMap map[string]LogLevel
 }
 
-// LoadConfigFromSettingsFile loads the logger configuration from settings file
-func (conf *LoggerConfig) LoadConfigFromSettingsFile() error {
+// GetLogLevelMapFromSettingsFile returns the log level map from settings file
+func (conf *LoggerConfig) GetLogLevelMapFromSettingsFile() (map[string]LogLevel, error) {
 	if conf.SettingsFile == nil {
-		return fmt.Errorf("Logger settings file not defined")
+		return nil, fmt.Errorf("Logger settings file not defined")
 	}
 
 	if len(conf.SettingsPath) == 0 {
-		return fmt.Errorf("Logger config settings path is missing")
+		return nil, fmt.Errorf("Logger config settings path is missing")
 	}
 
 	logLevelMap := make(map[string]LogLevel)
 
 	if err := conf.SettingsFile.UnmarshalSettingsAtPath(&logLevelMap, conf.SettingsPath...); err != nil {
-		return fmt.Errorf("Unable to find logger configs in path %s: %s\n", strings.Join(conf.SettingsPath, ","), err)
+		return nil, fmt.Errorf("Unable to find logger configs in path %s: %s\n", strings.Join(conf.SettingsPath, ","), err)
 	}
 
-	conf.logLevelMap = logLevelMap
+	return logLevelMap, nil
+}
 
-	// set the highest log level
+// SetLogLevelMap sets the log level map and updates the highest level
+func (conf *LoggerConfig) SetLogLevelMap(logLevelMap map[string]LogLevel) {
+	conf.logLevelMap = logLevelMap
 	conf.SetLogLevelHighest()
-	return nil
 }
 
 // SetLogLevelHighest will set the highest log level in the log config

@@ -141,18 +141,17 @@ func DefaultLoggerConfig() *LoggerConfig {
 // if we are able to load the config from settings file, we will
 // if we cannot, we will set info level for all
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
-	logger.configLocker.Lock()
-	defer logger.configLocker.Unlock()
-
-	err := conf.LoadConfigFromSettingsFile()
+	logLevelMap, err := conf.GetLogLevelMapFromSettingsFile()
 	if err != nil {
-		logger.configLocker.Unlock()
 		logger.Warn("Could not load logger config from settings file - using info level, err: %s\n", err)
-		logger.configLocker.Lock()
-		conf.logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
+		logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
 	}
 
 	//Set the instance config to this config
+	logger.configLocker.Lock()
+	defer logger.configLocker.Unlock()
+
+	conf.SetLogLevelMap(logLevelMap)
 	logger.config = conf
 }
 
@@ -387,13 +386,15 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 
 	if len(packageName) != 0 {
 		logger.configLocker.RLock()
-		defer logger.configLocker.RUnlock()
-
 		level, ok := logger.config.logLevelMap[packageName]
+		logger.configLocker.RUnlock()
 		if ok {
 			return int32(level.GetId())
 		} else {
-			if val, ok := logger.config.logLevelMap["*"]; ok {
+			logger.configLocker.RLock()
+			val, ok := logger.config.logLevelMap["*"]
+			logger.configLocker.RUnlock()
+			if ok {
 				return int32(val.GetId())
 			}
 		}
