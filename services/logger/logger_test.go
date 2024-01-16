@@ -61,7 +61,11 @@ func createTestConfig() *LoggerConfig {
 		logLevelMap:     map[string]LogLevel{},
 	}
 
-	_ = loggerConfig.LoadConfigFromSettingsFile()
+	logLevelMap, err := loggerConfig.GetLogLevelMapFromSettingsFile()
+	if err == nil {
+		loggerConfig.logLevelMap = logLevelMap
+		loggerConfig.SetLogLevelHighest()
+	}
 
 	return loggerConfig
 }
@@ -181,15 +185,14 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 	logger := NewLogger()
 
 	//Test load from default file that may or may not exist
-	assert.Error(suite.T(), fmt.Errorf("Logger config settings path is missing"), logger.config.LoadConfigFromSettingsFile())
+	_, err := logger.config.GetLogLevelMapFromSettingsFile()
+	assert.Error(suite.T(), fmt.Errorf("Logger config settings path is missing"), err)
 
 	// Test that load config from file works
-	logger.configLocker.Lock()
-	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
-	logger.config.SettingsPath = []string{"loggers", "test"}
-	err := logger.config.LoadConfigFromSettingsFile()
-	logger.configLocker.Unlock()
-	assert.NoError(suite.T(), err)
+	logger.LoadConfig(&LoggerConfig{
+		SettingsFile: settings.NewSettingsFile("settings.json"),
+		SettingsPath: []string{"loggers", "test"},
+	})
 
 	//Test that the LoggerConfig.json matches some properties
 	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("discovery", "discovery"))
@@ -287,17 +290,16 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 	logInstance.LoadConfig(&testConfig)
 
 	// now load from file
-	logInstance.configLocker.Lock()
-	logInstance.config.SettingsFile = settings.NewSettingsFile("settings.json")
-	logInstance.config.SettingsPath = []string{"loggers", "test"}
-	_ = logInstance.config.LoadConfigFromSettingsFile()
-	logInstance.configLocker.Unlock()
+	logInstance.LoadConfig(&LoggerConfig{
+		SettingsFile: settings.NewSettingsFile("settings.json"),
+		SettingsPath: []string{"loggers", "test"},
+	})
 
 	// verify these are different
 	assert.NotEqual(suite.T(), testConfig, logInstance.config)
 
 	// Verify we loaded the actual config
-	//assert.Equal(suite.T(), NewLogLevel("WARN"), logInstance.config.GetLogLevel("test"))
+	assert.Equal(suite.T(), LogLevelDebug, logInstance.getLogLevel("classify", "classify"))
 }
 
 func (suite *TestLogger) TestSaveToDisk() {
