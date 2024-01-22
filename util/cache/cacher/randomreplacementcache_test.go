@@ -131,6 +131,11 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 
 	suite.NotEqual(keysAfterPut, keysBeforePut)
 
+	suite.cache.Put("0", 0)
+	suite.cache.Put("7", 7)
+	suite.cache.Put("8", 8)
+	suite.cache.Put("7", 7)
+	suite.cache.Put("7", 7)
 	suite.cache.Put("7", 7)
 }
 
