@@ -130,6 +130,8 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 	suite.Equal(newVal, val, "The key %s did not have the expected value of %d", newKey, newVal)
 
 	suite.NotEqual(keysAfterPut, keysBeforePut)
+
+	suite.cache.Put("7", 7)
 }
 
 // Test getting the total elements in the cache
