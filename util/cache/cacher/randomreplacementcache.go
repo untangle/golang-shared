@@ -97,7 +97,7 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 	} else {
 		// Remove element randomly if the capacity has been met
 		if cache.totalElements >= cache.maxCapacity {
-			indexToSwap := rand.Intn(len(cache.keys))
+			indexToSwap := rand.Intn(int(cache.totalElements))
 			keyToRemove := cache.keys[indexToSwap]
 			cache.removeWithoutLock(keyToRemove)
 
@@ -132,7 +132,7 @@ func (cache *RandomReplacementCache) removeWithoutLock(key string) {
 		return
 	}
 	// else the key didn't exists in the cache and nothing should be done
-	logger.Err("\n\n\n Couldn't remove key %v\n keys: %v\n elements: %v\n totalElements: %v\n\n\n", key, cache.elements, cache.totalElements)
+	logger.Err("\n\n\n Couldn't remove key %v\n keys: %v\n elements: %v\n totalElements: %v\n\n\n", key, cache.elements)
 }
 
 // Removes an element from the cache.
