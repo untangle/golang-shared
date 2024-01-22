@@ -131,6 +131,7 @@ func (cache *RandomReplacementCache) removeWithoutLock(key string) {
 
 		delete(cache.elements, key)
 		cache.totalElements -= 1
+		return
 	}
 	// else the key didn't exists in the cache and nothing should be done
 	logger.Err("wasn't found for some reason\n\n\n")
