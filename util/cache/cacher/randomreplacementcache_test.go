@@ -137,6 +137,13 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 	suite.cache.Put("7", 7)
 	suite.cache.Put("7", 7)
 	suite.cache.Put("7", 7)
+
+	suite.cache.Put("0", 0)
+	suite.cache.Put("7", 7)
+	suite.cache.Put("8", 8)
+	suite.cache.Put("7", 7)
+	suite.cache.Put("7", 7)
+	suite.cache.Put("7", 7)
 }
 
 // Test getting the total elements in the cache
