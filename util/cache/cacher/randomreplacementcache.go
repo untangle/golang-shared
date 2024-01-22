@@ -107,8 +107,6 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 		// Add new element
 		cache.totalElements += 1
 		cache.elements[key] = &Value{keyIndex: cache.totalElements - 1, value: value}
-		logger.Err("Added element to cache with total elements: %v and keys %v\n", cache.totalElements, cache.elements)
-		logger.Err("And the keys were: %v\n", cache.keys)
 		cache.keys[cache.totalElements-1] = key
 		logger.Debug("Added element with key %s to the cache named %s\n", key, cache.cacheName)
 	}
@@ -134,7 +132,7 @@ func (cache *RandomReplacementCache) removeWithoutLock(key string) {
 		return
 	}
 	// else the key didn't exists in the cache and nothing should be done
-	logger.Err("wasn't found for some reason\n\n\n")
+	logger.Err("\n\n\n Couldn't remove key %v\n keys: %v\n elements: %v\n totalElements: %v\n\n\n", key, cache.elements, cache.totalElements)
 }
 
 // Removes an element from the cache.
