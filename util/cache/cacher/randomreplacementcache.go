@@ -107,6 +107,7 @@ func (cache *RandomReplacementCache) Put(key string, value interface{}) {
 		// Add new element
 		cache.totalElements += 1
 		cache.elements[key] = &Value{keyIndex: cache.totalElements - 1, value: value}
+		logger.Error("Added element to cache with total elements: %v and keys %v\n", cache.totalElements, cache.elements)
 		cache.keys[cache.totalElements-1] = key
 		logger.Debug("Added element with key %s to the cache named %s\n", key, cache.cacheName)
 	}
