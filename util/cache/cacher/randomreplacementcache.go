@@ -119,18 +119,18 @@ func (cache *RandomReplacementCache) removeWithoutLock(key string) {
 		indexToRemove := cache.elements[key].keyIndex
 
 		// Order doesn't matter for the keys slice, so delete the fast way.
-		// Which is just swapping the element to delete with the last element
+		// Which is swapping the element to delete with the last element
 		// then ignoring the last element of the slice
-		cache.keys[indexToRemove] = cache.keys[len(cache.keys)-1]
-		cache.keys[len(cache.keys)-1] = ""
+		cache.keys[indexToRemove] = cache.keys[cache.totalElements-1]
 
 		// Update index of moved element
-		cache.elements[key].keyIndex = indexToRemove
+		movedElementKey := cache.keys[indexToRemove]
+		cache.elements[movedElementKey].keyIndex = indexToRemove
 
 		delete(cache.elements, key)
+		cache.keys[cache.totalElements-1] = ""
 		cache.totalElements -= 1
 	}
-	// else the key didn't exists in the cache and nothing should be done
 }
 
 // Removes an element from the cache.
@@ -148,11 +148,4 @@ func (cache *RandomReplacementCache) Clear() {
 	cache.keys = make([]string, cache.maxCapacity)
 	cache.totalElements = 0
 	logger.Debug("Cleared cache of name %s\n", cache.cacheName)
-}
-
-// Returns the total elements currently in the cache
-func (cache *RandomReplacementCache) GetTotalElements() int {
-	cache.cacheMutex.RLock()
-	defer cache.cacheMutex.RUnlock()
-	return int(cache.totalElements)
 }

@@ -1,7 +1,10 @@
 package cacher
 
 import (
+	"fmt"
+	"math/rand"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,7 +50,7 @@ func TestForEachElementMutation(t *testing.T) {
 		testCache.Put(strconv.Itoa(int(i)), &newVal)
 	}
 
-	assert.Equal(t, testCache.GetTotalElements(), capacity)
+	assert.Equal(t, testCache.totalElements, uint(capacity))
 
 	mutateElement := func(s string, i interface{}) bool {
 		deleteElement := false
@@ -107,11 +110,11 @@ func (suite *RRCacheTestSuite) TestUpdatingCacheValue() {
 
 // Test clearing the cache
 func (suite *RRCacheTestSuite) TestClear() {
-	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements(), "The cache is missing elements. It was not setup properly by SetupTest()")
+	suite.Equal(suite.capacity, suite.cache.totalElements, "The cache is missing elements. It was not setup properly by SetupTest()")
 
 	suite.cache.Clear()
 
-	suite.Equal(0, suite.cache.GetTotalElements(), "The cache was not successfully cleared")
+	suite.Equal(uint(0), suite.cache.totalElements, "The cache was not successfully cleared")
 }
 
 // Test adding an element when the cache is already at capacity
@@ -132,11 +135,6 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 	suite.NotEqual(keysAfterPut, keysBeforePut)
 }
 
-// Test getting the total elements in the cache
-func (suite *RRCacheTestSuite) TestGetTotalElements() {
-	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements())
-}
-
 // Test removing elements from the cache
 func (suite *RRCacheTestSuite) TestRemove() {
 	keyToRemove := "2"
@@ -148,4 +146,38 @@ func (suite *RRCacheTestSuite) TestRemove() {
 	_, ok = suite.cache.Get(keyToRemove)
 	suite.False(ok, "The key -- %s -- remained in the cache after being removed", keyToRemove)
 	suite.Equal(suite.cache.maxCapacity-1, suite.cache.totalElements)
+}
+
+// Test a cache getting hit with random puts/removes
+func TestMultiThreaded(t *testing.T) {
+	var cacheSize uint = 1000
+	cache := NewRandomReplacementCache(cacheSize, "Multithreaded")
+	rand.Seed(1)
+	elementRange := 20000
+
+	var wg sync.WaitGroup
+	for i := 0; i <= 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j <= int(cacheSize)*10; j++ {
+				element := fmt.Sprintf("%v", rand.Intn(elementRange))
+				cache.Put(element, element)
+
+				if rand.Intn(2) == 0 {
+					removal := fmt.Sprintf("%v", rand.Intn(elementRange))
+					cache.Remove(removal)
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, cache.totalElements, cacheSize)
+
+	// Check that the value map and keys slice line up
+	for key, val := range cache.elements {
+		assert.Equal(t, key, cache.keys[val.keyIndex])
+	}
 }
