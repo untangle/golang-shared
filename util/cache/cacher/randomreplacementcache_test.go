@@ -110,11 +110,11 @@ func (suite *RRCacheTestSuite) TestUpdatingCacheValue() {
 
 // Test clearing the cache
 func (suite *RRCacheTestSuite) TestClear() {
-	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements(), "The cache is missing elements. It was not setup properly by SetupTest()")
+	suite.Equal(suite.capacity, suite.cache.GetTotalElements(), "The cache is missing elements. It was not setup properly by SetupTest()")
 
 	suite.cache.Clear()
 
-	suite.Equal(0, suite.cache.GetTotalElements(), "The cache was not successfully cleared")
+	suite.Equal(uint(0), suite.cache.GetTotalElements(), "The cache was not successfully cleared")
 }
 
 // Test adding an element when the cache is already at capacity
@@ -169,7 +169,7 @@ func TestMultiThreaded(t *testing.T) {
 
 // Test getting the total elements in the cache
 func (suite *RRCacheTestSuite) TestGetTotalElements() {
-	suite.Equal(int(suite.capacity), suite.cache.GetTotalElements())
+	suite.Equal(uint(suite.capacity), suite.cache.GetTotalElements())
 }
 
 // Test removing elements from the cache
