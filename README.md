@@ -34,7 +34,7 @@ master with an empty commit like:
 git commit --allow-empty -m "version: bug"
 ```
 
-# MFW Project Versioning Strategy
+# Versioning Strategy
 
 ## Major Version Update
 - Increment when a new release branch is created.
