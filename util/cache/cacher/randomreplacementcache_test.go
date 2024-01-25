@@ -50,7 +50,7 @@ func TestForEachElementMutation(t *testing.T) {
 		testCache.Put(strconv.Itoa(int(i)), &newVal)
 	}
 
-	assert.Equal(t, testCache.GetTotalElements(), capacity)
+	assert.Equal(t, testCache.GetTotalElements(), uint(capacity))
 
 	mutateElement := func(s string, i interface{}) bool {
 		deleteElement := false
