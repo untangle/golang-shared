@@ -34,17 +34,17 @@ master with an empty commit like:
 git commit --allow-empty -m "version: bug"
 ```
 
-# Versioning Strategy
+## Versioning Strategy
 
-## Major Version Update
+### Major Version Update
 - Increment when a new release branch is created.
 - Master branch uses the latest major version.
 - Release branch uses the previous major version.
 
-## Minor Version Increment
+### Minor Version Increment
 - Increment for new features or functionality.
 
-## Patch ('Bug') Version Increment
+### Patch ('Bug') Version Increment
 - Increment for bug fixes.
 
 ##  [Working with modules](./MODULES.md)
