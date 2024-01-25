@@ -1,7 +1,10 @@
 package cacher
 
 import (
+	"fmt"
+	"math/rand"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -130,6 +133,38 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 	suite.Equal(newVal, val, "The key %s did not have the expected value of %d", newKey, newVal)
 
 	suite.NotEqual(keysAfterPut, keysBeforePut)
+}
+
+// Test a cache getting hit with random puts/removes
+func TestMultiThreaded(t *testing.T) {
+	var cacheSize uint = 1000
+	cache := NewRandomReplacementCache(cacheSize, "Multithreaded")
+	rand.Seed(1)
+	elementRange := 20000
+
+	var wg sync.WaitGroup
+	for i := 0; i <= 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j <= int(cacheSize)*10; j++ {
+				element := fmt.Sprintf("%v", rand.Intn(elementRange))
+				cache.Put(element, element)
+
+				if rand.Intn(2) == 0 {
+					removal := fmt.Sprintf("%v", rand.Intn(elementRange))
+					cache.Remove(removal)
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	// Check that the value map and keys slice line up
+	for key, val := range cache.elements {
+		assert.Equal(t, key, cache.keys[val.keyIndex])
+	}
 }
 
 // Test getting the total elements in the cache
