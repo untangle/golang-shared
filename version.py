@@ -11,12 +11,12 @@ import sys
 
 tag_reg = r'^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
 patterns = {
-    'major': (r'^version: major\s*(?:.*)$', 0),
-    'minor': (r'^version: minor\s*(?:.*)$', 1),
-    'bug': (r'^version: bug\s*(?:.*)$', 2),
+    'major': (r'^version: major\s*$', 0),
+    'minor': (r'^version: minor\s*$', 1),
+    'bug': (r'^version: bug\s*$', 2),
 }
 
-branch_pattern = r'branch:\s*(\S+)'
+branch_pattern = r'^branch:\s*(\S+)$'
 
 def tag2version(tag: str):
     """Convert a tag string to a version tuple,
