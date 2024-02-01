@@ -16,7 +16,7 @@ patterns = {
     'bug': (r'^version: bug\s*(?:.*)$', 2),
 }
 
-branh_pattern = r'branch:\s*(\S+)'
+branch_pattern = r'branch:\s*(\S+)'
 
 def tag2version(tag: str):
     """Convert a tag string to a version tuple,
@@ -62,7 +62,7 @@ def find_latest_tag(fetch: bool, branch: str = None):
 
 def find_branch_in_msg(msg: list[str]) -> str: 
     for line in msg:
-        branch_match = re.search(branh_pattern, line)
+        branch_match = re.search(branch_pattern, line)
     
         if branch_match:
             return branch_match.group(1)
