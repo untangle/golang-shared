@@ -34,6 +34,27 @@ master with an empty commit like:
 git commit --allow-empty -m "version: bug"
 ```
 
+If the code is being merged on a **different branch** than master,
+there is an option to provide the branch name in the **merge message**.
+`branch: {branch_name}`
+**Add this message on a separate line (version information should be also on a separate line)**
+The final tag that will be applied will contain the latest tag number available on the branch provided. 
+Example: 
+
+Latest tag on master: `v.1.60.1`
+Latest tag on eft: `v.1.59.0`
+Merge message:
+```
+version: bug
+branch: eft
+```
+Tag that will be applied: `v1.59.1`
+
+The script can be tested by running the following command:
+```
+echo -e "version: minor \\nbranch:eft" | python3 version.py --fetch
+```
+
 ## Versioning Strategy
 
 ### Major Version Update
