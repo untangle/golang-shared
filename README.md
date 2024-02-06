@@ -50,6 +50,11 @@ branch: eft
 ```
 Tag that will be applied: `v1.59.1`
 
+The script can be tested by running the following command:
+```
+echo -e "version: minor \\nbranch:eft" | python3 version.py --fetch
+```
+
 ## Versioning Strategy
 
 ### Major Version Update
