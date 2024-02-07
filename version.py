@@ -16,8 +16,6 @@ patterns = {
     'bug': (r'^version: bug\s*$', 2),
 }
 
-branch_pattern = r'^branch:\s*(\S+)$'
-
 def tag2version(tag: str):
     """Convert a tag string to a version tuple,
     returns a three-tuple of integers or None if the tag string wasn't
@@ -60,19 +58,18 @@ def find_latest_tag(fetch: bool, branch: str = None):
     latest = sorted([i for i in tags if i])[-1]
     return latest
 
-def find_branch_in_msg(msg: list[str]) -> str: 
-    for line in msg:
-        branch_match = re.search(branch_pattern, line)
-    
-        if branch_match:
-            return branch_match.group(1)
+def get_branch_input() -> str: 
+    if '--branch' in sys.argv[1:]:
+        branch_index = sys.argv.index('--branch') + 1
+        if branch_index < len(sys.argv):
+            return sys.argv[branch_index]
 
     return None
 
 do_fetch = '--fetch' in sys.argv[1:]
 
 msg = sys.stdin.read().splitlines()
-branch = find_branch_in_msg(msg)
+branch = get_branch_input()
 latest = find_latest_tag(do_fetch, branch)
 
 # Now, loop through each line of the commit message, looking for what
