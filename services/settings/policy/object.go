@@ -45,6 +45,7 @@ type Action struct {
 	DNATPort    string `json:"dnat_port,omitempty"`
 	SNATAddress string `json:"snat_address,omitempty"`
 	WANConfig   string `json:"policy,omitempty"`
+	Priority    string `json:"priority,omitempty"`
 }
 
 // ServiceEndpoint is a particular object type, a object may be
