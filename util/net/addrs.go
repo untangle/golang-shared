@@ -51,6 +51,10 @@ func (r IPRange) ContainsNetIP(ip netip.Addr) bool {
 	return r.Start.Compare(ip) <= 0 && r.End.Compare(ip) >= 0
 }
 
+func (r IPRange) String() string {
+	return fmt.Sprintf("%s-%s", r.Start, r.End)
+}
+
 // Parse returns the parsed specifier as one of:
 // -- net.IP : regular IP.
 // -- *net.IPNet: CIDR net, the specifier contained a slash (/).
