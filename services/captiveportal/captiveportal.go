@@ -23,29 +23,17 @@ type CpRules struct {
 	Action      *CpRulesAction     `json:"Action,omitempty"`
 }
 
-type ImageDetails struct {
-	ImageName string `json:"imageName,omitempty"`
-}
-
-func (x *ImageDetails) GetImageName() string {
-	if x != nil {
-		return x.ImageName
-	}
-	return ""
-}
-
 type CpSettingType struct {
-	Enabled          bool          `json:"Enabled,omitempty"`
-	TimeoutValue     int32         `json:"TimeoutValue,omitempty"`
-	TimeoutPeriod    string        `json:"TimeoutPeriod,omitempty"`
-	AcceptText       string        `json:"AcceptText,omitempty"`
-	AcceptButtonText string        `json:"AcceptButtonText,omitempty"`
-	MessageHeading   string        `json:"MessageHeading,omitempty"`
-	MessageText      string        `json:"MessageText,omitempty"`
-	WelcomeText      string        `json:"WelcomeText,omitempty"`
-	PageTitle        string        `json:"PageTitle,omitempty"`
-	Logo             *ImageDetails `json:"logo,omitempty"`
-	Rules            []*CpRules    `json:"Rules,omitempty"`
+	Enabled          bool       `json:"Enabled,omitempty"`
+	TimeoutValue     int32      `json:"TimeoutValue,omitempty"`
+	TimeoutPeriod    string     `json:"TimeoutPeriod,omitempty"`
+	AcceptText       string     `json:"AcceptText,omitempty"`
+	AcceptButtonText string     `json:"AcceptButtonText,omitempty"`
+	MessageHeading   string     `json:"MessageHeading,omitempty"`
+	MessageText      string     `json:"MessageText,omitempty"`
+	WelcomeText      string     `json:"WelcomeText,omitempty"`
+	PageTitle        string     `json:"PageTitle,omitempty"`
+	Rules            []*CpRules `json:"Rules,omitempty"`
 }
 
 func (x *CpSettingType) GetEnabled() bool {
@@ -109,13 +97,6 @@ func (x *CpSettingType) GetPageTitle() string {
 		return x.PageTitle
 	}
 	return ""
-}
-
-func (x *CpSettingType) GetLogo() *ImageDetails {
-	if x != nil {
-		return x.Logo
-	}
-	return nil
 }
 
 func (x *CpSettingType) GetRules() []*CpRules {
