@@ -36,6 +36,6 @@ message Alert {
     AlertSeverity severity = 2;
     string message = 3;
     map<string, string> params = 4;
-    int64 timestamp = 5;
+    int64 datetime = 5;
     bool isLoggerAlert = 6;
 }
