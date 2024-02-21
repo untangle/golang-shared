@@ -131,7 +131,6 @@ func TestExtractSettingsFromTar(t *testing.T) {
 
 }
 
-// Tests StringArrayToDB
 func TestStringArrayToDB(t *testing.T) {
 	tests := []struct {
 		name     string
