@@ -25,7 +25,7 @@ message Session {
   string client_address_new = 16;
   uint32 client_interface_id = 17;
   uint32 client_interface_type = 18;
-  uint32 conntrack_id = 20;
+  uint64 conntrack_id = 20;
   uint32 family = 21;
   uint32 ip_protocol = 22;
   uint32 mark = 23;
