@@ -1,6 +1,8 @@
 package interfaces
 
 import (
+	"net"
+
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
 )
@@ -127,4 +129,19 @@ func GetInterfaceSettingsFromPath(path string) InterfaceSettings {
 	}
 	intfSettings.SetJsonPath(defaultJsonParent, defaultJsonChild)
 	return intfSettings
+}
+
+// Check Ip belong to device local IP address
+func IsDeviceLocalIp(ip net.IP) bool {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		panic(err)
+	}
+	for _, addr := range addrs {
+		ipNet, ok := addr.(*net.IPNet)
+		if ok && ip.Equal(ipNet.IP) {
+			return true
+		}
+	}
+	return false
 }
