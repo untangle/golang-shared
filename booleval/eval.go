@@ -13,6 +13,8 @@ package booleval
 
 import (
 	"fmt"
+
+	"github.com/untangle/golang-shared/services/logger"
 )
 
 // Comparable -- a Comparable is a simple interface to allow the
@@ -201,27 +203,35 @@ func (e Expression) evalClause(clause []*AtomicExpression) (bool, error) {
 }
 
 func (e Expression) evalAtomicExpression(cond *AtomicExpression) (bool, error) {
+	val := e.LookupFunc(cond.ActualValue)
+	// If LookupFunc return value is error then return false and error without proceeding further
+	errorType, ok := val.(error)
+	if ok {
+		logger.Info("####### it is a error type %v #######\n", errorType)
+		return false, val.(error)
+	}
+
 	switch cond.Operator {
 	case "==":
-		return cond.CompareValue.Equal(e.LookupFunc(cond.ActualValue))
+		return cond.CompareValue.Equal(val)
 	case "!=":
-		return notOfResult(cond.CompareValue.Equal(e.LookupFunc(cond.ActualValue)))
+		return notOfResult(cond.CompareValue.Equal(val))
 	case "<":
 		return noneOf(
 			func(evaluator boolEvaler) (bool, error) {
-				return evaluator(e.LookupFunc(cond.ActualValue))
+				return evaluator(val)
 			},
 			[]boolEvaler{cond.CompareValue.Equal, cond.CompareValue.Greater},
 		)
 
 	case ">":
-		return cond.CompareValue.Greater(e.LookupFunc(cond.ActualValue))
+		return cond.CompareValue.Greater(val)
 	case "<=":
-		return notOfResult(cond.CompareValue.Greater(e.LookupFunc(cond.ActualValue)))
+		return notOfResult(cond.CompareValue.Greater(val))
 	case ">=":
 		return anyOf(
 			func(evaluator boolEvaler) (bool, error) {
-				return evaluator(e.LookupFunc(cond.ActualValue))
+				return evaluator(val)
 			},
 			[]boolEvaler{cond.CompareValue.Greater, cond.CompareValue.Greater})
 	}
