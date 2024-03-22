@@ -7,8 +7,11 @@ import (
 
 const (
 	// ConfigTypeBridged - If the interface is a bridged
-	// interface, this is it's ConfigType.
+	// interface, this is its ConfigType.
 	ConfigTypeBridged = "BRIDGED"
+
+	// TypeIPSec - If the interface is IPSEC, this is its Type
+	TypeIPSec = "IPSEC"
 )
 
 // Interface corresponds to the interface JSON structure in the settings.json
