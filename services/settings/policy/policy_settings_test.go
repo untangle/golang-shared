@@ -1119,6 +1119,36 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 			},
 		},
 		{
+			name: "interfacezone group object",
+			json: `{
+                "description": "interface zone group",
+                "id": "f4629ffa-2a7d-464a-aa5e-ca1cc3303137",
+                "items": [
+                    "05b7c6a1-87bd-408c-a93c-c57a37f0ed38",
+                    "12d18c78-a58b-4d68-ab44-f8406b5cb878",
+                    "e20332db-76be-4eec-81d0-68b7e3a6e322",
+                    "fd6dff22-cf7e-4b2e-a048-ea13d08386bf",
+                    "37527b0f-e70d-4f6a-8adf-ddc4d3aea250"
+                ],
+                "name": "Ruby Solution Test - Local Zones",
+                "type": "mfw-object-interfacezone-group"
+            }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "Ruby Solution Test - Local Zones",
+				Description: "interface zone group",
+				ID:          "f4629ffa-2a7d-464a-aa5e-ca1cc3303137",
+				Type:        InterfaceObjectGroupType,
+				Items: []string{
+					"05b7c6a1-87bd-408c-a93c-c57a37f0ed38",
+					"12d18c78-a58b-4d68-ab44-f8406b5cb878",
+					"e20332db-76be-4eec-81d0-68b7e3a6e322",
+					"fd6dff22-cf7e-4b2e-a048-ea13d08386bf",
+					"37527b0f-e70d-4f6a-8adf-ddc4d3aea250",
+				},
+			},
+		},
+		{
 			name: "condition various types",
 			json: `{
 						"name": "blooblah",
