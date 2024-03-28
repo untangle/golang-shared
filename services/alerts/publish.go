@@ -96,6 +96,12 @@ func (publisher *ZmqAlertPublisher) Shutdown() error {
 
 // Send publishes the alert to on the ZMQ publishing socket.
 func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
+	// Make sure it is not shutdown.
+	if atomic.LoadInt32(&publisher.started) == 0 {
+		publisher.logger.Debug("Alerts service has been shutdown.\n")
+		return
+	}
+
 	// 2 reasons to set the timestamp here:
 	// - the caller isn't responsible for setting the timestamp so we just need to set it in one place (here)
 	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
