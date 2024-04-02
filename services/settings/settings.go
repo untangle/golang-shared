@@ -430,6 +430,11 @@ func runSyncSettings(filename string, force bool, skipEosConfig bool) (string, e
 	jsonOutput, data, errParse := parseSyncSettingsJsonOutput(outBytes)
 
 	if err == nil {
+		// Fix log display by replacing raw string with literal and displaying each field on new line.
+		jsonOutput = strings.ReplaceAll(jsonOutput, `\n`, "\n\t")
+		jsonOutput = strings.ReplaceAll(jsonOutput, ",", ",\n")
+		jsonOutput = "\n" + jsonOutput
+
 		// if the json was invalid we return the error received from unmarshalling, the output will be empty
 		return jsonOutput, errParse
 	}
@@ -505,6 +510,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 	for scanner.Scan() {
 		logger.Info("sync-settings: %v\n", scanner.Text())
 	}
+
 	if err != nil {
 		logger.Warn("sync-settings return an error: %v\n", err.Error())
 		return output, err
