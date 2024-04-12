@@ -9,7 +9,7 @@ const (
 	HybridConfigPath = "/mnt/flash/mfw-settings/hybrid"
 )
 
-// Checks if running in the hybrid environment(packetd running in EOS with other daemons in an openWRT BST)
+// Checks if running in the hybrid environment(process is running in EOS with other daemons in an openWRT BST).
 func IsHybrid() (bool, error) {
 	_, err := os.Stat(HybridConfigPath)
 	if err == nil {
