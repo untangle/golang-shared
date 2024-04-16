@@ -5,6 +5,9 @@ import (
 )
 
 // AtomicBool is a boolean type that supports atomic operations.
+// golang 1.19 has an atomic bool in the stdlib. This should
+// swapped out for the stdlib type when openWRT moves to using
+// 1.19
 type AtomicBool struct {
 	flag int32
 }
