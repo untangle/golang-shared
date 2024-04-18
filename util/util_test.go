@@ -161,3 +161,39 @@ func TestStringArrayToDB(t *testing.T) {
 		})
 	}
 }
+
+// Test DecodeAttribute functions
+func TestDecodeAttribute(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         string
+		expected      string
+		errorExpected bool
+	}{
+		{
+			name:          "Null string input",
+			input:         "",
+			expected:      "",
+			errorExpected: false,
+		},
+		{
+			name:          "Actual value test",
+			input:         "Testingval",
+			expected:      "",
+			errorExpected: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if !test.errorExpected {
+				actual, err := DecodeAttribute(test.input)
+				assert.Equal(t, test.expected, actual)
+				assert.NoError(t, err)
+			} else {
+				_, err := DecodeAttribute(test.input)
+				assert.Error(t, err)
+			}
+		})
+	}
+}

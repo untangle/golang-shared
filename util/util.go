@@ -4,6 +4,8 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/base64"
+	"fmt"
 	"io"
 	"math/rand"
 	"strings"
@@ -101,4 +103,17 @@ func ExtractFilesFromTar(b []byte, isGzip bool, fileName ...string) (map[string]
 	}
 
 	return foundFiles, nil
+}
+
+// DecodeAttribute is used to decode strings into base64 encoded strings
+func DecodeAttribute(value string) (string, error) {
+	const num = 2
+	stringValue := fmt.Sprintf("%v", value)
+	rightStart := stringValue[len(stringValue)-num:]
+	rightEnd := stringValue[0 : len(stringValue)-num]
+	decodedBytes, err := base64.StdEncoding.DecodeString(rightStart + rightEnd)
+	if err != nil {
+		return "", err
+	}
+	return string(decodedBytes), nil
 }
