@@ -177,9 +177,15 @@ func TestDecodeAttribute(t *testing.T) {
 			errorExpected: false,
 		},
 		{
-			name:          "Actual value test",
+			name:          "String value test",
 			input:         "Testingval",
 			expected:      "",
+			errorExpected: true,
+		},
+		{
+			name:          "b64 encoded string value test",
+			input:         "VzdGluZ3ZhbA==VG",
+			expected:      "Testingval",
 			errorExpected: false,
 		},
 	}
