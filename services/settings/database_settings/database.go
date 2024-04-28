@@ -6,6 +6,7 @@ type Database struct {
 	Database         string `json:"db_name"`
 	UserName         string `json:"db_username"`
 	Password         string `json:"db_password"`
+	PasswordEncoded  string `json:"db_password_encoded"`
 	Server           string `json:"db_server"`
 	Port             int    `json:"db_port"`
 	Description      string `json:"description"`
