@@ -35,13 +35,14 @@ func TestInterfaceUnmarshal(t *testing.T) {
 	tests := []unmarshalTest{
 		{
 			name: "Generic Interface settings unmarshal test",
-			json: `{"Interfaces": [{"v4PPPoEPassword": "password"
+			json: `{"Interfaces": [{"v4PPPoEPassword": "password", "name": "internal"
 					}]}`,
 			expectedErr: false,
 			expected: Interfaces{
 				[]Interface{
 					{
 						V4PPPoEPassword: "password",
+						Name:            "internal",
 					},
 				},
 			},
