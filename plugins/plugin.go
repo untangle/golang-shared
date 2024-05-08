@@ -171,6 +171,7 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 	// create a func at runtime that we can invoke that requires
 	// the plugin to ensure it gets instantiated, and also appends
 	// it to the list of registered plugins.
+	logger.Info("**** RegisterAndProvidePlugin: IN\n")
 	saverFunc := reflect.MakeFunc(
 		reflect.FuncOf([]reflect.Type{outputType}, []reflect.Type{}, false),
 		func(vals []reflect.Value) []reflect.Value {
@@ -181,8 +182,10 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 		})
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
 	if err := control.Provide(constructor); err != nil {
+		logger.Info("**** couldn't register plugin constructor as a provider: %v, err: %s\n", constructor, err)
 		panic(fmt.Sprintf(
 			"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
+
 	}
 }
 
@@ -199,6 +202,8 @@ func (control *PluginControl) UnregisterPluginByIndex(indx int) {
 // NetlogHandler, or PacketProcessorPlugin, their handler methods are
 // registered with the backend so they will receive these events.
 func (control *PluginControl) Startup() {
+	logger.Info("**** PluginControl  Startup \n")
+
 	for _, saverFunc := range control.saverFuncs {
 		if err := control.Invoke(saverFunc.Interface()); err != nil {
 			panic(fmt.Sprintf("couldn't instantiate plugin: %s", err))
@@ -210,12 +215,14 @@ func (control *PluginControl) Startup() {
 	for indx, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
-
+			logger.Info("*** Failed to start plugin %s: %s", plugin.Name(), err)
 			if control.enableStartupPanic {
 				panic(fmt.Sprintf("couldn't startup plugin %s: %s",
 					plugin.Name(),
 					err))
 			} else {
+				logger.Info("***** couldn't startup plugin %s: %s\n",
+					plugin.Name(), err)
 				logger.Crit("couldn't startup plugin %s: %s\n",
 					plugin.Name(),
 					err)
