@@ -178,7 +178,7 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 			plugin := vals[0].Interface()
 			pluginIntf := plugin.(Plugin)
 			control.plugins = append(control.plugins, pluginIntf)
-			logger.Info("*** Update control plugin %v\n", pluginIntf)
+			logger.Info("*** Update control plugin %v %v \n", pluginIntf.Name(), pluginIntf)
 			return []reflect.Value{}
 		})
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
@@ -217,6 +217,9 @@ func (control *PluginControl) Startup() {
 
 	var toUnregister []int
 	logger.Info("*****control.plugins %v \n", control.plugins)
+	for index, plug := range control.plugins {
+		logger.Info("**** index %d and pluginanme %v plugin %v\n", index, plug.Name(), plug)
+	}
 	for indx, plugin := range control.plugins {
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {

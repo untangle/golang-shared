@@ -46,7 +46,7 @@ type LicenseManager struct {
 // is not valid, the function will return nil. Can't return an error since
 // this is being used by the GlobalPluginManager
 func NewLicenseManager(config *Config, logger loggerModel.LoggerLevels) *LicenseManager {
-	logger.Info("****** New license manager called")
+	logger.Info("****** New license manager called \n")
 	if config == nil {
 		logger.Err("Invalid config used when creating the License Manager\n")
 		return nil
