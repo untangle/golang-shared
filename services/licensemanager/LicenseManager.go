@@ -46,6 +46,7 @@ type LicenseManager struct {
 // is not valid, the function will return nil. Can't return an error since
 // this is being used by the GlobalPluginManager
 func NewLicenseManager(config *Config, logger loggerModel.LoggerLevels) *LicenseManager {
+	logger.Info("****** New license manager called")
 	if config == nil {
 		logger.Err("Invalid config used when creating the License Manager\n")
 		return nil
@@ -73,17 +74,18 @@ func (lm *LicenseManager) Name() string {
 
 // Startup the license manager service.
 func (lm *LicenseManager) Startup() error {
-	lm.logger.Info("Starting the license service\n")
+	logger.Info("*********** Starting the license service CALLLED\n")
 
 	util.Startup(lm.logger)
 
 	serviceStates, err := LoadServiceStates(lm.config.ServiceStateLocation)
 	if err != nil {
-		lm.logger.Warn("Unable to retrieve previous service state. %v\n", err)
+		logger.Warn("Unable to retrieve previous service state. %v\n", err)
 	}
 
 	if serviceStates == nil {
 		// Gen a new state file with services set to StateDisable
+		logger.Info(" ****** Startup:  serviceStates not found , create with StateDisable\n")
 		blankServiceStates := make([]ServiceState, 0)
 		for name := range lm.config.ValidServiceHooks {
 			newServiceState := ServiceState{Name: name, AllowedState: StateDisable}
@@ -95,21 +97,26 @@ func (lm *LicenseManager) Startup() error {
 	}
 
 	// Create each service
-	lm.logger.Debug("States %+v\n", serviceStates)
+	lm.logger.Info("States %+v\n", serviceStates)
+	logger.Info("******** States %+v\n", serviceStates)
 	for name, o := range lm.config.ValidServiceHooks {
 		var serviceState ServiceState
 		var found bool
 		serviceState, found = findServiceState(name, serviceStates)
 		if !found {
+			lm.logger.Info("Startup: serviceState not found, setting default value\n ")
+			logger.Info("******** Startup: serviceState not found, setting default value\n ")
 			serviceState = ServiceState{Name: name, AllowedState: StateDisable}
 		}
 		service := Service{Name: name, Hook: o, State: serviceState}
+		lm.logger.Info("Startup: serviceState found, setting actual value\n ")
+		logger.Info("********Startup: serviceState found, setting actual value\n ")
 		lm.services[name] = &service
 	}
 
 	// restart licenses
 	if err = lm.RefreshLicenses(); err != nil {
-		lm.logger.Warn("Not able to restart CLS: %v\n", err)
+		logger.Warn("Not able to restart CLS: %v\n", err)
 	}
 
 	go lm.clsWatchdog()
@@ -129,10 +136,10 @@ func (lm *LicenseManager) clsWatchdog() {
 			// shutdown license items if restart did not work
 			lm.logger.Warn("Watch seen\n")
 			if refreshErr := lm.RefreshLicenses(); refreshErr != nil {
-				lm.logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
+				logger.Warn("Couldn't restart CLS: %s\n", refreshErr)
 				lm.shutdownServices()
 			} else {
-				lm.logger.Info("Restarted CLS from watchdog\n")
+				logger.Info("Restarted CLS from watchdog\n")
 			}
 			lm.watchDog.Reset(lm.config.WatchDogInterval)
 		}
@@ -151,7 +158,8 @@ func (lm *LicenseManager) Shutdown() error {
 // GetLicenseDefaults gets the default validServiceStates
 // @return []string - string array of service keys for CLS to use
 func (lm *LicenseManager) GetLicenseDefaults() []string {
-	lm.logger.Debug("GetLicenseDefaults()\n")
+	lm.logger.Info("GetLicenseDefaults()\n")
+	logger.Info("**************GetLicenseDefaults()\n")
 	keys := make([]string, len(lm.config.ValidServiceHooks))
 	i := 0
 	for k := range lm.config.ValidServiceHooks {
@@ -186,8 +194,13 @@ func (lm *LicenseManager) IsLicenseEnabled(serviceName string) (bool, error) {
 	var serv *Service
 	var err error
 	if serv, err = lm.findService(serviceName); err != nil {
+		lm.logger.Info("IsLicenseEnabled: serviceName not found, return false\n")
+		logger.Info("************ IsLicenseEnabled: serviceName not found, return false\n")
 		return false, errServiceNotFound
 	}
+	lm.logger.Info("IsLicenseEnabled: actual state returned\n")
+	logger.Info("************ IsLicenseEnabled: actual state returned\n")
+
 	return serv.State.getAllowedState() == StateEnable, nil
 }
 
@@ -202,12 +215,13 @@ func (lm *LicenseManager) GetLicenseDetails() (LicenseInfo, error) {
 	licenseFileExists := licenseFileExists(lm.config.LicenseLocation)
 	if !licenseFileExists {
 		lm.logger.Warn("License file does not exist\n")
+		logger.Warn("License file does not exist\n")
 		return retLicense, errors.New(LicenseFileDoesNotExistStr)
 	}
 
 	jsonLicense, err := os.ReadFile(lm.config.LicenseLocation)
 	if err != nil {
-		lm.logger.Warn("Error opening license file: %s\n", err.Error())
+		logger.Warn("Error opening license file: %s\n", err.Error())
 		return retLicense, err
 	}
 
@@ -237,17 +251,20 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 			lm.logger.Warn("LicenseManager: when updating services, given nonexistent service: %s\n",
 				serviceName)
 		} else if isEnabled {
+			lm.logger.Info(" *******8 service enabled \n")
 			if setServiceStateErr := service.setServiceState(StateEnable); setServiceStateErr != nil {
 				lm.logger.Warn("Failed to set the desired state for service %v with error %v\n", serviceName, setServiceStateErr.Error())
+				lm.logger.Warn("Set service error\n")
 			}
 		} else {
+			lm.logger.Info(" ******88 service disabled \n")
 			lm.disableService(service)
 		}
 	}
 
 	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
 	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
-		lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
+		lm.logger.Warn("***Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
 	}
 
 	return err
@@ -310,8 +327,10 @@ func (lm *LicenseManager) shutdownServices() {
 func (lm *LicenseManager) findService(serviceName string) (*Service, error) {
 	service, ok := lm.services[serviceName]
 	if !ok {
+		logger.Info("*******findService: ServiceNotFound ")
 		return nil, errServiceNotFound
 	}
+	logger.Info("*******findService: ServiceFound ")
 	return service, nil
 }
 
