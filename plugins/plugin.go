@@ -181,12 +181,15 @@ func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstru
 			return []reflect.Value{}
 		})
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
+	logger.Info("**** RegisterAndProvidePlugin:  append saverFunc %v\n", control.saverFuncs)
 	if err := control.Provide(constructor); err != nil {
 		logger.Info("**** couldn't register plugin constructor as a provider: %v, err: %s\n", constructor, err)
 		panic(fmt.Sprintf(
 			"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
 
 	}
+	logger.Info("**** RegisterAndProvidePlugin: OUT\n")
+
 }
 
 // UnregisterPlugin removes a plugin from the list of plugins
@@ -205,6 +208,7 @@ func (control *PluginControl) Startup() {
 	logger.Info("**** PluginControl  Startup \n")
 
 	for _, saverFunc := range control.saverFuncs {
+		logger.Info("**** Inside saverFunc \n")
 		if err := control.Invoke(saverFunc.Interface()); err != nil {
 			panic(fmt.Sprintf("couldn't instantiate plugin: %s", err))
 		}
