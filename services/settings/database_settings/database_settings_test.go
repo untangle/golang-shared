@@ -32,6 +32,10 @@ func runUnmarshalTest(t *testing.T, tests []unmarshalTest) {
 
 // TestDatabaseUnmarshal tests unmarshalling the database settings
 func TestDatabaseUnmarshal(t *testing.T) {
+	var userNames  = []string{"test_user", ""}
+    var passwords  = []string{"test_pw", ""}
+    var servers  = []string{"test_server", ""}
+    var portValues = []int{5,0}
 	tests := []unmarshalTest{
 		{
 			name: "Generic database settings unmarshal test",
@@ -53,10 +57,10 @@ func TestDatabaseUnmarshal(t *testing.T) {
 					{
 						Enabled:          true,
 						Database:         "testingdb",
-						UserName:         "test_user",
-						Password:         "test_pw",
-						Server:           "test_server",
-						Port:             5,
+						UserName:         &userNames[0],
+						Password:         &passwords[0],
+						Server:           &servers[0],
+						Port:             &portValues[0],
 						Description:      "Some desc",
 						Name:             "New DB Source",
 						Type:             "DB Type 5",
@@ -90,10 +94,10 @@ func TestDatabaseUnmarshal(t *testing.T) {
 						Enabled:          true,
 						ConnectionString: "sqlite:///tmp/reports.db",
 						Database:         "reports.db",
-						UserName:         "",
-						Password:         "",
-						Server:           "",
-						Port:             0,
+						UserName:         &userNames[1],
+						Password:         &passwords[1],
+						Server:           &servers[1],
+						Port:             &portValues[1],
 						Description:      "Local reports database",
 						Name:             "Local DB",
 						Type:             "sqlite",
