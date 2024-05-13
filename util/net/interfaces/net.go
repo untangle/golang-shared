@@ -32,9 +32,8 @@ func (ifaces *InterfaceSettings) SetJsonPath(jsonPath ...string) {
 }
 
 const (
-	defaultSettingsFile = "/etc/config/settings.json"
-	defaultJsonParent   = "network"
-	defaultJsonChild    = "interfaces"
+	defaultJsonParent = "network"
+	defaultJsonChild  = "interfaces"
 )
 
 // NewInterfaceSettings returns an InterfaceSettings object which uses
@@ -115,7 +114,7 @@ func GetLocalInterfaces() []Interface {
 
 func GetDefaultInterfaceSettings() InterfaceSettings {
 	intfSettings := InterfaceSettings{
-		file:     settings.NewSettingsFile(defaultSettingsFile),
+		file:     settings.GetSettingsFileSingleton(),
 		jsonPath: []string{},
 	}
 	intfSettings.SetJsonPath(defaultJsonParent, defaultJsonChild)
