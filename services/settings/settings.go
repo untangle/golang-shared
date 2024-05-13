@@ -19,10 +19,13 @@ import (
 	"github.com/untangle/golang-shared/plugins/util"
 )
 
+// TODO: fix this, we should not rely on people happening to call Startup().
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
+// find the file or fallback to the old filename if we can't.
 func locateOrDefault(filename string) string {
+	// useing fmt.Fprintf because of the above logger var.
 	if filename, err := LocateFile(filename); err == nil {
 		return filename
 	}
