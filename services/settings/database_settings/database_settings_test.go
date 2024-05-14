@@ -32,6 +32,7 @@ func runUnmarshalTest(t *testing.T, tests []unmarshalTest) {
 
 // TestDatabaseUnmarshal tests unmarshalling the database settings
 func TestDatabaseUnmarshal(t *testing.T) {
+	// var defined
 	var userNames = []string{"test_user", ""}
 	var passwords = []string{"test_pw", ""}
 	var servers = []string{"test_server", ""}
