@@ -38,7 +38,7 @@ func TestDatabaseUnmarshal(t *testing.T) {
 	var portValues = []int{5, 0}
 	tests := []unmarshalTest{
 		{
-			name: "Generic database settings unmarshal test",
+			name: "Generic database settings unmarshal test.",
 			json: `{"databases": [{"enabled": true,
 					"db_name": "testingdb",
 					"db_username": "test_user",
