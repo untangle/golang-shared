@@ -19,12 +19,27 @@ import (
 	"github.com/untangle/golang-shared/plugins/util"
 )
 
+// TODO: fix this, we should not rely on people happening to call Startup().
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
-const settingsFile = "/etc/config/settings.json"
-const defaultsFile = "/etc/config/defaults.json"
-const currentFile = "/etc/config/current.json"
+// find the file or fallback to the old filename if we can't.
+func locateOrDefault(filename string) string {
+	// useing fmt.Fprintf because of the above logger var.
+	if filename, err := LocateFile(filename); err == nil {
+		return filename
+	}
+	fmt.Fprintf(os.Stderr,
+		"settings: Unable to locate: %s, defaulting...",
+		filename)
+	return filename
+}
+
+var (
+	settingsFile = locateOrDefault("/etc/config/settings.json")
+	defaultsFile = locateOrDefault("/etc/config/defaults.json")
+	currentFile  = locateOrDefault("/etc/config/current.json")
+)
 
 var syncCallbacks []func()
 
@@ -64,9 +79,18 @@ var settingsFileSingleton *SettingsFile
 // singleton. Prefer using this if you can.
 func GetSettingsFileSingleton() *SettingsFile {
 	if settingsFileSingleton == nil {
-		settingsFileSingleton = NewSettingsFile(
-			settingsFile,
-			WithLock(&saveLocker))
+		if fileName, err := LocateFile(settingsFile); err == nil {
+			settingsFileSingleton = NewSettingsFile(
+				fileName,
+				WithLock(&saveLocker))
+		} else {
+			fmt.Fprintf(os.Stderr,
+				"Unable to locate settings file, falling back to %s and hoping for the best...\n",
+				settingsFile)
+			settingsFileSingleton = NewSettingsFile(
+				settingsFile,
+				WithLock(&saveLocker))
+		}
 	}
 	return settingsFileSingleton
 }
@@ -77,6 +101,7 @@ func GetCurrentSettings(segments []string) (interface{}, error) {
 	// for backwards compatibility before we saved current.json
 	// if it does not exist, just read settings.json
 	// XXX this should be removed at some point in the future
+
 	if _, err := os.Stat(currentFile); os.IsNotExist(err) {
 		return GetSettingsFile(segments, settingsFile)
 	}
@@ -597,7 +622,7 @@ func tempFile(dir, pattern string) (f *os.File, err error) {
 
 // GetUIDOpenwrt returns the UID of the system
 func GetUIDOpenwrt() (string, error) {
-	return GetUID("/etc/config/uid")
+	return GetUID(locateOrDefault("/etc/config/uid"))
 }
 
 // GetUID returns the UID of the system

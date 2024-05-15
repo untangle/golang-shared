@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	logService "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/services/settings"
 )
 
 var logger = logService.GetLoggerInstance()
@@ -132,9 +133,14 @@ func loadApplicationTable() {
 	var err error
 
 	ApplicationTable = make(map[string]*ApplicationInfo)
-
+	filename, err := settings.LocateFile(guidInfoFile)
+	if err != nil {
+		logger.Warn("Unable to  locate GUID info file: %s\n",
+			guidInfoFile)
+		return
+	}
 	// open the guid info file provided by Sandvine
-	file, err = os.Open(guidInfoFile)
+	file, err = os.Open(filename)
 
 	// if there was an error log and return
 	if err != nil {
