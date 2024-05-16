@@ -45,8 +45,8 @@ type AtomicExpression struct {
 // For the purposes of handling AtomicExpressions with !=
 // which all must evaluate true to result in true
 type AtomicExpressionClause struct {
-	SubExpressions []*AtomicExpression
-	RequireAll     bool
+	SubExpressions       []*AtomicExpression
+	OverrideForNotEquals bool
 }
 
 const (
@@ -105,8 +105,8 @@ func NewSimpleExpression(
 	}
 	for _, ex := range exprs {
 		newClause := AtomicExpressionClause{
-			SubExpressions: ex,
-			RequireAll:     false,
+			SubExpressions:       ex,
+			OverrideForNotEquals: false,
 		}
 		newExpr.Clauses = append(newExpr.Clauses, &newClause)
 	}
@@ -138,8 +138,8 @@ func NewExpressionWithLookupFunc(
 	}
 	for _, ex := range exprs {
 		newClause := AtomicExpressionClause{
-			SubExpressions: ex,
-			RequireAll:     false,
+			SubExpressions:       ex,
+			OverrideForNotEquals: false,
 		}
 		newExpr.Clauses = append(newExpr.Clauses, &newClause)
 	}
@@ -217,7 +217,7 @@ func (e Expression) evalClause(clause *AtomicExpressionClause) (bool, error) {
 	switch e.ExpressionConnective {
 	case AndOfOrsMode:
 		// This overrides the AndOfOrsMode in the case of "!="
-		if clause.RequireAll {
+		if clause.OverrideForNotEquals {
 			return allOf(e.evalAtomicExpression, clause.SubExpressions)
 		}
 		return anyOf(e.evalAtomicExpression, clause.SubExpressions)
