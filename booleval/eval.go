@@ -42,6 +42,13 @@ type AtomicExpression struct {
 	ActualValue  any
 }
 
+// For the purposes of handling AtomicExpressions with !=
+// which all must evaluate true to result in true
+type AtomicExpressionClause struct {
+	SubExpressions []*AtomicExpression
+	RequireAll     bool
+}
+
 const (
 	// AndOfOrsMode is an evaluator mode -- and we AND each
 	// condition, and the possible values are ORed
@@ -79,7 +86,7 @@ type Expression struct {
 	// [[x OR y] AND [a OR b OR c]]
 	// [x OR y] is the first list in the outer list.
 	// The inner lists  are called 'clauses'
-	AtomicExpressions [][]*AtomicExpression
+	Clauses []*AtomicExpressionClause
 
 	// LookupFunc is used to look up a replacement for any
 	// ActualValue in an AtomicExpression during evaluation.
@@ -91,11 +98,19 @@ type Expression struct {
 func NewSimpleExpression(
 	connective EvaluatorMode,
 	exprs [][]*AtomicExpression) Expression {
-	return Expression{
+	newExpr := Expression{
 		ExpressionConnective: connective,
-		AtomicExpressions:    exprs,
+		Clauses:              make([]*AtomicExpressionClause, 1),
 		LookupFunc:           func(v any) any { return v },
 	}
+	for _, ex := range exprs {
+		newClause := AtomicExpressionClause{
+			SubExpressions: ex,
+			RequireAll:     false,
+		}
+		newExpr.Clauses = append(newExpr.Clauses, &newClause)
+	}
+	return newExpr
 }
 
 // ExpressionCopyWithLookupFunc creates a copy of this expression (not
@@ -105,9 +120,8 @@ func ExpressionCopyWithLookupFunc(
 	expr Expression,
 	lookupFunc func(any) any) Expression {
 	return Expression{
-		ExpressionConnective: expr.ExpressionConnective,
-		AtomicExpressions:    expr.AtomicExpressions,
-		LookupFunc:           lookupFunc,
+		Clauses:    expr.Clauses,
+		LookupFunc: lookupFunc,
 	}
 }
 
@@ -117,10 +131,19 @@ func NewExpressionWithLookupFunc(
 	connective EvaluatorMode,
 	exprs [][]*AtomicExpression,
 	lookupFunc func(any) any) Expression {
-	return Expression{
+	newExpr := Expression{
 		ExpressionConnective: connective,
-		AtomicExpressions:    exprs,
-		LookupFunc:           lookupFunc}
+		Clauses:              make([]*AtomicExpressionClause, 1),
+		LookupFunc:           lookupFunc,
+	}
+	for _, ex := range exprs {
+		newClause := AtomicExpressionClause{
+			SubExpressions: ex,
+			RequireAll:     false,
+		}
+		newExpr.Clauses = append(newExpr.Clauses, &newClause)
+	}
+	return newExpr
 }
 
 type boolEvaler func(any) (bool, error)
@@ -167,7 +190,7 @@ func noneOf[P any, F func(P) (bool, error)](eval F, params []P) (bool, error) {
 // Evaluate() returns the value of the expression, or an error if
 // something was malformed.
 func (expr Expression) Evaluate() (bool, error) {
-	return expr.evalExpressionClauses(expr.AtomicExpressions)
+	return expr.evalExpressionClauses(expr.Clauses)
 }
 
 // notOfResult -- just the not of result (!result, err), unless err is
@@ -180,7 +203,7 @@ func notOfResult(result bool, err error) (bool, error) {
 	}
 
 }
-func (e Expression) evalExpressionClauses(expr [][]*AtomicExpression) (bool, error) {
+func (e Expression) evalExpressionClauses(expr []*AtomicExpressionClause) (bool, error) {
 	switch e.ExpressionConnective {
 	case AndOfOrsMode:
 		return allOf(e.evalClause, expr)
@@ -190,12 +213,16 @@ func (e Expression) evalExpressionClauses(expr [][]*AtomicExpression) (bool, err
 	return false, fmt.Errorf("booleval: unknown mode passed to evaluator: %v", e.ExpressionConnective)
 }
 
-func (e Expression) evalClause(clause []*AtomicExpression) (bool, error) {
+func (e Expression) evalClause(clause *AtomicExpressionClause) (bool, error) {
 	switch e.ExpressionConnective {
 	case AndOfOrsMode:
-		return anyOf(e.evalAtomicExpression, clause)
+		// This overrides the AndOfOrsMode in the case of "!="
+		if clause.RequireAll {
+			return allOf(e.evalAtomicExpression, clause.SubExpressions)
+		}
+		return anyOf(e.evalAtomicExpression, clause.SubExpressions)
 	case OrOfAndsMode:
-		return allOf(e.evalAtomicExpression, clause)
+		return allOf(e.evalAtomicExpression, clause.SubExpressions)
 	}
 	return false, fmt.Errorf("booleval: unknown mode passed to evaluator: %v", e.ExpressionConnective)
 }
