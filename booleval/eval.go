@@ -100,7 +100,7 @@ func NewSimpleExpression(
 	exprs [][]*AtomicExpression) Expression {
 	newExpr := Expression{
 		ExpressionConnective: connective,
-		Clauses:              make([]*AtomicExpressionClause, 1),
+		Clauses:              make([]*AtomicExpressionClause, 0),
 		LookupFunc:           func(v any) any { return v },
 	}
 	for _, ex := range exprs {
@@ -133,7 +133,7 @@ func NewExpressionWithLookupFunc(
 	lookupFunc func(any) any) Expression {
 	newExpr := Expression{
 		ExpressionConnective: connective,
-		Clauses:              make([]*AtomicExpressionClause, 1),
+		Clauses:              make([]*AtomicExpressionClause, 0),
 		LookupFunc:           lookupFunc,
 	}
 	for _, ex := range exprs {
