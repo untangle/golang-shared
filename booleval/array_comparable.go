@@ -40,6 +40,11 @@ func NewArrayComparable(value any) ArrayComparable {
 	return ArrayComparable{comparables}
 }
 
+// NewArrayComparableFromComparables ...
+func NewArrayComparableFromComparables(comparables []Comparable) ArrayComparable {
+	return ArrayComparable{comparables}
+}
+
 // Equal returns true if other is is equal to any of the comparables in the array
 func (s ArrayComparable) Equal(other any) (bool, error) {
 	for _, v := range s.theThings {
