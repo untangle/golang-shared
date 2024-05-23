@@ -110,8 +110,11 @@ func SetLoggerInstance(newSingleton *Logger) {
 // NewLogger creates an new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	var logCount uint64 = 0
+
+	settingsFile, err := settings.GetSettingsFileSingleton()
+
 	logger := &Logger{
-		config:           DefaultLoggerConfig(),
+		config:           DefaultLoggerConfig(settingsFile),
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 		logCount:         &logCount,
@@ -119,14 +122,23 @@ func NewLogger() *Logger {
 
 	logger.startRefreshConfigOnSIGHUP()
 
+	// The settings package can not log messages because the logger is not yet initialised.
+	// We catch errors during the initialisation of settings services needed so we can log
+	// them when the logger is ready. Even if the initialisation of the settings file returns
+	// an error, the settings file object might work because the constructor has fallback mechanisms.
+	if err != nil {
+		logger.Err("Error initializing settings file: %v", err)
+	}
+	settings.Startup(logger)
+
 	return logger
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
-func DefaultLoggerConfig() *LoggerConfig {
+func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
 
 	return &LoggerConfig{
-		SettingsFile: settings.GetSettingsFileSingleton(),
+		SettingsFile: settingsFile,
 		SettingsPath: []string{},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,

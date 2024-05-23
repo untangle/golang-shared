@@ -19,26 +19,22 @@ import (
 	"github.com/untangle/golang-shared/plugins/util"
 )
 
-// TODO: fix this, we should not rely on people happening to call Startup().
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
 // find the file or fallback to the old filename if we can't.
-func locateOrDefault(filename string) string {
-	// useing fmt.Fprintf because of the above logger var.
+func locateOrDefault(filename string) (string, error) {
 	if filename, err := LocateFile(filename); err == nil {
-		return filename
+		return filename, nil
 	}
-	fmt.Fprintf(os.Stderr,
-		"settings: Unable to locate: %s, defaulting...",
-		filename)
-	return filename
+
+	return filename, fmt.Errorf("settings: Unable to locate: %s, defaulting...", filename)
 }
 
 var (
-	settingsFile = locateOrDefault("/etc/config/settings.json")
-	defaultsFile = locateOrDefault("/etc/config/defaults.json")
-	currentFile  = locateOrDefault("/etc/config/current.json")
+	settingsFile = "/etc/config/settings.json"
+	defaultsFile = "/etc/config/defaults.json"
+	currentFile  = "/etc/config/current.json"
 )
 
 var syncCallbacks []func()
@@ -77,22 +73,26 @@ var settingsFileSingleton *SettingsFile
 
 // GetSettingsFileSingleton returns a SettingsFile object that is a
 // singleton. Prefer using this if you can.
-func GetSettingsFileSingleton() *SettingsFile {
+// This singleton can return an error, but the SettingsFile instance
+// may still work because there are fallback mechanisms.
+// We return the error for logging purposes. The logger constructor
+// relies on this singleton, to initialise the logger, so when this
+// is called it is possible that we do not have a logger yet.
+func GetSettingsFileSingleton() (*SettingsFile, error) {
+	var err error
 	if settingsFileSingleton == nil {
 		if fileName, err := LocateFile(settingsFile); err == nil {
 			settingsFileSingleton = NewSettingsFile(
 				fileName,
 				WithLock(&saveLocker))
 		} else {
-			fmt.Fprintf(os.Stderr,
-				"Unable to locate settings file, falling back to %s and hoping for the best...\n",
-				settingsFile)
+			err = fmt.Errorf("Unable to locate settings file, falling back to %s and hoping for the best...\n", settingsFile)
 			settingsFileSingleton = NewSettingsFile(
 				settingsFile,
 				WithLock(&saveLocker))
 		}
 	}
-	return settingsFileSingleton
+	return settingsFileSingleton, err
 }
 
 // GetCurrentSettings returns the current settings from the specified path
@@ -622,7 +622,12 @@ func tempFile(dir, pattern string) (f *os.File, err error) {
 
 // GetUIDOpenwrt returns the UID of the system
 func GetUIDOpenwrt() (string, error) {
-	return GetUID(locateOrDefault("/etc/config/uid"))
+	uuidFile, err := locateOrDefault("/etc/config/uid")
+	if err != nil {
+		logger.Err("Error locating /etc/config/uid: %v\n", err)
+	}
+
+	return GetUID(uuidFile)
 }
 
 // GetUID returns the UID of the system
