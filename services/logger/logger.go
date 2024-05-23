@@ -119,7 +119,11 @@ func NewLogger() *Logger {
 		logCount:         &logCount,
 	}
 
+	// Load the config to set the logeLevelMap from the settings file.
+	logger.LoadConfig(logger.config)
 	logger.startRefreshConfigOnSIGHUP()
+
+	settings.Startup(logger)
 
 	// The settings package can not log messages because the logger is not yet initialised.
 	// We catch errors during the initialisation of settings services needed so we can log
@@ -128,7 +132,6 @@ func NewLogger() *Logger {
 	if err != nil {
 		logger.Err("Error initializing settings file: %v \n", err)
 	}
-	settings.Startup(logger)
 
 	return logger
 }
@@ -137,7 +140,7 @@ func NewLogger() *Logger {
 func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
 
 	return &LoggerConfig{
-		SettingsFile: settingsFile,
+		//SettingsFile: settingsFile,
 		SettingsPath: []string{},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
