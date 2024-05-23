@@ -168,9 +168,6 @@ func (logger *Logger) LoadConfig(conf *LoggerConfig) {
 
 	conf.SetLogLevelMap(logLevelMap)
 	logger.config = conf
-
-	fmt.Fprintf(os.Stderr, "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
-
 }
 
 // GetConfig returns the logger config
