@@ -119,11 +119,10 @@ func NewLogger() *Logger {
 		logCount:         &logCount,
 	}
 
+	settings.Startup(logger)
 	// Load the config to set the logeLevelMap from the settings file.
 	logger.LoadConfig(logger.config)
 	logger.startRefreshConfigOnSIGHUP()
-
-	settings.Startup(logger)
 
 	// The settings package can not log messages because the logger
 	// is not yet initialised. We catch errors during the initialisation
