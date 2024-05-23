@@ -22,20 +22,22 @@ import (
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
-// find the file or fallback to the old filename if we can't.
-func locateOrDefault(filename string) (string, error) {
-	if filename, err := LocateFile(filename); err == nil {
-		return filename, nil
-	}
-
-	return filename, fmt.Errorf("settings: Unable to locate: %s, defaulting...", filename)
-}
-
 var (
 	settingsFile = "/etc/config/settings.json"
 	defaultsFile = "/etc/config/defaults.json"
 	currentFile  = "/etc/config/current.json"
 )
+
+// find the file or fallback to the old filename if we can't.
+func locateOrDefault(filename string) string {
+	if filename, err := LocateFile(filename); err == nil {
+		return filename
+	}
+
+	logger.Err("settings: Unable to locate: %s, defaulting...", filename)
+
+	return filename
+}
 
 var syncCallbacks []func()
 
@@ -53,6 +55,10 @@ func Startup(loggerInstance loggerModel.LoggerLevels) {
 	once.Do(func() {
 		logger = loggerInstance
 		util.Startup(loggerInstance)
+
+		settingsFile = locateOrDefault(settingsFile)
+		defaultsFile = locateOrDefault(defaultsFile)
+		currentFile = locateOrDefault(currentFile)
 	})
 }
 
@@ -622,12 +628,7 @@ func tempFile(dir, pattern string) (f *os.File, err error) {
 
 // GetUIDOpenwrt returns the UID of the system
 func GetUIDOpenwrt() (string, error) {
-	uuidFile, err := locateOrDefault("/etc/config/uid")
-	if err != nil {
-		logger.Err("Error locating /etc/config/uid: %v\n", err)
-	}
-
-	return GetUID(uuidFile)
+	return GetUID(locateOrDefault("/etc/config/uid"))
 }
 
 // GetUID returns the UID of the system
