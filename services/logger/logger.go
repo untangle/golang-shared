@@ -125,10 +125,12 @@ func NewLogger() *Logger {
 
 	settings.Startup(logger)
 
-	// The settings package can not log messages because the logger is not yet initialised.
-	// We catch errors during the initialisation of settings services needed so we can log
-	// them when the logger is ready. Even if the initialisation of the settings file returns
-	// an error, the settings file object might work because the constructor has fallback mechanisms.
+	// The settings package can not log messages because the logger
+	// is not yet initialised. We catch errors during the initialisation
+	// of settings services needed so we can log them when the logger is
+	// ready. Even if the initialisation of the settings file returns an
+	// error, the settings file object might work because the constructor
+	// has fallback mechanisms.
 	if err != nil {
 		logger.Err("Error initializing settings file: %v \n", err)
 	}
