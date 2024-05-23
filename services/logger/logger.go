@@ -112,7 +112,6 @@ func NewLogger() *Logger {
 	var logCount uint64 = 0
 
 	settingsFile, err := settings.GetSettingsFileSingleton()
-
 	logger := &Logger{
 		config:           DefaultLoggerConfig(settingsFile),
 		launchTime:       time.Time{},
@@ -127,7 +126,7 @@ func NewLogger() *Logger {
 	// them when the logger is ready. Even if the initialisation of the settings file returns
 	// an error, the settings file object might work because the constructor has fallback mechanisms.
 	if err != nil {
-		logger.Err("Error initializing settings file: %v", err)
+		logger.Err("Error initializing settings file: %v \n", err)
 	}
 	settings.Startup(logger)
 

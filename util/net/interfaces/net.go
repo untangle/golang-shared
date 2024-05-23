@@ -113,8 +113,12 @@ func GetLocalInterfaces() []Interface {
 }
 
 func GetDefaultInterfaceSettings() InterfaceSettings {
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	if err != nil {
+		logger.Err(err.Error())
+	}
 	intfSettings := InterfaceSettings{
-		file:     settings.GetSettingsFileSingleton(),
+		file:     settingsFile,
 		jsonPath: []string{},
 	}
 	intfSettings.SetJsonPath(defaultJsonParent, defaultJsonChild)

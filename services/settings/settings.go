@@ -85,19 +85,22 @@ var settingsFileSingleton *SettingsFile
 // relies on this singleton, to initialise the logger, so when this
 // is called it is possible that we do not have a logger yet.
 func GetSettingsFileSingleton() (*SettingsFile, error) {
-	var err error
-	if settingsFileSingleton == nil {
-		if fileName, err := LocateFile(settingsFile); err == nil {
-			settingsFileSingleton = NewSettingsFile(
-				fileName,
-				WithLock(&saveLocker))
-		} else {
-			err = fmt.Errorf("Unable to locate settings file, falling back to %s and hoping for the best...\n", settingsFile)
-			settingsFileSingleton = NewSettingsFile(
-				settingsFile,
-				WithLock(&saveLocker))
-		}
+	if settingsFileSingleton != nil {
+		return settingsFileSingleton, nil
 	}
+
+	fileName, err := LocateFile(settingsFile)
+	if err == nil {
+		settingsFileSingleton = NewSettingsFile(
+			fileName,
+			WithLock(&saveLocker))
+	} else {
+		err = fmt.Errorf("Unable to locate settings file, falling back to %s and hoping for the best...\n", settingsFile)
+		settingsFileSingleton = NewSettingsFile(
+			settingsFile,
+			WithLock(&saveLocker))
+	}
+
 	return settingsFileSingleton, err
 }
 

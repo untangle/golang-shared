@@ -208,8 +208,12 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 func (suite *TestLogger) TestDefaultInstance() {
 	logInstance := NewLogger()
 
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	assert.Nil(suite.T(), err)
+	config := DefaultLoggerConfig(settingsFile)
+
 	//Verify the pointers match
-	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+	assert.Equal(suite.T(), config, logInstance.config)
 
 	// Verify other properties on default instance
 	assert.Equal(suite.T(), false, logInstance.timestampEnabled)
@@ -305,8 +309,12 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 func (suite *TestLogger) TestSaveToDisk() {
 	logInstance := NewLogger()
 
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	assert.Nil(suite.T(), err)
+	config := DefaultLoggerConfig(settingsFile)
+
 	//Verify we loaded the default config
-	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+	assert.Equal(suite.T(), config, logInstance.config)
 
 	// Create the test config - save it, load it to the new instance and verify it loaded
 	testConfig := createTestConfig()
@@ -431,8 +439,12 @@ func (suite *TestLogger) TestGetInstanceWithConfig() {
 	SetLoggerInstance(NewLogger())
 	logInstance := GetLoggerInstance()
 
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	assert.Nil(suite.T(), err)
+	config := DefaultLoggerConfig(settingsFile)
+
 	// Verify default config was loaded
-	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+	assert.Equal(suite.T(), config, logInstance.config)
 
 	expectedConfig := createTestConfig()
 
