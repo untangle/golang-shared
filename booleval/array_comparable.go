@@ -40,7 +40,8 @@ func NewArrayComparable(value any) ArrayComparable {
 	return ArrayComparable{comparables}
 }
 
-// NewArrayComparableFromComparables ...
+// NewArrayComparableFromComparables creates a new ArrayComparable
+// from an existing array of Comparables
 func NewArrayComparableFromComparables(comparables []Comparable) ArrayComparable {
 	return ArrayComparable{comparables}
 }
