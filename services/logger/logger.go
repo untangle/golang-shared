@@ -141,7 +141,7 @@ func NewLogger() *Logger {
 func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
 
 	return &LoggerConfig{
-		//SettingsFile: settingsFile,
+		SettingsFile: settingsFile,
 		SettingsPath: []string{},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
