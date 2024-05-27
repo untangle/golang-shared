@@ -1,6 +1,6 @@
 package redirectportal
 
 const (
-	threathPreventionReasonZMQTopic = "arista:packetd:threathpreventionreason"
-	zmqThreadpreventionSocket       = "ipc:///var/zmq_packetd_threadprevention"
+	ThreathPreventionReasonZMQTopic = "arista:packetd:threathpreventionreason"
+	ZmqThreadpreventionSocket       = "ipc:///var/zmq_packetd_threadprevention"
 )
