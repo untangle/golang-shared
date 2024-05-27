@@ -50,6 +50,9 @@ var SighupExecutables []string
 // saveLocker is used to synchronize calls to the setsettings call
 var saveLocker sync.RWMutex
 
+// initSettingsFileLocker is used to synchronize calls to GetSettingsFileSingleton
+var initSettingsFileLocker sync.RWMutex
+
 // Startup settings service
 func Startup(loggerInstance loggerModel.LoggerLevels) {
 	once.Do(func() {
@@ -85,6 +88,9 @@ var settingsFileSingleton *SettingsFile
 // relies on this singleton, to initialise the logger, so when this
 // is called it is possible that we do not have a logger yet.
 func GetSettingsFileSingleton() (*SettingsFile, error) {
+	initSettingsFileLocker.Lock()
+	defer initSettingsFileLocker.Unlock()
+
 	if settingsFileSingleton != nil {
 		return settingsFileSingleton, nil
 	}
