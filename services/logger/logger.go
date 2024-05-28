@@ -88,7 +88,22 @@ var once sync.Once
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
 	once.Do(func() {
-		loggerSingleton = NewLogger()
+		settingsFile, err := settings.GetSettingsFileSingleton()
+		loggerSingleton = NewLogger(settingsFile)
+
+		settings.Startup(loggerSingleton)
+		// Load the config to set the logLevelMap from the settings file.
+		loggerSingleton.LoadConfig(loggerSingleton.config)
+
+		// The settings package can not log messages because the logger
+		// is not yet initialised. We catch errors during the initialisation
+		// of settings services needed so we can log them when the logger is
+		// ready. Even if the initialisation of the settings file returns an
+		// error, the settings file object might work because the constructor
+		// has fallback mechanisms.
+		if err != nil {
+			loggerSingleton.Err("Error initializing settings file: %v \n", err)
+		}
 	})
 
 	return loggerSingleton
@@ -107,11 +122,10 @@ func SetLoggerInstance(newSingleton *Logger) {
 	loggerSingleton = newSingleton
 }
 
-// NewLogger creates an new instance of the logger struct with wildcard config
-func NewLogger() *Logger {
+// NewLogger creates a new instance of the logger struct with wildcard config
+func NewLogger(settingsFile *settings.SettingsFile) *Logger {
 	var logCount uint64 = 0
 
-	settingsFile, err := settings.GetSettingsFileSingleton()
 	logger := &Logger{
 		config:           DefaultLoggerConfig(settingsFile),
 		launchTime:       time.Time{},
@@ -119,20 +133,7 @@ func NewLogger() *Logger {
 		logCount:         &logCount,
 	}
 
-	settings.Startup(logger)
-	// Load the config to set the logeLevelMap from the settings file.
-	logger.LoadConfig(logger.config)
 	logger.startRefreshConfigOnSIGHUP()
-
-	// The settings package can not log messages because the logger
-	// is not yet initialised. We catch errors during the initialisation
-	// of settings services needed so we can log them when the logger is
-	// ready. Even if the initialisation of the settings file returns an
-	// error, the settings file object might work because the constructor
-	// has fallback mechanisms.
-	if err != nil {
-		logger.Err("Error initializing settings file: %v \n", err)
-	}
 
 	return logger
 }
