@@ -92,8 +92,6 @@ func GetLoggerInstance() *Logger {
 		loggerSingleton = NewLogger(settingsFile)
 
 		settings.Startup(loggerSingleton)
-		// Load the config to set the logLevelMap from the settings file.
-		loggerSingleton.LoadConfig(loggerSingleton.config)
 
 		// The settings package can not log messages because the logger
 		// is not yet initialised. We catch errors during the initialisation
@@ -103,6 +101,9 @@ func GetLoggerInstance() *Logger {
 		// has fallback mechanisms.
 		if err != nil {
 			loggerSingleton.Err("Error initializing settings file: %v \n", err)
+		} else {
+			// Load the config to set the logLevelMap from the settings file.
+			loggerSingleton.LoadConfig(loggerSingleton.config)
 		}
 	})
 
