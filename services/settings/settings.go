@@ -19,27 +19,25 @@ import (
 	"github.com/untangle/golang-shared/plugins/util"
 )
 
-// TODO: fix this, we should not rely on people happening to call Startup().
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
+var (
+	settingsFile = "/etc/config/settings.json"
+	defaultsFile = "/etc/config/defaults.json"
+	currentFile  = "/etc/config/current.json"
+)
+
 // find the file or fallback to the old filename if we can't.
 func locateOrDefault(filename string) string {
-	// useing fmt.Fprintf because of the above logger var.
 	if filename, err := LocateFile(filename); err == nil {
 		return filename
 	}
-	fmt.Fprintf(os.Stderr,
-		"settings: Unable to locate: %s, defaulting...",
-		filename)
+
+	logger.Err("settings: Unable to locate: %s, defaulting...", filename)
+
 	return filename
 }
-
-var (
-	settingsFile = locateOrDefault("/etc/config/settings.json")
-	defaultsFile = locateOrDefault("/etc/config/defaults.json")
-	currentFile  = locateOrDefault("/etc/config/current.json")
-)
 
 var syncCallbacks []func()
 
@@ -52,11 +50,18 @@ var SighupExecutables []string
 // saveLocker is used to synchronize calls to the setsettings call
 var saveLocker sync.RWMutex
 
+// initSettingsFileLocker is used to synchronize calls to GetSettingsFileSingleton
+var initSettingsFileLocker sync.RWMutex
+
 // Startup settings service
 func Startup(loggerInstance loggerModel.LoggerLevels) {
 	once.Do(func() {
 		logger = loggerInstance
 		util.Startup(loggerInstance)
+
+		settingsFile = locateOrDefault(settingsFile)
+		defaultsFile = locateOrDefault(defaultsFile)
+		currentFile = locateOrDefault(currentFile)
 	})
 }
 
@@ -77,22 +82,32 @@ var settingsFileSingleton *SettingsFile
 
 // GetSettingsFileSingleton returns a SettingsFile object that is a
 // singleton. Prefer using this if you can.
-func GetSettingsFileSingleton() *SettingsFile {
-	if settingsFileSingleton == nil {
-		if fileName, err := LocateFile(settingsFile); err == nil {
-			settingsFileSingleton = NewSettingsFile(
-				fileName,
-				WithLock(&saveLocker))
-		} else {
-			fmt.Fprintf(os.Stderr,
-				"Unable to locate settings file, falling back to %s and hoping for the best...\n",
-				settingsFile)
-			settingsFileSingleton = NewSettingsFile(
-				settingsFile,
-				WithLock(&saveLocker))
-		}
+// This singleton can return an error, but the SettingsFile instance
+// may still work because there are fallback mechanisms.
+// We return the error for logging purposes. The logger constructor
+// relies on this singleton, to initialise the logger, so when this
+// is called it is possible that we do not have a logger yet.
+func GetSettingsFileSingleton() (*SettingsFile, error) {
+	initSettingsFileLocker.Lock()
+	defer initSettingsFileLocker.Unlock()
+
+	if settingsFileSingleton != nil {
+		return settingsFileSingleton, nil
 	}
-	return settingsFileSingleton
+
+	fileName, err := LocateFile(settingsFile)
+	if err == nil {
+		settingsFileSingleton = NewSettingsFile(
+			fileName,
+			WithLock(&saveLocker))
+	} else {
+		err = fmt.Errorf("Unable to locate settings file, falling back to %s and hoping for the best...\n", settingsFile)
+		settingsFileSingleton = NewSettingsFile(
+			settingsFile,
+			WithLock(&saveLocker))
+	}
+
+	return settingsFileSingleton, err
 }
 
 // GetCurrentSettings returns the current settings from the specified path

@@ -88,7 +88,23 @@ var once sync.Once
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
 	once.Do(func() {
-		loggerSingleton = NewLogger()
+		settingsFile, err := settings.GetSettingsFileSingleton()
+		loggerSingleton = NewLogger(settingsFile)
+
+		settings.Startup(loggerSingleton)
+
+		// The settings package can not log messages because the logger
+		// is not yet initialised. We catch errors during the initialisation
+		// of settings services needed so we can log them when the logger is
+		// ready. Even if the initialisation of the settings file returns an
+		// error, the settings file object might work because the constructor
+		// has fallback mechanisms.
+		if err != nil {
+			loggerSingleton.Err("Error initializing settings file: %v \n", err)
+		} else {
+			// Load the config to set the logLevelMap from the settings file.
+			loggerSingleton.LoadConfig(loggerSingleton.config)
+		}
 	})
 
 	return loggerSingleton
@@ -107,11 +123,12 @@ func SetLoggerInstance(newSingleton *Logger) {
 	loggerSingleton = newSingleton
 }
 
-// NewLogger creates an new instance of the logger struct with wildcard config
-func NewLogger() *Logger {
+// NewLogger creates a new instance of the logger struct with wildcard config
+func NewLogger(settingsFile *settings.SettingsFile) *Logger {
 	var logCount uint64 = 0
+
 	logger := &Logger{
-		config:           DefaultLoggerConfig(),
+		config:           DefaultLoggerConfig(settingsFile),
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 		logCount:         &logCount,
@@ -123,10 +140,10 @@ func NewLogger() *Logger {
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
-func DefaultLoggerConfig() *LoggerConfig {
+func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
 
 	return &LoggerConfig{
-		SettingsFile: settings.GetSettingsFileSingleton(),
+		SettingsFile: settingsFile,
 		SettingsPath: []string{},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
@@ -178,18 +195,21 @@ func (logger *Logger) getLogCount() uint64 {
 
 // Startup starts the logging service
 func (logger *Logger) Startup() {
+	once.Do(func() {
+		// capture startup time
+		logger.launchTime = time.Now()
 
-	// capture startup time
-	logger.launchTime = time.Now()
-	logger.alerts = alerts.Publisher(logger)
+		// alerts use the logger, and the logger uses alerts
+		// pass the logger instance to the alerts
+		logger.alerts = alerts.Publisher(logger)
 
-	if logger.config != nil {
-
-		// Set system logger to use our logger
-		if logger.config.OutputWriter != nil {
-			log.SetOutput(logger.config.OutputWriter)
+		if logger.config != nil {
+			// Set system logger to use our logger
+			if logger.config.OutputWriter != nil {
+				log.SetOutput(logger.config.OutputWriter)
+			}
 		}
-	}
+	})
 }
 
 // Name returns the service name

@@ -171,7 +171,7 @@ func (suite *TestLogger) TestFindLogLevelID() {
 }
 
 func (suite *TestLogger) TestWrite() {
-	logger := NewLogger()
+	logger := suite.buildLogger()
 	int_result, error_result := logger.config.OutputWriter.Write([]byte("test\n"))
 	assert.Equal(suite.T(), 5, int_result)
 	assert.Equal(suite.T(), nil, error_result)
@@ -182,7 +182,7 @@ func (suite *TestLogger) TestDefaultLogWriter() {
 }
 
 func (suite *TestLogger) TestLoadConfigFromFile() {
-	logger := NewLogger()
+	logger := suite.buildLogger()
 
 	//Test load from default file that may or may not exist
 	_, err := logger.config.GetLogLevelMapFromSettingsFile()
@@ -206,10 +206,14 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 }
 
 func (suite *TestLogger) TestDefaultInstance() {
-	logInstance := NewLogger()
+	logInstance := suite.buildLogger()
+
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	assert.Nil(suite.T(), err)
+	config := DefaultLoggerConfig(settingsFile)
 
 	//Verify the pointers match
-	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+	assert.Equal(suite.T(), config, logInstance.config)
 
 	// Verify other properties on default instance
 	assert.Equal(suite.T(), false, logInstance.timestampEnabled)
@@ -221,7 +225,7 @@ func (suite *TestLogger) TestDefaultInstance() {
 
 func (suite *TestLogger) TestInstanceModifications() {
 
-	SetLoggerInstance(NewLogger())
+	SetLoggerInstance(suite.buildLogger())
 
 	logInstance := GetLoggerInstance()
 	testConfig := createTestConfig()
@@ -244,7 +248,7 @@ func (suite *TestLogger) TestInstanceModifications() {
 
 func (suite *TestLogger) TestMultiThreadAccess() {
 	currentCtx := context.Background()
-	SetLoggerInstance(NewLogger())
+	SetLoggerInstance(suite.buildLogger())
 	logInstance := GetLoggerInstance()
 	testingOutput := "Testing output for %s\n"
 	expectedConfig := createTestConfig()
@@ -283,7 +287,7 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 }
 
 func (suite *TestLogger) TestInstanceLoadFromDisk() {
-	logInstance := NewLogger()
+	logInstance := suite.buildLogger()
 	testConfig := *createTestConfig()
 
 	//overwrite default config
@@ -303,10 +307,14 @@ func (suite *TestLogger) TestInstanceLoadFromDisk() {
 }
 
 func (suite *TestLogger) TestSaveToDisk() {
-	logInstance := NewLogger()
+	logInstance := suite.buildLogger()
+
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	assert.Nil(suite.T(), err)
+	config := DefaultLoggerConfig(settingsFile)
 
 	//Verify we loaded the default config
-	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+	assert.Equal(suite.T(), config, logInstance.config)
 
 	// Create the test config - save it, load it to the new instance and verify it loaded
 	testConfig := createTestConfig()
@@ -317,7 +325,7 @@ func (suite *TestLogger) TestSaveToDisk() {
 }
 
 func (suite *TestLogger) TestBasicWriters() {
-	logInstance := NewLogger()
+	logInstance := suite.buildLogger()
 	logInstance.isLogCountEnabled = true
 
 	testingOutput := "Testing output for %s\n"
@@ -387,7 +395,7 @@ func (suite *TestLogger) TestBackwardsCompatibleWriters() {
 }
 
 func (suite *TestLogger) TestSendAlertToCMD() {
-	logInstance := NewLogger()
+	logInstance := suite.buildLogger()
 
 	mockAlertsPublisher := &mocks.MockAlertPublisher{}
 	logInstance.alerts = mockAlertsPublisher
@@ -428,11 +436,15 @@ func (suite *TestLogger) TestFindCallingFunction() {
 }
 
 func (suite *TestLogger) TestGetInstanceWithConfig() {
-	SetLoggerInstance(NewLogger())
+	SetLoggerInstance(suite.buildLogger())
 	logInstance := GetLoggerInstance()
 
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	assert.Nil(suite.T(), err)
+	config := DefaultLoggerConfig(settingsFile)
+
 	// Verify default config was loaded
-	assert.Equal(suite.T(), DefaultLoggerConfig(), logInstance.config)
+	assert.Equal(suite.T(), config, logInstance.config)
 
 	expectedConfig := createTestConfig()
 
@@ -457,7 +469,7 @@ func (suite *TestLogger) TestPerformance() {
 			fmt.Println("unable to parse")
 		}
 	}
-	logInstance := NewLogger()
+	logInstance := suite.buildLogger()
 
 	startTime := time.Now()
 	for i := 0; i < iterations; i++ {
@@ -536,7 +548,7 @@ func (suite *TestLogger) TestPerformance() {
 }
 
 func (suite *TestLogger) TestRefreshConfig() {
-	logger := NewLogger()
+	logger := suite.buildLogger()
 
 	// Classufy has default value beacuse it does not exisit in config
 	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("classify", "classify"))
@@ -557,7 +569,7 @@ func (suite *TestLogger) TestRefreshConfig() {
 }
 
 func (suite *TestLogger) TestLoadConfig_FileDoesNotExists() {
-	logger := NewLogger()
+	logger := suite.buildLogger()
 
 	// Modify log config and trigger SIGHUP signal
 	config := &LoggerConfig{}
@@ -568,4 +580,11 @@ func (suite *TestLogger) TestLoadConfig_FileDoesNotExists() {
 
 	// Classify is default
 	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("classify", "classify"))
+}
+
+func (suite *TestLogger) buildLogger() *Logger {
+	settingsFile, err := settings.GetSettingsFileSingleton()
+	assert.Nil(suite.T(), err)
+
+	return NewLogger(settingsFile)
 }
