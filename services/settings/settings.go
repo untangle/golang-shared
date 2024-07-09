@@ -544,6 +544,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 	}
 	if ShouldRunSighup {
 
+		logger.Info("=========================================================================================")
 		logger.Info(string(debug.Stack()))
 		for _, executable := range SighupExecutables {
 			if executable == "discoverd" && !(isDiscoveryEnabled.(bool)) {
