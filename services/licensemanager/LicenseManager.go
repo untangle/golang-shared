@@ -244,6 +244,7 @@ func (lm *LicenseManager) SetServices(enabledServices map[string]bool) error {
 	}
 
 	err = saveServiceStatesFromServices(lm.config.ServiceStateLocation, lm.services)
+	lm.logger.Warn("hangup ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n")
 	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
 		lm.logger.Warn("Failed to run RunSighup on executable %v with an error %v\n", lm.config.Executable, RunSighupErr.Error())
 	}
