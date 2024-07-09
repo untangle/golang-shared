@@ -296,10 +296,10 @@ func (lm *LicenseManager) shutdownServices() {
 		}
 	}
 
-	lm.logger.Warn("SIGHUP packetd 99999999999999999999999999999v\n")
-	//if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
-	//	lm.logger.Warn("Failed to run RunSighup given executable: %v\n", RunSighupErr.Error())
-	//}
+	lm.logger.Warn("hangup packetd 99999999999999999999999999999000000000000000000000\n")
+	if RunSighupErr := util.RunSighup(lm.config.Executable); RunSighupErr != nil {
+		lm.logger.Warn("Failed to run RunSighup given executable: %v\n", RunSighupErr.Error())
+	}
 }
 
 // findService finds the service in the services map
