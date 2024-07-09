@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -542,6 +543,8 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 		return output, err
 	}
 	if ShouldRunSighup {
+
+		logger.Info(string(debug.Stack()))
 		for _, executable := range SighupExecutables {
 			if executable == "discoverd" && !(isDiscoveryEnabled.(bool)) {
 				logger.Info("Discovery is not enabled hence skipping sighup\n")
