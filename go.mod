@@ -11,7 +11,7 @@ require (
 	github.com/r3labs/diff/v2 v2.15.1
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/dig v1.15.0
-	google.golang.org/grpc v1.62.0
+	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.32.0
 )
 

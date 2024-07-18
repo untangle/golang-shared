@@ -8,7 +8,9 @@ import (
 )
 
 // MockExecutorNoErr is a struct used for tests, where Run, Output, and CombinedOutput all return with no errors
-type MockExecutorNoErr struct{}
+type MockExecutorNoErr struct {
+	Result []byte
+}
 
 // type enforcement
 var _ util.ExecutorInterface = (*MockExecutorNoErr)(nil)
@@ -17,12 +19,12 @@ func (m *MockExecutorNoErr) Run(cmd *exec.Cmd) error {
 	return nil
 }
 
-func (*MockExecutorNoErr) Output(cmd *exec.Cmd) ([]byte, error) {
-	return []byte{}, nil
+func (m *MockExecutorNoErr) Output(cmd *exec.Cmd) ([]byte, error) {
+	return m.Result, nil
 }
 
-func (*MockExecutorNoErr) CombinedOutput(cmd *exec.Cmd) ([]byte, error) {
-	return []byte{}, nil
+func (m *MockExecutorNoErr) CombinedOutput(cmd *exec.Cmd) ([]byte, error) {
+	return m.Result, nil
 }
 
 // MockExecutorRunErr is a struct used for tests where Run returns an error, but Output and CombinedOutput do not
