@@ -21,6 +21,7 @@ enum AlertType {
     FIREWALLEVENT = 13;
     DYNAMICLISTS = 14;
     POLICYMANAGER = 15;
+    DATABASEMANAGER = 16;
 }
 
 enum AlertSeverity {
