@@ -64,6 +64,7 @@ func (f *FilenameLocator) fileNameTranslator(filename string) string {
 
 // LocateFile locates the input filename on the filesystem,
 // automatically translating it to hybrid mode filenames when needed.
+// If the file is not found, an error is returned.
 func (f *FilenameLocator) LocateFile(filename string) (string, error) {
 	if f.fileExists(filename) {
 		return filename, nil
