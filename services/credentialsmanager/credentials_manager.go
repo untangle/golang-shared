@@ -5,6 +5,7 @@ import (
 
 	"github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins"
+	"github.com/untangle/golang-shared/services/settings"
 )
 
 const fileLocation = "/etc/config/credentials.json"
@@ -24,10 +25,21 @@ type credentialsManager struct {
 
 // GetCredentialsManager creates a new manager and returns it
 func NewCredentialsManager(logger logger.LoggerLevels) CredentialsManager {
-	return &credentialsManager{
+	cm := &credentialsManager{
 		fileLocation: fileLocation,
 		logger:       logger,
 		mutex:        sync.Mutex{},
+	}
+
+	if credientialFileLocation, err := settings.LocateFile(fileLocation); err != nil {
+		logger.Err("credential_file_not_found %s\n", fileLocation)
+		return cm
+	} else {
+		return &credentialsManager{
+			fileLocation: credientialFileLocation,
+			logger:       logger,
+			mutex:        sync.Mutex{},
+		}
 	}
 }
 

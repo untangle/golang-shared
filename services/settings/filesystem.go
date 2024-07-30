@@ -41,25 +41,24 @@ func FileExists(fname string) bool {
 }
 
 func (f *FilenameLocator) findEOSFileName(filename string) (string, error) {
+	newFileName := f.fileNameTranslator(filename)
+	if !f.fileExists(newFileName) {
+		return "", fmt.Errorf("unable to find config file: %s", filename)
+	}
+	return newFileName, nil
+}
+
+func (f *FilenameLocator) fileNameTranslator(filename string) string {
 	if strings.HasPrefix(filename, kernelModeSettingsPrefix) {
-		newFileName := strings.Replace(
+		return strings.Replace(
 			filename,
 			kernelModeSettingsPrefix,
 			hybridModeSettingsPrefix,
 			1)
-		if !f.fileExists(newFileName) {
-			return "", fmt.Errorf("unable to find config file: %s", filename)
-		}
-		return newFileName, nil
 	} else {
-		newFileName := filepath.Join(
+		return filepath.Join(
 			hybridModeGenericPrefix,
 			filename)
-		if !f.fileExists(newFileName) {
-			return "", fmt.Errorf(
-				"unable to locate file: %s", filename)
-		}
-		return newFileName, nil
 	}
 }
 
@@ -71,6 +70,11 @@ func (f *FilenameLocator) LocateFile(filename string) (string, error) {
 	}
 	return f.findEOSFileName(filename)
 
+}
+
+// TranslateFileName translates a filename from kernel mode to hybrid.
+func TranslateFileName(filename string) string {
+	return defaultLocator.fileNameTranslator(filename)
 }
 
 var defaultLocator = &FilenameLocator{
