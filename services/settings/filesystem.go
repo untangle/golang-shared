@@ -73,13 +73,16 @@ func (f *FilenameLocator) LocateFile(filename string) (string, error) {
 
 }
 
-// TranslateFileName translates a filename from kernel mode to hybrid.
-func TranslateFileName(filename string) string {
-	return defaultLocator.fileNameTranslator(filename)
-}
-
 var defaultLocator = &FilenameLocator{
 	fileExists: FileExists,
+}
+
+// TranslateFileName translates a filename from kernel mode to hybrid as needed.
+func TranslateFileName(filename string) string {
+	if defaultLocator.fileExists(filename) {
+		return filename
+	}
+	return defaultLocator.fileNameTranslator(filename)
 }
 
 // LocateFile calls FilenameLocator.LocateFile on the default filename
