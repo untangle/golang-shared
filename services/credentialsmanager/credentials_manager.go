@@ -8,7 +8,7 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-const fileLocation = "/etc/config/credentials.json"
+var fileLocation = settings.TranslateFileName("/etc/config/credentials.json")
 
 // interface for the credentials manager service
 type CredentialsManager interface {
