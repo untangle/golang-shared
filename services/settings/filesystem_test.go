@@ -24,40 +24,40 @@ func TestFilenameLocator(t *testing.T) {
 		fileExists: existFake.doesExist}
 	tests := []struct {
 		filename     string
-		existResults []bool
+		existResults []bool // Indicates (file initially exists, In kernel/openwrt mode , new file exists)
 		returnValue  string
 		returnErr    error
 	}{
 		{
 			filename:     "/etc/config/settings.json",
-			existResults: []bool{false, true},
+			existResults: []bool{false, false, true},
 			returnValue:  "/mnt/flash/mfw-settings/settings.json",
 		},
 		{
 			filename:     "/usr/share/geoip",
-			existResults: []bool{false, true},
+			existResults: []bool{false, false, true},
 			returnValue:  "/mfw/usr/share/geoip",
 		},
 		{
 			filename:     "/etc/config/appstate.json",
-			existResults: []bool{false, true},
+			existResults: []bool{false, false, true},
 			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
 		},
 		{
 			filename:     "/etc/config/settings.json",
-			existResults: []bool{true, true},
+			existResults: []bool{true, true, true},
 			returnValue:  "/etc/config/settings.json",
 		},
 		{
 			filename:     "/etc/config/appstate.json",
-			existResults: []bool{true, true},
+			existResults: []bool{true, true, true},
 			returnValue:  "/etc/config/appstate.json",
 		},
 		{
 			filename:     "/etc/config/appstate.json",
-			existResults: []bool{false, false},
-			returnValue:  "",
-			returnErr:    fmt.Errorf("/etc/config/appstate.json"),
+			existResults: []bool{false, false, false},
+			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
+			returnErr:    fmt.Errorf("unable to find config file: /mnt/flash/mfw-settings/appstate.json"),
 		},
 	}
 
