@@ -8,7 +8,7 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-var fileLocation = settings.TranslateFileName("/etc/config/credentials.json")
+const fileLocation = "/etc/config/credentials.json"
 
 // interface for the credentials manager service
 type CredentialsManager interface {
@@ -25,21 +25,14 @@ type credentialsManager struct {
 
 // GetCredentialsManager creates a new manager and returns it
 func NewCredentialsManager(logger logger.LoggerLevels) CredentialsManager {
-	cm := &credentialsManager{
-		fileLocation: fileLocation,
+	realFileLocation, err := settings.LocateFile(fileLocation)
+	if err != nil {
+		logger.Err("Unable to locate credentials file: %s\n", err)
+	}
+	return &credentialsManager{
+		fileLocation: realFileLocation,
 		logger:       logger,
 		mutex:        sync.Mutex{},
-	}
-
-	if credientialFileLocation, err := settings.LocateFile(fileLocation); err != nil {
-		logger.Err("credential_file_not_found %s\n", fileLocation)
-		return cm
-	} else {
-		return &credentialsManager{
-			fileLocation: credientialFileLocation,
-			logger:       logger,
-			mutex:        sync.Mutex{},
-		}
 	}
 }
 
