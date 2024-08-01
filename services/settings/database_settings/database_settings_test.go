@@ -49,7 +49,8 @@ func TestDatabaseUnmarshal(t *testing.T) {
 					"name": "New DB Source",
 					"type": "DB Type 5",
 					"default": false,
-					"db_connection_string": "asdfasdfasdf"
+					"db_connection_string": "asdfasdfasdf",
+					"is_deletable":false
 					}]}`,
 			expectedErr: false,
 			expected: Databases{
@@ -66,6 +67,7 @@ func TestDatabaseUnmarshal(t *testing.T) {
 						Type:             "DB Type 5",
 						Default:          false,
 						ConnectionString: "asdfasdfasdf",
+						IsDeletable:      false,
 					},
 				},
 			},
@@ -85,7 +87,8 @@ func TestDatabaseUnmarshal(t *testing.T) {
 				"id": "66a6bc90-2f5e-4dc3-8180-a7cf4133daf2",
 				"name": "Local DB",
 				"type": "sqlite",
-				"default": true
+				"default": true,
+				"is_deletable":false
 				}]}`,
 			expectedErr: false,
 			expected: Databases{
@@ -103,6 +106,7 @@ func TestDatabaseUnmarshal(t *testing.T) {
 						Type:             "sqlite",
 						Default:          true,
 						ID:               "66a6bc90-2f5e-4dc3-8180-a7cf4133daf2",
+						IsDeletable:      false,
 					},
 				},
 			}},
