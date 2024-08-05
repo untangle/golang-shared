@@ -50,7 +50,7 @@ func TestDatabaseUnmarshal(t *testing.T) {
 					"type": "DB Type 5",
 					"default": false,
 					"db_connection_string": "asdfasdfasdf",
-					"is_deletable":false
+					"is_deletable":true
 					}]}`,
 			expectedErr: false,
 			expected: Databases{
@@ -67,7 +67,7 @@ func TestDatabaseUnmarshal(t *testing.T) {
 						Type:             "DB Type 5",
 						Default:          false,
 						ConnectionString: "asdfasdfasdf",
-						IsDeletable:      false,
+						IsDeletable:      true,
 					},
 				},
 			},
