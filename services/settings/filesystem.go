@@ -40,27 +40,24 @@ func FileExists(fname string) bool {
 	return true
 }
 
-func (f *FilenameLocator) findEOSFileName(filename string) (string, error) {
-	if strings.HasPrefix(filename, kernelModeSettingsPrefix) {
-		newFileName := strings.Replace(
-			filename,
-			kernelModeSettingsPrefix,
-			hybridModeSettingsPrefix,
-			1)
-		if !f.fileExists(newFileName) {
-			return "", fmt.Errorf("unable to find config file: %s", filename)
+func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
+	// Determine platform
+	var newFileName string
+	if f.fileExists(kernelModeSettingsPrefix) { // Kernel/OpenWRT mode
+		newFileName = kernelModeSettingsPrefix + "/" + filename[strings.LastIndex(filename, "/")+1:]
+	} else { // Hybrid mode
+		if !strings.HasPrefix(filename, kernelModeSettingsPrefix) {
+			// Not a config file, use generic prefix
+			newFileName = filepath.Join(hybridModeGenericPrefix, filename)
+		} else {
+			newFileName = hybridModeSettingsPrefix + "/" + filename[strings.LastIndex(filename, "/")+1:]
 		}
-		return newFileName, nil
-	} else {
-		newFileName := filepath.Join(
-			hybridModeGenericPrefix,
-			filename)
-		if !f.fileExists(newFileName) {
-			return "", fmt.Errorf(
-				"unable to locate file: %s", filename)
-		}
-		return newFileName, nil
 	}
+	if !f.fileExists(newFileName) {
+		// File doesn't exist, but the caller may not care
+		return newFileName, fmt.Errorf("unable to find config file: %s", newFileName)
+	}
+	return newFileName, nil
 }
 
 // LocateFile locates the input filename on the filesystem,
@@ -69,7 +66,7 @@ func (f *FilenameLocator) LocateFile(filename string) (string, error) {
 	if f.fileExists(filename) {
 		return filename, nil
 	}
-	return f.findEOSFileName(filename)
+	return f.getPlatformFileName(filename)
 
 }
 
