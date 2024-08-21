@@ -25,6 +25,8 @@ const (
 	hybridModeSettingsPrefix = "/mnt/flash/mfw-settings"
 )
 
+// NoFileAtPath is an error for if a file doesn't exist. In this case
+// platform detection may have gone okay but we didn't see the file.
 type NoFileAtPath struct {
 	name string
 }
