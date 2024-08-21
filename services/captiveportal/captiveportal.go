@@ -1,5 +1,15 @@
 package captiveportal
 
+import (
+	"context"
+	"net"
+)
+
+// Resolver is an interface that both net.Resolver and MockResolverService can implement
+type CPResolver interface {
+	LookupIP(ctx context.Context, host string, domain string) ([]net.IP, error)
+}
+
 // Captive portal condition
 type CpRuleCondition struct {
 	Op    string `json:"Op,omitempty"`
