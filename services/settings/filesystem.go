@@ -25,6 +25,19 @@ const (
 	hybridModeSettingsPrefix = "/mnt/flash/mfw-settings"
 )
 
+// NoFileAtPath is an error for if a file doesn't exist. In this case
+// platform detection may have gone okay but we didn't see the file.
+type NoFileAtPath struct {
+	name string
+}
+
+// Error returns the error string
+func (n *NoFileAtPath) Error() string {
+	return fmt.Sprintf("no file at path: %s", n.name)
+}
+
+var _ error = &NoFileAtPath{}
+
 // FileExists returns true if we can Stat the filename. We don't
 // distinguish between various kinds of errors, but do log them, on
 // the theory that if you can't Stat the filename, for most purposes,
@@ -55,7 +68,7 @@ func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
 	}
 	if !f.fileExists(newFileName) {
 		// File doesn't exist, but the caller may not care
-		return newFileName, fmt.Errorf("unable to find config file: %s", newFileName)
+		return newFileName, &NoFileAtPath{newFileName}
 	}
 	return newFileName, nil
 }

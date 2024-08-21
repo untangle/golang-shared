@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -57,7 +58,7 @@ func TestFilenameLocator(t *testing.T) {
 			filename:     "/etc/config/appstate.json",
 			existResults: []bool{false, false, false},
 			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
-			returnErr:    fmt.Errorf("unable to find config file: /mnt/flash/mfw-settings/appstate.json"),
+			returnErr:    fmt.Errorf("no file at path: /mnt/flash/mfw-settings/appstate.json"),
 		},
 	}
 
@@ -70,6 +71,8 @@ func TestFilenameLocator(t *testing.T) {
 		} else {
 			assert.Regexp(t, test.returnErr.Error(), err.Error(),
 				"errors should match")
+			matchingError := &NoFileAtPath{}
+			assert.True(t, errors.As(err, &matchingError))
 		}
 	}
 

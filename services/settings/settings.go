@@ -29,14 +29,17 @@ var (
 )
 
 // find the file or fallback to the old filename if we can't.
-func locateOrDefault(filename string) string {
-	if filename, err := LocateFile(filename); err == nil {
+func locateOrDefault(desiredFilename string) string {
+	noFileErr := &NoFileAtPath{}
+	if filename, err := LocateFile(desiredFilename); err == nil {
 		return filename
+	} else if errors.As(err, &noFileErr) && filename != "" {
+		return filename
+	} else {
+		logger.Err("settings: Unable to locate: %s, defaulting...",
+			desiredFilename)
+		return desiredFilename
 	}
-
-	logger.Err("settings: Unable to locate: %s, defaulting...", filename)
-
-	return filename
 }
 
 var syncCallbacks []func()
@@ -96,16 +99,9 @@ func GetSettingsFileSingleton() (*SettingsFile, error) {
 	}
 
 	fileName, err := LocateFile(settingsFile)
-	if err == nil {
-		settingsFileSingleton = NewSettingsFile(
-			fileName,
-			WithLock(&saveLocker))
-	} else {
-		err = fmt.Errorf("Unable to locate settings file, falling back to %s and hoping for the best...\n", settingsFile)
-		settingsFileSingleton = NewSettingsFile(
-			settingsFile,
-			WithLock(&saveLocker))
-	}
+	settingsFileSingleton = NewSettingsFile(
+		fileName,
+		WithLock(&saveLocker))
 
 	return settingsFileSingleton, err
 }
