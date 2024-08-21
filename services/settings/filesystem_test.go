@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -70,6 +71,8 @@ func TestFilenameLocator(t *testing.T) {
 		} else {
 			assert.Regexp(t, test.returnErr.Error(), err.Error(),
 				"errors should match")
+			matchingError := &NoFileAtPath{}
+			assert.True(t, errors.As(err, &matchingError))
 		}
 	}
 
