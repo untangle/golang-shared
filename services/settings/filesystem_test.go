@@ -57,7 +57,7 @@ func TestFilenameLocator(t *testing.T) {
 			filename:     "/etc/config/appstate.json",
 			existResults: []bool{false, false, false},
 			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
-			returnErr:    fmt.Errorf("unable to find config file: /mnt/flash/mfw-settings/appstate.json"),
+			returnErr:    fmt.Errorf("no file at path: /mnt/flash/mfw-settings/appstate.json"),
 		},
 	}
 
