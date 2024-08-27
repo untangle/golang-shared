@@ -53,7 +53,7 @@ lint: modules logscan
 	$(call LOG_FUNCTION,"Running golang linter...")
 	cd /tmp; GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 	$(shell go env GOPATH)/bin/golangci-lint --version
-	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
+	$(shell go env GOPATH)/bin/golangci-lint run
 
 test: build
 	$(call LOG_FUNCTION,"Running unit tests...")
