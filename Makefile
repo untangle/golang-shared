@@ -53,8 +53,7 @@ lint: modules logscan
 	$(call LOG_FUNCTION,"Running golang linter...")
 	cd /tmp; GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 	$(shell go env GOPATH)/bin/golangci-lint --version
-        # IMPORTANT --issues-exit-code 0 is removed, If facing issue in compiling, for develpoment purpose can add --issues-exit-code 0 in golangci-lint run command and resolve lint error after doing yur code changes
-	$(shell go env GOPATH)/bin/golangci-lint run
+	$(shell go env GOPATH)/bin/golangci-lint run --issues-exit-code 0
 
 test: build
 	$(call LOG_FUNCTION,"Running unit tests...")
