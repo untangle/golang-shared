@@ -107,7 +107,7 @@ func TestGetAllInterfaces(t *testing.T) {
 	f := setupNewTestFixture()
 
 	actual := f.interfaceSettings.GetAllInterfaces()
-	expected := []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
+	expected := []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
 
 	assert.ElementsMatch(t, expected, actual)
 }
