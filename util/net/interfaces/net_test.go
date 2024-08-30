@@ -15,6 +15,7 @@ type interfacesTestFixture struct {
 	settingsFile      *settings.SettingsFile
 	interfaceSettings *InterfaceSettings
 
+	mgmtExpected    Interface
 	lanOneExpected  Interface
 	lanTwoExpected  Interface
 	vlanOneExpected Interface
@@ -25,6 +26,14 @@ type interfacesTestFixture struct {
 // Setup objects used by all tests
 func setupNewTestFixture() *interfacesTestFixture {
 	f := &interfacesTestFixture{}
+	f.mgmtExpected = Interface{
+		IsWAN:           false,
+		Enabled:         true,
+		V4StaticAddress: "10.240.207.206",
+		V4StaticPrefix:  25,
+		Device:          "ma1_1",
+		IsManagement:    true,
+	}
 	f.lanOneExpected = Interface{
 		IsWAN:           false,
 		Enabled:         true,
@@ -78,7 +87,7 @@ func TestGetLocalInterfaces(t *testing.T) {
 	f := setupNewTestFixture()
 
 	actual := f.interfaceSettings.GetLocalInterfaces()
-	expected := []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected}
+	expected := []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected}
 
 	assert.ElementsMatch(t, expected, actual)
 }

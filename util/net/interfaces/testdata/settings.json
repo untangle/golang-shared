@@ -3,6 +3,14 @@
     {
         "interfaces": 
         [
+            {                  
+                "device": "ma1_1",                   
+                "v4StaticAddress": "10.240.207.206",
+                "v4StaticPrefix": 25,               
+                "wan": false,                       
+                "management": true,                 
+                "enabled": true                    
+            }, 
             {
                 "wan": false,
                 "enabled": true,
