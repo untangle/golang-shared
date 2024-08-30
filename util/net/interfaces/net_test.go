@@ -125,7 +125,7 @@ func TestGetInterfacesWithFilter(t *testing.T) {
 		{
 			name:       "All Enabled",
 			filterFunc: (func(i Interface) bool { return i.Enabled }),
-			expected:   []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.wanOneExpected},
+			expected:   []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.wanOneExpected},
 		},
 		{
 			name:       "All Disabled",
@@ -157,7 +157,7 @@ func TestGetInterfacesWithFilter(t *testing.T) {
 // Test if the interface struct works as expected with UnmarshalSettingsAtPath
 func TestUnmarshalInterfaceFromSettings(t *testing.T) {
 	f := setupNewTestFixture()
-	expected := []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
+	expected := []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
 
 	var actual []Interface
 	err := f.settingsFile.UnmarshalSettingsAtPath(&actual, "network", "interfaces")
