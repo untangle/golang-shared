@@ -15,6 +15,7 @@ type interfacesTestFixture struct {
 	settingsFile      *settings.SettingsFile
 	interfaceSettings *InterfaceSettings
 
+	mgmtExpected    Interface
 	lanOneExpected  Interface
 	lanTwoExpected  Interface
 	vlanOneExpected Interface
@@ -25,6 +26,14 @@ type interfacesTestFixture struct {
 // Setup objects used by all tests
 func setupNewTestFixture() *interfacesTestFixture {
 	f := &interfacesTestFixture{}
+	f.mgmtExpected = Interface{
+		IsWAN:           false,
+		Enabled:         true,
+		V4StaticAddress: "10.240.207.206",
+		V4StaticPrefix:  25,
+		Device:          "ma1_1",
+		IsManagement:    true,
+	}
 	f.lanOneExpected = Interface{
 		IsWAN:           false,
 		Enabled:         true,
@@ -78,7 +87,7 @@ func TestGetLocalInterfaces(t *testing.T) {
 	f := setupNewTestFixture()
 
 	actual := f.interfaceSettings.GetLocalInterfaces()
-	expected := []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected}
+	expected := []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected}
 
 	assert.ElementsMatch(t, expected, actual)
 }
@@ -98,7 +107,7 @@ func TestGetAllInterfaces(t *testing.T) {
 	f := setupNewTestFixture()
 
 	actual := f.interfaceSettings.GetAllInterfaces()
-	expected := []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
+	expected := []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
 
 	assert.ElementsMatch(t, expected, actual)
 }
@@ -116,7 +125,7 @@ func TestGetInterfacesWithFilter(t *testing.T) {
 		{
 			name:       "All Enabled",
 			filterFunc: (func(i Interface) bool { return i.Enabled }),
-			expected:   []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.wanOneExpected},
+			expected:   []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.wanOneExpected},
 		},
 		{
 			name:       "All Disabled",
@@ -148,7 +157,7 @@ func TestGetInterfacesWithFilter(t *testing.T) {
 // Test if the interface struct works as expected with UnmarshalSettingsAtPath
 func TestUnmarshalInterfaceFromSettings(t *testing.T) {
 	f := setupNewTestFixture()
-	expected := []Interface{f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
+	expected := []Interface{f.mgmtExpected, f.lanOneExpected, f.lanTwoExpected, f.vlanOneExpected, f.vlanTwoExpected, f.wanOneExpected}
 
 	var actual []Interface
 	err := f.settingsFile.UnmarshalSettingsAtPath(&actual, "network", "interfaces")

@@ -37,6 +37,7 @@ type Interface struct {
 	V6StaticPrefix  uint8         `json:"v6StaticPrefix"`
 	V6Aliases       []V6IpAliases `json:"v6Aliases"`
 	IsWAN           bool          `json:"wan"`
+	IsManagement    bool          `json:"management"`
 
 	// VLAN specific settings
 	BoundInterfaceID uint16 `json:"boundInterfaceId"`

@@ -72,6 +72,8 @@ func (ifaces *InterfaceSettings) GetAllInterfaces() []Interface {
 
 // GetLocalInterfaces returns all interfaces that are not WAN, are
 // enabled, and have an assigned IP address of some kind.
+// We consider mgmt interfaces to be local interfaces. Caller should
+// filter out mgmt interfaces if needed.
 func (ifaces *InterfaceSettings) GetLocalInterfaces() (interfaces []Interface) {
 	return ifaces.GetInterfacesWithFilter(
 		func(intf Interface) bool {
