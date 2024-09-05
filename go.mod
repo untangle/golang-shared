@@ -2,8 +2,6 @@ module github.com/untangle/golang-shared
 
 go 1.21
 
-toolchain go1.21.5
-
 require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/mitchellh/mapstructure v1.5.0
