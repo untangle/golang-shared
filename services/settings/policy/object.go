@@ -15,7 +15,7 @@ type Object struct {
 	Type        ObjectType `json:"type"`
 	Description string     `json:"description"`
 	ID          string     `json:"id"`
-	Enabled     bool       `json:"enabled,omitempty"`
+	Enabled     bool       `json:"enabled"`
 	Items       any        `json:"items,omitempty"`
 
 	// Rule types
@@ -79,7 +79,7 @@ func setList[T any](obj *Object) func() {
 // ObjectDefaultFields is used to set some default type and enabled fields
 type ObjectDefaultFields struct {
 	Type    ObjectType `json:"type"`
-	Enabled *bool      `json:"enabled,omitempty"`
+	Enabled *bool      `json:"enabled"`
 }
 
 // UnmarshalJSON is a custom json unmarshaller for Objects.
