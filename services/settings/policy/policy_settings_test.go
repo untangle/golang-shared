@@ -1253,7 +1253,6 @@ func TestGroupMarshal(t *testing.T) {
 				Type:        IPObjectType,
 				Items:       []net.IPSpecifierString{"132.123.123"},
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
-				Enabled:     true,
 			},
 			expectedJSON: `{"name": "someBogus",
                          "id": "702d4c99-9599-455f-8271-215e5680f038",
