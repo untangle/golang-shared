@@ -1117,7 +1117,7 @@ func (x *LayerFour) GetDPort() int32 {
 	return 0
 }
 
-// This message is used to send deviceEntry to packetd for updating session entry with deviceEntry(Mac address)
+//This message is used to send deviceEntry to packetd for updating session entry with deviceEntry(Mac address)
 type DeviceEntry struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -38,42 +38,6 @@ func (p *PolicySettings) FindConfiguration(configID string) *PolicyConfiguration
 	return nil
 }
 
-// FindRule searches this PolicySetting to load a rule by ID
-func (p *PolicySettings) FindRule(ruleID string) *Object {
-	for _, rule := range p.Rules {
-		if rule.ID == ruleID {
-			return rule
-		}
-	}
-	return nil
-}
-
-// FindConfigsWithEnabled returns the names of configs with enabled status that are attached to this policy
-func (p *PolicySettings) FindConfigsWithEnabled(pol *Policy, enabled bool) []string {
-	configNames := []string{}
-	for _, ruleID := range pol.Rules {
-		rule := p.FindRule(ruleID)
-		if rule != nil {
-			// We also have to check if this config is enabled/disabled...
-			configDetails := p.FindConfiguration(rule.Action.UUID)
-			if configDetails.Enabled == enabled {
-				configNames = append(configNames, rule.Action.Key)
-			}
-		}
-	}
-	return configNames
-}
-
-// Returns a list of disabled app services for a given policy ID.
-func (p *PolicySettings) FindDisabledConfigs(pol *Policy) []string {
-	return p.FindConfigsWithEnabled(pol, false)
-}
-
-// FindEnabledConfigs returns enabled configs for this policy
-func (p *PolicySettings) FindEnabledConfigs(pol *Policy) []string {
-	return p.FindConfigsWithEnabled(pol, true)
-}
-
 // GetPolicyPluginSettings Returns a map of policy plugin settings for a given plugin.
 // E.g. map[policy]interface{} where policy is
 // the policy name and interface{} is the plugin settings.

@@ -17,7 +17,7 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 		Type:        "mfw-config-threatprevention",
 		Name:        "TP for students",
 		ID:          "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5",
-		Enabled:     false,
+		Enabled:     true,
 		Settings: map[string]interface{}{
 			"enabled": true,
 			"passList": []interface{}{
@@ -118,6 +118,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Type:        GeoipRuleObject,
 				Description: "GeoipRuleObject Description",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
+				Enabled:     true,
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
 					UUID: "1202b42e-2f21-49e9-b42c-5614e04d0031",
@@ -171,6 +172,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "ApplicationControlRuleObject Tester",
 				Type:        ApplicationControlRuleObject,
 				Description: "ApplicationControlRuleObject",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
@@ -198,6 +200,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "CaptivePortalRuleObject Tester",
 				Type:        CaptivePortalRuleObject,
 				Description: "CaptivePortalRuleObject",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
@@ -224,6 +227,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "NATRuleObject Tester",
 				Type:        NATRuleObject,
 				Description: "NATRuleObject",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type:        "SNAT",
@@ -250,6 +254,7 @@ func TestRulesUnmarshal(t *testing.T) {
 			expected: Object{
 				Name:        "PortForwardRuleObject Tester",
 				Type:        PortForwardRuleObject,
+				Enabled:     true,
 				Description: "PortForwardRuleObject",
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
@@ -278,6 +283,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "SecurityRuleObject Accept Tester",
 				Type:        SecurityRuleObject,
 				Description: "SecurityRuleObject",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "ACCEPT",
@@ -305,6 +311,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "SecurityRuleObject Reject Tester",
 				Type:        SecurityRuleObject,
 				Description: "SecurityRuleObject",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "REJECT",
@@ -332,6 +339,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "ShapingRuleObject Tester",
 				Type:        ShapingRuleObject,
 				Description: "ShapingRuleObject",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
@@ -359,6 +367,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "WANPolicyRuleObject Tester",
 				Type:        WANPolicyRuleObject,
 				Description: "WANPolicyRuleObject",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "SET_CONFIGURATION",
@@ -385,6 +394,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "quota rule test",
 				Type:        QuotaRuleObject,
 				Description: "QUOTAMAN",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type: "APPLY_QUOTA",
@@ -410,6 +420,7 @@ func TestRulesUnmarshal(t *testing.T) {
 				Name:        "wan rule test",
 				Type:        WANPolicyRuleObject,
 				Description: "WANMAN",
+				Enabled:     true,
 				Conditions:  []string{"1458dc12-a9c2-4d0c-8203-1340c61c2c3b"},
 				Action: &Action{
 					Type:      "WAN_POLICY",
@@ -443,6 +454,7 @@ func TestUnmarshalQuotas(t *testing.T) {
 			expected: Object{
 				Name:        "Quota",
 				Type:        QuotaType,
+				Enabled:     true,
 				Description: "My quota description",
 				Action: &Action{
 					Type: "REJECT",
@@ -488,6 +500,7 @@ func TestUnmarshalQuotas(t *testing.T) {
 			expected: Object{
 				Name:        "Quota",
 				Type:        QuotaType,
+				Enabled:     true,
 				Description: "My quota description",
 				Action: &Action{
 					Type: "REJECT",
@@ -570,6 +583,7 @@ func TestUnmarshallWANs(t *testing.T) {
 				Type:        WANPolicyConfigType,
 				Description: "My WAN description",
 				ID:          "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Enabled:     true,
 				Settings: &WANPolicySettings{
 					BestOfMetric: "LOWEST_LATENCY",
 					Criteria: []WANCriteriaType{
@@ -626,6 +640,7 @@ func TestUnmarshallWANs(t *testing.T) {
 				Type:        WANPolicyConfigType,
 				Description: "My WAN description",
 				ID:          "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Enabled:     true,
 				Settings: &WANPolicySettings{
 					BestOfMetric: "LOWEST_LATENCY",
 					Criteria: []WANCriteriaType{
@@ -682,6 +697,7 @@ func TestUnmarshallWANs(t *testing.T) {
 				Type:        WANPolicyConfigType,
 				Description: "My WAN description",
 				ID:          "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Enabled:     true,
 				Settings: &WANPolicySettings{
 					BestOfMetric: "LOWEST_LATENCY",
 					Criteria: []WANCriteriaType{
@@ -737,6 +753,7 @@ func TestUnmarshallWANs(t *testing.T) {
 				Type:        WANPolicyConfigType,
 				Description: "My WAN description",
 				ID:          "c2428365-65be-4901-bfc0-bde2b310fedf",
+				Enabled:     true,
 				Settings: &WANPolicySettings{
 					BestOfMetric: "LOWEST_LATENCY",
 					Criteria: []WANCriteriaType{
@@ -846,10 +863,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["132.123.123"]}`,
 			expectedErr: false,
 			expected: Object{
-				Name:  "someBogus",
-				Type:  "mfw-object-ipaddress",
-				Items: []net.IPSpecifierString{"132.123.123"},
-				ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				Name:    "someBogus",
+				Type:    "mfw-object-ipaddress",
+				Items:   []net.IPSpecifierString{"132.123.123"},
+				ID:      "702d4c99-9599-455f-8271-215e5680f038",
+				Enabled: true,
 			}},
 		{
 			name: "okay geoip list",
@@ -859,10 +877,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": ["AE", "AF"]}`,
 			expectedErr: false,
 			expected: Object{
-				Name:  "someBogus",
-				Type:  "mfw-object-geoip",
-				Items: []string{"AE", "AF"},
-				ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				Name:    "someBogus",
+				Type:    "mfw-object-geoip",
+				Items:   []string{"AE", "AF"},
+				ID:      "702d4c99-9599-455f-8271-215e5680f038",
+				Enabled: true,
 			}},
 		{
 			name: "malformed JSON",
@@ -925,10 +944,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                           "items": []}`,
 			expectedErr: false,
 			expected: Object{
-				Name:  "ServiceEndpointTest",
-				Type:  "mfw-object-service",
-				Items: []ServiceEndpoint{},
-				ID:    "702d4c99-9599-455f-8271-215e5680f038",
+				Name:    "ServiceEndpointTest",
+				Type:    "mfw-object-service",
+				Items:   []ServiceEndpoint{},
+				ID:      "702d4c99-9599-455f-8271-215e5680f038",
+				Enabled: true,
 			},
 		},
 		{
@@ -956,6 +976,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Description: "Description",
 				Type:        "mfw-object-service",
 				ID:          "702d4c99-9599-455f-8271-215e5680f038",
+				Enabled:     true,
 				Items: []ServiceEndpoint{
 					{
 						Protocol: []string{"17", "6", "1"},
@@ -986,6 +1007,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Description: "Description",
 				Type:        "mfw-object-application",
 				ID:          "702d4c99-9599-455f-dead-215e5680f038",
+				Enabled:     true,
 				Items: []ApplicationObject{
 					{
 						Port:       []net.PortSpecifierString{"2222", "80", "88"},
@@ -1024,6 +1046,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Description: "Description",
 				Type:        "mfw-object-application-group",
 				ID:          "702d4c99-959a-455f-dead-215e5680f038",
+				Enabled:     true,
 				Items: []string{
 					"8105f355-cb98-43eb-deaf-74542a524abb",
 					"8105f355-cb98-43eb-dead-74542a524abb",
@@ -1067,9 +1090,10 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 		                }`,
 			expectedErr: false,
 			expected: Object{
-				Name: "blooblah",
-				ID:   "702d4c99-9599-455f-8271-215e5680f039",
-				Type: ConditionType,
+				Name:    "blooblah",
+				ID:      "702d4c99-9599-455f-8271-215e5680f039",
+				Enabled: true,
+				Type:    ConditionType,
 				Items: []*PolicyCondition{
 					{
 						Op:    "==",
@@ -1091,9 +1115,10 @@ func TestGroupUnmarshalEdges(t *testing.T) {
                         }`,
 			expectedErr: false,
 			expected: Object{
-				Name: "blooblah",
-				ID:   "702d4c99-9599-455f-8271-215e5680f039",
-				Type: ConditionGroupType,
+				Name:    "blooblah",
+				ID:      "702d4c99-9599-455f-8271-215e5680f039",
+				Type:    ConditionGroupType,
+				Enabled: true,
 				Items: []string{
 					"702d4c99-9599-455f-8271-215e5680f038",
 				},
@@ -1112,10 +1137,11 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					}`,
 			expectedErr: false,
 			expected: Object{
-				Name:  "Test Interface Zone",
-				ID:    "115705e0-e010-4288-b36b-e79a0992e177",
-				Type:  InterfaceObjectType,
-				Items: []string{"AristaCorp"},
+				Name:    "Test Interface Zone",
+				ID:      "115705e0-e010-4288-b36b-e79a0992e177",
+				Type:    InterfaceObjectType,
+				Enabled: true,
+				Items:   []string{"AristaCorp"},
 			},
 		},
 		{
@@ -1139,6 +1165,7 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 				Description: "interface zone group",
 				ID:          "f4629ffa-2a7d-464a-aa5e-ca1cc3303137",
 				Type:        InterfaceObjectGroupType,
+				Enabled:     true,
 				Items: []string{
 					"05b7c6a1-87bd-408c-a93c-c57a37f0ed38",
 					"12d18c78-a58b-4d68-ab44-f8406b5cb878",
@@ -1174,9 +1201,10 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 					}`,
 			expectedErr: false,
 			expected: Object{
-				Name: "blooblah",
-				ID:   "702d4c99-9599-455f-8271-215e5680f039",
-				Type: ConditionType,
+				Name:    "blooblah",
+				ID:      "702d4c99-9599-455f-8271-215e5680f039",
+				Type:    ConditionType,
+				Enabled: true,
 				Items: []*PolicyCondition{
 					{
 						Op:    "==",
@@ -1501,6 +1529,7 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
+				Enabled:     true,
 				Type:        "",
 				Settings: map[string]any{
 					"setting_field": "D4",
@@ -1512,6 +1541,7 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 				"name": "B2",
 				"description": "C3",
 				"type": "",
+				"enabled": true,
 				"settings": {
 					"key": "value",
 					"setting_field": "D4"
@@ -1530,12 +1560,14 @@ func TestPolicyConfigurationJSON(t *testing.T) {
 				ID:          "A1",
 				Name:        "B2",
 				Description: "C3",
+				Enabled:     true,
 				Type:        "",
 			},
 			wantMarshalledJson: `{
 				"id": "A1",
 				"name": "B2",
 				"description": "C3",
+				"enabled": true,
 				"type": ""
 			}`,
 		},
