@@ -76,19 +76,27 @@ func setList[T any](obj *Object) func() {
 	}
 }
 
-// ObjectTypeField is used to figure out what group type is being used within a group
-type ObjectTypeField struct {
-	Type ObjectType `json:"type"`
+// ObjectDefaultFields is used to set some default type and enabled fields
+type ObjectDefaultFields struct {
+	Type    ObjectType `json:"type"`
+	Enabled *bool      `json:"enabled,omitempty"`
 }
 
 // UnmarshalJSON is a custom json unmarshaller for Objects.
 func (obj *Object) UnmarshalJSON(data []byte) error {
-	var typeField ObjectTypeField
+	var typeField ObjectDefaultFields
 
 	if err := json.Unmarshal(data, &typeField); err != nil {
 		return fmt.Errorf("unable to unmarshal group: %w", err)
 	}
 	type aliasObject Object
+
+	// Set the Enable defaulting to true, if it is not present
+	if typeField.Enabled != nil {
+		obj.Enabled = *typeField.Enabled
+	} else {
+		obj.Enabled = true
+	}
 
 	switch typeField.Type {
 	// If type field is empty - then we need to use a different type of alias to marshal (just direct object alias?)
