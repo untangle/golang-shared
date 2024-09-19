@@ -14,5 +14,4 @@ type Database struct {
 	Type              string  `json:"type"`
 	ConnectionString  string  `json:"db_connection_string"`
 	Default           bool    `json:"default"`
-	IsDeletable       bool    `json:"is_deletable"`
 }
