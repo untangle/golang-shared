@@ -1188,6 +1188,16 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 								"value": ["1"]
 							},
 							{
+								"op": "==",
+								"type": "CLIENT_INTERFACE_TYPE",
+								"value": [1]
+							},
+							{
+								"op": "==",
+								"type": "DESTINATION_INTERFACE_TYPE",
+								"value": [5]
+							},
+							{
 								"op": "!=",
 								"type": "DESTINATION_INTERFACE_TYPE",
 								"value": ["2"]
@@ -1210,6 +1220,16 @@ func TestGroupUnmarshalEdges(t *testing.T) {
 						Op:    "==",
 						CType: "SOURCE_INTERFACE_TYPE",
 						Value: []string{"1"},
+					},
+					{
+						Op:    "==",
+						CType: "CLIENT_INTERFACE_TYPE",
+						Value: []string{"1"},
+					},
+					{
+						Op:    "==",
+						CType: "DESTINATION_INTERFACE_TYPE",
+						Value: []string{"5"},
 					},
 					{
 						Op:    "!=",
