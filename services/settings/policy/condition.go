@@ -20,7 +20,39 @@ func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 	// unmarshal like normal first
 	type aliasPolicyCondition PolicyCondition
 	if err := json.Unmarshal(data, (*aliasPolicyCondition)(pCondition)); err != nil {
-		return err
+		// unmarshal failed - something in the data doesn't match the types...
+		// try to unmarshal into objMap, see if we can cleanup this data[]
+
+		var objMap map[string]*json.RawMessage
+		if err := json.Unmarshal(data, &objMap); err != nil {
+			return err
+		}
+
+		// If the values are []int at this point - we need to make them strings
+		var valInt []int
+		if err = json.Unmarshal(*objMap["value"], &valInt); err != nil {
+			return err
+		} else {
+			valString := make([]string, len(valInt))
+			for i, v := range valInt {
+				valString[i] = strconv.Itoa(v)
+			}
+
+			// Reassign them back to the objectMap
+			if *objMap["value"], err = json.Marshal(valString); err != nil {
+				return err
+			}
+
+			// Marshal the objectMap back and unmarshal it as a policy condition
+			objMapBytes, err := json.Marshal(objMap)
+			if err != nil {
+				return err
+			}
+			if err := json.Unmarshal(objMapBytes, (*aliasPolicyCondition)(pCondition)); err != nil {
+				return err
+			}
+
+		}
 	}
 
 	// Only use value if Group is not configured
