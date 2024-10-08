@@ -19,8 +19,30 @@ type PolicyCondition struct {
 func (pCondition *PolicyCondition) UnmarshalJSON(data []byte) error {
 	// unmarshal like normal first
 	type aliasPolicyCondition PolicyCondition
-	if err := json.Unmarshal(data, (*aliasPolicyCondition)(pCondition)); err != nil {
+	alias := &struct {
+		ValueRaw json.RawMessage `json:"value"`
+		*aliasPolicyCondition
+	}{
+		aliasPolicyCondition: (*aliasPolicyCondition)(pCondition),
+	}
+	if err := json.Unmarshal(data, alias); err != nil {
 		return err
+	}
+
+	if alias.ValueRaw != nil {
+		var valString []string
+		if err := json.Unmarshal(alias.ValueRaw, &valString); err == nil {
+			pCondition.Value = valString
+		} else {
+			var valInt []int
+			if err := json.Unmarshal(alias.ValueRaw, &valInt); err != nil {
+				return err
+			}
+
+			for _, v := range valInt {
+				pCondition.Value = append(pCondition.Value, strconv.Itoa(v))
+			}
+		}
 	}
 
 	// Only use value if Group is not configured
