@@ -31,17 +31,17 @@ func TestFilenameLocator(t *testing.T) {
 	}{
 		{
 			filename:     "/etc/config/settings.json",
-			existResults: []bool{false, false, true},
+			existResults: []bool{false, false, false, true},
 			returnValue:  "/mnt/flash/mfw-settings/settings.json",
 		},
 		{
 			filename:     "/usr/share/geoip",
-			existResults: []bool{false, false, true},
+			existResults: []bool{false, false, false, true},
 			returnValue:  "/mfw/usr/share/geoip",
 		},
 		{
 			filename:     "/etc/config/appstate.json",
-			existResults: []bool{false, false, true},
+			existResults: []bool{false, false, false, true},
 			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
 		},
 		{
