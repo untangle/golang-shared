@@ -70,7 +70,7 @@ func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
 		if f.fileExists(nativeEOSIndicatorFile) {
 			// Packetd running natively EOS mode
 			if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
-				return nativePath
+				return nativePath, nil
 			}
 
 			// Fall through to Hybrid mode handling
