@@ -23,7 +23,13 @@ const (
 
 	// prefix specifically for config files in hybrid mode
 	hybridModeSettingsPrefix = "/mnt/flash/mfw-settings"
+
+	nativeEOSIndicatorFile = "/etc/EfwNativeEos"
 )
+
+var openWRTFileToNativeEOS = map[string]string{
+	"/etc/config/categories.json": "/usr/share/bctid/categories.json",
+}
 
 // NoFileAtPath is an error for if a file doesn't exist. In this case
 // platform detection may have gone okay but we didn't see the file.
@@ -56,9 +62,19 @@ func FileExists(fname string) bool {
 func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
 	// Determine platform
 	var newFileName string
-	if f.fileExists(kernelModeSettingsPrefix) { // Kernel/OpenWRT mode
+	if f.fileExists(kernelModeSettingsPrefix) {
+		// Kernel/OpenWRT mode
 		newFileName = kernelModeSettingsPrefix + "/" + filename[strings.LastIndex(filename, "/")+1:]
-	} else { // Hybrid mode
+	} else {
+		// Hybrid mode
+		if f.fileExists(nativeEOSIndicatorFile) {
+			if nativePath, exists := openWRTFileToNativeEOS[filename]; exist {
+				return nativePath
+			}
+
+			// Fall through to Hybrid mode handling
+		}
+
 		if !strings.HasPrefix(filename, kernelModeSettingsPrefix) {
 			// Not a config file, use generic prefix
 			newFileName = filepath.Join(hybridModeGenericPrefix, filename)
