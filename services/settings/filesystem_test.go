@@ -31,17 +31,17 @@ func TestFilenameLocator(t *testing.T) {
 	}{
 		{
 			filename:     "/etc/config/settings.json",
-			existResults: []bool{false, false, true},
+			existResults: []bool{false, false, false, true},
 			returnValue:  "/mnt/flash/mfw-settings/settings.json",
 		},
 		{
 			filename:     "/usr/share/geoip",
-			existResults: []bool{false, false, true},
+			existResults: []bool{false, false, false, true},
 			returnValue:  "/mfw/usr/share/geoip",
 		},
 		{
 			filename:     "/etc/config/appstate.json",
-			existResults: []bool{false, false, true},
+			existResults: []bool{false, false, false, true},
 			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
 		},
 		{
@@ -56,9 +56,14 @@ func TestFilenameLocator(t *testing.T) {
 		},
 		{
 			filename:     "/etc/config/appstate.json",
-			existResults: []bool{false, false, false},
+			existResults: []bool{false, false, false, false},
 			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
 			returnErr:    fmt.Errorf("no file at path: /mnt/flash/mfw-settings/appstate.json"),
+		},
+		{
+			filename:     "/etc/config/categories.json",
+			existResults: []bool{false, false, true},
+			returnValue:  "/usr/share/bctid/categories.json",
 		},
 	}
 
