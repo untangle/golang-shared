@@ -3,6 +3,7 @@ package util
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -41,9 +42,15 @@ func RunSigusr1(executable string) error {
 }
 
 // SendSignal will use a pid and send a signal to that pid
-// @param excutable string - the binary process name
+// @param executable string - the binary process name
 // @param signal syscall.Signal - the signal type to send
 func SendSignal(executable string, signal syscall.Signal) error {
+
+	if !filepath.IsAbs(executable) {
+		// match the full path of the executable
+		executable = "/usr/bin/" + executable
+		logger.Debug("Exectutable transformed to %s\n", executable)
+	}
 
 	logger.Debug("Sending %s to %s\n", signal, executable)
 
