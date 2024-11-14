@@ -21,7 +21,7 @@ const (
 
 	pluginName string = "licensemanager"
 
-	clientLicenseService string = "bin/client-license-service"
+	clientLicenseService string = "client-license-service"
 )
 
 var (
