@@ -50,7 +50,7 @@ type Logger struct {
 	isLogCountEnabled bool
 }
 
-// This is only used inernally.
+// This is only used internally.
 // This was originally stored in every Logger structure which seems wasteful
 var logLevelName = [...]string{"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG", "TRACE"}
 
@@ -101,10 +101,13 @@ func GetLoggerInstance() *Logger {
 		// has fallback mechanisms.
 		if err != nil {
 			loggerSingleton.Err("Error initializing settings file: %v \n", err)
-		} else {
-			// Load the config to set the logLevelMap from the settings file.
-			loggerSingleton.LoadConfig(loggerSingleton.config)
 		}
+		// calling LoadConfig un else would cause it to fail in GetLogLevelMapFromSettingsFile
+		// as DefaultLoggerConfig sets SettingsPath to an empty slice,
+		//  DefaultLoggerConfig sets LogLevelHighest and logLevelMap
+		// so we can just skip the call to LoadConfig
+		// if anyone wants to add LoadConfig call here make sure not to
+		// introduce false warning from SettingsPath being an empty slice
 	})
 
 	return loggerSingleton
@@ -423,7 +426,7 @@ func (logger *Logger) getLogLevel(packageName string, functionName string) int32
 	return LogLevelInfo
 }
 
-// logFormatter creats a log message using the format and arguments provided
+// logFormatter creates a log message using the format and arguments provided
 // We look for and handle special format verbs that trigger additional processing
 func logFormatter(format string, newOcname Ocname, args ...interface{}) string {
 
@@ -457,7 +460,7 @@ func (logger *Logger) isLogEnabled(level int32) bool {
 // logMessage is called to write messages to the system log
 func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, args ...interface{}) {
 	// logger.config.LogLevelMask keeps track of the logger levels that have been
-	// requested across the entire logger confguration so that we can drop out of this
+	// requested across the entire logger configuration so that we can drop out of this
 	// function quickly if the log is for something unlikely like a trace or debug.
 	if level > logger.getLogLevelHighest() {
 		return
@@ -517,7 +520,7 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 // packageName		Name like "dict"
 // functionName		Package path from package name to calling function.
 //
-//	This is meant to be an explict path so you can match very granular on a specific function.
+//	This is meant to be an explicit path so you can match very granular on a specific function.
 //	This can be:
 //	dict.cleanDictionary
 //	plugins.(*PluginControl).Startup
@@ -606,7 +609,7 @@ func (logger *Logger) startRefreshConfigOnSIGHUP() {
 		for {
 			sig := <-hupch
 
-			logger.Info("Received signal [%v]. Refreshing loggger config\n", sig)
+			logger.Info("Received signal [%v]. Refreshing logger config\n", sig)
 			logger.LoadConfig(logger.config)
 		}
 
