@@ -1,5 +1,5 @@
 syntax = "proto3";
-package reports;
+package DosEvent;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/DosEvent";
 
