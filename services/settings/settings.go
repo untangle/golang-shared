@@ -589,7 +589,6 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 			if err != nil {
 				logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
 				// do not return err here to the consumer when sighup fails
-				return output, nil
 			}
 		}
 	}
