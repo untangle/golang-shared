@@ -1,0 +1,18 @@
+syntax = "proto3";
+package DosEvent;
+
+option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/DosEvent";
+
+enum Protocol {
+  ALL = 0;                  // Represents 'all'
+  TCP = 1;                  // Represents 'tcp'
+  UDP = 2;                  // Represents 'udp'
+  ICMP = 3;                 // Represents 'icmp'
+}
+
+message DosEvent {
+  string fromHost = 1;     // Source IP address as string (e.g., 192.168.56.11)
+  string toHost = 2;       // Destination IP address as string (e.g., 192.168.56.11)
+  Protocol protocol = 3;    // Enum for protocol type (all, tcp, udp, icmp)
+  int64 timeStamp = 4;      // Unix timestamp in milliseconds
+}
