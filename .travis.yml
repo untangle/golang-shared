@@ -32,6 +32,11 @@ jobs:
     - stage: deploy
       env: TARGET=musl
       before_deploy:
+        - yes | gem update --system --force
+        - gem install bundler
+        - gem install faraday-net_http -v '3.3.0' # Fix faraday version
+        - gem install uri
+        - gem install logger
         - git config --local user.name "Travis CI"
         - git config --local user.email "travis@travis-ci.org"
         - export TRAVIS_TAG=$(python3 version.py --fetch --branch $TRAVIS_BRANCH <<< "$TRAVIS_COMMIT_MESSAGE")
