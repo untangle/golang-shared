@@ -11,8 +11,9 @@ enum Protocol {
 }
 
 message DosEvent {
-  string fromHost = 1;     // Source IP address as string (e.g., 192.168.56.11)
-  string toHost = 2;       // Destination IP address as string (e.g., 192.168.56.11)
+  string fromHost = 1;      // Source IP address as string (e.g., 192.168.56.11)
+  string toHost = 2;        // Destination IP address as string (e.g., 192.168.56.11)
   Protocol protocol = 3;    // Enum for protocol type (all, tcp, udp, icmp)
-  int64 timeStamp = 4;      // Unix timestamp in milliseconds
+  string ruleId = 4; 	    // RuleID for the DOS rule	
+  int64 timeStamp = 5;      // Unix timestamp in milliseconds
 }
