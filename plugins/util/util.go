@@ -48,7 +48,7 @@ func SendSignal(executable string, signal syscall.Signal) error {
 
 	pidStr, err := exec.Command("pidof", executable).CombinedOutput()
 	if err != nil {
-		logger.Err("Failure to get %s pid: %s\n", executable, err.Error())
+		logger.Debug("Failure to get %s pid: %s\n", executable, err.Error())
 		return err
 	}
 	logger.Debug("Pid: %s\n", pidStr)
