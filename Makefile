@@ -51,9 +51,9 @@ modules: environment
 
 lint: modules logscan
 	$(call LOG_FUNCTION,"Running golang linter...")
-	cd /tmp; GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	cd /tmp; GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
 	$(shell go env GOPATH)/bin/golangci-lint --version
-	$(shell go env GOPATH)/bin/golangci-lint run
+	$(shell go env GOPATH)/bin/golangci-lint run --timeout 2m
 
 test: build
 	$(call LOG_FUNCTION,"Running unit tests...")
