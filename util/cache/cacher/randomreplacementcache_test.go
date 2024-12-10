@@ -139,7 +139,6 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 func TestMultiThreaded(t *testing.T) {
 	var cacheSize uint = 1000
 	cache := NewRandomReplacementCache(cacheSize, "Multithreaded")
-	source := rand.New(rand.NewSource(1))
 	elementRange := 20000
 
 	var wg sync.WaitGroup
@@ -148,11 +147,11 @@ func TestMultiThreaded(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			for j := 0; j <= int(cacheSize)*10; j++ {
-				element := fmt.Sprintf("%v", source.Intn(elementRange))
+				element := fmt.Sprintf("%v", rand.Intn(elementRange))
 				cache.Put(element, element)
 
-				if source.Intn(2) == 0 {
-					removal := fmt.Sprintf("%v", source.Intn(elementRange))
+				if rand.Intn(2) == 0 {
+					removal := fmt.Sprintf("%v", rand.Intn(elementRange))
 					cache.Remove(removal)
 				}
 			}
