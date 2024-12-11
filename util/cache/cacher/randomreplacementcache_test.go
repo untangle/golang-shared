@@ -139,7 +139,6 @@ func (suite *RRCacheTestSuite) TestCapacityExceeded() {
 func TestMultiThreaded(t *testing.T) {
 	var cacheSize uint = 1000
 	cache := NewRandomReplacementCache(cacheSize, "Multithreaded")
-	rand.Seed(1)
 	elementRange := 20000
 
 	var wg sync.WaitGroup
