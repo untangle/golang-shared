@@ -14,7 +14,7 @@ import (
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
-// Startup is placeholder for starting util
+// Startup is placeholder for starting util 
 func Startup(loggerInstance loggerModel.LoggerLevels) {
 	once.Do(func() {
 		logger = loggerInstance
