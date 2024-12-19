@@ -36,7 +36,7 @@ def find_latest_tag(fetch: bool, branch: str = None):
     on the specified branch.
     """
     if fetch:
-        subprocess.run(['git', 'fetch', 'origin', '--tags'], check=True)
+        subprocess.run(['git', 'fetch', 'origin', '--tags', "--force"], check=True)
     
     cmd = ['git', 'tag']
     if branch != None:
