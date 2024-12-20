@@ -110,8 +110,7 @@
             "key": "b78e6899564d22686271df2ca94ccd91",
             "keyVersion": 3,
             "name": "untangle-node-dns-filter",
-            "javaClass": "com.untangle.uvm.node.License",
-            "valid": false
+            "javaClass": "com.untangle.uvm.node.License"
         },
         {
                                                              
@@ -124,8 +123,7 @@
             "key": "90ba3b5264b10af43a205b7493118b3b",    
             "keyVersion": 3,                              
             "name": "untangle-node-dynamic-lists",            
-            "javaClass": "com.untangle.uvm.node.License",
-            "valid": false
+            "javaClass": "com.untangle.uvm.node.License"
         }
     ]
 }
