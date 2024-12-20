@@ -101,6 +101,19 @@
             "javaClass": "com.untangle.uvm.node.License"  
         },
         {
+            "UID": "51d50b67-460b-4450-bd29-9bf1a69f4e81",
+            "type": "Subscription",
+            "end": 1737187200,
+            "start": 1734422400,
+            "seats": 1000000,
+            "displayName": "DNS Filter",
+            "key": "b78e6899564d22686271df2ca94ccd91",
+            "keyVersion": 3,
+            "name": "untangle-node-dns-filter",
+            "javaClass": "com.untangle.uvm.node.License",
+            "valid": false
+        },
+        {
                                                              
             "UID": "43f90add-dca5-415c-9530-06fa29c9b4d9",
             "type": "Subscription",                       
@@ -111,7 +124,8 @@
             "key": "90ba3b5264b10af43a205b7493118b3b",    
             "keyVersion": 3,                              
             "name": "untangle-node-dynamic-lists",            
-            "javaClass": "com.untangle.uvm.node.License"  
+            "javaClass": "com.untangle.uvm.node.License",
+            "valid": false
         }
     ]
 }
