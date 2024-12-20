@@ -11,11 +11,13 @@ import (
 
 	logService "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
+	"github.com/untangle/golang-shared/util/environments"
 )
 
 var logger = logService.GetLoggerInstance()
 
 // ApplicationInfo stores the details for each know application
+// this structure matches the csv fields
 type ApplicationInfo struct {
 	GUID         string `json:"guid"`
 	Index        int    `json:"index"`
@@ -34,7 +36,53 @@ type CategoryInfo struct {
 	Name string `json:"name"`
 }
 
+// MetaDataTable stores global metadata
+type MetaDataTable struct {
+	Description      string   `json:"0description"`
+	Version          string   `json:"0version"`
+	VendorAttributes []string `json:"vendor-attributes"`
+}
+
+// QosmosCategoryInfo stores categories mapped to integers
+type QosmosCategoryInfo struct {
+	Categories map[string]int `json:"categories"`
+}
+
+// QosmosServiceInfo stores services mapped to integers
+type QosmosServiceInfo struct {
+	Services map[string]int `json:"services"`
+}
+
+// QosmosInfo stores the complete application data
+type QosmosInfo struct {
+	Name                    string                     `json:"name"` // Storing the application name here to access via ID
+	ID                      int                        `json:"id"`
+	ServiceCategory         map[string]string          `json:"service-category"`
+	VendorID                int                        `json:"vendor-id"`
+	VendorServiceAttributes map[string]VendorAttribute `json:"vendor-service-attributes"`
+}
+
+// Vendor Service Attributes
+type VendorAttribute struct {
+	ID           int               `json:"id"`
+	Type         string            `json:"type"`
+	ValueService map[string]string `json:"value-service"`
+}
+
 const guidInfoFile = "/usr/share/untangle-classd/protolist.csv"
+const QosmosFile = "/usr/share/veos/DpiDefaultConfig.json"
+
+// MetaDataTable instance for storing metadata
+var MetaData MetaDataTable
+
+// QosmosCategoryInfo instance for storing categories
+var QosmosCategory QosmosCategoryInfo
+
+// QosmosServiceInfo instance for storing services
+var QosmosService QosmosServiceInfo
+
+// QosmosTable maps application IDs to QosmosInfo structs
+var QosmosTable map[int]*QosmosInfo
 
 // ApplicationTable stores the details for each known application
 var ApplicationTable map[string]*ApplicationInfo
@@ -42,7 +90,13 @@ var ApplicationTable map[string]*ApplicationInfo
 // Startup is called when the packetd service starts
 func Startup() {
 	logger.Info("Starting up the Application Classification Table manager service\n")
-	loadApplicationTable()
+	if !environments.IsEOS() {
+		logger.Info("Loading Procera Application Table")
+		loadApplicationTable()
+	} else {
+		logger.Info("Loading Qosmos Table")
+		loadQosmosTable()
+	}
 }
 
 // Shutdown is called when the packetd service stops
@@ -135,7 +189,7 @@ func loadApplicationTable() {
 	ApplicationTable = make(map[string]*ApplicationInfo)
 	filename, err := settings.LocateFile(guidInfoFile)
 	if err != nil {
-		logger.Warn("Unable to  locate GUID info file: %s\n",
+		logger.Warn("Unable to locate GUID info file: %s\n",
 			guidInfoFile)
 		return
 	}
@@ -217,4 +271,68 @@ func loadApplicationTable() {
 	if infocount != linecount-1 {
 		logger.Warn("Detected garbage in the application info file: %s\n", guidInfoFile)
 	}
+}
+
+func loadQosmosTable() {
+
+	var err error
+
+	QosmosTable = make(map[int]*QosmosInfo)
+
+	filename, err := settings.LocateFile(QosmosFile)
+	if err != nil {
+		logger.Warn("Unable to locate Qosmos info file: %s\n", QosmosFile)
+		return
+	}
+
+	jsonData, err := os.ReadFile(filename)
+	if err != nil {
+		logger.Warn("Unable to load Qosmos application details: %s\n", QosmosFile)
+		return
+	}
+
+	// Temporary struct for unmarshaling the entire JSON file
+	// this struct will be used to populate the metadatatable, and allow for mapping from appid to appname
+	var rawData struct {
+		Description      string                `json:"0description"`
+		Version          string                `json:"0version"`
+		Categories       map[string]int        `json:"categories"`
+		Services         map[string]int        `json:"services"`
+		VendorAttributes []string              `json:"vendor-attributes"`
+		Applications     map[string]QosmosInfo `json:"applications"`
+	}
+
+	// Unmarshal the JSON into the temporary struct
+	err = json.Unmarshal(jsonData, &rawData)
+	if err != nil {
+		logger.Err("Failed to unmarshal Qosmos JSON file: %s\n", err)
+		return
+	}
+
+	if len(rawData.Applications) == 0 {
+		logger.Warn("No applications found in Qosmos JSON file")
+		return
+	}
+
+	logger.Info("Qosmos Json data successfuly extracted")
+
+	// Populate MetaDataTable with the parsed metadata
+	MetaData = MetaDataTable{
+		Description:      rawData.Description,
+		Version:          rawData.Version,
+		VendorAttributes: rawData.VendorAttributes,
+	}
+
+	QosmosCategory.Categories = rawData.Categories
+	QosmosService.Services = rawData.Services
+
+	// Populate QosmosTable with applications
+	for appName, app := range rawData.Applications {
+		// Add application name to the struct
+		app.Name = appName
+		// Store the application in QosmosTable keyed by its ID
+		QosmosTable[app.ID] = &app
+	}
+	logger.Info("Qosmos name for ID-949 : %s", QosmosTable[949].Name)
+	logger.Info("Successfully loaded Qosmos metadata and application details")
 }
