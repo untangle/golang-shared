@@ -152,6 +152,7 @@ func TestGetLicenseDetails(t *testing.T) {
 		"Database Services",
 		"Device Discovery",
 		"Captive Portal",
+		"DNS Filter",
 		"Dynamic Blocklists",
 	}
 
