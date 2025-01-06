@@ -22,6 +22,7 @@ enum AlertType {
     DYNAMICLISTS = 14;
     POLICYMANAGER = 15;
     DATABASEMANAGER = 16;
+    DNSFILTERMANAGER = 17;
 }
 
 enum AlertSeverity {
