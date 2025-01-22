@@ -36,7 +36,7 @@ func TestRandomizeSlice(t *testing.T) {
 		},
 	}
 
-	// setting custom seed wua Seed has been depricated
+	// setting custom seed wua Seed has been deprecated
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
