@@ -6,4 +6,5 @@ images:
     units:
         sources:
           - github.com/untangle/golang-shared
-        build: cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
+        build: |
+          cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
