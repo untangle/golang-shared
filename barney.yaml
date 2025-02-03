@@ -7,7 +7,8 @@ images:
       - sources:
           - github.com/untangle/golang-shared
         build: |
-          cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
+          mkdir /dest/proto
+          cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest/proto
 
   test/efw-protobufs:
     description: |
@@ -16,4 +17,4 @@ images:
       mappings:
         /src/efw-protobufs: .%efw-protobufs
       build: |
-        ls -l /src/efw-protobufs/*.proto
+        ls -l /src/efw-protobufs/proto/*.proto
