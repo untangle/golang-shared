@@ -18,3 +18,4 @@ images:
         /src/efw-protobufs: .%efw-protobufs
       build: |
         ls -l /src/efw-protobufs/proto/*.proto
+        
