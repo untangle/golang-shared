@@ -1,16 +1,9 @@
 images:
-  build-floor:
-    units:
-      - image: code.arista.io/infra/barney/barnzilla%rpms/protobuf
-      - image: code.arista.io/infra/barney/barnzilla%rpms/protobuf-compiler
 
   efw-protobufs:
     description: |
       All protobufs used to file reports with Reportd ready to be BIPed into mfw-nft
     units:
-      - floor: .%build-floor
         sources:
           - github.com/untangle/golang-shared
-        build: |
-          protoc --proto_path=/src/github.com/untangle/golang-shared/protobuffersrc |
-           --cpp_out=/dest /src/github.com/untangle/golang-shared/protobuffersrc/*
+        build: cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
