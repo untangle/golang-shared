@@ -1,0 +1,16 @@
+images:
+  build-floor:
+    units:
+      - image: code.arista.io/infra/barney/barnzilla%rpms/protobuf
+      - image: code.arista.io/infra/barney/barnzilla%rpms/protobuf-compiler
+
+  efw-protobufs:
+    description: |
+      All protobufs used to file reports with Reportd compiled and 
+      ready to be used in the EfwProtobuf BIP
+    units:
+      - floor: .%build-floor
+        sources:
+          - github.com/untangle/golang-shared
+        build: |
+          protoc --cpp_out=/dest /src/github.com/untangle/golang-shared/protobuffersrc/*
