@@ -13,6 +13,6 @@ images:
         sources:
           - github.com/untangle/golang-shared
         build: |
-          ls -lrarth /src
+          ls -lrarth /src/github.com/untangle/golang-shared/protobuffersrc
 
           protoc --proto_path=/src/github.com/untangle/golang-shared/protobuffersrc --cpp_out=/dest ActiveSession.proto
