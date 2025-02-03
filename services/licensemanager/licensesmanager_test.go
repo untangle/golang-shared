@@ -514,7 +514,7 @@ func getTestConfig() *Config {
 			Start:    func() {},
 			Stop:     func() {},
 			Enabled:  nil,
-			Disabled: disableDnsFilter,
+			Disabled: disableDosFilter,
 		},
 	}
 
