@@ -2,7 +2,7 @@ images:
 
   efw-protobufs:
     description: |
-      All protobufs used to file reports with Reportd ready to be BIPed into mfw-nft
+      All protobufs used by EfwSfeModules and Packetd to file reports with Reportd ready to be BIPed into mfw-nft
     units:
       - sources:
           - github.com/untangle/golang-shared
