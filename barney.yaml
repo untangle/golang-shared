@@ -8,3 +8,12 @@ images:
           - github.com/untangle/golang-shared
         build: |
           cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
+
+  test/efw-protobufs:
+    description: |
+      Check that the .proto files exist in the artifacts produced by efw-protobufs
+    units:
+      mappings:
+        /src/efw-protobufs: .%efw-protobufs
+      build: |
+        ls -l /src/efw-protobufs/*.proto
