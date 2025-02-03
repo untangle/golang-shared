@@ -13,6 +13,4 @@ images:
         sources:
           - github.com/untangle/golang-shared
         build: |
-          echo "name is: "
-          ls -larthR /
           protoc --proto_path=/src/github.com/untangle/golang-shared/protobuffersrc --cpp_out=/dest /src/github.com/untangle/golang-shared/protobuffersrc/*
