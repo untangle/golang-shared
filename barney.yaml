@@ -15,4 +15,4 @@ images:
         build: |
           ls -lrarth /src/github.com/untangle/golang-shared/protobuffersrc
 
-          protoc --proto_path=/src/github.com/untangle/golang-shared/protobuffersrc --cpp_out=/dest ActiveSession.proto
+          protoc --proto_path=/src/github.com/untangle/golang-shared/protobuffersrc --cpp_out=/dest /src/github.com/untangle/golang-shared/protobuffersrc/*
