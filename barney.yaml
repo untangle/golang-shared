@@ -12,7 +12,5 @@ images:
       - floor: .%build-floor
         sources:
           - github.com/untangle/golang-shared
-          - github.com/protocolbuffers/protobuf
         build: |
-          
-          protoc --proto_path=/src/github.com/untangle/golang-shared/protobuffersrc --proto_path=/src/github.com/protocolbuffers/protobuf/src --cpp_out=/dest /src/github.com/untangle/golang-shared/protobuffersrc/*
+          protoc --proto_path=/src/github.com/untangle/golang-shared/protobuffersrc --cpp_out=/dest /src/github.com/untangle/golang-shared/protobuffersrc/*
