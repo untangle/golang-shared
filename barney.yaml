@@ -4,7 +4,8 @@ images:
     description: |
       All protobufs used to file reports with Reportd ready to be BIPed into mfw-nft
     units:
-      - sources:
+      - floor:
+        sources:
           github.com/untangle/golang-shared
         build: |
           cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
