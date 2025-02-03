@@ -155,6 +155,7 @@ func TestGetLicenseDetails(t *testing.T) {
 		"Captive Portal",
 		"DNS Filter",
 		"Dynamic Blocklists",
+		"Denial of Service Protection",
 	}
 
 	actualDisplayNames := []string{}
