@@ -124,6 +124,18 @@
             "keyVersion": 3,                              
             "name": "untangle-node-dynamic-lists",            
             "javaClass": "com.untangle.uvm.node.License"
+        },
+        {
+            "UID": "686ee777-3755-4626-af7f-a3ae6891c9be",
+            "type": "Subscription",
+            "end": 1755932400,
+            "start": 1724050800,
+            "seats": 1000000,
+            "displayName": "Denial of Service Protection",
+            "key": "994f36f13076688d9058830b53e3f071",
+            "keyVersion": 3,
+            "name": "untangle-node-dos-filter",
+            "javaClass": "com.untangle.uvm.node.License"
         }
     ]
 }
