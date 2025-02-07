@@ -1,0 +1,44 @@
+{
+	"version": 1,
+	"repomap": {
+		"barney.ci/alpine": {
+			"commit": "39ec14b81d8d5c817d1cf1feb961cc8ce4993b42"
+		},
+		"barney.ci/barney": {
+			"commit": "f551ba1aacea0149748aaab1ff8c36cff388c258"
+		},
+		"barney.ci/barneyfile": {
+			"commit": "a0e818e638f3b11de9c1956ed8ad64a7b41f57a2"
+		},
+		"barney.ci/byob": {
+			"commit": "c3a49dcd93bd98b45a3450d88bd5416844d506f8"
+		},
+		"barney.ci/docker": {
+			"commit": "dcb450791c55d7ce31d648fecd7ee75ffbe92815"
+		},
+		"barney.ci/golang": {
+			"commit": "9b0ca0d48fb7f84bd946a79db6b9823e38f77336"
+		},
+		"barney.ci/model": {
+			"commit": "d62a0b3f3a652d1dbf8ac54ccdb9af240cf6b929"
+		},
+		"code.arista.io/infra/barney/barnzilla": {
+			"commit": "87a316e0322373e9df1fc5e5dbcc29beb407834f"
+		},
+		"code.arista.io/infra/barney/barnzilla-repos": {
+			"commit": "5803897421591e3a0371adf89857db438c87fa9c"
+		},
+		"code.arista.io/infra/barney/tools/qube": {
+			"commit": "7ea12f3a4f3683689fd7670b26015bf374216d10"
+		},
+		"code.arista.io/tools/breadman": {
+			"commit": "c048573b4da32fd09182f46a2e39f015acb27188"
+		},
+		"github.com/golang/go": {
+			"commit": "d04e3cbc9240e25de449dcae2ec33d03062f347b"
+		},
+		"github.com/goreleaser/nfpm": {
+			"commit": "9af00e6421bae54bdb7a36f60055d0d66c07909d"
+		}
+	}
+}
