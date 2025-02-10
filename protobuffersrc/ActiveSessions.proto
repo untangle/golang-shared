@@ -78,8 +78,3 @@ message Session {
   string threat_prevention_threat_level = 70;
   string policy_config_ids = 71;
 }
-
-# Signal to packetd (copied from /src/EfwSfeModuels/EfwSfeProtobMessages_msg.proto)
-message PacketdConfigArg {
-   uint32 signal = 1;
-}
