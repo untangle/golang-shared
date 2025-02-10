@@ -9,6 +9,8 @@ import (
 	"syscall"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	"google.golang.org/grpc/credentials/insecure"
+	//grpc "google.golang.org/grpc"
 )
 
 var logger loggerModel.LoggerLevels
@@ -46,10 +48,11 @@ func RunSigusr1(executable string) error {
 func SendSignal(executable string, signal syscall.Signal) error {
 	logger.Debug("Sending %s to %s\n", signal, executable)
 
+	// This should normally work on OpenWRT
 	pidStr, err := exec.Command("pidof", executable).CombinedOutput()
 	if err != nil {
 		logger.Debug("Failure to get %s pid: %s\n", executable, err.Error())
-		return err
+		return SendSignalViaGRPC(executable, signal, err)
 	}
 	logger.Debug("Pid: %s\n", pidStr)
 
@@ -65,4 +68,29 @@ func SendSignal(executable string, signal syscall.Signal) error {
 		return err
 	}
 	return process.Signal(signal)
+}
+
+// Copied from /src/EfwSfeModules/ModuleConstants.h
+const PACKETD_CONFIG_UPDATE = "configUpdate"
+
+func SendSignalViaGRPC(executable string, signal syscall.Signal, err error) error {
+	// There won't be a packetd PID on EOS
+	if strings.Contains(executable, "packetd") {
+		message := *ActivesSessions.message{signal: int(signal)}
+		// If we didn't find packetd then assume we will find local Sfe at the default bess port
+		conn, newErr := grpc.NewClient("localhost:10514", grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if newErr != nil {
+			logger.Warn("Could not connect: %v\n", newErr)
+			return newErr
+		} else {
+			defer conn.Close()
+			if newErr = conn.Command(PACKETD_CONFIG_UPDATE, message); newErr != nil {
+				logger.Warn("Could not call %s: %v\n", PACKTED_CONFIG_UPDATE, newErr)
+				return newErr
+			}
+			logger.Debug("Sent signal %d to %s\n", int(signal), PACKTED_CONFIG_UPDATE)
+			return nil
+		}
+	}
+	return err
 }
