@@ -1,3 +1,4 @@
+//This is an event publisher to send events and alerts from packetd, restd to reportd
 package events
 import (
 	"sync"
