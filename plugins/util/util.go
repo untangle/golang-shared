@@ -5,13 +5,11 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"subprocss"
 	"sync"
 	"syscall"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
-	//protobuf "github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
-	//grpc "google.golang.org/grpc"
-	//"google.golang.org/grpc/credentials/insecure"
 )
 
 var logger loggerModel.LoggerLevels
@@ -53,7 +51,7 @@ func SendSignal(executable string, signal syscall.Signal) error {
 	pidStr, err := exec.Command("pidof", executable).CombinedOutput()
 	if err != nil {
 		logger.Debug("Failure to get %s pid: %s\n", executable, err.Error())
-		return SendSignalViaGRPC(executable, signal, err)
+		return TrySendPacketdSignalViaSysdb(executable, signal, err)
 	}
 	logger.Debug("Pid: %s\n", pidStr)
 
@@ -71,31 +69,26 @@ func SendSignal(executable string, signal syscall.Signal) error {
 	return process.Signal(signal)
 }
 
-// Copied from /src/EfwSfeModules/ModuleConstants.h
-const PACKETD_CONFIG_UPDATE = "configUpdate"
+// Check if the executable is packetd and if so, try to send it the
+// specified signal using Sysdb
+func TrySendPacketdSignalViaSysdb(executable string, signal syscall.Signal, err error) error {
 
-func SendSignalViaGRPC(executable string, signal syscall.Signal, err error) error {
-	/*
-		// There won't be a packetd PID on EOS
-		if strings.Contains(executable, "packetd") {
-			message := *protobuf.PacketdConfigArg{signal: int(signal)}
-			// If we didn't find packetd then assume we will find local Sfe at the default bess port
-			conn, newErr := grpc.Dial("localhost:10514", grpc.WithTransportCredentials(insecure.NewCredentials()))
-			if newErr != nil {
-				logger.Warn("Could not Dial: %v\n", newErr)
-				return newErr
-			} else {
-				defer conn.Close()
-				conn.Connect()
-
-				if newErr = conn.Invoke(context.Background(), PACKETD_CONFIG_UPDATE, message, grpc.WithDefaultCallOptions()); newErr != nil {
-					logger.Warn("Could not call %s: %v\n", PACKETD_CONFIG_UPDATE, newErr)
-					return newErr
-				}
-				logger.Debug("Sent signal %d to %s\n", int(signal), PACKETD_CONFIG_UPDATE)
-				return nil
+	// There won't be a packetd PID on EOS
+	if strings.Contains(executable, "packetd") {
+		if BoardUtil.is_hybrid_mode() {
+			arg := ""
+			switch signal {
+			case sigcall.SIGHUP:
+				arg = "--sighup"
+			case sigcall.SIGUSR1:
+				arg = "--sigusr1"
+			default:
+				return fmt.Errorf("unknown signal %v", signal)
 			}
+			// This is the same script used by sunc-settings
+			exec.Command("/usr/bin/updateSysdbSignal", arg)
+			return nil
 		}
-	*/
+	}
 	return err
 }
