@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	"github.com/untangle/golang-shared/util/environments"
 )
 
 var logger loggerModel.LoggerLevels
@@ -51,7 +52,7 @@ func SendSignal(executable string, signal syscall.Signal) error {
 	pidStr, err := exec.Command("pidof", executable).CombinedOutput()
 	if err != nil {
 		logger.Debug("Failure to get %s pid: %s\n", executable, err.Error())
-		return TrySendPacketdSignalViaSysdb(executable, signal, err)
+		return TrySendSignalViaSysdb(executable, signal, err)
 	}
 	logger.Debug("Pid: %s\n", pidStr)
 
@@ -71,24 +72,24 @@ func SendSignal(executable string, signal syscall.Signal) error {
 
 // Check if the executable is packetd and if so, try to send it the
 // specified signal using Sysdb
-func TrySendPacketdSignalViaSysdb(executable string, signal syscall.Signal, err error) error {
+func TrySendSignalViaSysdb(executable string,
+	signal syscall.Signal, err error) error {
 
-	// There won't be a packetd PID on EOS
-	if strings.Contains(executable, "packetd") {
-		if BoardUtil.is_hybrid_mode() {
-			arg := ""
-			switch signal {
-			case sigcall.SIGHUP:
-				arg = "--sighup"
-			case sigcall.SIGUSR1:
-				arg = "--sigusr1"
-			default:
-				return fmt.Errorf("unknown signal %v", signal)
-			}
-			// This is the same script used by sunc-settings
-			exec.Command("/usr/bin/updateSysdbSignal", arg)
-			return nil
+	if environments.IsEOS() &&
+		strings.Contains(executable, "packetd") {
+		// This is only relevant for packetd
+		arg := ""
+		switch signal {
+		case syscall.SIGHUP:
+			arg = "--sighup"
+		case syscall.SIGUSR1:
+			arg = "--sigusr1"
+		default:
+			return fmt.Errorf("unknown signal %v", signal)
 		}
+		// This is the same script used by sunc-settings
+		exec.Command("/usr/bin/updateSysdbSignal", arg)
+		return nil
 	}
 	return err
 }
