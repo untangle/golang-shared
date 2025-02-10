@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"strconv"
@@ -9,8 +10,9 @@ import (
 	"syscall"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	protobuf "github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions"
+	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	//grpc "google.golang.org/grpc"
 )
 
 var logger loggerModel.LoggerLevels
@@ -76,19 +78,21 @@ const PACKETD_CONFIG_UPDATE = "configUpdate"
 func SendSignalViaGRPC(executable string, signal syscall.Signal, err error) error {
 	// There won't be a packetd PID on EOS
 	if strings.Contains(executable, "packetd") {
-		message := *ActivesSessions.message{signal: int(signal)}
+		message := *protobuf.PacketdConfigArg{signal: int(signal)}
 		// If we didn't find packetd then assume we will find local Sfe at the default bess port
-		conn, newErr := grpc.NewClient("localhost:10514", grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, newErr := grpc.Dial("localhost:10514", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if newErr != nil {
-			logger.Warn("Could not connect: %v\n", newErr)
+			logger.Warn("Could not Dial: %v\n", newErr)
 			return newErr
 		} else {
 			defer conn.Close()
-			if newErr = conn.Command(PACKETD_CONFIG_UPDATE, message); newErr != nil {
-				logger.Warn("Could not call %s: %v\n", PACKTED_CONFIG_UPDATE, newErr)
+			conn.Connect()
+
+			if newErr = conn.Invoke(context.Background(), PACKETD_CONFIG_UPDATE, message, grpc.WithDefaultCallOptions()); newErr != nil {
+				logger.Warn("Could not call %s: %v\n", PACKETD_CONFIG_UPDATE, newErr)
 				return newErr
 			}
-			logger.Debug("Sent signal %d to %s\n", int(signal), PACKTED_CONFIG_UPDATE)
+			logger.Debug("Sent signal %d to %s\n", int(signal), PACKETD_CONFIG_UPDATE)
 			return nil
 		}
 	}
