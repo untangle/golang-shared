@@ -1,14 +1,13 @@
 package events
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
 	zmq "github.com/pebbe/zmq4"
 	"github.com/stretchr/testify/assert"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"github.com/untangle/golang-shared/testing/mocks"
-	"google.golang.org/protobuf/proto"
 )
 
 const testSocketAddress = "inproc://testInProcDescriptor"
@@ -23,10 +22,9 @@ func TestEventPublisher(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("send message", func(t *testing.T) {
-		testParam := Alerts.Alert{
-			Type:     Alerts.AlertType_USER,
-			Severity: Alerts.AlertSeverity_INFO,
-			Message:  "test message",
+		testParam := ZmqMessage{
+			Topic:   ZMQTopicRestdEvents,
+			Message: []byte(`{"type": "user", "severity": "info", "message": "test message"}`),
 		}
 
 		// Send Event
@@ -34,10 +32,9 @@ func TestEventPublisher(t *testing.T) {
 		resultMessage, resultTopic, err := receiveSentMessage(subscriberSocket)
 
 		assert.Nil(t, err)
-		assert.Equal(t, EventZMQTopic, resultTopic)
-		assert.Equal(t, testParam.GetType(), resultMessage.GetType())
-		assert.Equal(t, testParam.GetSeverity(), resultMessage.GetSeverity())
-		assert.Equal(t, testParam.GetMessage(), resultMessage.GetMessage())
+		assert.Equal(t, ZMQTopicRestdEvents, resultTopic)
+		assert.Equal(t, testParam.Topic, resultMessage.Topic)
+		assert.Equal(t, testParam.Message, resultMessage.Message)
 	})
 
 	// Tear down
@@ -47,38 +44,42 @@ func TestEventPublisher(t *testing.T) {
 	_ = subscriberSocket.Close()
 }
 
-func receiveSentMessage(subscriberSocket *zmq.Socket) (*Alerts.Alert, string, error) {
+func receiveSentMessage(subscriberSocket *zmq.Socket) (*ZmqMessage, string, error) {
+	// fmt.Printf("Inside receiveSentMessage\n")
 	msg, err := subscriberSocket.RecvMessageBytes(0)
 	if err != nil {
 		return nil, "", err
 	}
+	// fmt.Printf("message received: %v\n", msg)
 
 	resultTopic := string(msg[0])
-	resultMessage := &Alerts.Alert{}
+	resultMessage := &ZmqMessage{}
 
-	err = proto.Unmarshal(msg[1], resultMessage)
+	err = json.Unmarshal(msg[1], &resultMessage.Message)
 	if err != nil {
 		return nil, "", err
 	}
+
+	resultMessage.Topic = resultTopic
 
 	return resultMessage, resultTopic, nil
 }
 
 func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
-	pubSocket, err := zmq.NewSocket(zmq.SUB)
+	subSocket, err := zmq.NewSocket(zmq.SUB)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = pubSocket.Bind(socket); err != nil {
+	if err = subSocket.Connect(socket); err != nil {
 		return nil, err
 	}
 
-	if err = pubSocket.SetSubscribe(EventZMQTopic); err != nil {
+	if err = subSocket.SetSubscribe(ZMQTopicRestdEvents); err != nil {
 		return nil, err
 	}
 
-	return pubSocket, nil
+	return subSocket, nil
 }
 
 func newTestEventHandler() *ZmqEventPublisher {

@@ -10,11 +10,18 @@ package events
 
 import "github.com/untangle/golang-shared/logger"
 
-// AlertZMQTopic Topic name to be used when sending alerts.
-const EventZMQTopic string = "arista:reportd:alert"
-
-const PublisherSocketAddress = "ipc:///var/zmq_event_publisher"
-const SubscriberSocketAddress = "ipc:///var/zmq_event_subscriber"
+const (
+	// AlertZMQTopic Topic name to be used when sending alerts.
+	ZMQTopicRestdEvents     = "arista:restd:alert"
+	ZMQTopicPakcetdEvents   = "arista:packetd:alert"
+	sessionsZMQTopic        = "untangle:packetd:sessions"
+	interfaceStatsZMQTopic  = "untangle:packetd:interface-stats"
+	sessionStatsZMQTopic    = "untangle:packetd:session-stats"
+	activeSessionsZMQTopic  = "untangle:packetd:active-sessions"
+	dosEventsZMQTopic       = "untangle:packetd:dos-events"
+	PublisherSocketAddress  = "ipc:///var/zmq_event_publisher"
+	SubscriberSocketAddress = "ipc:///var/zmq_event_subscriber"
+)
 
 // ZmqMessage is a message sent over a zmq bus for us to consume.
 type ZmqMessage struct {
