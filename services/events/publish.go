@@ -1,15 +1,13 @@
 package events
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
 
 	zmq "github.com/pebbe/zmq4"
-	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
-	"google.golang.org/protobuf/proto"
 )
 
 const messageBuffer = 1000
@@ -18,7 +16,7 @@ var EventPublisherSingleton *ZmqEventPublisher
 var once sync.Once
 
 type EventPublisher interface {
-	Send(alert *Alerts.Alert)
+	Send(alert *ZmqMessage)
 }
 
 // ZmqEventPublisher runs a ZMQ publisher socket in the background.
@@ -95,26 +93,17 @@ func (publisher *ZmqEventPublisher) Shutdown() error {
 }
 
 // Send publishes the event to on the ZMQ publishing socket.
-func (publisher *ZmqEventPublisher) Send(event *Alerts.Alert) {
+func (publisher *ZmqEventPublisher) Send(event *ZmqMessage) {
 	// Make sure it is not shutdown.
 	if atomic.LoadInt32(&publisher.started) == 0 {
 		publisher.logger.Debug("Events service has been shutdown.\n")
 		return
 	}
 
-	// 2 reasons to set the timestamp here:
-	// - the caller isn't responsible for setting the timestamp so we just need to set it in one place (here)
-	// - we set it before putting it in queue, which means we have the timestamp of the Events creation, not the timestamp when it was processed
-	event.Datetime = time.Now().Unix()
+	fmt.Printf("sending event: %s\n", event.Topic)
 
-	publisher.logger.Debug("Publish Events %v\n", event)
-	eventMessage, err := proto.Marshal(event)
-	if err != nil {
-		publisher.logger.Err("Unable to marshal Events entry: %s\n", err)
-		return
-	}
-
-	publisher.messagePublisherChannel <- ZmqMessage{Topic: EventZMQTopic, Message: eventMessage}
+	// send event directly on messagePublisherChannel
+	publisher.messagePublisherChannel <- *event
 }
 
 // zmqPublisher initializes a ZMQ publishing socket and listens on the
@@ -136,6 +125,7 @@ func (publisher *ZmqEventPublisher) zmqPublisher() {
 	for {
 		select {
 		case msg := <-publisher.messagePublisherChannel:
+			fmt.Printf("Received event: %s and message: %v\n", msg.Topic, msg)
 			sentBytes, err := socket.SendMessage(msg.Topic, msg.Message)
 			if err != nil {
 				publisher.logger.Err("Publisher Send error: %s\n", err)
