@@ -15,7 +15,7 @@ const testSocketAddress = "inproc://testInProcDescriptor"
 
 func TestEventPublisher(t *testing.T) {
 	//Set up
-	handler := newTestAlertHandler()
+	handler := newTestEventHandler()
 	startupErr := handler.Startup()
 	assert.Nil(t, startupErr, "Failed to startup Zmq publisher in background")
 
@@ -81,7 +81,7 @@ func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
 	return pubSocket, nil
 }
 
-func newTestAlertHandler() *ZmqEventPublisher {
+func newTestEventHandler() *ZmqEventPublisher {
 	return &ZmqEventPublisher{
 		logger:                  mocks.NewMockLogger(),
 		messagePublisherChannel: make(chan ZmqMessage, messageBuffer),
