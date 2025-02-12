@@ -16,7 +16,7 @@ var EventPublisherSingleton *ZmqEventPublisher
 var once sync.Once
 
 type EventPublisher interface {
-	Send(alert *ZmqMessage)
+	Send(msg *ZmqMessage)
 }
 
 // ZmqEventPublisher runs a ZMQ publisher socket in the background.

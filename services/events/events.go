@@ -11,9 +11,8 @@ package events
 import "github.com/untangle/golang-shared/logger"
 
 const (
-	// AlertZMQTopic Topic name to be used when sending alerts.
-	ZMQTopicRestdEvents     = "arista:restd:alert"
-	ZMQTopicPakcetdEvents   = "arista:packetd:alert"
+	// AlertZMQTopic Topic is used for sending events from rest/packetd to reportd
+	AlertZMQTopic           = "arista:reportd:alerts"
 	sessionsZMQTopic        = "untangle:packetd:sessions"
 	interfaceStatsZMQTopic  = "untangle:packetd:interface-stats"
 	sessionStatsZMQTopic    = "untangle:packetd:session-stats"
