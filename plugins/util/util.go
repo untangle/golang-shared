@@ -48,11 +48,14 @@ func RunSigusr1(executable string) error {
 func SendSignal(executable string, signal syscall.Signal) error {
 	logger.Debug("Sending %s to %s\n", signal, executable)
 
+	if environments.IsEOS() &&
+		strings.Contains(executable, "packetd") {
+		return SendSignalViaSysdb(executable, signal)
+	}
 	// This should normally work on OpenWRT
 	pidStr, err := exec.Command("pidof", executable).CombinedOutput()
 	if err != nil {
 		logger.Debug("Failure to get %s pid: %s\n", executable, err.Error())
-		return TrySendSignalViaSysdb(executable, signal, err)
 	}
 	logger.Debug("Pid: %s\n", pidStr)
 
@@ -70,26 +73,25 @@ func SendSignal(executable string, signal syscall.Signal) error {
 	return process.Signal(signal)
 }
 
-// Check if the executable is packetd and if so, try to send it the
-// specified signal using Sysdb
-func TrySendSignalViaSysdb(executable string,
-	signal syscall.Signal, err error) error {
+// Check if the executable is packetd on EOS and if so, try to send it the
+// specified signal using Sysdb.
+// TODO This only supports packetd signals at this point.
+// @param executable - executable to run against
+// @return any error from running
+func SendSignalViaSysdb(executable string,
+	signal syscall.Signal) error {
 
-	if environments.IsEOS() &&
-		strings.Contains(executable, "packetd") {
-		// This is only relevant for packetd
-		arg := ""
-		switch signal {
-		case syscall.SIGHUP:
-			arg = "--sighup"
-		case syscall.SIGUSR1:
-			arg = "--sigusr1"
-		default:
-			return fmt.Errorf("unknown signal %v", signal)
-		}
-		// This is the same script used by sunc-settings
-		exec.Command("/usr/bin/updateSysdbSignal", arg)
-		return nil
+	// This is only relevant for packetd
+	arg := ""
+	switch signal {
+	case syscall.SIGHUP:
+		arg = "--sighup"
+	case syscall.SIGUSR1:
+		arg = "--sigusr1"
+	default:
+		return fmt.Errorf("unknown signal %v", signal)
 	}
-	return err
+	// This is the same script used by sunc-settings
+	exec.Command("/usr/bin/updateSysdbSignal", arg)
+	return nil
 }
