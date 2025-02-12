@@ -23,7 +23,7 @@ func TestEventPublisher(t *testing.T) {
 
 	t.Run("send message", func(t *testing.T) {
 		testParam := ZmqMessage{
-			Topic:   ZMQTopicRestdEvents,
+			Topic:   AlertZMQTopic,
 			Message: []byte(`{"type": "user", "severity": "info", "message": "test message"}`),
 		}
 
@@ -32,7 +32,7 @@ func TestEventPublisher(t *testing.T) {
 		resultMessage, resultTopic, err := receiveSentMessage(subscriberSocket)
 
 		assert.Nil(t, err)
-		assert.Equal(t, ZMQTopicRestdEvents, resultTopic)
+		assert.Equal(t, AlertZMQTopic, resultTopic)
 		assert.Equal(t, testParam.Topic, resultMessage.Topic)
 		assert.Equal(t, testParam.Message, resultMessage.Message)
 	})
@@ -45,12 +45,13 @@ func TestEventPublisher(t *testing.T) {
 }
 
 func receiveSentMessage(subscriberSocket *zmq.Socket) (*ZmqMessage, string, error) {
-	// fmt.Printf("Inside receiveSentMessage\n")
+	fmt.Printf("Inside receiveSentMessage\n")
 	msg, err := subscriberSocket.RecvMessageBytes(0)
 	if err != nil {
+		fmt.Printf("got error: %v\n", err)
 		return nil, "", err
 	}
-	// fmt.Printf("message received: %v\n", msg)
+	fmt.Printf("message received: %v\n", msg)
 
 	resultTopic := string(msg[0])
 	resultMessage := &ZmqMessage{}
@@ -75,7 +76,7 @@ func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
 		return nil, err
 	}
 
-	if err = subSocket.SetSubscribe(ZMQTopicRestdEvents); err != nil {
+	if err = subSocket.SetSubscribe(AlertZMQTopic); err != nil {
 		return nil, err
 	}
 
