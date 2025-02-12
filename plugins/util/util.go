@@ -77,6 +77,7 @@ func SendSignal(executable string, signal syscall.Signal) error {
 // specified signal using Sysdb.
 // TODO This only supports packetd signals at this point.
 // @param executable - executable to run against
+// @param signal syscall.Signal - the signal type to send
 // @return any error from running
 func SendSignalViaSysdb(executable string,
 	signal syscall.Signal) error {
@@ -91,7 +92,12 @@ func SendSignalViaSysdb(executable string,
 	default:
 		return fmt.Errorf("unknown signal %v", signal)
 	}
-	// This is the same script used by sunc-settings
-	exec.Command("/usr/bin/updateSysdbSignal", arg)
+	logger.Debug("/usr/bin/updateSysdbSignal %s\n", signal)
+	// This is the same script used by sync-settings
+	// We are not expecting a failure
+	if err := exec.Command("/usr/bin/updateSysdbSignal", arg).Run(); err != nil {
+		logger.Err("Failed to run updateSysdbSignal %s with error: %+v\n", arg, err)
+		return err
+	}
 	return nil
 }
