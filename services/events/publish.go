@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -100,8 +99,6 @@ func (publisher *ZmqEventPublisher) Send(event *ZmqMessage) {
 		return
 	}
 
-	fmt.Printf("sending event: %s\n", event.Topic)
-
 	// send event directly on messagePublisherChannel
 	publisher.messagePublisherChannel <- *event
 }
@@ -125,7 +122,6 @@ func (publisher *ZmqEventPublisher) zmqPublisher() {
 	for {
 		select {
 		case msg := <-publisher.messagePublisherChannel:
-			fmt.Printf("Received event: %s and message: %v\n", msg.Topic, msg)
 			sentBytes, err := socket.SendMessage(msg.Topic, msg.Message)
 			if err != nil {
 				publisher.logger.Err("Publisher Send error: %s\n", err)

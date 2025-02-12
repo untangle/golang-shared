@@ -1,7 +1,6 @@
 package events
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -20,11 +19,12 @@ func TestEventPublisher(t *testing.T) {
 
 	subscriberSocket, err := createTestSubscriberSocket(testSocketAddress)
 	assert.Nil(t, err)
+	defer subscriberSocket.Close() // Close socket in case of error
 
 	t.Run("send message", func(t *testing.T) {
 		testParam := ZmqMessage{
 			Topic:   AlertZMQTopic,
-			Message: []byte(`{"type": "user", "severity": "info", "message": "test message"}`),
+			Message: []byte(`{"message": "test message"}`),
 		}
 
 		// Send Event
@@ -33,35 +33,23 @@ func TestEventPublisher(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, AlertZMQTopic, resultTopic)
-		assert.Equal(t, testParam.Topic, resultMessage.Topic)
-		assert.Equal(t, testParam.Message, resultMessage.Message)
+		assert.Equal(t, testParam.Message, resultMessage)
 	})
 
 	// Tear down
 	if shutdownErr := handler.Shutdown(); shutdownErr != nil {
 		fmt.Printf("Failed to stop the goroutine running the ZMQ subscriber %v\n", shutdownErr.Error())
 	}
-	_ = subscriberSocket.Close()
 }
 
-func receiveSentMessage(subscriberSocket *zmq.Socket) (*ZmqMessage, string, error) {
-	fmt.Printf("Inside receiveSentMessage\n")
+func receiveSentMessage(subscriberSocket *zmq.Socket) ([]byte, string, error) {
 	msg, err := subscriberSocket.RecvMessageBytes(0)
 	if err != nil {
-		fmt.Printf("got error: %v\n", err)
-		return nil, "", err
+		return []byte(""), "", err
 	}
-	fmt.Printf("message received: %v\n", msg)
 
 	resultTopic := string(msg[0])
-	resultMessage := &ZmqMessage{}
-
-	err = json.Unmarshal(msg[1], &resultMessage.Message)
-	if err != nil {
-		return nil, "", err
-	}
-
-	resultMessage.Topic = resultTopic
+	resultMessage := msg[1]
 
 	return resultMessage, resultTopic, nil
 }
@@ -72,7 +60,7 @@ func createTestSubscriberSocket(socket string) (*zmq.Socket, error) {
 		return nil, err
 	}
 
-	if err = subSocket.Connect(socket); err != nil {
+	if err = subSocket.Bind(socket); err != nil {
 		return nil, err
 	}
 
