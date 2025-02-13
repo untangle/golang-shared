@@ -105,7 +105,7 @@ func (publisher *ZmqAlertPublisher) Send(alert *Alerts.Alert) {
 	// 2 reasons to set the timestamp here:
 	// - the caller isn't responsible for setting the timestamp so we just need to set it in one place (here)
 	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
-	alert.Datetime = time.Now().Unix()
+	alert.Datetime = time.Now().UnixNano() / 1e6
 
 	publisher.logger.Debug("Publish alert %v\n", alert)
 	alertMessage, err := proto.Marshal(alert)
