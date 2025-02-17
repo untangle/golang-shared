@@ -3,10 +3,13 @@ package events
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	zmq "github.com/pebbe/zmq4"
+	"google.golang.org/protobuf/proto"
 )
 
 const messageBuffer = 1000
@@ -15,7 +18,8 @@ var EventPublisherSingleton *ZmqEventPublisher
 var once sync.Once
 
 type EventPublisher interface {
-	Send(msg *ZmqMessage)
+	Send(alert *Alerts.Alert)
+	SendZmqMessage(msg *ZmqMessage)
 }
 
 // ZmqEventPublisher runs a ZMQ publisher socket in the background.
@@ -31,6 +35,7 @@ type ZmqEventPublisher struct {
 	started                 int32
 }
 
+// Name returns the name of the event publisher.
 func (publisher *ZmqEventPublisher) Name() string {
 	return "Event publisher"
 }
@@ -50,6 +55,7 @@ func NewZmqEventPublisher(logger loggerModel.LoggerLevels) *ZmqEventPublisher {
 	return EventPublisherSingleton
 }
 
+// NewDefaultEventPublisher returns a new instance of ZmqEventPublisher.
 func NewDefaultEventPublisher(logger loggerModel.LoggerLevels) EventPublisher {
 	return NewZmqEventPublisher(logger)
 }
@@ -91,14 +97,37 @@ func (publisher *ZmqEventPublisher) Shutdown() error {
 	return nil
 }
 
-// Send publishes the event to on the ZMQ publishing socket.
-func (publisher *ZmqEventPublisher) Send(event *ZmqMessage) {
+// Send publishes the alert to on the ZMQ publishing socket.
+func (publisher *ZmqEventPublisher) Send(alert *Alerts.Alert) {
+	// Make sure it is not shutdown.
+	if atomic.LoadInt32(&publisher.started) == 0 {
+		publisher.logger.Debug("Alerts service has been shutdown.\n")
+		return
+	}
+
+	// 2 reasons to set the timestamp here:
+	// - the caller isn't responsible for setting the timestamp so we just need to set it in one place (here)
+	// - we set it before putting it in queue, which means we have the timestamp of the alert creation, not the timestamp when it was processed
+	alert.Datetime = time.Now().Unix()
+
+	publisher.logger.Debug("Publish alert %v\n", alert)
+	alertMessage, err := proto.Marshal(alert)
+	if err != nil {
+		publisher.logger.Err("Unable to marshal alert entry: %s\n", err)
+		return
+	}
+
+	publisher.messagePublisherChannel <- ZmqMessage{Topic: AlertZMQTopic, Message: alertMessage}
+}
+
+// SendZmqMessage publishes the event to on the ZMQ publishing socket.
+func (publisher *ZmqEventPublisher) SendZmqMessage(event *ZmqMessage) {
 	// Make sure it is not shutdown.
 	if atomic.LoadInt32(&publisher.started) == 0 {
 		publisher.logger.Debug("Events service has been shutdown.\n")
 		return
 	}
-
+	publisher.logger.Debug("Publish event %v\n", event)
 	// send event directly on messagePublisherChannel
 	publisher.messagePublisherChannel <- *event
 }
