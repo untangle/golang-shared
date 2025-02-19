@@ -1,0 +1,10 @@
+images:
+  # I'm here just so that pre-merge for release branch passes
+  # if I fail in release branch, please ensure barney.context is up to date
+  # in release branch BAR Barney Auto Roller) might be switched off
+  test/efw-protobufs:
+    units:
+      - sources:
+          - github.com/untangle/golang-shared
+        build: |
+          cd /src/github.com/untangle/golang-shared/
