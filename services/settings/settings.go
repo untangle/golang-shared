@@ -477,7 +477,7 @@ func runSyncSettings(filename string, force bool, skipEosConfig bool) (string, e
 	}
 
 	logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-	if err != nil && errParse == nil {
+	if errParse == nil {
 		// return the trace and the error raised
 		return fmt.Sprintf("%v", data["traceback"]), fmt.Errorf("%v", data["raisedException"])
 	}
@@ -538,8 +538,8 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 	logger.Info("Writing settings to %v\n", tmpfile.Name())
 	_, syncError := writeSettingsFileJSON(jsonObject, tmpfile)
 	if syncError != nil {
-		logger.Warn("Failed to write settings file: %v\n", err.Error())
-		return "Failed to write settings.", err
+		logger.Warn("Failed to write settings file: %v\n", syncError.Error())
+		return "Failed to write settings.", syncErr
 	}
 
 	output, err := runSyncSettings(tmpfile.Name(), force, skipEosConfig)
