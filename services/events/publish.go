@@ -64,8 +64,8 @@ func NewDefaultEventPublisher(logger loggerModel.LoggerLevels) EventPublisher {
 func (publisher *ZmqEventPublisher) Startup() error {
 	publisher.logger.Info("Starting up the Events service\n")
 
-	// Make sure it is not started twice.
-	if atomic.LoadInt32(&publisher.started) > 0 {
+	// Use CompareAndSwap to ensure only one thread can start the publisher.
+	if !atomic.CompareAndSwapInt32(&publisher.started, 0, 1) {
 		publisher.logger.Debug("Events service is already running.\n")
 		return nil
 	}
@@ -73,7 +73,7 @@ func (publisher *ZmqEventPublisher) Startup() error {
 	go publisher.zmqPublisher()
 
 	// Blocks until the publisher starts.
-	atomic.AddInt32(&publisher.started, <-publisher.zmqPublisherStarted)
+	<-publisher.zmqPublisherStarted
 
 	return nil
 }
@@ -82,9 +82,9 @@ func (publisher *ZmqEventPublisher) Startup() error {
 func (publisher *ZmqEventPublisher) Shutdown() error {
 	publisher.logger.Info("Shutting down the Events service\n")
 
-	// Make sure it is not shutdown twice.
-	if atomic.LoadInt32(&publisher.started) == 0 {
-		publisher.logger.Debug("Events service is already shutdown.\n")
+	// Use CompareAndSwap to ensure only one thread can shut down the publisher.
+	if !atomic.CompareAndSwapInt32(&publisher.started, 1, 0) {
+		publisher.logger.Debug("Events service is not running.\n")
 		return nil
 	}
 
@@ -92,8 +92,8 @@ func (publisher *ZmqEventPublisher) Shutdown() error {
 	close(publisher.zmqPublisherShutdown)
 	close(publisher.zmqPublisherStarted)
 	close(publisher.messagePublisherChannel)
-	atomic.StoreInt32(&publisher.started, 0)
 
+	publisher.logger.Info("Events service has been shut down.\n")
 	return nil
 }
 
