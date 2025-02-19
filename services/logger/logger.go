@@ -438,7 +438,7 @@ func logFormatter(format string, newOcname Ocname, args ...interface{}) string {
 		// if there are only two arguments everything after the verb is the message
 
 		// more than two arguments so use the remaining format and arguments
-		buffer := fmt.Sprint(format)
+		buffer := fmt.Sprint(format, args)
 		return buffer
 	}
 	// return empty string when a repeat is limited

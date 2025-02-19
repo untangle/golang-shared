@@ -539,7 +539,7 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 	_, syncError := writeSettingsFileJSON(jsonObject, tmpfile)
 	if syncError != nil {
 		logger.Warn("Failed to write settings file: %v\n", syncError.Error())
-		return "Failed to write settings.", syncErr
+		return "Failed to write settings.", syncError
 	}
 
 	output, err := runSyncSettings(tmpfile.Name(), force, skipEosConfig)
