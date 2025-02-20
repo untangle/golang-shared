@@ -575,28 +575,33 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 		cb()
 	}
 
+	checkIfShouldRunSighup()
+
+	os.Remove(tmpfile.Name())
+	return output, nil
+}
+
+func checkIfShouldRunSighup() {
 	logger.Debug("Sighup: %v\n", ShouldRunSighup)
 	logger.Debug("Executables: %v\n", SighupExecutables)
 
 	if ShouldRunSighup {
 		for _, executable := range SighupExecutables {
-			// packetd can only be reached via updateSysdbSignal
-			// other executables can still use SIGHUP signal as before
 			if environments.IsEOS() && strings.Contains(executable, "packetd") {
+				// packetd can only be reached via updateSysdbSignal
+				// other executables can still use SIGHUP signal as before
 				if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
 					logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
 				}
 			} else {
-				err = util.RunSighup(executable)
-				if err != nil {
+				if err := util.RunSighup(executable); err != nil {
 					logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
 					// do not return err here to the consumer when sighup fails
 				}
 			}
+			// Even if there is an error, we keep going for other executables
 		}
 	}
-	os.Remove(tmpfile.Name())
-	return output, nil
 }
 
 // tempFile is similar to ioutil.TempFile
