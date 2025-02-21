@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"fmt"
 	"net"
 	"testing"
 
@@ -161,11 +160,11 @@ func TestGetNetworks(t *testing.T) {
 					} else {
 						printStr = "Test %s: IP '%s' is on the network '%s'"
 					}
-					t.Errorf(fmt.Sprintf(printStr, testName, ip.String(), ipStr))
+					t.Errorf(printStr, testName, ip.String(), ipStr)
 				}
 
 			} else {
-				t.Errorf(fmt.Sprintf("Test %s: IP '%s' did not parse correctly from %s", testName, ip.String(), ipStr))
+				t.Errorf("Test %s: IP '%s' did not parse correctly from %s", testName, ip.String(), ipStr)
 			}
 		}
 	}

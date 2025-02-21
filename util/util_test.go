@@ -1,7 +1,6 @@
 package util
 
 import (
-	"math/rand"
 	"os"
 	"reflect"
 	"sync"
@@ -19,7 +18,6 @@ const (
 
 // Test RandomizeSlice
 func TestRandomizeSlice(t *testing.T) {
-	seeds := []int64{10, 20, 30}
 	tests := []struct {
 		name   string
 		actual []interface{}
@@ -38,24 +36,22 @@ func TestRandomizeSlice(t *testing.T) {
 		},
 	}
 
-	for _, seed := range seeds {
-		rand.Seed(seed)
+	// setting custom seed wua Seed has been deprecated
 
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
-				// Make a copy of the input slice to compare with the result
-				inputCopy := make([]interface{}, len(test.actual))
-				copy(inputCopy, test.actual)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Make a copy of the input slice to compare with the result
+			inputCopy := make([]interface{}, len(test.actual))
+			copy(inputCopy, test.actual)
 
-				RandomizeSlice(test.actual)
+			RandomizeSlice(test.actual)
 
-				// Check if the input slice is not equal to the expected slice.
-				// lists of size <= 1 excluded.
-				if len(test.actual) > 1 && reflect.DeepEqual(test.actual, inputCopy) {
-					t.Errorf("Expected slice to be randomized, but it's the same as the original: %v", test.actual)
-				}
-			})
-		}
+			// Check if the input slice is not equal to the expected slice.
+			// lists of size <= 1 excluded.
+			if len(test.actual) > 1 && reflect.DeepEqual(test.actual, inputCopy) {
+				t.Errorf("Expected slice to be randomized, but it's the same as the original: %v", test.actual)
+			}
+		})
 	}
 }
 

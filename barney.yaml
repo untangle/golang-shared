@@ -1,10 +1,20 @@
 images:
-  # I'm here just so that pre-merge for release branch passes
-  # if I fail in release branch, please ensure barney.context is up to date
-  # in release branch BAR Barney Auto Roller) might be switched off
-  test/efw-protobufs:
+
+  efw-protobufs:
+    description: |
+      All protobufs used by EfwSfeModules and Packetd to file reports with Reportd ready to be BIPed into mfw-nft
     units:
       - sources:
           - github.com/untangle/golang-shared
         build: |
-          cd /src/github.com/untangle/golang-shared/
+          cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
+
+  test/efw-protobufs:
+    description: |
+      Check that the .proto files exist in the artifacts produced by efw-protobufs
+    units:
+      - mappings:
+          /src/efw-protobufs: .%efw-protobufs
+        build: |
+          ls -l /src/efw-protobufs/*.proto
+
