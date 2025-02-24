@@ -17,6 +17,7 @@ import (
 
 	loggerModel "github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins/util"
+	"github.com/untangle/golang-shared/util/environments"
 )
 
 var logger loggerModel.LoggerLevels
@@ -476,7 +477,7 @@ func runSyncSettings(filename string, force bool, skipEosConfig bool) (string, e
 	}
 
 	logger.Warn("Failed to run sync-settings: %v\n", err.Error())
-	if err != nil && errParse == nil {
+	if errParse == nil {
 		// return the trace and the error raised
 		return fmt.Sprintf("%v", data["traceback"]), fmt.Errorf("%v", data["raisedException"])
 	}
@@ -537,8 +538,8 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 	logger.Info("Writing settings to %v\n", tmpfile.Name())
 	_, syncError := writeSettingsFileJSON(jsonObject, tmpfile)
 	if syncError != nil {
-		logger.Warn("Failed to write settings file: %v\n", err.Error())
-		return "Failed to write settings.", err
+		logger.Warn("Failed to write settings file: %v\n", syncError.Error())
+		return "Failed to write settings.", syncError
 	}
 
 	output, err := runSyncSettings(tmpfile.Name(), force, skipEosConfig)
@@ -574,26 +575,34 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 		cb()
 	}
 
+	checkAndRunSighup()
+
+	os.Remove(tmpfile.Name())
+	return output, nil
+}
+
+// check ShouldRunSighup and perform the signalling actions if so
+func checkAndRunSighup() {
 	logger.Debug("Sighup: %v\n", ShouldRunSighup)
 	logger.Debug("Executables: %v\n", SighupExecutables)
 
 	if ShouldRunSighup {
 		for _, executable := range SighupExecutables {
-			_, err := os.Stat("/usr/bin/updateSysdbSignal")
-			if err == nil || !os.IsNotExist(err) {
+			if environments.IsEOS() && strings.Contains(executable, "packetd") {
+				// packetd can only be reached via updateSysdbSignal
+				// other executables can still use SIGHUP signal as before
 				if err := exec.Command("/usr/bin/updateSysdbSignal", "--sighup").Run(); err != nil {
 					logger.Warn("Failed to run EOS-MFW script `updateSysdbSignal` command with error: %+v\n", err)
 				}
+			} else {
+				if err := util.RunSighup(executable); err != nil {
+					logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
+					// do not return err here to the consumer when sighup fails
+				}
 			}
-			err = util.RunSighup(executable)
-			if err != nil {
-				logger.Warn("Failure running sighup on required executable %s: %s\n", executable, err.Error())
-				// do not return err here to the consumer when sighup fails
-			}
+			// Even if there is an error, we keep going for other executables
 		}
 	}
-	os.Remove(tmpfile.Name())
-	return output, nil
 }
 
 // tempFile is similar to ioutil.TempFile
