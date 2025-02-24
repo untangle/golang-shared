@@ -575,13 +575,14 @@ func syncAndSave(jsonObject map[string]interface{}, filename string, force bool,
 		cb()
 	}
 
-	checkIfShouldRunSighup()
+	checkAndRunSighup()
 
 	os.Remove(tmpfile.Name())
 	return output, nil
 }
 
-func checkIfShouldRunSighup() {
+// check ShouldRunSighup and perform the signalling actions if so
+func checkAndRunSighup() {
 	logger.Debug("Sighup: %v\n", ShouldRunSighup)
 	logger.Debug("Executables: %v\n", SighupExecutables)
 
