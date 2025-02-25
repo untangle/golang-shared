@@ -3,8 +3,6 @@ package settings
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 )
 
 // FilenameLocator finds files on the local filesytem, allowing the
@@ -15,20 +13,17 @@ type FilenameLocator struct {
 }
 
 const (
-	// prefix for generic filepaths in hybrid mode
-	hybridModeGenericPrefix = "/mfw"
-
-	// kernel forwarding mode/BST container mode path prefix.
-	kernelModeSettingsPrefix = "/etc/config"
-
-	// prefix specifically for config files in hybrid mode
-	hybridModeSettingsPrefix = "/mnt/flash/mfw-settings"
-
+	// Present of file indicates we are in native mode
 	nativeEOSIndicatorFile = "/etc/EfwNativeEos"
 )
 
 var openWRTFileToNativeEOS = map[string]string{
 	"/etc/config/categories.json": "/usr/share/bctid/categories.json",
+	"/etc/config/appstate.json":   "/mnt/flash/mfw-settings/appstate.json",
+	"/etc/config/settings.json":   "/mnt/flash/mfw-settings/settings.json",
+	"/etc/config/current.json":    "/mnt/flash/mfw-settings/current.json",
+	"/etc/config/default.json":    "/mnt/flash/mfw-settings/default.json",
+	"/etc/config/uid":             "/mnt/flash/mfw-settings/uid",
 }
 
 // NoFileAtPath is an error for if a file doesn't exist. In this case
@@ -59,35 +54,18 @@ func FileExists(fname string) bool {
 	return true
 }
 
-func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
-	// Determine platform
-	var newFileName string
-	if f.fileExists(kernelModeSettingsPrefix) {
-		// Kernel/OpenWRT mode
-		newFileName = kernelModeSettingsPrefix + "/" + filename[strings.LastIndex(filename, "/")+1:]
-	} else {
-		// Hybrid mode
-		if f.fileExists(nativeEOSIndicatorFile) {
-			// Packetd running natively EOS mode
-			if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
-				return nativePath, nil
+func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) { // Check if we are in native mode, most likely since there is only native and OpenWRT mode
+	if f.fileExists(nativeEOSIndicatorFile) { // In Native mode, do translation
+		if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
+			if !f.fileExists(nativePath) {
+				return nativePath, &NoFileAtPath{name: nativePath}
 			}
-
-			// Fall through to Hybrid mode handling
+			return nativePath, nil
 		}
-
-		if !strings.HasPrefix(filename, kernelModeSettingsPrefix) {
-			// Not a config file, use generic prefix
-			newFileName = filepath.Join(hybridModeGenericPrefix, filename)
-		} else {
-			newFileName = hybridModeSettingsPrefix + "/" + filename[strings.LastIndex(filename, "/")+1:]
-		}
+		return filename, fmt.Errorf("In Native mode, not file translation found for %v", filename)
 	}
-	if !f.fileExists(newFileName) {
-		// File doesn't exist, but the caller may not care
-		return newFileName, &NoFileAtPath{newFileName}
-	}
-	return newFileName, nil
+	// In OpenWRT mode, no translation since the defaults are openwrt paths.
+	return filename, nil
 }
 
 // LocateFile locates the input filename on the filesystem,
