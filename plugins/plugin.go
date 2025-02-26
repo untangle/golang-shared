@@ -162,6 +162,9 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 // Function to return a count of the registered Plugins
 // Intended for unit testing only
 func (control *PluginControl) GetRegisteredPluginCount() int {
+	// control.saverFuncs is appended to by the RegisterPlugin() above
+	// and the RegistRegisterAndProvidePluginerPlugin() function below
+	// The saverFuncs are invoked on Startup() to actually start plugins.
 	return len(control.saverFuncs)
 }
 
