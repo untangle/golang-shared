@@ -159,6 +159,15 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 	control.saverFuncs = append(control.saverFuncs, saverFunc)
 }
 
+// Function to return a count of the registered Plugins
+// Intended for unit testing only
+func (control *PluginControl) GetRegisteredPluginCount() int {
+	// control.saverFuncs is appended to by the RegisterPlugin() above
+	// and the RegistRegisterAndProvidePluginerPlugin() function below
+	// The saverFuncs are invoked on Startup() to actually start plugins.
+	return len(control.saverFuncs)
+}
+
 // RegisterAndProvidePlugin registers a plugin that may be consumed by
 // other plugins. This constructor function therefore needs a unique
 // type. The constructor will be added to the DI container, and other
