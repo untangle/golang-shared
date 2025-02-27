@@ -68,7 +68,7 @@ func FillDeviceListWithZMQDeviceMessages(
 			switch msg.Topic {
 			case LLDPDeviceZMQTopic:
 				lldp := &disco.LLDP{}
-				logger.Debug("Attempting to unmarshall LLDP ZMQ message\n")
+				logger.Info("Attempting to unmarshall LLDP ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, lldp); err != nil {
 					logger.Warn("Could not unmarshal LLDP ZMQ Message: %s\n", err.Error())
 					break
@@ -92,7 +92,7 @@ func FillDeviceListWithZMQDeviceMessages(
 				}
 			case NEIGHDeviceZMQTopic:
 				neigh := &disco.NEIGH{}
-				logger.Debug("Attempting to unmarshall NEIGH ZMQ message\n")
+				logger.Info("Attempting to unmarshall NEIGH ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, neigh); err != nil {
 					logger.Warn("Could not unmarshal NEIGH ZMQ Message: %s\n", err.Error())
 					break
@@ -118,7 +118,7 @@ func FillDeviceListWithZMQDeviceMessages(
 				}
 			case NMAPDeviceZMQTopic:
 				nmap := &disco.NMAP{}
-				logger.Debug("Attempting to unmarshall NMAP ZMQ message\n")
+				logger.Info("Attempting to unmarshall NMAP ZMQ message\n")
 				if err := proto.Unmarshal(msg.Message, nmap); err != nil {
 					logger.Warn("Could not unmarshal NMAP ZMQ Message: %s\n", err.Error())
 					break
