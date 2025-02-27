@@ -25,45 +25,64 @@ func TestFilenameLocator(t *testing.T) {
 		fileExists: existFake.doesExist}
 	tests := []struct {
 		filename     string
-		existResults []bool // Indicates (file initially exists, In kernel/openwrt mode , new file exists)
+		existResults []bool // Indicates (input file exists, OnEOSPlatform, File exists after translation)
 		returnValue  string
 		returnErr    error
 	}{
 		{
+			// File exists, should get the same back.
 			filename:     "/etc/config/settings.json",
-			existResults: []bool{false, false, false, true},
-			returnValue:  "/mnt/flash/mfw-settings/settings.json",
-		},
-		{
-			filename:     "/usr/share/geoip",
-			existResults: []bool{false, false, false, true},
-			returnValue:  "/mfw/usr/share/geoip",
-		},
-		{
-			filename:     "/etc/config/appstate.json",
-			existResults: []bool{false, false, false, true},
-			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
-		},
-		{
-			filename:     "/etc/config/settings.json",
-			existResults: []bool{true, true, true},
+			existResults: []bool{true},
 			returnValue:  "/etc/config/settings.json",
 		},
 		{
-			filename:     "/etc/config/appstate.json",
-			existResults: []bool{true, true, true},
-			returnValue:  "/etc/config/appstate.json",
+			// In OpenWRT mode, no translation since the defaults are openwrt paths.
+			// returns with no error
+			filename:     "/usr/share/geoip",
+			existResults: []bool{false, false, true},
+			returnValue:  "/usr/share/geoip",
 		},
 		{
+			// In Native mode, do translation
 			filename:     "/etc/config/appstate.json",
-			existResults: []bool{false, false, false, false},
+			existResults: []bool{false, true, true},
 			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
-			returnErr:    fmt.Errorf("no file at path: /mnt/flash/mfw-settings/appstate.json"),
 		},
 		{
-			filename:     "/etc/config/categories.json",
+			// In Native mode, do translation, file is not there so return error
+			filename:     "/etc/config/settings.json",
+			existResults: []bool{false, true, false},
+			returnValue:  "/mnt/flash/mfw-settings/settings.json",
+			returnErr:    fmt.Errorf("no file at path: /mnt/flash/mfw-settings/settings.json"),
+		},
+		{
+			// In Native mode, do translation, file exists, not error
+			filename:     "/etc/config/appstate.json",
+			existResults: []bool{false, true, true},
+			returnValue:  "/mnt/flash/mfw-settings/appstate.json",
+		},
+		{ // Native mode, no translation, file exists
+			filename:     "/usr/share/bctid/categories.json",
 			existResults: []bool{false, false, true},
 			returnValue:  "/usr/share/bctid/categories.json",
+		},
+		{ // Native mode, New file not there, return same thing
+			filename:     "/tmp/captivesocket",
+			existResults: []bool{false, true, false},
+			returnValue:  "/tmp/captivesocket",
+			returnErr:    fmt.Errorf("no file at path: /tmp/captivesocket"),
+		},
+		{ // OpenWRT mode, translate. New file not there, return same thing
+			filename:     "/tmp/captivesocket",
+			existResults: []bool{false, false, false},
+			returnValue:  "/tmp/captivesocket",
+			returnErr:    fmt.Errorf("no file at path: /tmp/captivesocket"),
+		},
+		{ // Native mode, translate. New file not there, return error
+			filename:     "/etc/config/categories.json",
+			existResults: []bool{false, true, false},
+			returnValue:  "/usr/share/bctid/categories.json",
+			returnErr:    fmt.Errorf("no file at path: /usr/share/bctid/categories.json"),
 		},
 	}
 
