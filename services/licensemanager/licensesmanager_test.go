@@ -570,7 +570,7 @@ func disableDnsFilter() (interface{}, []string, error) {
 
 // DisableDosFilter
 func disableDosFilter() (interface{}, []string, error) {
-	return false, []string{"dosfilter", "enabled"}, nil
+	return false, []string{"denial_of_service", "enabled"}, nil
 }
 
 func TestSetServices(t *testing.T) {
