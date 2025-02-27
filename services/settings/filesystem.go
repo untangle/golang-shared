@@ -3,6 +3,7 @@ package settings
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // FilenameLocator finds files on the local filesytem, allowing the
@@ -15,15 +16,16 @@ type FilenameLocator struct {
 const (
 	// Present of file indicates we are in native mode
 	nativeEOSIndicatorFile = "/etc/EfwNativeEos"
+
+	// Standard prefix for natic EOS
+	nativeEOSPrefix = "/mnt/flash/mfw-settings/"
+
+	// Standard prefix for OpenWRT
+	openWRTPrefix = "/etc/config/"
 )
 
 var openWRTFileToNativeEOS = map[string]string{
 	"/etc/config/categories.json": "/usr/share/bctid/categories.json",
-	"/etc/config/appstate.json":   "/mnt/flash/mfw-settings/appstate.json",
-	"/etc/config/settings.json":   "/mnt/flash/mfw-settings/settings.json",
-	"/etc/config/current.json":    "/mnt/flash/mfw-settings/current.json",
-	"/etc/config/default.json":    "/mnt/flash/mfw-settings/default.json",
-	"/etc/config/uid":             "/mnt/flash/mfw-settings/uid",
 }
 
 // NoFileAtPath is an error for if a file doesn't exist. In this case
@@ -54,17 +56,31 @@ func FileExists(fname string) bool {
 	return true
 }
 
+// getPlatformFileName translates the filename to the appropriate path based on platform.
+// it assumes that called uses default to OpenWRT platform. Only paths in mappings or paths which
+// starts with /etc/config are translated.
 func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) { // Check if we are in native mode, most likely since there is only native and OpenWRT mode
-	if f.fileExists(nativeEOSIndicatorFile) { // In Native mode, do translation
+	if f.fileExists(nativeEOSIndicatorFile) { // In EOS mode, try maping
 		if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
 			if !f.fileExists(nativePath) {
 				return nativePath, &NoFileAtPath{name: nativePath}
+			} else {
+				return nativePath, nil
 			}
-			return nativePath, nil
+			// Still on EOS, if file contains /etc/config then translate, otherwise return
+		} else if strings.Contains(filename, openWRTPrefix) {
+			nativePath := nativeEOSPrefix + filename[strings.LastIndex(filename, "/")+1:]
+			if !f.fileExists(nativePath) {
+				return nativePath, &NoFileAtPath{name: nativePath}
+			} else {
+				return nativePath, nil
+			}
 		}
-		return filename, fmt.Errorf("In Native mode, not file translation found for %v", filename)
 	}
-	// In OpenWRT mode, no translation since the defaults are openwrt paths.
+	// On OpenWRT, no translation needed
+	if !f.fileExists(filename) {
+		return filename, &NoFileAtPath{name: filename}
+	}
 	return filename, nil
 }
 

@@ -66,6 +66,18 @@ func TestFilenameLocator(t *testing.T) {
 			existResults: []bool{false, false, true},
 			returnValue:  "/usr/share/bctid/categories.json",
 		},
+		{ // Native mode, New file not there, return same thing
+			filename:     "/tmp/captivesocket",
+			existResults: []bool{false, true, false},
+			returnValue:  "/tmp/captivesocket",
+			returnErr:    fmt.Errorf("no file at path: /tmp/captivesocket"),
+		},
+		{ // OpenWRT mode, translate. New file not there, return same thing
+			filename:     "/tmp/captivesocket",
+			existResults: []bool{false, false, false},
+			returnValue:  "/tmp/captivesocket",
+			returnErr:    fmt.Errorf("no file at path: /tmp/captivesocket"),
+		},
 		{ // Native mode, translate. New file not there, return error
 			filename:     "/etc/config/categories.json",
 			existResults: []bool{false, true, false},
