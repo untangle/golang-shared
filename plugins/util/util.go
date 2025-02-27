@@ -90,6 +90,8 @@ func SendSignalViaSysdb(executable string,
 		arg = "--sighup"
 	case syscall.SIGUSR1:
 		arg = "--sigusr1"
+	case syscall.SIGUSR2:
+		arg = "--sigusr2"
 	default:
 		return fmt.Errorf("unknown signal %v", signal)
 	}
