@@ -46,10 +46,11 @@ func RunSigusr1(executable string) error {
 // @param executable string - the binary process name
 // @param signal syscall.Signal - the signal type to send
 func SendSignal(executable string, signal syscall.Signal) error {
-	logger.Debug("Sending %s to %s\n", signal, executable)
+	logger.Err("Sending %s to %s\n", signal, executable)
 
 	if environments.IsEOS() &&
 		strings.Contains(executable, "packetd") {
+		logger.Err("SendSignal - SendSignalViaSysdb\n")
 		return SendSignalViaSysdb(executable, signal)
 	}
 	// This should normally work on OpenWRT
@@ -87,9 +88,14 @@ func SendSignalViaSysdb(executable string,
 	arg := ""
 	switch signal {
 	case syscall.SIGHUP:
+		logger.Err("SIGHUP received\n")
 		arg = "--sighup"
 	case syscall.SIGUSR1:
+		logger.Err("SIGUSR1 received\n")
 		arg = "--sigusr1"
+	case syscall.SIGUSR2:
+		logger.Err("SIGUSR2 received\n")
+		arg = "--sigusr2"
 	default:
 		return fmt.Errorf("unknown signal %v", signal)
 	}
