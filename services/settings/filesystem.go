@@ -15,7 +15,7 @@ type FilenameLocator struct {
 
 const (
 	// Present of file indicates we are in native mode
-	nativeEOSIndicatorFile = "/etc/EfwNativeEos"
+	nativeEOSIndicatorFile = "/etc/efw-version"
 
 	// Standard prefix for natic EOS
 	nativeEOSPrefix = "/mnt/flash/mfw-settings/"
