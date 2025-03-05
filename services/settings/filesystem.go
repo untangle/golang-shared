@@ -17,7 +17,7 @@ const (
 	// Present of file indicates we are in native mode
 	nativeEOSIndicatorFile = "/etc/efw-version"
 
-	// Standard prefix for natic EOS
+	// Standard prefix for native EOS
 	nativeEOSPrefix = "/mnt/flash/mfw-settings/"
 
 	// Standard prefix for OpenWRT
@@ -60,7 +60,7 @@ func FileExists(fname string) bool {
 // it assumes that called uses default to OpenWRT platform. Only paths in mappings or paths which
 // starts with /etc/config are translated.
 func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) { // Check if we are in native mode, most likely since there is only native and OpenWRT mode
-	if f.fileExists(nativeEOSIndicatorFile) { // In EOS mode, try maping
+	if f.fileExists(nativeEOSIndicatorFile) { // In EOS mode, try mapping
 		if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
 			if !f.fileExists(nativePath) {
 				return nativePath, &NoFileAtPath{name: nativePath}
@@ -77,7 +77,7 @@ func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
 			}
 		}
 	}
-	// On OpenWRT, no translation needed
+	// On OpenWRT or no translation needed
 	if !f.fileExists(filename) {
 		return filename, &NoFileAtPath{name: filename}
 	}
