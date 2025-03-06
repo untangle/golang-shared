@@ -477,7 +477,12 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		if level >= LogLevelDebug {
+			// Include function name if Debug or Trace (or greater)
+			logMessage = fmt.Sprintf("%s%-6s %10s - %18s: %s", logger.getPrefix(), logLevelName[level], packageName, functionName, fmt.Sprintf(format, args...))
+		} else {
+			logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		}
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
