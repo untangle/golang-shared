@@ -3,7 +3,6 @@ package settings
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -15,16 +14,14 @@ type FilenameLocator struct {
 }
 
 const (
-	// prefix for generic filepaths in hybrid mode
-	hybridModeGenericPrefix = "/mfw"
+	// Present of file indicates we are in native mode
+	nativeEOSIndicatorFile = "/etc/efw-version"
 
-	// kernel forwarding mode/BST container mode path prefix.
-	kernelModeSettingsPrefix = "/etc/config"
+	// Standard prefix for native EOS
+	nativeEOSPrefix = "/mnt/flash/mfw-settings/"
 
-	// prefix specifically for config files in hybrid mode
-	hybridModeSettingsPrefix = "/mnt/flash/mfw-settings"
-
-	nativeEOSIndicatorFile = "/etc/EfwNativeEos"
+	// Standard prefix for OpenWRT
+	openWRTPrefix = "/etc/config/"
 )
 
 var openWRTFileToNativeEOS = map[string]string{
@@ -59,35 +56,32 @@ func FileExists(fname string) bool {
 	return true
 }
 
-func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
-	// Determine platform
-	var newFileName string
-	if f.fileExists(kernelModeSettingsPrefix) {
-		// Kernel/OpenWRT mode
-		newFileName = kernelModeSettingsPrefix + "/" + filename[strings.LastIndex(filename, "/")+1:]
-	} else {
-		// Hybrid mode
-		if f.fileExists(nativeEOSIndicatorFile) {
-			// Packetd running natively EOS mode
-			if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
+// getPlatformFileName translates the filename to the appropriate path based on platform.
+// it assumes that called uses default to OpenWRT platform. Only paths in mappings or paths which
+// starts with /etc/config are translated.
+func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) { // Check if we are in native mode, most likely since there is only native and OpenWRT mode
+	if f.fileExists(nativeEOSIndicatorFile) { // In EOS mode, try mapping
+		if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
+			if !f.fileExists(nativePath) {
+				return nativePath, &NoFileAtPath{name: nativePath}
+			} else {
 				return nativePath, nil
 			}
-
-			// Fall through to Hybrid mode handling
-		}
-
-		if !strings.HasPrefix(filename, kernelModeSettingsPrefix) {
-			// Not a config file, use generic prefix
-			newFileName = filepath.Join(hybridModeGenericPrefix, filename)
-		} else {
-			newFileName = hybridModeSettingsPrefix + "/" + filename[strings.LastIndex(filename, "/")+1:]
+			// Still on EOS, if file contains /etc/config then translate, otherwise return
+		} else if strings.Contains(filename, openWRTPrefix) {
+			nativePath := nativeEOSPrefix + filename[strings.LastIndex(filename, "/")+1:]
+			if !f.fileExists(nativePath) {
+				return nativePath, &NoFileAtPath{name: nativePath}
+			} else {
+				return nativePath, nil
+			}
 		}
 	}
-	if !f.fileExists(newFileName) {
-		// File doesn't exist, but the caller may not care
-		return newFileName, &NoFileAtPath{newFileName}
+	// On OpenWRT or no translation needed
+	if !f.fileExists(filename) {
+		return filename, &NoFileAtPath{name: filename}
 	}
-	return newFileName, nil
+	return filename, nil
 }
 
 // LocateFile locates the input filename on the filesystem,
