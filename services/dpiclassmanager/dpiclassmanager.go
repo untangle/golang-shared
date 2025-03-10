@@ -101,9 +101,11 @@ func (d *DpiClassManagerImpl) LoadApplicationTable() error {
 		// Convert to ApplicationInfo
 		appInfo := &ApplicationInfo{}
 		appInfo.family, _ = valueMap["family"].(string)
-		appInfo.id, _ = valueMap["id"].(int)
-		appInfo.tag, _ = valueMap["tag"].([]string)
-		appInfo.id, _ = valueMap["vendor-id"].(int)
+		appInfo.id = int(valueMap["id"].(float64))
+		// Iterate over the tag array and append to appInfo.tag
+		for _, tag := range valueMap["tag"].([]interface{}) {
+			appInfo.tag = append(appInfo.tag, tag.(string))
+		}
 		appInfo.attribute = valueMap["vendor-service-attribute"]
 		// Add to ApplicationTable
 		d.ApplicationTable[key] = appInfo
@@ -136,35 +138,64 @@ func (d *DpiClassManagerImpl) GetTable(table string) (string, error) {
 
 // GetApplicationTable returns the application table as JSON
 func getApplicationTable(at ApplicationTable) (string, error) {
-	logger.Debug("Getting application table...\n")
-
-	// convert it to a slice first
-	appTable := []*ApplicationInfo{}
-
-	for _, val := range at {
-		appTable = append(appTable, val)
+	// The format is a JSON array of information, we will fill in what we have.
+	type result struct {
+		Guid         string `json:"guid"`
+		Index        int    `json:"index"`
+		Name         string `json:"name"`
+		Description  string `json:"description"`
+		Category     string `json:"category"`
+		Productivity int    `json:"productivity"`
+		Risk         int    `json:"risk"`
+		Flags        int    `json:"flags"`
+		Reference    string `json:"reference"`
+		Plugin       string `json:"plugin"`
 	}
-
-	jsonData, err := json.Marshal(appTable)
-
+	logger.Debug("Getting application table...\n")
+	// Populate the result array
+	var results []result
+	for key, app := range at {
+		results = append(results, result{
+			Guid:         "NA",
+			Index:        app.id,
+			Name:         key,
+			Description:  key,
+			Category:     app.family,
+			Productivity: 0,
+			Risk:         0,
+			Flags:        0,
+			Reference:    "",
+			Plugin:       "",
+		})
+	}
+	jsonData, err := json.Marshal(results)
 	if err != nil {
 		logger.Err("Unable to get DPI application table: %s\n", err.Error())
 		return "", err
 	}
-
 	return string(jsonData), nil
 }
 
 // GetCategoryTable returns a distinct list of the family list we currently have in the ApplicationTable
 // This is a better representation of categories, than any other field.
 func getCategoryTable(at ApplicationTable) (string, error) {
-	logger.Debug("Getting Category table...\n")
-	// List of strings
-	cats := make(map[string]bool)
-	for _, val := range at {
-		cats[val.family] = true
+	// The format is a JSON array of "name": "string" pairs
+	type result struct {
+		Name string `json:"name"`
 	}
-	jsonData, err := json.Marshal(cats)
+	logger.Debug("Getting Category table...\n")
+
+	// Create a map to hold the distinct family names
+	familyMap := make(map[string]bool)
+	for _, app := range at {
+		familyMap[app.family] = true
+	}
+	// Create result array
+	var results []result
+	for family := range familyMap {
+		results = append(results, result{Name: family})
+	}
+	jsonData, err := json.Marshal(results)
 	if err != nil {
 		logger.Err("Unable to get DPI category table: %s\n", err.Error())
 		return "", err

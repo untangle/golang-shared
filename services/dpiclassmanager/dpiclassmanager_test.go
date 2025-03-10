@@ -21,8 +21,17 @@ func TestLoadApplicationTable(t *testing.T) {
 		t.Errorf("No data loaded")
 	}
 
-	// Test GetTable
+	// Test GetTable -- application
 	data, err := dpi.GetTable("application")
+	if err != nil {
+		t.Errorf("GetTable failed: %s", err)
+	}
+	if len(data) == 0 {
+		t.Errorf("No data returned")
+	}
+
+	// Test GetTable -- category
+	data, err = dpi.GetTable("category")
 	if err != nil {
 		t.Errorf("GetTable failed: %s", err)
 	}
