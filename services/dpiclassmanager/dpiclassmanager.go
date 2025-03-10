@@ -36,7 +36,7 @@ type DpiClassManagerImpl struct {
 
 const DpiConfigFile = "/usr/shared/veos/DpiDefaultConfig.json"
 
-func Startup() *DpiClassManagerImpl {
+func GetNewDPIImpl() *DpiClassManagerImpl {
 	logger.Info("Starting up the DPI class manager service\n")
 	// Create the DPI class manager
 	dpi := &DpiClassManagerImpl{}
