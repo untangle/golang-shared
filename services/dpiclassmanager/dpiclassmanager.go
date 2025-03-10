@@ -36,7 +36,7 @@ type DpiClassManagerImpl struct {
 
 const DpiConfigFile = "/usr/shared/veos/DpiDefaultConfig.json"
 
-func Startup() {
+func Startup() *DpiClassManagerImpl {
 	logger.Info("Starting up the DPI class manager service\n")
 	// Create the DPI class manager
 	dpi := &DpiClassManagerImpl{}
@@ -48,6 +48,7 @@ func Startup() {
 	if err != nil {
 		logger.Err("Failed to load DPI application table: %s\n", err.Error())
 	}
+	return dpi
 }
 
 func Shutdown() {
