@@ -12,7 +12,7 @@ func TestLoadApplicationTable(t *testing.T) {
 	dpi.DpiConfigFile = "testdata/DpiDefaultConfig.json"
 	dpi.ApplicationTable = make(ApplicationTable)
 	dpi.logger = logService.GetLoggerInstance()
-	err := dpi.LoadApplicationTable()
+	err := dpi.loadApplicationTable()
 	if err != nil {
 		t.Errorf("LoadApplicationTable failed: %s", err)
 	}

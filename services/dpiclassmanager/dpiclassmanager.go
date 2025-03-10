@@ -34,8 +34,9 @@ type DpiClassManagerImpl struct {
 	logger           *logService.Logger
 }
 
-const DpiConfigFile = "/usr/shared/veos/DpiDefaultConfig.json"
+const DpiConfigFile = "/usr/share/veos/DpiDefaultConfig.json"
 
+// GetNewDPIImpl returns a new instance of the DPI class manager
 func GetNewDPIImpl() *DpiClassManagerImpl {
 	logger.Info("Starting up the DPI class manager service\n")
 	// Create the DPI class manager
@@ -44,18 +45,15 @@ func GetNewDPIImpl() *DpiClassManagerImpl {
 	dpi.ApplicationTable = make(ApplicationTable)
 	dpi.logger = logService.GetLoggerInstance()
 	// Load the application table
-	err := dpi.LoadApplicationTable()
+	err := dpi.loadApplicationTable()
 	if err != nil {
 		logger.Err("Failed to load DPI application table: %s\n", err.Error())
 	}
 	return dpi
 }
 
-func Shutdown() {
-	logger.Info("Shutting down the DPI class manager service\n")
-}
-
-func (d *DpiClassManagerImpl) LoadApplicationTable() error {
+// loadApplicationTable loads the application table from the config file
+func (d *DpiClassManagerImpl) loadApplicationTable() error {
 	logger.Debug("Loading application table...\n")
 
 	// Open the file
@@ -115,6 +113,7 @@ func (d *DpiClassManagerImpl) LoadApplicationTable() error {
 	return nil
 }
 
+// GetTable returns the requested table as JSON
 func (d *DpiClassManagerImpl) GetTable(table string) (string, error) {
 	logger.Debug("Getting %s table...\n", table)
 
