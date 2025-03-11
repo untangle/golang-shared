@@ -1,12 +1,15 @@
 {
     "automergeSchedule": ["at any time"],
+    commitMessage: "{{{commitMessagePrefix}}} {{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}} [skip travis]",
 
     packageRules: [
         {
             // bar stands for Barney Auto Roller - more info: go/barney-glossary
             "matchDatasources": ["custom.bar"],
             "matchPackageNames": ["code.arista.io/infra/barney/barnzilla-repos"],
-            "automergeSchedule": ["at any time"]
+            "automergeSchedule": ["* 0-3 * * *"],
+            "timezone": "Etc/UTC",
+            commitMessage: "{{{commitMessagePrefix}}} {{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}} [skip travis]",
         }
     ]
 }

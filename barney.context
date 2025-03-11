@@ -5,13 +5,16 @@
 			"commit": "1f812eb95cb7652fb6449ea34135939cbde70f5a"
 		},
 		"barney.ci/barney": {
-			"commit": "45ed946becb583cbbc45ceab22df848ebf953cd0"
+			"commit": "d9f16d4131cbd06f1dd71983337e3e0d7034063a"
 		},
 		"barney.ci/barneyfile": {
 			"commit": "370d45e73577ff66e7db927a0abfb3f0bd12018f"
 		},
 		"barney.ci/byob": {
 			"commit": "c3a49dcd93bd98b45a3450d88bd5416844d506f8"
+		},
+		"barney.ci/debian": {
+			"commit": "eb84e7903cfd32bffe2b0ab068bc6c87aa810885"
 		},
 		"barney.ci/docker": {
 			"commit": "dcb450791c55d7ce31d648fecd7ee75ffbe92815"
