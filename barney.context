@@ -13,6 +13,9 @@
 		"barney.ci/byob": {
 			"commit": "c3a49dcd93bd98b45a3450d88bd5416844d506f8"
 		},
+		"barney.ci/debian": {
+			"commit": "eb84e7903cfd32bffe2b0ab068bc6c87aa810885"
+		},
 		"barney.ci/docker": {
 			"commit": "dcb450791c55d7ce31d648fecd7ee75ffbe92815"
 		},
