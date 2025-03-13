@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -121,4 +122,20 @@ func DecodeAttribute(value string) (string, error) {
 		return "", err
 	}
 	return string(decodedBytes), nil
+}
+
+type platform string
+
+const (
+	EOS     platform = "MFW_EOS"
+	OpenWRT platform = "OPENWRT"
+)
+
+// GetPlatform determines the platform of the system
+func GetPlatform() platform {
+	if _, err := os.Stat("/mnt/flash/mfw-settings"); err == nil {
+		// For eos-native return mfwEOS
+		return EOS
+	}
+	return OpenWRT
 }

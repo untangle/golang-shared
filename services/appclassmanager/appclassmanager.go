@@ -37,30 +37,47 @@ type CategoryInfo struct {
 const guidInfoFile = "/usr/share/untangle-classd/protolist.csv"
 
 // ApplicationTable stores the details for each known application
-var ApplicationTable map[string]*ApplicationInfo
+//var ApplicationTable map[string]*ApplicationInfo
+
+type AppClassManager struct {
+	applicationTable map[string]*ApplicationInfo
+}
+
+func NewAppClassManager() *AppClassManager {
+	return &AppClassManager{
+		applicationTable: make(map[string]*ApplicationInfo),
+	}
+}
 
 // Startup is called when the packetd service starts
-func Startup() {
+func (m *AppClassManager) Startup() error {
 	logger.Info("Starting up the Application Classification Table manager service\n")
-	loadApplicationTable()
+	m.loadApplicationTable()
+	return nil
 }
 
 // Shutdown is called when the packetd service stops
-func Shutdown() {
+func (m *AppClassManager) Shutdown() error {
 	logger.Info("Shutting down the Application Classification Table manager service\n")
+	return nil
+}
+
+// Name returns the name of the plugin
+func (m *AppClassManager) Name() string {
+	return "appclassmanager"
 }
 
 // GetTable gets the classd table specified by the table param
-func GetTable(table string) (string, error) {
+func (m *AppClassManager) GetTable(table string) (string, error) {
 	logger.Debug("Getting %s table...\n", table)
 
 	var data string
 	var err error
 	switch table {
 	case "application":
-		data, err = getApplicationTable()
+		data, err = m.getApplicationTable()
 	case "category":
-		data, err = getCategoryTable()
+		data, err = m.getCategoryTable()
 	default:
 		return data, errors.New("failed_to_get_table")
 	}
@@ -74,13 +91,13 @@ func GetTable(table string) (string, error) {
 }
 
 // GetApplicationTable returns the application table as JSON
-func getApplicationTable() (string, error) {
+func (m *AppClassManager) getApplicationTable() (string, error) {
 	logger.Debug("Getting application table...\n")
 
 	// convert it to a slice first
 	appTable := []*ApplicationInfo{}
 
-	for _, val := range ApplicationTable {
+	for _, val := range m.applicationTable {
 		appTable = append(appTable, val)
 	}
 
@@ -95,7 +112,7 @@ func getApplicationTable() (string, error) {
 }
 
 // GetCategoryTable returns a distinct list of the categories we currently have in the ApplicationTable
-func getCategoryTable() (string, error) {
+func (m *AppClassManager) getCategoryTable() (string, error) {
 	logger.Debug("Getting Category table...\n")
 
 	// Instead of two loops, create a map that indicates if the items exist in the slice
@@ -103,7 +120,7 @@ func getCategoryTable() (string, error) {
 	catSlice := []*CategoryInfo{}
 
 	// Iterate the table, if the map contains the slice then continue, otherwise add it to the map
-	for _, val := range ApplicationTable {
+	for _, val := range m.applicationTable {
 		if catMap[val.Category] {
 			continue
 		}
@@ -125,14 +142,14 @@ func getCategoryTable() (string, error) {
 }
 
 // loadApplicationTable loads the details for each application
-func loadApplicationTable() {
+func (m *AppClassManager) loadApplicationTable() {
 	var file *os.File
 	var linecount int
 	var infocount int
 	var list []string
 	var err error
 
-	ApplicationTable = make(map[string]*ApplicationInfo)
+	// ApplicationTable = make(map[string]*ApplicationInfo)
 	filename, err := settings.LocateFile(guidInfoFile)
 	if err != nil {
 		logger.Warn("Unable to  locate GUID info file: %s\n",
@@ -206,7 +223,7 @@ func loadApplicationTable() {
 		info.Plugin = list[9]
 
 		// store the object in the table using the guid as the index
-		ApplicationTable[info.GUID] = info
+		m.applicationTable[info.GUID] = info
 		infocount++
 	}
 
