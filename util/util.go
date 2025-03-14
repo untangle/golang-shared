@@ -124,15 +124,15 @@ func DecodeAttribute(value string) (string, error) {
 	return string(decodedBytes), nil
 }
 
-type platform string
+type Platform string
 
 const (
-	EOS     platform = "MFW_EOS"
-	OpenWRT platform = "OPENWRT"
+	EOS     Platform = "MFW_EOS"
+	OpenWRT Platform = "OPENWRT"
 )
 
 // GetPlatform determines the platform of the system
-func GetPlatform() platform {
+func GetPlatform() Platform {
 	if _, err := os.Stat("/etc/efw-version"); err == nil {
 		// For eos-native return mfwEOS
 		return EOS
