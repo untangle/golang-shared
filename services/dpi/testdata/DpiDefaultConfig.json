@@ -1,0 +1,94 @@
+{
+    "categories": {
+        "best-effort": 1,
+        "enterprise": 3,
+        "general": 2,
+        "real-time": 4
+    },
+    "services": {
+        "audio-video": 40,
+        "chat": 20,
+        "default": 1,
+        "file-transfer": 30,
+        "networking": 60,
+        "peer-to-peer": 50,
+        "software-update": 70
+   },
+   "applications" : {
+        "vxlan": {
+           "family": "Network service",
+            "tag": [
+                "basic",
+                "networking",
+                "standardized"
+            ],
+            "id": 1,
+            "service-category": {
+                "networking": "general"
+            },
+            "vendor-id": 2443,
+            "vendor-service-attributes": {}
+        },
+        "ymsg_transfer": {
+            "family": "File Transfer",
+            "tag": [
+                "file_transfer",
+                "im_mc"
+            ],
+            "id": 2,
+            "service-category": {
+                "default": "best-effort",
+                "file-transfer": "best-effort"
+            },
+            "vendor-id": 255,
+            "vendor-service-attributes": {
+                "file": {
+                    "id": 200,
+                    "type": "parent",
+                    "value-service": {
+                        "any": "file-transfer"
+                    }
+                },
+                "filename": {
+                    "id": 201,
+                    "type": "string",
+                    "value-service": {
+                        "any": "file-transfer"
+                    }
+                }
+            }
+        },
+        "zoom": {
+            "family": "Instant Messaging",
+            "tag": [
+                "aetls",
+                "audio_chat",
+                "cloud_services",
+                "enterprise",
+                "im_mc",
+                "video_chat",
+                "voip"
+            ],
+            "id": 3,
+            "service-category": {
+                "audio-video": "real-time",
+                "chat": "general",
+                "default": "enterprise",
+                "file-transfer": "enterprise"
+            },
+            "vendor-id": 2928,
+            "vendor-service-attributes": {
+                "service_id": {
+                    "id": 300,
+                    "type": "uint32",
+                    "value-service": {
+                        "2": "chat",
+                        "5": "file-transfer",
+                        "8": "audio-video",
+                        "9": "default"
+                    }
+                }
+            }
+        }
+    }
+}
