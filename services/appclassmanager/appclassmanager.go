@@ -37,8 +37,6 @@ type CategoryInfo struct {
 const guidInfoFile = "/usr/share/untangle-classd/protolist.csv"
 
 // ApplicationTable stores the details for each known application
-//var ApplicationTable map[string]*ApplicationInfo
-
 type AppClassManager struct {
 	applicationTable map[string]*ApplicationInfo
 }
@@ -149,7 +147,6 @@ func (m *AppClassManager) loadApplicationTable() {
 	var list []string
 	var err error
 
-	// ApplicationTable = make(map[string]*ApplicationInfo)
 	filename, err := settings.LocateFile(guidInfoFile)
 	if err != nil {
 		logger.Warn("Unable to  locate GUID info file: %s\n",

@@ -206,7 +206,7 @@ func (d *DpiConfigManager) GetTable(table string) (string, error) {
 	case "category":
 		data, err = getCategoryTable(d.config.Applications)
 	default:
-		return data, errors.New("failed_to_get_table")
+		return data, errors.New("failed to get application classification table")
 	}
 
 	if err != nil {

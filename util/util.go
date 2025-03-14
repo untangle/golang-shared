@@ -133,7 +133,7 @@ const (
 
 // GetPlatform determines the platform of the system
 func GetPlatform() platform {
-	if _, err := os.Stat("/mnt/flash/mfw-settings"); err == nil {
+	if _, err := os.Stat("/etc/efw-version"); err == nil {
 		// For eos-native return mfwEOS
 		return EOS
 	}
