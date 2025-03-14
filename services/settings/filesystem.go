@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-// FilenameLocator finds files on the local filesytem, allowing the
-// system to be in hybrid or non-hybid mode and concealing the
-// diffrences.
+// FilenameLocator finds files on the local filesystem, allowing the
+// system to be EOS or OpenWrt mode and concealing the
+// differences.
 type FilenameLocator struct {
 	fileExists func(filename string) bool
 }
@@ -85,7 +85,7 @@ func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
 }
 
 // LocateFile locates the input filename on the filesystem,
-// automatically translating it to hybrid mode filenames when needed.
+// automatically translating it to EOS filenames when needed.
 func (f *FilenameLocator) LocateFile(filename string) (string, error) {
 	if f.fileExists(filename) {
 		return filename, nil
