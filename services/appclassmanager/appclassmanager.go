@@ -38,12 +38,12 @@ const guidInfoFile = "/usr/share/untangle-classd/protolist.csv"
 
 // ApplicationTable stores the details for each known application
 type AppClassManager struct {
-	applicationTable map[string]*ApplicationInfo
+	ApplicationTable map[string]*ApplicationInfo
 }
 
 func NewAppClassManager() *AppClassManager {
 	return &AppClassManager{
-		applicationTable: make(map[string]*ApplicationInfo),
+		ApplicationTable: make(map[string]*ApplicationInfo),
 	}
 }
 
@@ -95,7 +95,7 @@ func (m *AppClassManager) getApplicationTable() (string, error) {
 	// convert it to a slice first
 	appTable := []*ApplicationInfo{}
 
-	for _, val := range m.applicationTable {
+	for _, val := range m.ApplicationTable {
 		appTable = append(appTable, val)
 	}
 
@@ -118,7 +118,7 @@ func (m *AppClassManager) getCategoryTable() (string, error) {
 	catSlice := []*CategoryInfo{}
 
 	// Iterate the table, if the map contains the slice then continue, otherwise add it to the map
-	for _, val := range m.applicationTable {
+	for _, val := range m.ApplicationTable {
 		if catMap[val.Category] {
 			continue
 		}
@@ -220,7 +220,7 @@ func (m *AppClassManager) loadApplicationTable() {
 		info.Plugin = list[9]
 
 		// store the object in the table using the guid as the index
-		m.applicationTable[info.GUID] = info
+		m.ApplicationTable[info.GUID] = info
 		infocount++
 	}
 
