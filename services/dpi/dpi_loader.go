@@ -272,3 +272,7 @@ func getCategoryTable(qosinfo map[int]QosmosInfo) (string, error) {
 	}
 	return string(jsonData), nil
 }
+
+func SetQosmosFile(path string) {
+	QosmosFile = path
+}
