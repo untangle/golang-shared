@@ -44,6 +44,7 @@ type Logger struct {
 	configLocker     sync.RWMutex
 	launchTime       time.Time
 	timestampEnabled bool
+	timestampFormat  string
 	alerts           alerts.AlertPublisher
 	// logCount is added for testing purposes
 	logCount          *uint64
@@ -134,6 +135,7 @@ func NewLogger(settingsFile *settings.SettingsFile) *Logger {
 		config:           DefaultLoggerConfig(settingsFile),
 		launchTime:       time.Time{},
 		timestampEnabled: false,
+		timestampFormat:  time.DateOnly + " " + time.TimeOnly + ".000 ",
 		logCount:         &logCount,
 	}
 
@@ -393,6 +395,11 @@ func (logger *Logger) DisableTimestamp() {
 	logger.timestampEnabled = false
 }
 
+// EnableTimestamp enable prefixing the elapsed time in output
+func (logger *Logger) EnableTimestamp() {
+	logger.timestampEnabled = true
+}
+
 // getLogLevel returns the log level for the specified package or function
 // It checks function first allowing individual functions to be configured
 // for a higher level of logging than the package that owns them.
@@ -477,13 +484,13 @@ func (logger *Logger) logMessage(level int32, format string, newOcname Ocname, a
 
 	// If the Ocname is an empty struct, then we are not running %OC logic
 	if (newOcname == Ocname{}) {
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getTimestamp(), logLevelName[level], packageName, fmt.Sprintf(format, args...))
 	} else { //Handle %OC - buffer the logs on this logger instance until we hit the limit
 		buffer := logFormatter(format, newOcname, args...)
 		if len(buffer) == 0 {
 			return
 		}
-		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getPrefix(), logLevelName[level], packageName, buffer)
+		logMessage = fmt.Sprintf("%s%-6s %18s: %s", logger.getTimestamp(), logLevelName[level], packageName, buffer)
 	}
 	fmt.Print(logMessage)
 
@@ -571,15 +578,13 @@ func findCallingFunction() (packageName string, functionName string) {
 	return packageName, functionName
 }
 
-// getPrefix returns a log message prefix
-func (logger *Logger) getPrefix() string {
+// If timestampEnabled is true, return string containing the current timestamp, suitable as a log message prefix.
+func (logger *Logger) getTimestamp() string {
 	if !logger.timestampEnabled {
 		return ""
 	}
 
-	nowtime := time.Now()
-	var elapsed = nowtime.Sub(logger.launchTime)
-	return fmt.Sprintf("[%11.5f] ", elapsed.Seconds())
+	return time.Now().Format(logger.timestampFormat)
 }
 
 // FindLogLevelName returns the log level name for the argumented value
