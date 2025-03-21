@@ -27,65 +27,14 @@ func (suite *TestLoadDpiJson) SetupTest() {
 
 // TestLoadConfig_Valid tests loading valid JSON from an io.Reader.
 func (suite *TestLoadDpiJson) TestLoadConfig_Valid() {
-	sampleJSON := `{
-		"0description": "Dpi",
-		"0version": "1.0",
-		"vendor-attributes": [
-			"file",
-			"filename"
-		],
-		"categories": {
-			"best-effort": 1,
-			"enterprise": 3,
-			"general": 2,
-			"real-time": 4
-    	},
-		"services": {
-			"audio-video": 40,
-			"chat": 20,
-			"default": 1,
-			"file-transfer": 30,
-			"networking": 60,
-			"peer-to-peer": 50,
-			"software-update": 70
-		},
-		"applications": {
-			"zoom": {
-            "family": "Instant Messaging",
-            "tag": [
-                "aetls",
-                "audio_chat",
-                "cloud_services",
-                "enterprise",
-                "im_mc",
-                "video_chat",
-                "voip"
-            ],
-            "id": 3,
-            "service-category": {
-                "audio-video": "real-time",
-                "chat": "general",
-                "default": "enterprise",
-                "file-transfer": "enterprise"
-            },
-            "vendor-id": 2928,
-            "vendor-service-attributes": {
-                "service_id": {
-                    "id": 300,
-                    "type": "uint32",
-                    "value-service": {
-                        "2": "chat",
-                        "5": "file-transfer",
-                        "8": "audio-video",
-                        "9": "default"
-                    }
-                }
-            }
-          }
-		}
-	}`
 
-	err := suite.manager.LoadConfig(strings.NewReader(sampleJSON))
+	configFile, err := os.Open("./testdata/DpiDefaultConfig.json")
+	if err != nil {
+		suite.Error(err)
+	}
+	defer configFile.Close()
+
+	err = suite.manager.LoadConfig(configFile)
 	suite.NoError(err, "LoadConfig should not return an error for valid JSON")
 
 	// Verify metadata.

@@ -11,10 +11,9 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-const (
-	pluginName string = "dpi"
-	QosmosFile string = "/usr/share/veos/DpiDefaultConfig.json"
-)
+const pluginName string = "dpi"
+
+var QosmosFile = "/usr/share/veos/DpiDefaultConfig.json"
 
 // MetaDataTable stores global metadata.
 type MetaDataTable struct {
@@ -61,19 +60,9 @@ type rawConfig struct {
 
 // DpiConfigManager is the object that encapsulates the DPI information.
 // Unexported config to prevent direct access to the configuration.
+// Implements Plugin interface and PacketProcessorPlugin interface
 type DpiConfigManager struct {
 	config DpiConfig
-}
-
-// DpiConfigManagerInterface is the interface for DpiConfigManager.
-// It provides methods to load the Dpi json file and retrieve application data.
-type DpiConfigManagerInterface interface {
-	LoadConfig(r io.Reader) error
-	GetCategories() map[string]int
-	GetServices() map[string]int
-	GetMetaData() MetaDataTable
-	LoadConfigFromFile(filename string) error
-	GetApplications() map[int]QosmosInfo
 }
 
 // returns DpiConfigManager instance
@@ -141,7 +130,7 @@ func (m *DpiConfigManager) LoadConfigFromFile(filename string) error {
 	return m.LoadConfig(file)
 }
 
-// GetApplicationByID retrieves an application by its ID.
+// GetApplications retrieves all applications from the json.
 func (m *DpiConfigManager) GetApplications() map[int]QosmosInfo {
 	return m.config.Applications
 }
@@ -282,4 +271,8 @@ func getCategoryTable(qosinfo map[int]QosmosInfo) (string, error) {
 		return "", err
 	}
 	return string(jsonData), nil
+}
+
+func SetQosmosFile(path string) {
+	QosmosFile = path
 }
