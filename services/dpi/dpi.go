@@ -237,7 +237,7 @@ func getApplicationTable(qosinfo map[int]QosmosInfo) (string, error) {
 	var results []result
 	for _, app := range qosinfo {
 		results = append(results, result{
-			Guid:         "NA",
+			Guid:         fmt.Sprintf("%d", app.ID),
 			Index:        app.ID,
 			Name:         app.Name,
 			Description:  app.Name,
