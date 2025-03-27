@@ -7,7 +7,7 @@
             // bar stands for Barney Auto Roller - more info: go/barney-glossary
             "matchDatasources": ["custom.bar"],
             "matchPackageNames": ["code.arista.io/infra/barney/barnzilla-repos"],
-            "automergeSchedule": ["* 0-3 * * *"],
+            "automergeSchedule": ["* 0-2 * * *"],
             "timezone": "Etc/UTC",
             commitMessage: "{{{commitMessagePrefix}}} {{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}} [skip travis]",
         }
