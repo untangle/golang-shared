@@ -26,6 +26,7 @@ type MetaDataTable struct {
 type QosmosInfo struct {
 	Name                    string                     `json:"name"` // Storing the application name here to access via ID.
 	ID                      int                        `json:"id"`
+	Description             string                     `json:"description"`
 	Family                  string                     `json:"family"`
 	Tag                     []string                   `json:"tag"`
 	ServiceCategory         map[string]string          `json:"service-category"`
@@ -42,20 +43,20 @@ type VendorAttribute struct {
 
 // DpiConfig holds the entire DPI configuration.
 type DpiConfig struct {
-	MetaData     MetaDataTable      `json:"-"`
-	Categories   map[string]int     `json:"categories"`
-	Services     map[string]int     `json:"services"`
-	Applications map[int]QosmosInfo `json:"-"`
+	MetaData     MetaDataTable       `json:"-"`
+	Categories   map[string]int      `json:"categories"`
+	Services     map[string]int      `json:"services"`
+	Applications map[int]*QosmosInfo `json:"-"`
 }
 
 // rawConfig is used for JSON unmarshaling.
 type rawConfig struct {
-	Description      string                `json:"0description"`
-	Version          string                `json:"0version"`
-	Categories       map[string]int        `json:"categories"`
-	Services         map[string]int        `json:"services"`
-	VendorAttributes []string              `json:"vendor-attributes"`
-	Applications     map[string]QosmosInfo `json:"applications"`
+	Description      string                 `json:"0description"`
+	Version          string                 `json:"0version"`
+	Categories       map[string]int         `json:"categories"`
+	Services         map[string]int         `json:"services"`
+	VendorAttributes []string               `json:"vendor-attributes"`
+	Applications     map[string]*QosmosInfo `json:"applications"`
 }
 
 // DpiConfigManager is the object that encapsulates the DPI information.
@@ -72,7 +73,7 @@ func NewDpiConfigManager() *DpiConfigManager {
 		config: DpiConfig{
 			Categories:   make(map[string]int),
 			Services:     make(map[string]int),
-			Applications: make(map[int]QosmosInfo),
+			Applications: make(map[int]*QosmosInfo),
 		},
 	}
 }
@@ -85,14 +86,14 @@ func (m *DpiConfigManager) LoadConfig(r io.Reader) error {
 	if err != nil {
 		return fmt.Errorf("failed to read JSON data: %w", err)
 	}
-	logger.Info("LoadConfig: Read %d bytes of JSON data\n", len(data))
+	logger.Debug("LoadConfig: Read %d bytes of JSON data\n", len(data))
 
 	//raw contains the raw data from Dpi json
 	var raw rawConfig
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
-	logger.Info("LoadConfig: Successfully unmarshalled JSON data\n")
+	logger.Info("LoadConfig: Successfully unmarshalled DPI JSON data\n")
 
 	// Populate metadata object from Dpi json
 	m.config.MetaData = MetaDataTable{
@@ -131,7 +132,7 @@ func (m *DpiConfigManager) LoadConfigFromFile(filename string) error {
 }
 
 // GetApplications retrieves all applications from the json.
-func (m *DpiConfigManager) GetApplications() map[int]QosmosInfo {
+func (m *DpiConfigManager) GetApplications() map[int]*QosmosInfo {
 	return m.config.Applications
 }
 
@@ -207,7 +208,7 @@ func (d *DpiConfigManager) GetTable(table string) (string, error) {
 }
 
 // GetApplicationTable returns the application table as JSON
-func getApplicationTable(qosinfo map[int]QosmosInfo) (string, error) {
+func getApplicationTable(qosinfo map[int]*QosmosInfo) (string, error) {
 	// The format is a JSON array of information, we will fill in what we have.
 	type result struct {
 		Guid         string `json:"guid"`
@@ -229,7 +230,7 @@ func getApplicationTable(qosinfo map[int]QosmosInfo) (string, error) {
 			Guid:         fmt.Sprintf("%d", app.ID),
 			Index:        app.ID,
 			Name:         app.Name,
-			Description:  app.Name,
+			Description:  app.Description,
 			Category:     app.Family,
 			Productivity: 0,
 			Risk:         0,
@@ -248,7 +249,7 @@ func getApplicationTable(qosinfo map[int]QosmosInfo) (string, error) {
 
 // GetCategoryTable returns a distinct list of the family list we currently have in the ApplicationTable
 // This is a better representation of categories, than any other field.
-func getCategoryTable(qosinfo map[int]QosmosInfo) (string, error) {
+func getCategoryTable(qosinfo map[int]*QosmosInfo) (string, error) {
 	// The format is a JSON array of "name": "string" pairs
 	type result struct {
 		Name string `json:"name"`
@@ -273,6 +274,7 @@ func getCategoryTable(qosinfo map[int]QosmosInfo) (string, error) {
 	return string(jsonData), nil
 }
 
+// SetQosmosFile is used to modify path to DPI json file, used for testing purposes only.
 func SetQosmosFile(path string) {
 	QosmosFile = path
 }
