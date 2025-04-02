@@ -75,6 +75,7 @@ func (suite *TestLoadDpiJson) TestLoadConfig_Valid() {
 	app, found := applications[3]
 	suite.True(found, "Application with ID 3 should be found")
 	suite.Equal("zoom", app.Name)
+	suite.Equal("Zoom Video Conferencing", app.Description)
 	suite.Equal("Instant Messaging", app.Family)
 	expectedTags := []string{"aetls", "audio_chat", "cloud_services", "enterprise", "im_mc", "video_chat", "voip"}
 	suite.ElementsMatch(expectedTags, app.Tag)

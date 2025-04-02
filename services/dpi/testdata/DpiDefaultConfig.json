@@ -22,6 +22,7 @@
     },
     "applications": {
         "vxlan": {
+            "description": "vxlan is a network virtualization technology",
             "family": "Network service",
             "tag": [
                 "basic",
@@ -36,6 +37,7 @@
             "vendor-service-attributes": {}
         },
         "ymsg_transfer": {
+            "description": "This protocol is used for file transfers",
             "family": "File Transfer",
             "tag": [
                 "file_transfer",
@@ -65,6 +67,7 @@
             }
         },
         "zoom": {
+            "description": "Zoom Video Conferencing",
             "family": "Instant Messaging",
             "tag": [
                 "aetls",
