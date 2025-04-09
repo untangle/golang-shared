@@ -183,7 +183,7 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	var err error
 	var jsonSettings map[string]interface{}
 	var newSettings interface{}
-
+	saveLocker.Lock()
 	jsonSettings, err = readSettingsFileJSON(filename)
 	if err != nil {
 		return createJSONErrorObject(err), err
@@ -199,7 +199,6 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 		return createJSONErrorObject(err), err
 	}
 
-	saveLocker.Lock()
 	output, err := syncAndSave(jsonSettings, filename, force, skipEosConfig)
 	saveLocker.Unlock()
 	if err != nil {

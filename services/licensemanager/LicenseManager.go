@@ -265,7 +265,7 @@ func (lm *LicenseManager) disableService(service *Service) {
 	if err != nil {
 		lm.logger.Warn("Failed to get disabled settings for service %s\n", service.Name)
 	}
-
+	lm.logger.Err("settings.SetSettings called for %s\n", service.Name)
 	// Set settings
 	if _, err = settings.SetSettings(settingsSegs, newSettings, true, false); err != nil {
 		lm.logger.Warn("Failed to set disabled settings for service %s\n", service.Name)
