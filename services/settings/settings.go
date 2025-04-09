@@ -183,12 +183,11 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	var err error
 	var jsonSettings map[string]interface{}
 	var newSettings interface{}
-	saveLocker.Lock()
 	jsonSettings, err = readSettingsFileJSON(filename)
 	if err != nil {
 		return createJSONErrorObject(err), err
 	}
-
+	saveLocker.Lock()
 	newSettings, err = setSettingsInJSON(jsonSettings, segments, value)
 	if err != nil {
 		return createJSONErrorObject(err), err
