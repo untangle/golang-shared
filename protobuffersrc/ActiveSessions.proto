@@ -77,4 +77,5 @@ message Session {
   string policy_rule_ids = 69;
   string threat_prevention_threat_level = 70;
   string policy_config_ids = 71;
+  string ssl_sni = 72;
 }
