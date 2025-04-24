@@ -78,4 +78,5 @@ message Session {
   string threat_prevention_threat_level = 70;
   string policy_config_ids = 71;
   string ssl_sni = 72;
+  string remote_address = 73;
 }
