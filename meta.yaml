@@ -30,7 +30,7 @@ users:
     - tkovalev@arista.com
 x-bar:
   version: production
-  target-branch-re: "^(.+-trunk|main|engprod-parent|master|eft|.+-(?:maint|rel|bringup))$"
+  target-branch-re: "^(.+-trunk|main|engprod-parent|master|.+-(?:maint|rel|bringup))$"
 
 epoch: 1
 
