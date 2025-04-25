@@ -35,7 +35,7 @@
 			"commit": "7ea12f3a4f3683689fd7670b26015bf374216d10"
 		},
 		"code.arista.io/tools/breadman": {
-			"commit": "3fc05f549e34f935a1dc7a0ad9bc926f2bea6308"
+			"commit": "d15ee71691b4ff9180bbfc7be08c84b57727d98d"
 		},
 		"github.com/golang/go": {
 			"commit": "49860cf92a9a3ba434d2bc393faaefabe48d181e"
