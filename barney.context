@@ -11,7 +11,7 @@
 			"commit": "885446e8547d808772bc59ed6fdbb9645a46ad59"
 		},
 		"barney.ci/byob": {
-			"commit": "c3a49dcd93bd98b45a3450d88bd5416844d506f8"
+			"commit": "d7cb75a94eae05867f4ac209d5f7441d518b1620"
 		},
 		"barney.ci/debian": {
 			"commit": "eb84e7903cfd32bffe2b0ab068bc6c87aa810885"
@@ -26,7 +26,7 @@
 			"commit": "9a72089e85e4f4020470453e44cf7d3814361951"
 		},
 		"code.arista.io/infra/barney/barnzilla": {
-			"commit": "230294507c35cab425113cc7b7a3dc6a1e775367"
+			"commit": "ae90b524d88ba09ce012336a7d9d42129a0014b8"
 		},
 		"code.arista.io/infra/barney/barnzilla-repos": {
 			"commit": "3f7b44f3caf79260efc720cd3f93368826a975e3"
