@@ -1296,6 +1296,36 @@ func TestGroupMarshal(t *testing.T) {
 			"items": ["AE", "AF"]}`,
 		},
 		{
+			name: "okay vrfname",
+			object: Object{
+				Name:        "Name",
+				Description: "Description",
+				Type:        VRFNameType,
+				Items:       []string{"vrf-name1"},
+				ID:          "de70071d-3644-4780-b8ce-f5b3cc5e4d71",
+			},
+			expectedJSON: `{"name": "Name",
+			"id": "de70071d-3644-4780-b8ce-f5b3cc5e4d71",
+			"description": "Description",
+			"type": "mfw-object-vrfname",
+			"items": ["vrf-name1"]}`,
+		},
+		{
+			name: "okay vrfname group",
+			object: Object{
+				Name:        "Name",
+				Description: "Description",
+				Type:        VRFNameGroupType,
+				Items:       []string{"vrf-name1", "vrf-name2"},
+				ID:          "de70071d-3644-4780-b8ce-f5b3cc5e4d72",
+			},
+			expectedJSON: `{"name": "Name",
+			"id": "de70071d-3644-4780-b8ce-f5b3cc5e4d72",
+			"description": "Description",
+			"type": "mfw-object-vrfname-group",
+			"items": ["vrf-name1", "vrf-name2"]}`,
+		},
+		{
 			name: "good sg endpoint list",
 			object: Object{
 				Name:        "ServiceEndpointTest",
