@@ -79,4 +79,5 @@ message Session {
   string policy_config_ids = 71;
   string ssl_sni = 72;
   string remote_address = 73;
+  uint32 vrf_id = 74;
 }
