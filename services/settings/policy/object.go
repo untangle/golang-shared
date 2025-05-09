@@ -124,7 +124,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 		defer setList[utilNet.IPSpecifierString](obj)()
 	case ApplicationGroupType, GeoIPObjectType, GeoIPObjectGroupType, IPAddressGroupType, ServiceEndpointGroupType,
 		HostType, HostGroupType, DomainType, DomainGroupType, VLANTagType, VLANTagGroupType, InterfaceObjectType,
-		InterfaceObjectGroupType:
+		InterfaceObjectGroupType, VRFNameType, VRFNameGroupType:
 		defer setList[string](obj)()
 	case ServiceEndpointObjectType:
 		defer setList[ServiceEndpoint](obj)()

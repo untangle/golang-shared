@@ -208,6 +208,20 @@
 		"items": ["192.168.20.1/28"]
 	    },
 	    {
+		"id": "de70071d-3644-4780-b8ce-f5b3cc5e4d71",
+		"name": "Name",
+		"description": "Description",
+		"type": "mfw-object-vrfname",
+		"items": ["vrf-name1"]
+	    },
+	    {
+            "id": "de70071d-3644-4780-b8ce-f5b3cc5e4d72",
+            "name": "Name",
+            "description": "Description",
+            "type": "mfw-object-vrfname-group",
+            "items": ["vrf-name1", "vrf-name2"]
+            },
+	    {
 		"id": "8105f355-cb98-43eb-dead-74542a524abb",
 		"name": "Application Object Test",
 		"description": "Some Application Object",
