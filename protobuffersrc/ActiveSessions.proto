@@ -80,4 +80,5 @@ message Session {
   string ssl_sni = 72;
   string remote_address = 73;
   uint32 vrf_id = 74;
+  string mac_address = 75;
 }
