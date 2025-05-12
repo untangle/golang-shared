@@ -50,7 +50,7 @@ const (
 	InterfaceObjectType      ObjectType = "mfw-object-interfacezone"
 	InterfaceObjectGroupType ObjectType = "mfw-object-interfacezone-group"
 
-	// VRFNameType/VRFNameGroupType is a type to for comparing against the VRF name of a session
+	// VRFNameType/VRFNameGroupType is a type for comparing against the VRF name of a session
 	VRFNameType      ObjectType = "mfw-object-vrfname"
 	VRFNameGroupType ObjectType = "mfw-object-vrfname-group"
 
