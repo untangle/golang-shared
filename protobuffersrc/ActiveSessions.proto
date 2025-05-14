@@ -81,4 +81,5 @@ message Session {
   string remote_address = 73;
   uint32 vrf_id = 74;
   string mac_address = 75;
+  string vrf_name = 76;
 }
