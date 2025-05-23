@@ -3,9 +3,7 @@ package reports;
 
 option go_package = "github.com/untangle/golang-shared/structs/protocolbuffers/ActiveSessions";
 
-message ActiveSessions {
-    repeated Session sessionsList = 1;
-}
+message ActiveSessions { repeated Session sessionsList = 1; }
 
 message Session {
   uint64 age_milliseconds = 1;
@@ -82,4 +80,6 @@ message Session {
   uint32 vrf_id = 74;
   string mac_address = 75;
   string vrf_name = 76;
+  uint32 ips_rule = 77;
+  string ips_action = 78;
 }
