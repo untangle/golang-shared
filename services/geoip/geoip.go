@@ -91,7 +91,7 @@ func NewMaxMindGeoIPManager(filename string) *MaxMindGeoIPManager {
 }
 
 // downloadAndExtractDB will download the MaxMind geoIP database from
-// downloads.untangle.com and extract the database itself into the
+// downloads.edge.arista.com and extract the database itself into the
 // filesystem it by calling extractDBFile(). It returns an error if
 // not successful. If successful, you will probably want to call
 // openDBFile().
@@ -102,7 +102,7 @@ func (db *MaxMindGeoIPManager) downloadAndExtractDB() error {
 		logger.Warn("Unable to read UID: %s - Using all zeros\n", err.Error())
 	}
 	target := fmt.Sprintf(
-		"https://downloads.untangle.com/download.php?resource=geoipCountry&uid=%s",
+		"https://downloads.edge.arista.com/download.php?resource=geoipCountry&uid=%s",
 		uid)
 	translatedTarget, err := uritranslations.GetURI(target)
 	if err == nil {
