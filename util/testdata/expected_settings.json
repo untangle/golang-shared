@@ -1133,7 +1133,7 @@
                 "uri": "https://classify.edge.arista.com/"
             },
             {
-                "uri": "https://www.edge.arista.com/store/open.php"
+                "uri": "https://edge.arista.com/store/open.php"
             },
             {
                 "uri": "https://auth.edge.arista.com/v1/CheckTokenAccess"
@@ -1142,13 +1142,13 @@
                 "uri": "https://database.edge.arista.com/v1/put"
             },
             {
-                "uri": "https://www.edge.arista.com/cmd/networks"
+                "uri": "https://edge.arista.com/cmd/networks"
             },
             {
-                "uri": "https://www.edge.arista.com/cmd/account/"
+                "uri": "https://edge.arista.com/cmd/account/"
             },
             {
-                "uri": "https://www.edge.arista.com/legal"
+                "uri": "https://edge.arista.com/legal"
             },
             {
                 "uri": "https://support.edge.arista.com/hc"
