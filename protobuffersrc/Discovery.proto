@@ -30,6 +30,7 @@ message DiscoveryEntry {
     map<string, LLDP> lldp = 3;
     map<string, NEIGH> neigh = 4;
     map<string, NMAP> nmap = 5;
+    string hostname = 6;
 }
 
 message LLDP {
