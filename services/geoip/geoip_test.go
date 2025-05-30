@@ -207,7 +207,7 @@ func (suite *TestGeoIP) TestDBReader() {
 
 // Test that the downloadAndExtractDB() method works -- this will do a
 // 'real' download of the MaxMind geoIP country database from
-// downloads.untangle.com with an all-zero UID.
+// downloads.edge.arista.com with an all-zero UID.
 func (suite *TestGeoIP) TestDownload() {
 	fullFileName := suite.getDBFilename()
 	geoIP := NewMaxMindGeoIPManager(fullFileName)
