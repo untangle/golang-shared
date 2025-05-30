@@ -136,7 +136,8 @@ func FillDeviceListWithZMQDeviceMessages(
 
 				nmapDeviceEntry := &DeviceEntry{DiscoveryEntry: disco.DiscoveryEntry{Nmap: entryMap,
 					MacAddress: macAddress,
-					LastUpdate: nmap.LastUpdate}}
+					LastUpdate: nmap.LastUpdate,
+					Hostname: nmap.Hostname}}
 				if err := MergeZmqMessageIntoDeviceList(devlist, nmapDeviceEntry, callback); err != nil {
 					logger.Warn("Could not process NMAP ZMQ message: %\n", err.Error())
 				}
