@@ -1,5 +1,5 @@
 # Working with golang modules
-## [Intranet article link](https://intranet.untangle.com/display/MF/Working+with+Golang+Modules)
+## [Intranet article link](https://awakesecurity.atlassian.net/wiki/spaces/MF/pages/2076150225/Working+with+Golang+Modules)
 ## Adding golang vendor modules
 1. ### Project must have the go.mod created
     ```
