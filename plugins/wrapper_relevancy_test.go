@@ -14,8 +14,8 @@ type relevancyWrapper struct {
 	WrapperHelper
 }
 
-// a mock plugin with 'type A' so we can provide multiple to the DI
-// system.
+// a mock plugin with 'type A' so we can provide multiple plugins to
+// the DI system, to allow one but not the other based on metadata.
 type MockPluginA struct {
 	*MockPlugin
 }
@@ -74,10 +74,11 @@ func NewMockPluginOS2(config *Config) *MockPluginB {
 	return m
 }
 
+// IsRelevant only returns true if the metadata slice contains a
+// testPlatform string of "OS2".
 func (w *relevancyWrapper) IsRelevant(val PluginConstructor, metadata ...any) bool {
-	// ideally this should examine 'val' to decide if it's the
-	// type of plugin we want to wrap.
 	for _, m := range metadata {
+
 		switch v := m.(type) {
 		case testPlatform:
 			if v == "OS2" {
@@ -90,6 +91,8 @@ func (w *relevancyWrapper) IsRelevant(val PluginConstructor, metadata ...any) bo
 
 var _ ConstructorWrapper = &relevancyWrapper{}
 
+// Test the IsRelevant method by providing a fake wrapper that decides
+// something is relevant if the platform metadata is equal to "OS2".
 func TestIsRelevant(t *testing.T) {
 	controller := NewPluginControl()
 
