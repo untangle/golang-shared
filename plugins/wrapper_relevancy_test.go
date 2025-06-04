@@ -35,12 +35,6 @@ func (m *MockPluginB) Name() string {
 	return "MockPluginB"
 }
 
-func (w *relevancyWrapper) Matches(val PluginConstructor, metadata ...any) bool {
-	// ideally this should examine 'val' to decide if it's the
-	// type of plugin we want to wrap.
-	return true
-}
-
 func newRelevancyWrapper() *relevancyWrapper {
 	w := &relevancyWrapper{}
 	w.SetConstructorReturn(
@@ -89,14 +83,14 @@ func (w *relevancyWrapper) IsRelevant(val PluginConstructor, metadata ...any) bo
 	return false
 }
 
-var _ ConstructorWrapper = &relevancyWrapper{}
+var _ PluginPredicate = &relevancyWrapper{}
 
 // Test the IsRelevant method by providing a fake wrapper that decides
 // something is relevant if the platform metadata is equal to "OS2".
 func TestIsRelevant(t *testing.T) {
 	controller := NewPluginControl()
 
-	controller.RegisterConstructorWrapper(func() ConstructorWrapper {
+	controller.RegisterPluginPredicate(func() *relevancyWrapper {
 		return newRelevancyWrapper()
 	})
 

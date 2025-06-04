@@ -39,6 +39,7 @@ type consumer struct {
 type PluginControl struct {
 	dig.Container
 	wrapper            ConstructorWrapper
+	predicates         []PluginPredicate
 	plugins            []Plugin
 	saverFuncs         []reflect.Value
 	consumers          []consumer
@@ -71,6 +72,12 @@ func GlobalPluginControl() *PluginControl {
 	return pluginControl
 }
 
+type PluginPredicate interface {
+	// IsRelevant determines if a plugin constructor should be
+	// included based on platform or other criteria.
+	IsRelevant(constructor PluginConstructor, metadata ...any) bool
+}
+
 type ConstructorWrapper interface {
 	// Matches returns true if we'd like to wrap this plugin.
 	Matches(PluginConstructor, ...any) bool
@@ -79,15 +86,16 @@ type ConstructorWrapper interface {
 	// _instead_ of the plugin that the wrappedConstructor
 	// argument would return.
 	GetConstructorReturn(wrappedConstructor reflect.Value, deps []reflect.Value, metadata ...any) Plugin
-
-	// IsRelevant determines if a plugin constructor should be
-	// included based on platform or other criteria.
-	IsRelevant(constructor PluginConstructor, metadata ...any) bool
 }
 
 // ConstructorWrapperFactory is a function that takes any number of
 // arguments of some type, and returns a wrapper.
 type ConstructorWrapperFactory any
+
+// PluginPredicateFactory is a function that takes any number of
+// arguments (which will be supplied by DI in the typical case) and
+// returns a PluginPredicate.
+type PluginPredicateFactory any
 
 func makeWrapperConstructor(
 	wrapper ConstructorWrapper, ctor any, metadata []any) reflect.Value {
@@ -123,12 +131,53 @@ func makeWrapperConstructor(
 // instead of what would have been returned by the regular
 // constructor.
 func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrapperFactory) {
+	// Here we instantiate the constructor wrapper, of whatever
+	// type it is.
+	constructorType := reflect.TypeOf(wrapper)
+	outputToGet := constructorType.Out(0)
 	if err := control.Provide(wrapper); err != nil {
 		panic(fmt.Sprintf("couldn't provide wrapper: %s", err))
 	}
-	if err := control.Invoke(func(w ConstructorWrapper) {
-		control.wrapper = w
-	}); err != nil {
+	invokerFunc := reflect.MakeFunc(reflect.FuncOf([]reflect.Type{outputToGet}, []reflect.Type{}, false),
+		func(vals []reflect.Value) []reflect.Value {
+			wrapper, ok := vals[0].Interface().(ConstructorWrapper)
+			if !ok {
+				panic("from RegisterConstructorWrapper: Unable to convert provided wrapper to PluginWrapper")
+			}
+			control.wrapper = wrapper
+			return []reflect.Value{}
+		})
+	if err := control.Invoke(invokerFunc.Interface()); err != nil {
+		panic(fmt.Sprintf("couldn't instantiate wrapper: %s", err))
+	}
+}
+
+// RegisterPluginPredicate registers to the control object a plugin
+// predicate, by giving as the predicateFactory argument a predicate
+// factory, which we will call to instantiate an actual predicate
+// object.  The newly-instantiated predicate's "IsRelevant" method
+// will then be used to conditionalize plugin instantiation/creation,
+// that is, if any plugin does not pass all predicate checks, it will
+// not be instantiated by the DI framework, and will not be started.
+func (control *PluginControl) RegisterPluginPredicate(predicateFactory PluginPredicateFactory) {
+	// Here we instantiate the predicate, of whatever type it
+	// is. This funkiness is so that we can have multiple
+	// predicates.
+	constructorType := reflect.TypeOf(predicateFactory)
+	outputToGet := constructorType.Out(0)
+	if err := control.Provide(predicateFactory); err != nil {
+		panic(fmt.Sprintf("couldn't provide predicate: %s", err))
+	}
+	invokerFunc := reflect.MakeFunc(reflect.FuncOf([]reflect.Type{outputToGet}, []reflect.Type{}, false),
+		func(vals []reflect.Value) []reflect.Value {
+			pred, ok := vals[0].Interface().(PluginPredicate)
+			if !ok {
+				panic("from RegisterPluginPredicate: Unable to convert provided wrapper to PluginPredicate")
+			}
+			control.predicates = append(control.predicates, pred)
+			return []reflect.Value{}
+		})
+	if err := control.Invoke(invokerFunc.Interface()); err != nil {
 		panic(fmt.Sprintf("couldn't instantiate wrapper: %s", err))
 	}
 }
@@ -150,11 +199,13 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 		constructorVal = makeWrapperConstructor(control.wrapper, constructor, metadata)
 	}
 
-	// Filter out irrelevant plugins *before* creating the saver function
-	if control.wrapper != nil && !control.wrapper.IsRelevant(
-		constructor,
-		metadata...) {
-		return // Skip this plugin
+	for _, pred := range control.predicates {
+		// Filter out irrelevant plugins *before* creating the saver function
+		if !pred.IsRelevant(
+			constructor,
+			metadata...) {
+			return // Skip this plugin
+		}
 	}
 
 	// create a func at runtime that we can invoke that calls the
