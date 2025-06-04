@@ -79,6 +79,10 @@ type ConstructorWrapper interface {
 	// _instead_ of the plugin that the wrappedConstructor
 	// argument would return.
 	GetConstructorReturn(wrappedConstructor reflect.Value, deps []reflect.Value, metadata ...any) Plugin
+
+	// IsRelevant determines if a plugin constructor should be
+	// included based on platform or other criteria.
+	IsRelevant(constructor PluginConstructor, metadata ...any) bool
 }
 
 // ConstructorWrapperFactory is a function that takes any number of
@@ -145,6 +149,14 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 	if control.wrapper != nil && control.wrapper.Matches(constructor, metadata...) {
 		constructorVal = makeWrapperConstructor(control.wrapper, constructor, metadata)
 	}
+
+	// Filter out irrelevant plugins *before* creating the saver function
+	if control.wrapper != nil && !control.wrapper.IsRelevant(
+		constructor,
+		metadata...) {
+		return // Skip this plugin
+	}
+
 	// create a func at runtime that we can invoke that calls the
 	// constructor and appends the return value to the list of plugins.
 	saverFunc := reflect.MakeFunc(
