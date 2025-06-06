@@ -47,14 +47,14 @@ func TestFailingStartPlugin(t *testing.T) {
 			return &Config{Name: configName, FailingStartup: true}
 		}))
 
-	assert.Len(t, pluginController.plugins, 0)
+	assert.Len(t, pluginController.pluginInfo, 1)
 
 	// This will start the plugins
 	pluginController.Startup()
 
 	// This will make sure that the plugin slice is empty since
 	// the plugin is failing to start
-	assert.Len(t, pluginController.plugins, 0)
+	assert.Len(t, pluginController.pluginInfo, 0)
 
 	pluginController.Shutdown()
 

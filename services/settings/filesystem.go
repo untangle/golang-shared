@@ -2,6 +2,7 @@ package settings
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 )
@@ -46,9 +47,26 @@ var _ error = &NoFileAtPath{}
 // the theory that if you can't Stat the filename, for most purposes,
 // that is the same as it not existing, and isn't a common case.
 func FileExists(fname string) bool {
-	if _, err := os.Stat(fname); err != nil {
+	return FileExistsInFS(
+		fname,
+		os.DirFS("/").(fs.StatFS))
+}
+
+// FileExistsInFS takes an fs.StatFS and returns true if the file
+// exists at the path fname.
+func FileExistsInFS(fname string, fs fs.StatFS) bool {
+	if len(fname) == 0 {
+		return false
+	} else if fname[0] == '/' {
+		fname = fname[1:]
+	}
+
+	if _, err := fs.Stat(fname); err != nil {
 		if !os.IsNotExist(err) {
-			logger.Warn("Unexpected error code from os.Stat: %s",
+			// Use fmt.Fprintf here because the logger may or may not
+			// exist at this time.
+			fmt.Fprintf(os.Stderr,
+				"Unexpected error code from os.Stat: %v\n",
 				err)
 		}
 		return false
@@ -70,6 +88,7 @@ func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) {
 			// Still on EOS, if file contains /etc/config then translate, otherwise return
 		} else if strings.Contains(filename, openWRTPrefix) {
 			nativePath := nativeEOSPrefix + filename[strings.LastIndex(filename, "/")+1:]
+
 			if !f.fileExists(nativePath) {
 				return nativePath, &NoFileAtPath{name: nativePath}
 			} else {
