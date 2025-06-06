@@ -119,10 +119,10 @@ func buildMaps() {
 // the incoming path is used to build the returned URL.  This is useful for cases where the path is
 // possibly variable and dedicating a translation to the URL would require additional housekeeping
 // than just changing a path.  For example, shop description links like:
-// https://www.untangle.com/shop/virus-blocker
-// https://www.untangle.com/shop/Live-Support
+// https://edge.arista.com/shop/virus-blocker
+// https://edge.arista.com/shop/Live-Support
 // ...
-// Work best as with a single URI for https://www.untangle.com/shop
+// Work best as with a single URI for https://edge.arista.com/shop
 //
 // If a match is not found, an error will be returned.
 func getURITranslation(uri string, path bool) (string, error) {
