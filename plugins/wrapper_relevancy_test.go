@@ -8,10 +8,9 @@ import (
 
 type testPlatform string
 
-// relevancyWrapper is a wrapper which looks at specific metadata to
-// decide if a plugin is relevant or not.
-type relevancyWrapper struct {
-	WrapperHelper
+// relevancyPredicate is a plugin predicate which looks at specific
+// metadata to decide if a plugin is relevant or not.
+type relevancyPredicate struct {
 }
 
 // a mock plugin with 'type A' so we can provide multiple plugins to
@@ -35,12 +34,8 @@ func (m *MockPluginB) Name() string {
 	return "MockPluginB"
 }
 
-func newRelevancyWrapper() *relevancyWrapper {
-	w := &relevancyWrapper{}
-	w.SetConstructorReturn(
-		ConstructorWrapperPluginFactory(func(gen PluginGeneratorCallback, _ ...any) Plugin {
-			return gen()
-		}))
+func newRelevancyWrapper() *relevancyPredicate {
+	w := &relevancyPredicate{}
 	return w
 }
 
@@ -70,7 +65,7 @@ func NewMockPluginOS2(config *Config) *MockPluginB {
 
 // IsRelevant only returns true if the metadata slice contains a
 // testPlatform string of "OS2".
-func (w *relevancyWrapper) IsRelevant(val PluginConstructor, metadata ...any) bool {
+func (w *relevancyPredicate) IsRelevant(val PluginConstructor, metadata ...any) bool {
 	for _, m := range metadata {
 
 		switch v := m.(type) {
@@ -83,14 +78,14 @@ func (w *relevancyWrapper) IsRelevant(val PluginConstructor, metadata ...any) bo
 	return false
 }
 
-var _ PluginPredicate = &relevancyWrapper{}
+var _ PluginPredicate = &relevancyPredicate{}
 
 // Test the IsRelevant method by providing a fake wrapper that decides
 // something is relevant if the platform metadata is equal to "OS2".
 func TestIsRelevant(t *testing.T) {
 	controller := NewPluginControl()
 
-	controller.RegisterPluginPredicate(func() *relevancyWrapper {
+	controller.RegisterPluginPredicate(func() *relevancyPredicate {
 		return newRelevancyWrapper()
 	})
 
