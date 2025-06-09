@@ -87,12 +87,6 @@ func (w *wrapperTest) Matches(val PluginConstructor, metadata ...any) bool {
 	return true
 }
 
-func (w *wrapperTest) IsRelevant(val PluginConstructor, metadata ...any) bool {
-	// ideally this should examine 'val' to decide if it's the
-	// type of plugin we want to wrap.
-	return true
-}
-
 func NewMockPlugin(config *Config) *MockPlugin {
 	m := &MockPlugin{config: config}
 	m.On("Startup").Maybe().Return(nil)

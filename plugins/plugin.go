@@ -57,9 +57,6 @@ type PluginControl struct {
 	predicates []*predicateInfo
 	pluginInfo []*pluginInfo
 
-	// plugins            []Plugin
-	// saverFuncs         []reflect.Value
-
 	consumers          []consumer
 	enableStartupPanic bool
 }
@@ -178,9 +175,6 @@ func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrap
 // that is, if any plugin does not pass all predicate checks, it will
 // not be instantiated by the DI framework, and will not be started.
 func (control *PluginControl) RegisterPluginPredicate(predicateFactory PluginPredicateFactory) {
-	// Here we instantiate the predicate, of whatever type it
-	// is. This funkiness is so that we can have multiple
-	// predicates.
 	constructorType := reflect.TypeOf(predicateFactory)
 	outputToGet := constructorType.Out(0)
 	if err := control.Provide(predicateFactory); err != nil {
@@ -224,7 +218,7 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 		constructor: constructor,
 		metadata:    metadata,
 
-		// to be set later by our constructed function, ifn
+		// to be set later by our constructed function, if
 		// needed.
 		plugin: nil,
 	}
@@ -259,9 +253,6 @@ func (control *PluginControl) GetRegisteredPluginCount() int {
 // plugins may require it. It is not instantiated until the Startup()
 // method is called.
 func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor, metadata ...any) {
-	// constructorType := reflect.TypeOf(constructor)
-	// outputType := constructorType.Out(0)
-
 	control.RegisterPlugin(constructor, metadata...)
 
 	if err := control.Provide(constructor); err != nil {
