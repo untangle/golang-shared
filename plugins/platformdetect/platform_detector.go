@@ -8,23 +8,25 @@ import (
 	"github.com/untangle/golang-shared/services/settings"
 )
 
-type PacketdHostType struct {
-	IndicatorFilename string
-	Name              string
+// HostType is a externally-opaque type for declaring a host
+// type.
+type HostType struct {
+	indicatorFilename string
+	name              string
 }
 
 var (
-	EOS = PacketdHostType{
-		IndicatorFilename: "/etc/Eos-release",
-		Name:              "Eos",
+	EOS = HostType{
+		indicatorFilename: "/etc/Eos-release",
+		name:              "Eos",
 	}
-	OpenWrt = PacketdHostType{
-		IndicatorFilename: "/etc/openwrt_version",
-		Name:              "OpenWrt",
+	OpenWrt = HostType{
+		indicatorFilename: "/etc/openwrt_version",
+		name:              "OpenWrt",
 	}
-	Unclassified = PacketdHostType{
-		IndicatorFilename: "",
-		Name:              "Unclassified",
+	Unclassified = HostType{
+		indicatorFilename: "",
+		name:              "Unclassified",
 	}
 )
 
@@ -32,7 +34,7 @@ var (
 // golang-shared/plugins) which filters out plugins that have
 // PluginSpec metadata and don't apply to the current platform.
 type PlatformFilter struct {
-	currentPlatform PacketdHostType
+	currentPlatform HostType
 }
 
 // PlatformSpec is a specification of the platforms that apply to a
@@ -47,14 +49,14 @@ type PlatformFilter struct {
 // empty (just don't supply a PlatformSpec in this case) but if they
 // are, the plugin will be run.
 type PlatformSpec struct {
-	OnlyOn   []PacketdHostType
-	Excludes []PacketdHostType
+	OnlyOn   []HostType
+	Excludes []HostType
 }
 
 // NewPlatformFilter creates a new platform filter, during
 // construction we determine the platform from the filesystem.
 func NewPlatformFilter(fs fs.StatFS) *PlatformFilter {
-	platforms := []PacketdHostType{
+	platforms := []HostType{
 		EOS,
 		OpenWrt,
 		Unclassified,
@@ -63,7 +65,7 @@ func NewPlatformFilter(fs fs.StatFS) *PlatformFilter {
 		currentPlatform: Unclassified,
 	}
 	for _, plat := range platforms {
-		if settings.FileExistsInFS(plat.IndicatorFilename, fs) {
+		if settings.FileExistsInFS(plat.indicatorFilename, fs) {
 			filter.currentPlatform = plat
 			return filter
 		}

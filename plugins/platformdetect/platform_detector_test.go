@@ -14,18 +14,18 @@ func TestPlatformFilter(t *testing.T) {
 		files           []string
 		metadata        []any
 		expected        bool
-		currentPlatform PacketdHostType
+		currentPlatform HostType
 	}{
 		{
 			name:            "EOS platform, no metadata",
-			files:           []string{EOS.IndicatorFilename},
+			files:           []string{EOS.indicatorFilename},
 			metadata:        nil,
 			expected:        true,
 			currentPlatform: EOS,
 		},
 		{
 			name:            "OpenWrt platform, no metadata",
-			files:           []string{OpenWrt.IndicatorFilename},
+			files:           []string{OpenWrt.indicatorFilename},
 			metadata:        nil,
 			expected:        true,
 			currentPlatform: OpenWrt,
@@ -39,27 +39,27 @@ func TestPlatformFilter(t *testing.T) {
 		},
 		{
 			name:  "EOS platform, only on EOS",
-			files: []string{EOS.IndicatorFilename},
+			files: []string{EOS.indicatorFilename},
 			metadata: []any{PlatformSpec{
-				OnlyOn: []PacketdHostType{EOS},
+				OnlyOn: []HostType{EOS},
 			}},
 			expected:        true,
 			currentPlatform: EOS,
 		},
 		{
 			name:  "EOS platform, only on OpenWrt",
-			files: []string{EOS.IndicatorFilename},
+			files: []string{EOS.indicatorFilename},
 			metadata: []any{PlatformSpec{
-				OnlyOn: []PacketdHostType{OpenWrt},
+				OnlyOn: []HostType{OpenWrt},
 			}},
 			expected:        false,
 			currentPlatform: EOS,
 		},
 		{
 			name:  "OpenWrt platform, excludes OpenWrt",
-			files: []string{OpenWrt.IndicatorFilename},
+			files: []string{OpenWrt.indicatorFilename},
 			metadata: []any{PlatformSpec{
-				Excludes: []PacketdHostType{OpenWrt},
+				Excludes: []HostType{OpenWrt},
 			}},
 			expected:        false,
 			currentPlatform: OpenWrt,
@@ -68,7 +68,7 @@ func TestPlatformFilter(t *testing.T) {
 			name:  "No platform match",
 			files: []string{"/etc/something_else"},
 			metadata: []any{PlatformSpec{
-				OnlyOn: []PacketdHostType{OpenWrt},
+				OnlyOn: []HostType{OpenWrt},
 			}},
 			expected:        false,
 			currentPlatform: Unclassified,
@@ -91,7 +91,7 @@ func TestPlatformFilter(t *testing.T) {
 
 			if filter.currentPlatform != tt.currentPlatform {
 				t.Errorf("Incorrect platform detected. Expected %s, got %s",
-					tt.currentPlatform.Name, filter.currentPlatform.Name)
+					tt.currentPlatform.name, filter.currentPlatform.name)
 			}
 
 			var pc plugins.PluginConstructor
