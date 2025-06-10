@@ -11,6 +11,9 @@ type wrapperTest struct {
 	WrapperHelper
 }
 
+// decorator is a test double for a plugin that 'decorates' another
+// plugin. Decoration plugins are used in policy manager to inject the
+// proper settings.
 type decorator struct {
 	decorated         map[string]SettingsInjectablePlugin
 	newPluginCallback PluginGeneratorCallback
@@ -90,6 +93,7 @@ func NewMockPlugin(config *Config) *MockPlugin {
 	m.On("Shutdown").Maybe().Return(nil)
 	return m
 }
+
 func TestWrapper(t *testing.T) {
 	controller := NewPluginControl()
 	decorator := &decorator{decorated: map[string]SettingsInjectablePlugin{}}

@@ -30,6 +30,21 @@ type consumer struct {
 	consumerFunc reflect.Value
 }
 
+type pluginInfo struct {
+	plugin      Plugin
+	metadata    []any
+	constructor PluginConstructor
+
+	// a function built using the reflect package that will set
+	// the plugin value of this struct. Executed during Startup().
+	saverFunc interface{}
+}
+
+type predicateInfo struct {
+	invokerFunc     interface{}
+	pluginPredicate PluginPredicate
+}
+
 // PluginControl controls plugins. It controls construction of plugins
 // with the dig DI container and also keeps a list of running plugins
 // to call their Signal() and Shutdown() methods.  When you register a
@@ -38,9 +53,10 @@ type consumer struct {
 // keeps track of a list of plugins to send method calls to.
 type PluginControl struct {
 	dig.Container
-	wrapper            ConstructorWrapper
-	plugins            []Plugin
-	saverFuncs         []reflect.Value
+	wrapper    ConstructorWrapper
+	predicates []*predicateInfo
+	pluginInfo []*pluginInfo
+
 	consumers          []consumer
 	enableStartupPanic bool
 }
@@ -71,6 +87,12 @@ func GlobalPluginControl() *PluginControl {
 	return pluginControl
 }
 
+type PluginPredicate interface {
+	// IsRelevant determines if a plugin constructor should be
+	// included based on platform or other criteria.
+	IsRelevant(constructor PluginConstructor, metadata ...any) bool
+}
+
 type ConstructorWrapper interface {
 	// Matches returns true if we'd like to wrap this plugin.
 	Matches(PluginConstructor, ...any) bool
@@ -84,6 +106,11 @@ type ConstructorWrapper interface {
 // ConstructorWrapperFactory is a function that takes any number of
 // arguments of some type, and returns a wrapper.
 type ConstructorWrapperFactory any
+
+// PluginPredicateFactory is a function that takes any number of
+// arguments (which will be supplied by DI in the typical case) and
+// returns a PluginPredicate.
+type PluginPredicateFactory any
 
 func makeWrapperConstructor(
 	wrapper ConstructorWrapper, ctor any, metadata []any) reflect.Value {
@@ -119,14 +146,59 @@ func makeWrapperConstructor(
 // instead of what would have been returned by the regular
 // constructor.
 func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrapperFactory) {
+	// Here we instantiate the constructor wrapper, of whatever
+	// type it is.
+	constructorType := reflect.TypeOf(wrapper)
+	outputToGet := constructorType.Out(0)
 	if err := control.Provide(wrapper); err != nil {
 		panic(fmt.Sprintf("couldn't provide wrapper: %s", err))
 	}
-	if err := control.Invoke(func(w ConstructorWrapper) {
-		control.wrapper = w
-	}); err != nil {
+	invokerFunc := reflect.MakeFunc(reflect.FuncOf([]reflect.Type{outputToGet}, []reflect.Type{}, false),
+		func(vals []reflect.Value) []reflect.Value {
+			wrapper, ok := vals[0].Interface().(ConstructorWrapper)
+			if !ok {
+				panic("from RegisterConstructorWrapper: Unable to convert provided wrapper to PluginWrapper")
+			}
+			control.wrapper = wrapper
+			return []reflect.Value{}
+		})
+	if err := control.Invoke(invokerFunc.Interface()); err != nil {
 		panic(fmt.Sprintf("couldn't instantiate wrapper: %s", err))
 	}
+}
+
+// RegisterPluginPredicate registers to the 'control' object a plugin
+// predicate. predicateFactory is a function that returns a
+// PluginPredicate, the arguments will be provided by the DI container
+// so you can use dependency injection here. Immediately before
+// plugins are instantiated (i.e. their constructors called), all
+// predicates are instantiated by calling the factories. Then, the
+// newly-instantiated predicate's "IsRelevant" method will then be
+// used to conditionalize plugin instantiation/creation: if _any_
+// plugin does not pass _all_ predicate checks, it will not be
+// instantiated by the DI framework (the constructor will not be
+// called), and will also of course not be started.
+func (control *PluginControl) RegisterPluginPredicate(predicateFactory PluginPredicateFactory) {
+	constructorType := reflect.TypeOf(predicateFactory)
+	outputToGet := constructorType.Out(0)
+	if err := control.Provide(predicateFactory); err != nil {
+		panic(fmt.Sprintf("couldn't provide predicate: %s", err))
+	}
+	predicateInfo := &predicateInfo{
+		invokerFunc:     nil,
+		pluginPredicate: nil,
+	}
+	invokerFunc := reflect.MakeFunc(reflect.FuncOf([]reflect.Type{outputToGet}, []reflect.Type{}, false),
+		func(vals []reflect.Value) []reflect.Value {
+			pred, ok := vals[0].Interface().(PluginPredicate)
+			if !ok {
+				panic("from RegisterPluginPredicate: Unable to convert provided wrapper to PluginPredicate")
+			}
+			predicateInfo.pluginPredicate = pred
+			return []reflect.Value{}
+		})
+	predicateInfo.invokerFunc = invokerFunc.Interface()
+	control.predicates = append(control.predicates, predicateInfo)
 }
 
 // RegisterPlugin registers a plugin that will be created during the
@@ -145,6 +217,16 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 	if control.wrapper != nil && control.wrapper.Matches(constructor, metadata...) {
 		constructorVal = makeWrapperConstructor(control.wrapper, constructor, metadata)
 	}
+
+	pluginInfo := &pluginInfo{
+		constructor: constructor,
+		metadata:    metadata,
+
+		// to be set later by our constructed function, if
+		// needed.
+		plugin: nil,
+	}
+
 	// create a func at runtime that we can invoke that calls the
 	// constructor and appends the return value to the list of plugins.
 	saverFunc := reflect.MakeFunc(
@@ -153,10 +235,11 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 			output := constructorVal.Call(vals)
 			plugin := output[0].Interface()
 			pluginIntf := plugin.(Plugin)
-			control.plugins = append(control.plugins, pluginIntf)
+			pluginInfo.plugin = pluginIntf
 			return []reflect.Value{}
 		})
-	control.saverFuncs = append(control.saverFuncs, saverFunc)
+	pluginInfo.saverFunc = saverFunc.Interface()
+	control.pluginInfo = append(control.pluginInfo, pluginInfo)
 }
 
 // Function to return a count of the registered Plugins
@@ -165,7 +248,7 @@ func (control *PluginControl) GetRegisteredPluginCount() int {
 	// control.saverFuncs is appended to by the RegisterPlugin() above
 	// and the RegistRegisterAndProvidePluginerPlugin() function below
 	// The saverFuncs are invoked on Startup() to actually start plugins.
-	return len(control.saverFuncs)
+	return len(control.pluginInfo)
 }
 
 // RegisterAndProvidePlugin registers a plugin that may be consumed by
@@ -173,31 +256,49 @@ func (control *PluginControl) GetRegisteredPluginCount() int {
 // type. The constructor will be added to the DI container, and other
 // plugins may require it. It is not instantiated until the Startup()
 // method is called.
-func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor) {
-	constructorType := reflect.TypeOf(constructor)
-	outputType := constructorType.Out(0)
+func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor, metadata ...any) {
+	control.RegisterPlugin(constructor, metadata...)
 
-	// create a func at runtime that we can invoke that requires
-	// the plugin to ensure it gets instantiated, and also appends
-	// it to the list of registered plugins.
-	saverFunc := reflect.MakeFunc(
-		reflect.FuncOf([]reflect.Type{outputType}, []reflect.Type{}, false),
-		func(vals []reflect.Value) []reflect.Value {
-			plugin := vals[0].Interface()
-			pluginIntf := plugin.(Plugin)
-			control.plugins = append(control.plugins, pluginIntf)
-			return []reflect.Value{}
-		})
-	control.saverFuncs = append(control.saverFuncs, saverFunc)
 	if err := control.Provide(constructor); err != nil {
 		panic(fmt.Sprintf(
 			"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
 	}
+
 }
 
 // UnregisterPlugin removes a plugin from the list of plugins
 func (control *PluginControl) UnregisterPluginByIndex(indx int) {
-	control.plugins = append(control.plugins[:indx], control.plugins[indx+1:]...)
+	control.pluginInfo = append(control.pluginInfo[:indx], control.pluginInfo[indx+1:]...)
+}
+
+// filterPlugins filters the plugin list using the predicates.
+func (control *PluginControl) filterPlugins() {
+	// instantiate the predicates.
+	for _, pred := range control.predicates {
+		if err := control.Invoke(pred.invokerFunc); err != nil {
+			panic(fmt.Sprintf("couldn't instantiate plugin predicate: %v",
+				err))
+		}
+
+		if pred.pluginPredicate == nil {
+			panic("plugin predicate is nil")
+		}
+	}
+
+	plugins := []*pluginInfo{}
+PluginLoop:
+	for _, plugin := range control.pluginInfo {
+		for _, pred := range control.predicates {
+			// Filter out irrelevant plugins *before* creating the saver function
+			if !pred.pluginPredicate.IsRelevant(
+				plugin.constructor,
+				plugin.metadata...) {
+				continue PluginLoop // Skip this plugin
+			}
+		}
+		plugins = append(plugins, plugin)
+	}
+	control.pluginInfo = plugins
 }
 
 // Startup constructs and then starts all registered plugins. It
@@ -208,15 +309,16 @@ func (control *PluginControl) UnregisterPluginByIndex(indx int) {
 // NetlogHandler, or PacketProcessorPlugin, their handler methods are
 // registered with the backend so they will receive these events.
 func (control *PluginControl) Startup() {
-	for _, saverFunc := range control.saverFuncs {
-		if err := control.Invoke(saverFunc.Interface()); err != nil {
+	control.filterPlugins()
+	for _, plugin := range control.pluginInfo {
+		if err := control.Invoke(plugin.saverFunc); err != nil {
 			panic(fmt.Sprintf("couldn't instantiate plugin: %s", err))
 		}
 	}
 
-	var toUnregister []int
-
-	for indx, plugin := range control.plugins {
+	successfulPlugins := []*pluginInfo{}
+	for _, pluginInf := range control.pluginInfo {
+		plugin := pluginInf.plugin
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
 
@@ -230,17 +332,13 @@ func (control *PluginControl) Startup() {
 					err)
 			}
 
-			toUnregister = append(toUnregister, indx)
 		} else {
-			control.findConsumers(plugin)
+			successfulPlugins = append(successfulPlugins, pluginInf)
+			control.findConsumers(pluginInf.plugin)
 		}
 	}
-	// Unregister the plugins that failed to startup
-	// Need to traverse toUnregister in reverse order to avoid Index error
-	for i := len(toUnregister) - 1; i >= 0; i-- {
-		pluginIndx := toUnregister[i]
-		control.UnregisterPluginByIndex(pluginIndx)
-	}
+
+	control.pluginInfo = successfulPlugins
 
 }
 
@@ -287,7 +385,8 @@ func (control *PluginControl) RegisterConsumer(theConsumer PluginConsumer) {
 
 // StopAllPlugins stops all registered plugins.
 func (control *PluginControl) Shutdown() {
-	for _, plugin := range control.plugins {
+	for _, pluginInf := range control.pluginInfo {
+		plugin := pluginInf.plugin
 		if err := plugin.Shutdown(); err != nil {
 			logger.Warn("Plugin %s failed to stop: %s\n", plugin.Name(), err)
 		} else {
