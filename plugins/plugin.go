@@ -167,13 +167,17 @@ func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrap
 	}
 }
 
-// RegisterPluginPredicate registers to the control object a plugin
-// predicate, by giving as the predicateFactory argument a predicate
-// factory, which we will call to instantiate an actual predicate
-// object.  The newly-instantiated predicate's "IsRelevant" method
-// will then be used to conditionalize plugin instantiation/creation,
-// that is, if any plugin does not pass all predicate checks, it will
-// not be instantiated by the DI framework, and will not be started.
+// RegisterPluginPredicate registers to the 'control' object a plugin
+// predicate. predicateFactory is a function that returns a
+// PluginPredicate, the arguments will be provided by the DI container
+// so you can use dependency injection here. Immediately before
+// plugins are instantiated (i.e. their constructors called), all
+// predicates are instantiated by calling the factories. Then, the
+// newly-instantiated predicate's "IsRelevant" method will then be
+// used to conditionalize plugin instantiation/creation: if _any_
+// plugin does not pass _all_ predicate checks, it will not be
+// instantiated by the DI framework (the constructor will not be
+// called), and will also of course not be started.
 func (control *PluginControl) RegisterPluginPredicate(predicateFactory PluginPredicateFactory) {
 	constructorType := reflect.TypeOf(predicateFactory)
 	outputToGet := constructorType.Out(0)

@@ -1,6 +1,7 @@
 package platformdetect
 
 import (
+	"fmt"
 	"io/fs"
 	"slices"
 
@@ -78,6 +79,16 @@ func NewPlatformFilter(fs fs.StatFS) *PlatformFilter {
 func (pf *PlatformFilter) IsRelevant(pc plugins.PluginConstructor, metadata ...any) bool {
 	for _, i := range metadata {
 		if spec, ok := i.(PlatformSpec); ok {
+			if len(spec.OnlyOn) > 0 && len(spec.Excludes) > 0 {
+				panic(
+					fmt.Sprintf(
+						"PlatformFilter.IsRelevant: "+
+							"both OnlyOn and Excludes are filled out, only one should be specified."+
+							"(OnlyOn: %v, Excludes: %v)",
+						spec.OnlyOn,
+						spec.Excludes))
+
+			}
 			if len(spec.OnlyOn) > 0 && !slices.Contains(spec.OnlyOn, pf.currentPlatform) {
 				return false
 			} else if len(spec.Excludes) > 0 && slices.Contains(spec.Excludes, pf.currentPlatform) {
