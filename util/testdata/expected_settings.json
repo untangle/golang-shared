@@ -1100,7 +1100,7 @@
         },
         "cloud": {
             "cloudServers": [
-                "cmd.untangle.com"
+                "cmd.edge.arista.com"
             ],
             "enabled": true,
             "supportAccessEnabled": true
@@ -1124,49 +1124,49 @@
     "uris": {
         "uriTranslations": [
             {
-                "uri": "https://downloads.untangle.com/download.php"
+                "uri": "https://downloads.edge.arista.com/download.php"
             },
             {
-                "uri": "https://queue.untangle.com/v1/put"
+                "uri": "https://queue.edge.arista.com/v1/put"
             },
             {
-                "uri": "https://classify.untangle.com/"
+                "uri": "https://classify.edge.arista.com/"
             },
             {
-                "uri": "https://www.untangle.com/store/open.php"
+                "uri": "https://edge.arista.com/store/open.php"
             },
             {
-                "uri": "https://auth.untangle.com/v1/CheckTokenAccess"
+                "uri": "https://auth.edge.arista.com/v1/CheckTokenAccess"
             },
             {
-                "uri": "https://database.untangle.com/v1/put"
+                "uri": "https://database.edge.arista.com/v1/put"
             },
             {
-                "uri": "https://www.untangle.com/cmd/networks"
+                "uri": "https://edge.arista.com/cmd/networks"
             },
             {
-                "uri": "https://www.untangle.com/cmd/account/"
+                "uri": "https://edge.arista.com/cmd/account/"
             },
             {
-                "uri": "https://www.untangle.com/legal"
+                "uri": "https://edge.arista.com/legal"
             },
             {
-                "uri": "https://support.untangle.com/hc"
+                "uri": "https://support.edge.arista.com/hc"
             },
             {
                 "uri": "https://aristamicroedge.featureupvote.com/"
             },
             {
-                "uri": "https://license.untangle.com/license.php"
+                "uri": "https://license.edge.arista.com/license.php"
             },
             {
-                "uri": "https://updates.untangle.com/api"
+                "uri": "https://updates.edge.arista.com/api"
             },
             {
-                "uri": "https://boxbackup.untangle.com/boxbackup/backup.php"
+                "uri": "https://boxbackup.edge.arista.com/boxbackup/backup.php"
             },
             {
-                "uri": "https://cmd.untangle.com/"
+                "uri": "https://cmd.edge.arista.com/"
             }
         ]
     },

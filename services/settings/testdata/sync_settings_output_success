@@ -40,5 +40,5 @@ CaptivePortalManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/captive_porta
 SettingsManager: Wrote /tmp/sync_settings-zv_fsub2/etc/config/current.json
 DynamicBlockListsManager: Syncing settings
 DynamicIpBlockerManager: Wrote /tmp/sync_settings-zv_fsub2/usr/bin/fetch_ip_list.py
-Connection Error occurred during settings change notification: HTTPSConnectionPool(host='untangle.com', port=443): Max retries exceeded with url: /api/v1/appliance/OnSettingsUpdate?uid=6d944017-6256-4b3e-a8d5-1238a61deb84&token=2da30367-a1de-4154-a409-fca6addecd68 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x227e6f0>: Failed to establish a new connection: [Errno -3] Try again'))
+Connection Error occurred during settings change notification: HTTPSConnectionPool(host='edge.arista.com', port=443): Max retries exceeded with url: /api/v1/appliance/OnSettingsUpdate?uid=6d944017-6256-4b3e-a8d5-1238a61deb84&token=2da30367-a1de-4154-a409-fca6addecd68 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x227e6f0>: Failed to establish a new connection: [Errno -3] Try again'))
 {"success": true, "logLines": "Syncing to system...\nNo changed files.\nDeleted files:\n/etc/config/nftables-rules.d/207-wf-rules\nDeleting files...\nCopying files...", "message": null, "traceback": null, "raisedException": null}
