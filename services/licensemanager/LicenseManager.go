@@ -309,6 +309,7 @@ func (lm *LicenseManager) shutdownServices() {
 // @return error such as errServiceNotFound
 func (lm *LicenseManager) findService(serviceName string) (*Service, error) {
 	service, ok := lm.services[serviceName]
+	logger.Warn("Finding service %s in %+v\n", serviceName, lm.services)
 	if !ok {
 		return nil, errServiceNotFound
 	}
