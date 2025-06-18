@@ -257,13 +257,39 @@ func (control *PluginControl) GetRegisteredPluginCount() int {
 // plugins may require it. It is not instantiated until the Startup()
 // method is called.
 func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor, metadata ...any) {
-	control.RegisterPlugin(constructor, metadata...)
-
+	constructorType := reflect.TypeOf(constructor)
+	outputType := constructorType.Out(0)
+	pluginInfo := &pluginInfo{
+		plugin:      nil,
+		metadata:    metadata,
+		constructor: constructor,
+		saverFunc:   nil,
+	}
+	control.pluginInfo = append(control.pluginInfo, pluginInfo)
+	// create a func at runtime that we can invoke that requires the
+	// plugin to ensure it gets instantiated, and also appends it to
+	// the list of registered plugins.  This is different from in
+	// RegisterPlugin because here we require the plugin as an input,
+	// which in turn also requires the plugin to have been provided as
+	// an output via Provide() (see below).
+	//
+	// Although similar to RegisterPlugin(), this is fundamentally
+	// different and can't be merged with that implementation as that
+	// implementation must allow multiple registrations of identical
+	// types, since they may have different constructor functions.
+	saverFunc := reflect.MakeFunc(
+		reflect.FuncOf([]reflect.Type{outputType}, []reflect.Type{}, false),
+		func(vals []reflect.Value) []reflect.Value {
+			plugin := vals[0].Interface()
+			pluginIntf := plugin.(Plugin)
+			pluginInfo.plugin = pluginIntf
+			return []reflect.Value{}
+		})
+	pluginInfo.saverFunc = saverFunc.Interface()
 	if err := control.Provide(constructor); err != nil {
 		panic(fmt.Sprintf(
 			"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
 	}
-
 }
 
 // UnregisterPlugin removes a plugin from the list of plugins
