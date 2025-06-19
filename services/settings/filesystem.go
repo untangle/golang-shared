@@ -61,6 +61,11 @@ func FileExistsInFS(fname string, fs fs.StatFS) bool {
 		fname = fname[1:]
 	}
 
+	lenOfFname := len(fname)
+	if fname[lenOfFname-1] == '/' {
+		fname = fname[0 : lenOfFname-1]
+	}
+
 	if _, err := fs.Stat(fname); err != nil {
 		if !os.IsNotExist(err) {
 			// Use fmt.Fprintf here because the logger may or may not
