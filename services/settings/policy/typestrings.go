@@ -69,6 +69,7 @@ const (
 	WANPolicyRuleObject          ObjectType = "mfw-rule-wanpolicy"
 	WebFilterRuleObject          ObjectType = "mfw-rule-webfilter"
 	QuotaRuleObject              ObjectType = "mfw-rule-quota"
+	DnsFilterRuleObject          ObjectType = "mfw-rule-dnsfilter"
 
 	// ConditionType,ConditionGroupType: type id strings, for the
 	// object and the group.
@@ -83,6 +84,7 @@ const (
 	ApplicationControlConfigType ObjectType = "mfw-config-applicationcontrol"
 	CaptivePortalConfigType      ObjectType = "mfw-config-captiveportal"
 	SecurityConfigType           ObjectType = "mfw-config-security"
+	DnsFilterConfigType          ObjectType = "mfw-config-dnsfilter"
 
 	//Policy Type
 	PolicyType ObjectType = "mfw-policy"
@@ -118,6 +120,7 @@ const (
 	TPSettingsKey         string = "threatprevention"
 	AppControlSettingsKey string = "application_control"
 	CaptiveSettingsKey    string = "captiveportal"
+	DnsfilterSettingsKey  string = "dns_filter"
 )
 
 // init() builds the object metadata map
@@ -161,4 +164,8 @@ func buildObjectMetadata() {
 	var wanMeta ObjectMetadata = ObjectMetadata{SettingsName: "wan_policy", Type: WANPolicyConfigType, ParentType: ConfigurationParent}
 	SettingsMetaLookup["wan_policy"] = wanMeta
 	ObjectMetaLookup[WANPolicyConfigType] = wanMeta
+
+	var dnsfilterMeta ObjectMetadata = ObjectMetadata{SettingsName: DnsfilterSettingsKey, Type: DnsFilterConfigType, ParentType: ConfigurationParent}
+	SettingsMetaLookup[DnsfilterSettingsKey] = dnsfilterMeta
+	ObjectMetaLookup[DnsFilterConfigType] = dnsfilterMeta
 }
