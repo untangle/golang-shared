@@ -108,12 +108,12 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 
 	case ApplicationControlRuleObject, CaptivePortalRuleObject, GeoipRuleObject, ThreatPreventionRuleObject,
 		NATRuleObject, PortForwardRuleObject, SecurityRuleObject, ShapingRuleObject, WANPolicyRuleObject,
-		WebFilterRuleObject, QuotaRuleObject:
+		WebFilterRuleObject, QuotaRuleObject, DnsFilterRuleObject:
 		// drop down to the default return
 
 	case GeoipConfigType, WebFilterConfigType, ThreatPreventionConfigType,
 		ApplicationControlConfigType,
-		CaptivePortalConfigType, SecurityConfigType:
+		CaptivePortalConfigType, SecurityConfigType, DnsFilterConfigType:
 		// drop to default return
 
 	case QuotaType:
