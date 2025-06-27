@@ -5,6 +5,19 @@
 	"redirect": false,
 	"sensitivity": 20
     },
+    "dns_filter": {
+        "blockList": [
+          {
+            "description": "All Other Domains",
+            "enabled": false,
+            "exact": false,
+            "flagged": false,
+            "logged": true,
+            "name": "All Other Domains"
+          }
+        ],
+        "enabled": false
+    },
     "webfilter": {
 	"blockList": [],
 	"categories": [
@@ -157,7 +170,34 @@
 		    "enabledLog": false,
 		    "passedNetworks": []
 		}
-	    }
+	    },
+            {
+                "description": "testing dns filter policy manager",
+                "id": "a4c5a6d0-c210-4adf-bb06-fdbc03074d97",
+                "name": "Dns filter block policy for fb",
+                "settings": {
+                  "blockList": [
+                    {
+                      "description": "block fb",
+                      "enabled": true,
+                      "exact": false,
+                      "flagged": false,
+                      "logged": true,
+                      "name": "facebook.com"
+                    },
+                    {
+                      "description": "All Other Domains",
+                      "enabled": false,
+                      "exact": false,
+                      "flagged": false,
+                      "logged": true,
+                      "name": "All Other Domains"
+                    }
+                  ],
+                  "enabled": true
+                },
+                "type": "mfw-config-dnsfilter"
+            }
 	],
 	"enabled": true,
 	"quotas": [
@@ -363,7 +403,22 @@
 		    "configuration_id": "7ed1558e-ae30-4699-beab-77e09babecb3",
 		    "key": "mfw-config-threatprevention"
 		}
-	    }
+	    },
+            {
+              "action": {
+                "configuration_id": "a4c5a6d0-c210-4adf-bb06-fdbc03074d97",
+                "key": "mfw-rule-dnsfilter",
+                "type": "SET_CONFIGURATION"
+              },
+              "conditions": [
+                "0195c3a0-e918-4182-b0b5-f4886dc8469a"
+              ],
+              "description": "testing pm df rules for understanding",
+              "enabled": true,
+              "id": "516386a1-656c-463e-a7ba-4a83d5f75973",
+              "name": "testing pm df rules",
+              "type": "mfw-rule-dnsfilter"
+            }
 	],
 	"conditions": [
 	    {
@@ -395,7 +450,22 @@
 		"description": "Test Application Condition 1",
 		"id": "7bb85306-c823-0000-dead-a41868d1de82",
 		"name": "Test Application Object 1"
-	    }
+	    },
+            {
+              "description": "Test condition for dns filter",
+              "id": "0195c3a0-e918-4182-b0b5-f4886dc8469a",
+              "items": [
+                {
+                  "op": "==",
+                  "type": "CLIENT_ADDRESS",
+                  "value": [
+                    "192.168.56.103"
+                  ]
+                }
+              ],
+              "name": "test dns filter condition",
+              "type": "mfw-object-condition"
+            }
 	],
 	"condition_groups": [],
 	"policies": [
@@ -449,7 +519,19 @@
 		"enabled": true,
 		"id": "5690e8b8-c0e2-4cf4-9350-e8378cc96053",
 		"name": "test"
-	    }
+	    },
+            {
+                "description": "New testing pm policy for dns filter",
+                "enabled": true,
+                "id": "e2016361-ea36-434c-bc64-38bff4fb361c",
+                "name": "New testing pm policy for dns filter",
+                "conditions": [
+                    "0195c3a0-e918-4182-b0b5-f4886dc8469a"
+                ],
+                "rules": [
+                  "516386a1-656c-463e-a7ba-4a83d5f75973"
+                ]
+            }
 	]
     }
 }
