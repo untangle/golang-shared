@@ -38,6 +38,7 @@ func TestGetAllPolicyConfigs(t *testing.T) {
 	assert.Len(t, policySettings["mfw-config-threatprevention"], 2)
 	assert.Len(t, policySettings["mfw-config-webfilter"], 1)
 	assert.Len(t, policySettings["mfw-config-geoipfilter"], 3)
+	assert.Len(t, policySettings["mfw-config-dnsfilter"], 1)
 
 	teachersUID := "d9b27e4a-2b8b-4500-a64a-51e7ee5777d5"
 	// Spot check a plugin setting.
@@ -52,6 +53,8 @@ func TestGetPolicyPluginSettings(t *testing.T) {
 	assert.Len(t, webFilterPolicies, 2)
 	geoIPPolicies, _ := GetPolicyPluginSettings(settingsFile, "geoip")
 	assert.Len(t, geoIPPolicies, 4)
+	dnsFilterPolicies, _ := GetPolicyPluginSettings(settingsFile, "dns_filter")
+	assert.Len(t, dnsFilterPolicies, 2)
 
 	// Get the default and make sure it matches the expected object
 	var defaultObj = PolicyConfiguration{
@@ -427,6 +430,34 @@ func TestRulesUnmarshal(t *testing.T) {
 					WANConfig: "1458dc12-a9c2-4d0c-8203-1340c61c2c3e",
 				},
 				ID: "c2428365-65be-4907-bfc0-bde2b310fedf",
+			},
+		},
+		{
+			name: "Dns Filter Rule Tester",
+			json: `{"name": "DnsFilterRuleObject Name",
+                         "id": "c2428365-65be-5902-bfc0-bde2b310fedf",
+                         "type": "mfw-rule-dnsfilter",
+                         "description": "DnsFilterRuleObject Description",
+                         "conditions": ["1458dc12-a9c2-4d0c-8204-1340c61c2c3b"],
+                         "action": {
+                            "type": "SET_CONFIGURATION",
+                            "configuration_id": "1202b42e-2f21-4919-b42c-5614e04d0031",
+                            "key": "mfw-rule-dnsfilter"
+                            }
+                          }`,
+			expectedErr: false,
+			expected: Object{
+				Name:        "DnsFilterRuleObject Name",
+				Type:        DnsFilterRuleObject,
+				Description: "DnsFilterRuleObject Description",
+				Conditions:  []string{"1458dc12-a9c2-4d0c-8204-1340c61c2c3b"},
+				Enabled:     true,
+				Action: &Action{
+					Type: "SET_CONFIGURATION",
+					UUID: "1202b42e-2f21-4919-b42c-5614e04d0031",
+					Key:  "mfw-rule-dnsfilter",
+				},
+				ID: "c2428365-65be-5902-bfc0-bde2b310fedf",
 			},
 		},
 	}
