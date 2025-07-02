@@ -29,4 +29,16 @@ VOLUME /go/untangle-shared
 WORKDIR /go/untangle-shared
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.33.0
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+
+ARG build_user
+ARG build_uid
+ARG build_gid
+RUN echo "build_uid: $build_uid, build_gid: $build_gid, build_user: $build_user" && \
+    if [ "$build_uid" != "0" ]; then \
+    /usr/sbin/addgroup --gid $build_gid --force-badname $build_user && \
+    /usr/sbin/adduser --uid $build_uid --gid $build_gid --disabled-password --home /home/$build_user --force-badname $build_user && \
+    chown -R $build_uid:$build_gid . /go; \
+    fi
+USER $build_user
+
 CMD make all && (if [ -n "${UNIT_TEST}" -a "${UNIT_TEST}" = "yes" ]; then make test; make racetest; fi)
