@@ -24,7 +24,7 @@ before_install:
 
 script:
   - pushd "${DIR}/golang-shared"
-  - docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
+  - USER=root docker-compose -f build/docker-compose.build.yml up --abort-on-container-exit --build ${TARGET}-local || travis_terminate 1
   - popd
 
 jobs:
