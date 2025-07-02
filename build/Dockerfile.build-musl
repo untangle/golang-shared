@@ -32,7 +32,7 @@ ARG build_user
 ARG build_uid
 ARG build_gid
 RUN echo "build_uid: $build_uid, build_gid: $build_gid, build_user: $build_user" && \
-    if [ "$build_uid" != "0" ]; then \
+    if [ "$build_user" != "root" ]; then \
     /usr/sbin/adduser -u $build_uid -g $build_gid -D -h /home/$build_user $build_user && \
     chown -R $build_uid:$build_gid . /go; \
     fi

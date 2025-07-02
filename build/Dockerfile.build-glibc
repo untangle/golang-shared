@@ -33,7 +33,7 @@ ARG build_user
 ARG build_uid
 ARG build_gid
 RUN echo "build_uid: $build_uid, build_gid: $build_gid, build_user: $build_user" && \
-    if [ "$build_uid" != "0" ]; then \
+    if [ "$build_user" != "root" ]; then \
     /usr/sbin/addgroup --gid $build_gid --force-badname $build_user && \
     /usr/sbin/adduser --uid $build_uid --gid $build_gid --disabled-password --home /home/$build_user --force-badname $build_user && \
     chown -R $build_uid:$build_gid . /go; \
