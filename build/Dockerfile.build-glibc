@@ -20,9 +20,8 @@ RUN apt-get install -y libzmq3-dev
 RUN apt-get install libprotobuf-dev libprotoc-dev -q -y
 RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/protoc-3.14.0-linux-x86_64.zip
 RUN unzip protoc-3.14.0-linux-x86_64.zip && \
-    mv bin/protoc /usr/bin/
-
-
+    mv bin/protoc /usr/bin/ && \
+    chmod a+x /usr/bin/protoc
 
 RUN mkdir -p /go/untangle-shared
 VOLUME /go/untangle-shared
