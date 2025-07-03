@@ -2,4 +2,4 @@
 
 libc=$1
 
-docker-compose -f build/docker-compose.build.yml up --build ${libc}-local
+user_uid=`id -u` user_gid=`id -g` docker-compose -f build/docker-compose.build.yml up --build ${libc}-local

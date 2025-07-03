@@ -4,6 +4,10 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.build-musl
+        args:
+          build_user: ${USER:-root}
+          build_uid: ${user_uid:-0}
+          build_gid: ${user_gid:-0}
       environment:
         UNIT_TEST: "yes"
       volumes:
@@ -13,6 +17,10 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.build-glibc
+        args:
+          build_user: ${USER:-root}
+          build_uid: ${user_uid:-0}
+          build_gid: ${user_gid:-0}      
       environment:
         UNIT_TEST: "yes"
       volumes:
