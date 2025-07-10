@@ -13,11 +13,12 @@ import "github.com/untangle/golang-shared/logger"
 const (
 	// AlertZMQTopic Topic is used for sending events from rest/packetd to reportd
 	AlertZMQTopic           = "arista:reportd:alerts"
-	sessionsZMQTopic        = "untangle:packetd:sessions"
-	interfaceStatsZMQTopic  = "untangle:packetd:interface-stats"
-	sessionStatsZMQTopic    = "untangle:packetd:session-stats"
-	activeSessionsZMQTopic  = "untangle:packetd:active-sessions"
-	dosEventsZMQTopic       = "untangle:packetd:dos-events"
+	SessionsZMQTopic        = "untangle:packetd:sessions"
+	InterfaceStatsZMQTopic  = "untangle:packetd:interface-stats"
+	SessionStatsZMQTopic    = "untangle:packetd:session-stats"
+	ActiveSessionsZMQTopic  = "untangle:packetd:active-sessions"
+	DOSEventsZMQTopic       = "untangle:packetd:dos-events"
+	IPSEventsZMQTopic       = "untangle:packetd:ips-events"
 	PublisherSocketAddress  = "ipc:///var/zmq_event_publisher"
 	SubscriberSocketAddress = "ipc:///var/zmq_event_subscriber"
 )
