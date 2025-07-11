@@ -1,4 +1,4 @@
-reponame: github.com/untangle/golang-shared
+reponame: code.arista.io/efw/protobufs
 description: |
   Untangle shared protobufs and golang libraries
 users:
