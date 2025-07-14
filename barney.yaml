@@ -40,7 +40,7 @@ images:
     units:
     - floor: .%tests/internal/renovate-json5-floor
       sources:
-      - github.com/untangle/golang-shared # to get sources under stable path
+      - code.arista.io/efw/protobufs # to get sources under stable path
       build: |
         apt update
         apt install -y node-json5
