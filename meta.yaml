@@ -32,6 +32,9 @@ x-bar:
   version: production
   target-branch-re: "^(.+-trunk|main|engprod-parent|master|.+-(?:maint|rel|bringup))$"
 
+ObsoleteNames:
+  - github.com/untangle/golang-shared
+
 epoch: 1
 
 x-github-bridge:
