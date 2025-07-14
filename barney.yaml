@@ -5,9 +5,9 @@ images:
       All protobufs used by EfwSfeModules and Packetd to file reports with Reportd ready to be BIPed into mfw-nft
     units:
       - sources:
-          - github.com/untangle/golang-shared
+          - code.arista.io/efw/protobufs
         build: |
-          cp /src/github.com/untangle/golang-shared/protobuffersrc/* /dest
+          cp /src/code.arista.io/efw/protobufs/protobuffersrc/* /dest
 
   test/efw-protobufs:
     description: |
@@ -44,4 +44,4 @@ images:
       build: |
         apt update
         apt install -y node-json5
-        json5 --validate /src/github.com/untangle/golang-shared/renovate.json5
+        json5 --validate /src/code.arista.io/efw/protobufs/renovate.json5
