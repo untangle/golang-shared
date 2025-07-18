@@ -5,6 +5,7 @@ import (
 
 	"testing/fstest"
 
+	"github.com/untangle/golang-shared/platform"
 	"github.com/untangle/golang-shared/plugins"
 )
 
@@ -14,64 +15,64 @@ func TestPlatformFilter(t *testing.T) {
 		files           []string
 		metadata        []any
 		expected        bool
-		currentPlatform HostType
+		currentPlatform platform.HostType
 	}{
 		{
 			name:            "EOS platform, no metadata",
-			files:           []string{EOS.indicatorFilename},
+			files:           []string{platform.EOS.IndicatorFilename},
 			metadata:        nil,
 			expected:        true,
-			currentPlatform: EOS,
+			currentPlatform: platform.EOS,
 		},
 		{
 			name:            "OpenWrt platform, no metadata",
-			files:           []string{OpenWrt.indicatorFilename},
+			files:           []string{platform.OpenWrt.IndicatorFilename},
 			metadata:        nil,
 			expected:        true,
-			currentPlatform: OpenWrt,
+			currentPlatform: platform.OpenWrt,
 		},
 		{
 			name:            "Unclassified platform, no metadata",
 			files:           []string{},
 			metadata:        nil,
 			expected:        true,
-			currentPlatform: Unclassified,
+			currentPlatform: platform.Unclassified,
 		},
 		{
 			name:  "EOS platform, only on EOS",
-			files: []string{EOS.indicatorFilename},
+			files: []string{platform.EOS.IndicatorFilename},
 			metadata: []any{PlatformSpec{
-				OnlyOn: []HostType{EOS},
+				OnlyOn: []platform.HostType{platform.EOS},
 			}},
 			expected:        true,
-			currentPlatform: EOS,
+			currentPlatform: platform.EOS,
 		},
 		{
 			name:  "EOS platform, only on OpenWrt",
-			files: []string{EOS.indicatorFilename},
+			files: []string{platform.EOS.IndicatorFilename},
 			metadata: []any{PlatformSpec{
-				OnlyOn: []HostType{OpenWrt},
+				OnlyOn: []platform.HostType{platform.OpenWrt},
 			}},
 			expected:        false,
-			currentPlatform: EOS,
+			currentPlatform: platform.EOS,
 		},
 		{
 			name:  "OpenWrt platform, excludes OpenWrt",
-			files: []string{OpenWrt.indicatorFilename},
+			files: []string{platform.OpenWrt.IndicatorFilename},
 			metadata: []any{PlatformSpec{
-				Excludes: []HostType{OpenWrt},
+				Excludes: []platform.HostType{platform.OpenWrt},
 			}},
 			expected:        false,
-			currentPlatform: OpenWrt,
+			currentPlatform: platform.OpenWrt,
 		},
 		{
 			name:  "No platform match",
 			files: []string{"/etc/something_else"},
 			metadata: []any{PlatformSpec{
-				OnlyOn: []HostType{OpenWrt},
+				OnlyOn: []platform.HostType{platform.OpenWrt},
 			}},
 			expected:        false,
-			currentPlatform: Unclassified,
+			currentPlatform: platform.Unclassified,
 		},
 	}
 
@@ -87,11 +88,11 @@ func TestPlatformFilter(t *testing.T) {
 				fs[f[1:]] = &fstest.MapFile{}
 			}
 
-			filter := NewPlatformFilter(fs)
+			filter := NewPlatformFilter(platform.DetectPlatform(fs))
 
-			if filter.currentPlatform != tt.currentPlatform {
+			if filter.currentPlatform.Name != tt.currentPlatform.Name {
 				t.Errorf("Incorrect platform detected. Expected %s, got %s",
-					tt.currentPlatform.name, filter.currentPlatform.name)
+					tt.currentPlatform.Name, filter.currentPlatform.Name)
 			}
 
 			var pc plugins.PluginConstructor

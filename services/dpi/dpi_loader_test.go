@@ -22,7 +22,7 @@ func (suite *TestLoadDpiJson) SetupTest() {
 	// Log the test name.
 	suite.T().Logf("Starting test: %s", suite.T().Name())
 	// Create a fresh DPI config manager for each test.
-	suite.manager = NewDpiConfigManager()
+	suite.manager = NewDpiConfigManager(os.DirFS("/"))
 }
 
 // TestLoadConfig_Valid tests loading valid JSON from an io.Reader.

@@ -2,16 +2,18 @@ package credentialsmanager
 
 import (
 	"encoding/json"
-	"os"
+	"io"
 )
 
 // readFile reads the credentials file and saves the values
 func (cm *credentialsManager) readFile() error {
-	raw, err := os.ReadFile(cm.fileLocation)
+	file, err := cm.fileSystem.Open(cm.fileLocation)
 	if err != nil {
 		cm.logger.Err("Error reading file at path %s: %s\n", cm.fileLocation, err)
 		return err
 	}
+
+	raw, err := io.ReadAll(file)
 
 	credentials := map[string]string{}
 	if err := json.Unmarshal(raw, &credentials); err != nil {

@@ -1,4 +1,4 @@
-package platformdetect
+package platform
 
 import (
 	"io/fs"

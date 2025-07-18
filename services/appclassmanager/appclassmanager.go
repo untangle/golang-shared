@@ -6,11 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"os"
+	"io/fs"
 	"strconv"
 
 	logService "github.com/untangle/golang-shared/services/logger"
-	"github.com/untangle/golang-shared/services/settings"
 )
 
 var logger = logService.GetLoggerInstance()
@@ -39,11 +38,13 @@ const guidInfoFile = "/usr/share/untangle-classd/protolist.csv"
 // ApplicationTable stores the details for each known application
 type AppClassManager struct {
 	ApplicationTable map[string]*ApplicationInfo
+	fileSystem       fs.FS
 }
 
-func NewAppClassManager() *AppClassManager {
+func NewAppClassManager(fs fs.FS) *AppClassManager {
 	return &AppClassManager{
 		ApplicationTable: make(map[string]*ApplicationInfo),
+		fileSystem:       fs,
 	}
 }
 
@@ -141,22 +142,14 @@ func (m *AppClassManager) getCategoryTable() (string, error) {
 
 // loadApplicationTable loads the details for each application
 func (m *AppClassManager) loadApplicationTable() {
-	var file *os.File
+	var file fs.File
 	var linecount int
 	var infocount int
 	var list []string
 	var err error
 
-	filename, err := settings.LocateFile(guidInfoFile)
-	if err != nil {
-		logger.Warn("Unable to  locate GUID info file: %s\n",
-			guidInfoFile)
-		return
-	}
 	// open the guid info file provided by Sandvine
-	file, err = os.Open(filename)
-
-	// if there was an error log and return
+	file, err = m.fileSystem.Open(guidInfoFile)
 	if err != nil {
 		logger.Warn("Unable to load application details: %s\n", guidInfoFile)
 		return

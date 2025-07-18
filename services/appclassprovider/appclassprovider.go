@@ -2,6 +2,7 @@ package appclassprovider
 
 import (
 	"errors"
+	"io/fs"
 
 	"github.com/untangle/golang-shared/services/appclassmanager"
 	"github.com/untangle/golang-shared/services/dpi"
@@ -18,16 +19,16 @@ type ApplicationClassProvider interface {
 }
 
 // Generic SetProvider function.
-func GetApplicationClassProvider() (ApplicationClassProvider, error) {
+func GetApplicationClassProvider(fs fs.FS) (ApplicationClassProvider, error) {
 	var provider ApplicationClassProvider
 	var err error
 	platform := util.GetPlatform()
 	switch platform {
 	case util.EOS:
-		provider = dpi.NewDpiConfigManager()
+		provider = dpi.NewDpiConfigManager(fs)
 		err = provider.Startup()
 	case util.OpenWRT:
-		provider = appclassmanager.NewAppClassManager()
+		provider = appclassmanager.NewAppClassManager(fs)
 		err = provider.Startup()
 	default:
 		err = errors.New("unknown_platform")

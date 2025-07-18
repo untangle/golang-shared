@@ -1,4 +1,4 @@
-package platformdetect
+package platform
 
 // HostType is a externally-opaque type for declaring a host
 // type.

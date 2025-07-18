@@ -7,17 +7,27 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/untangle/golang-shared/services/platformdetect"
+	"github.com/untangle/golang-shared/platform"
 )
 
 // Custom FS embedding golang's standard file system object.
 type Filesystem struct {
 	fs.FS
-	platform platformdetect.HostType
+	platform platform.HostType
+}
+
+// Interface for an object that
+// can lookup files actual location
+// in the Filesystem. Should not be used
+// to grab a filename, then os.Open().
+// Use the FS for that. The same struct
+// will be doing both
+type FileSeeker interface {
+	GetPathOnPlatform(string) (string, error)
 }
 
 // NewFileSystem returns a new Filesystem object
-func NewFileSystem(fs fs.FS, p platformdetect.HostType) *Filesystem {
+func NewFileSystem(fs fs.FS, p platform.HostType) *Filesystem {
 	return &Filesystem{
 		FS:       fs,
 		platform: p,
@@ -25,13 +35,13 @@ func NewFileSystem(fs fs.FS, p platformdetect.HostType) *Filesystem {
 }
 
 // Open opens a file on the filesystem
-func (fs *Filesystem) Open(n string) (fs.File, error) {
-	nameOnPlat, err := fs.getPathOnPlatform(n)
+func (f *Filesystem) Open(n string) (fs.File, error) {
+	nameOnPlat, err := f.GetPathOnPlatform(n)
 	if err != nil {
 		return nil, fmt.Errorf("could not open file: %w", err)
 	}
 
-	return fs.FS.Open(nameOnPlat)
+	return f.FS.Open(nameOnPlat)
 }
 
 // Stat stats a file. An FS isn't required to implement Stat,
@@ -51,7 +61,7 @@ func (f *Filesystem) Stat(n string) (fs.FileInfo, error) {
 		return file.Stat()
 	}
 
-	nameOnPlat, err := f.getPathOnPlatform(n)
+	nameOnPlat, err := f.GetPathOnPlatform(n)
 	if err != nil {
 		return nil, fmt.Errorf("could not stat file: %w", err)
 	}
@@ -59,12 +69,16 @@ func (f *Filesystem) Stat(n string) (fs.FileInfo, error) {
 	return statFS.Stat(nameOnPlat)
 }
 
-func (fs *Filesystem) getPathOnPlatform(p string) (string, error) {
-	if fs.platform.Equals(platformdetect.OpenWrt) {
+func (f *Filesystem) FileExists(n string) bool {
+	return fileExists(n)
+}
+
+func (f *Filesystem) GetPathOnPlatform(p string) (string, error) {
+	if f.platform.Equals(platform.OpenWrt) {
 		return p, nil
 	}
 
-	if nativePath, ok := fs.platform.UniquelyMappedFiles[p]; ok {
+	if nativePath, ok := f.platform.UniquelyMappedFiles[p]; ok {
 		if !fileExists(nativePath) {
 			return nativePath, &NoFileAtPath{name: nativePath}
 		} else {
@@ -72,8 +86,8 @@ func (fs *Filesystem) getPathOnPlatform(p string) (string, error) {
 		}
 	}
 
-	if strings.Contains(p, platformdetect.OpenWrt.SettingsDirPath) {
-		nativePath := filepath.Join(fs.platform.SettingsDirPath, p[strings.LastIndex(p, "/")+1:])
+	if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
+		nativePath := filepath.Join(f.platform.SettingsDirPath, p[strings.LastIndex(p, "/")+1:])
 
 		if !fileExists(nativePath) {
 			return nativePath, &NoFileAtPath{name: nativePath}
@@ -83,6 +97,15 @@ func (fs *Filesystem) getPathOnPlatform(p string) (string, error) {
 	}
 
 	return p, nil
+}
+
+// GetPathOnPlatformBad is a temporary function to be used by the settings package before
+// an FS can be provided to it. Should not be used outside of that
+func GetPathOnPlatformBad(p string) (string, error) {
+	unmodifiedFS := os.DirFS("/")
+	fs := NewFileSystem(unmodifiedFS, platform.DetectPlatform(unmodifiedFS.(fs.StatFS)))
+	return fs.GetPathOnPlatform(p)
+
 }
 
 // NoFileAtPath is an error for if a file doesn't exist. In this case

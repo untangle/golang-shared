@@ -17,6 +17,7 @@ import (
 
 	loggerModel "github.com/untangle/golang-shared/logger"
 	"github.com/untangle/golang-shared/plugins/util"
+	"github.com/untangle/golang-shared/services/filesystem"
 	"github.com/untangle/golang-shared/util/environments"
 )
 
@@ -31,8 +32,8 @@ var (
 
 // find the file or fallback to the old filename if we can't.
 func locateOrDefault(desiredFilename string) string {
-	noFileErr := &NoFileAtPath{}
-	if filename, err := LocateFile(desiredFilename); err == nil {
+	noFileErr := &filesystem.NoFileAtPath{}
+	if filename, err := filesystem.GetPathOnPlatformBad(desiredFilename); err == nil {
 		return filename
 	} else if errors.As(err, &noFileErr) && filename != "" {
 		return filename
@@ -58,6 +59,8 @@ var saveLocker sync.RWMutex
 var initSettingsFileLocker sync.RWMutex
 
 // Startup settings service
+// TODO: settings will eventually get the DI treatment. Once that happens, an
+// fs.FS interface should be provided over our specific specific interface
 func Startup(loggerInstance loggerModel.LoggerLevels) {
 	once.Do(func() {
 		logger = loggerInstance
@@ -99,7 +102,7 @@ func GetSettingsFileSingleton() (*SettingsFile, error) {
 		return settingsFileSingleton, nil
 	}
 
-	fileName, err := LocateFile(settingsFile)
+	fileName, err := filesystem.GetPathOnPlatformBad(settingsFile)
 	settingsFileSingleton = NewSettingsFile(
 		fileName,
 		WithLock(&saveLocker))
