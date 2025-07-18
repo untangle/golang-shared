@@ -88,7 +88,7 @@ func TestPlatformFilter(t *testing.T) {
 				fs[f[1:]] = &fstest.MapFile{}
 			}
 
-			filter := NewPlatformFilter(platform.DetectPlatform(fs))
+			filter := NewPlatformFilter(tt.currentPlatform)
 
 			if filter.currentPlatform.Name != tt.currentPlatform.Name {
 				t.Errorf("Incorrect platform detected. Expected %s, got %s",

@@ -30,6 +30,7 @@ func NewCredentialsManager(logger logger.LoggerLevels, fs fs.FS) CredentialsMana
 		fileLocation: fileLocation,
 		logger:       logger,
 		mutex:        sync.Mutex{},
+		fileSystem:   fs,
 	}
 }
 
