@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/untangle/golang-shared/plugins/types"
 )
 
 // FilenameLocator finds files on the local filesystem, allowing the
@@ -12,21 +15,13 @@ import (
 // differences.
 type FilenameLocator struct {
 	fileExists func(filename string) bool
+	platform   types.Platform
 }
 
-const (
-	// Present of file indicates we are in native mode
-	nativeEOSIndicatorFile = "/etc/efw-version"
-
-	// Standard prefix for native EOS
-	nativeEOSPrefix = "/mnt/flash/mfw-settings/"
-
-	// Standard prefix for OpenWRT
-	openWRTPrefix = "/etc/config/"
-)
-
-var openWRTFileToNativeEOS = map[string]string{
-	"/etc/config/categories.json": "/usr/share/bctid/categories.json",
+func NewFilenameLocator(platform types.Platform) *FilenameLocator {
+	return &FilenameLocator{
+		fileExists: FileExists,
+	}
 }
 
 // NoFileAtPath is an error for if a file doesn't exist. In this case
@@ -83,39 +78,36 @@ func FileExistsInFS(fname string, fs fs.StatFS) bool {
 // it assumes that called uses default to OpenWRT platform. Only paths in mappings or paths which
 // starts with /etc/config are translated.
 func (f *FilenameLocator) getPlatformFileName(filename string) (string, error) { // Check if we are in native mode, most likely since there is only native and OpenWRT mode
-	if f.fileExists(nativeEOSIndicatorFile) { // In EOS mode, try mapping
-		if nativePath, exists := openWRTFileToNativeEOS[filename]; exists {
-			if !f.fileExists(nativePath) {
-				return nativePath, &NoFileAtPath{name: nativePath}
-			} else {
-				return nativePath, nil
-			}
-			// Still on EOS, if file contains /etc/config then translate, otherwise return
-		} else if strings.Contains(filename, openWRTPrefix) {
-			nativePath := nativeEOSPrefix + filename[strings.LastIndex(filename, "/")+1:]
+	// File lookups are mapped from the OpenWRT filenames. No additional translation needed.
+	fmt.Printf("\n wat \n")
+	if f.platform.Equals(types.OpenWrt) {
+		return filename, nil
+	}
 
-			if !f.fileExists(nativePath) {
-				return nativePath, &NoFileAtPath{name: nativePath}
-			} else {
-				return nativePath, nil
-			}
+	if nativePath, ok := f.platform.AdditionalFileMappings[filename]; ok {
+		fmt.Printf("\nadditional mappings\n")
+		if !f.fileExists(nativePath) {
+			return nativePath, &NoFileAtPath{name: nativePath}
+		} else {
+			return nativePath, nil
+		}
+	} else if strings.Contains(filename, types.OpenWrt.SettingsDirPath) {
+		nativePath := filepath.Join(f.platform.SettingsDirPath, filename[strings.LastIndex(filename, "/")+1:])
+
+		if !f.fileExists(nativePath) {
+			return nativePath, &NoFileAtPath{name: nativePath}
+		} else {
+			return nativePath, nil
 		}
 	}
-	// On OpenWRT or no translation needed
-	if !f.fileExists(filename) {
-		return filename, &NoFileAtPath{name: filename}
-	}
+
 	return filename, nil
 }
 
 // LocateFile locates the input filename on the filesystem,
 // automatically translating it to EOS filenames when needed.
 func (f *FilenameLocator) LocateFile(filename string) (string, error) {
-	if f.fileExists(filename) {
-		return filename, nil
-	}
 	return f.getPlatformFileName(filename)
-
 }
 
 var defaultLocator = &FilenameLocator{
