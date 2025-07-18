@@ -1,12 +1,10 @@
-package platformdetect
+package platformfilter
 
 import (
 	"fmt"
-	"io/fs"
 	"slices"
 
 	"github.com/untangle/golang-shared/plugins"
-	"github.com/untangle/golang-shared/services/settings"
 )
 
 // HostType is a externally-opaque type for declaring a host
@@ -56,22 +54,10 @@ type PlatformSpec struct {
 
 // NewPlatformFilter creates a new platform filter, during
 // construction we determine the platform from the filesystem.
-func NewPlatformFilter(fs fs.StatFS) *PlatformFilter {
-	platforms := []HostType{
-		EOS,
-		OpenWrt,
-		Unclassified,
+func NewPlatformFilter(platform HostType) *PlatformFilter {
+	return &PlatformFilter{
+		currentPlatform: platform,
 	}
-	filter := &PlatformFilter{
-		currentPlatform: Unclassified,
-	}
-	for _, plat := range platforms {
-		if settings.FileExistsInFS(plat.indicatorFilename, fs) {
-			filter.currentPlatform = plat
-			return filter
-		}
-	}
-	return filter
 }
 
 // IsRelevant implements the golang-shared plugins.PluginPredicate

@@ -1,4 +1,4 @@
-package platformdetect
+package platformfilter
 
 import (
 	"testing"
