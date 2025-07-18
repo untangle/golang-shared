@@ -10,21 +10,6 @@ import (
 	"github.com/untangle/golang-shared/services/platformdetect"
 )
 
-const (
-	// Present of file indicates we are in native mode
-	nativeEOSIndicatorFile = "/etc/efw-version"
-
-	// Standard prefix for native EOS
-	nativeEOSPrefix = "/mnt/flash/mfw-settings/"
-
-	// Standard prefix for OpenWRT
-	openWRTPrefix = "/etc/config/"
-)
-
-var openWRTFileToNativeEOS = map[string]string{
-	"/etc/config/categories.json": "/usr/share/bctid/categories.json",
-}
-
 // Custom FS embedding golang's standard file system object.
 type Filesystem struct {
 	fs.FS
