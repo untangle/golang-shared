@@ -5,10 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
+	"io/fs"
 
 	logger "github.com/untangle/golang-shared/services/logger"
-	"github.com/untangle/golang-shared/services/settings"
 )
 
 const pluginName string = "dpi"
@@ -63,18 +62,20 @@ type rawConfig struct {
 // Unexported config to prevent direct access to the configuration.
 // Implements Plugin interface and PacketProcessorPlugin interface
 type DpiConfigManager struct {
-	config DpiConfig
+	config     DpiConfig
+	fileSystem fs.FS
 }
 
 // returns DpiConfigManager instance
 // provided as a constructor to the DI container
-func NewDpiConfigManager() *DpiConfigManager {
+func NewDpiConfigManager(fs fs.FS) *DpiConfigManager {
 	return &DpiConfigManager{
 		config: DpiConfig{
 			Categories:   make(map[string]int),
 			Services:     make(map[string]int),
 			Applications: make(map[int]*QosmosInfo),
 		},
+		fileSystem: fs,
 	}
 }
 
@@ -122,11 +123,10 @@ func (m *DpiConfigManager) LoadConfig(r io.Reader) error {
 // LoadConfigFromFile loads the configuration from a file.
 // 'filename' is the path to the JSON file containing the Dpi info.
 func (m *DpiConfigManager) LoadConfigFromFile(filename string) error {
-	file, err := os.Open(filename)
+	file, err := m.fileSystem.Open(filename)
 	if err != nil {
-		return fmt.Errorf("failed to open file %s: %w", filename, err)
+		return fmt.Errorf("could not open file %v: %w", filename, err)
 	}
-	defer file.Close()
 
 	return m.LoadConfig(file)
 }
@@ -161,12 +161,7 @@ func (m *DpiConfigManager) GetServices() map[string]int {
 
 // Startup() is called once when the plugin is loaded.
 func (m *DpiConfigManager) Startup() error {
-	configFilename, err := settings.LocateFile(QosmosFile)
-	if err != nil || configFilename == "" {
-		logger.Err("Failed to retrieve DPI config file from settings: %v\n", err)
-		return err
-	}
-	if err := m.LoadConfigFromFile(configFilename); err != nil {
+	if err := m.LoadConfigFromFile(QosmosFile); err != nil {
 		logger.Err("Failed to load DPI data from json file: %v\n", err)
 		return err
 	}

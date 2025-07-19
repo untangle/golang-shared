@@ -22,13 +22,13 @@ func (suite *TestLoadDpiJson) SetupTest() {
 	// Log the test name.
 	suite.T().Logf("Starting test: %s", suite.T().Name())
 	// Create a fresh DPI config manager for each test.
-	suite.manager = NewDpiConfigManager()
+	suite.manager = NewDpiConfigManager(os.DirFS("."))
 }
 
 // TestLoadConfig_Valid tests loading valid JSON from an io.Reader.
 func (suite *TestLoadDpiJson) TestLoadConfig_Valid() {
 
-	configFile, err := os.Open("./testdata/DpiDefaultConfig.json")
+	configFile, err := os.Open("testdata/DpiDefaultConfig.json")
 	if err != nil {
 		suite.Error(err)
 	}
@@ -126,7 +126,7 @@ func (suite *TestLoadDpiJson) TestLoadConfigFromFile_Valid() {
 	}`
 
 	// Create a temporary file with the sample JSON.
-	tmpFile, err := os.CreateTemp("", "dpi_config_*.json")
+	tmpFile, err := os.CreateTemp(".", "dpi_config_*.json")
 	suite.Require().NoError(err, "should create temporary file")
 	defer os.Remove(tmpFile.Name())
 
@@ -134,7 +134,7 @@ func (suite *TestLoadDpiJson) TestLoadConfigFromFile_Valid() {
 	suite.Require().NoError(err, "should write sample JSON to file")
 	suite.Require().NoError(tmpFile.Close(), "should close temporary file")
 
-	err = suite.manager.LoadConfigFromFile(tmpFile.Name())
+	err = suite.manager.LoadConfigFromFile(tmpFile.Name()[2:])
 	suite.NoError(err, "LoadConfigFromFile should not return an error for valid file")
 }
 

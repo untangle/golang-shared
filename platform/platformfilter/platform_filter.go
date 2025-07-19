@@ -1,41 +1,18 @@
-package platformdetect
+package platformfilter
 
 import (
 	"fmt"
-	"io/fs"
 	"slices"
 
+	"github.com/untangle/golang-shared/platform"
 	"github.com/untangle/golang-shared/plugins"
-	"github.com/untangle/golang-shared/services/settings"
-)
-
-// HostType is a externally-opaque type for declaring a host
-// type.
-type HostType struct {
-	indicatorFilename string
-	name              string
-}
-
-var (
-	EOS = HostType{
-		indicatorFilename: "/etc/Eos-release",
-		name:              "Eos",
-	}
-	OpenWrt = HostType{
-		indicatorFilename: "/etc/openwrt_version",
-		name:              "OpenWrt",
-	}
-	Unclassified = HostType{
-		indicatorFilename: "",
-		name:              "Unclassified",
-	}
 )
 
 // PlatformFilter is a plugin predicate (declared in
 // golang-shared/plugins) which filters out plugins that have
 // PluginSpec metadata and don't apply to the current platform.
 type PlatformFilter struct {
-	currentPlatform HostType
+	currentPlatform platform.HostType
 }
 
 // PlatformSpec is a specification of the platforms that apply to a
@@ -50,28 +27,16 @@ type PlatformFilter struct {
 // empty (just don't supply a PlatformSpec in this case) but if they
 // are, the plugin will be run.
 type PlatformSpec struct {
-	OnlyOn   []HostType
-	Excludes []HostType
+	OnlyOn   []platform.HostType
+	Excludes []platform.HostType
 }
 
 // NewPlatformFilter creates a new platform filter, during
 // construction we determine the platform from the filesystem.
-func NewPlatformFilter(fs fs.StatFS) *PlatformFilter {
-	platforms := []HostType{
-		EOS,
-		OpenWrt,
-		Unclassified,
+func NewPlatformFilter(platform platform.HostType) *PlatformFilter {
+	return &PlatformFilter{
+		currentPlatform: platform,
 	}
-	filter := &PlatformFilter{
-		currentPlatform: Unclassified,
-	}
-	for _, plat := range platforms {
-		if settings.FileExistsInFS(plat.indicatorFilename, fs) {
-			filter.currentPlatform = plat
-			return filter
-		}
-	}
-	return filter
 }
 
 // IsRelevant implements the golang-shared plugins.PluginPredicate
@@ -89,9 +54,10 @@ func (pf *PlatformFilter) IsRelevant(pc plugins.PluginConstructor, metadata ...a
 						spec.Excludes))
 
 			}
-			if len(spec.OnlyOn) > 0 && !slices.Contains(spec.OnlyOn, pf.currentPlatform) {
+			platformMatch := func(p platform.HostType) bool { return p.Equals(pf.currentPlatform) }
+			if len(spec.OnlyOn) > 0 && !slices.ContainsFunc(spec.OnlyOn, platformMatch) {
 				return false
-			} else if len(spec.Excludes) > 0 && slices.Contains(spec.Excludes, pf.currentPlatform) {
+			} else if len(spec.Excludes) > 0 && slices.ContainsFunc(spec.Excludes, platformMatch) {
 				return false
 			}
 		}
