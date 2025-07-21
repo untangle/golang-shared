@@ -2,7 +2,6 @@ package filesystem
 
 import (
 	"io"
-	"io/fs"
 	"testing"
 	"testing/fstest"
 
@@ -10,8 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/untangle/golang-shared/platform"
 )
-
-var originalDetectPlatform func(fs.StatFS) platform.HostType
 
 func TestOpen(t *testing.T) {
 	tests := []struct {
