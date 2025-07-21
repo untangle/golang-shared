@@ -127,6 +127,7 @@ func (m *DpiConfigManager) LoadConfigFromFile(filename string) error {
 	if err != nil {
 		return fmt.Errorf("could not open file %v: %w", filename, err)
 	}
+	defer file.Close()
 
 	return m.LoadConfig(file)
 }

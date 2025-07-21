@@ -11,7 +11,7 @@ import (
 )
 
 // Custom FS embedding golang's standard file system object.
-type Filesystem struct {
+type PlatformAwareFileSystem struct {
 	fs.FS
 	platform platform.HostType
 }
@@ -22,24 +22,25 @@ type Filesystem struct {
 // to grab a filename, then os.Open().
 // Use the FS for that. The same struct
 // will be doing both
-type FileSeeker interface {
+type PathOnPlatformGetter interface {
 	GetPathOnPlatform(string) (string, error)
 }
 
-// NewFileSystem returns a new Filesystem object
-func NewFileSystem(fs fs.FS, p platform.HostType) *Filesystem {
-	return &Filesystem{
+// NewPlatformAwareFileSystem returns a new Filesystem object
+func NewPlatformAwareFileSystem(fs fs.FS, p platform.HostType) *PlatformAwareFileSystem {
+	return &PlatformAwareFileSystem{
 		FS:       fs,
 		platform: p,
 	}
 }
 
 // Open opens a file on the filesystem
-func (f *Filesystem) Open(n string) (fs.File, error) {
+func (f *PlatformAwareFileSystem) Open(n string) (fs.File, error) {
 	nameOnPlat, err := f.GetPathOnPlatform(n)
 	if err != nil {
 		return nil, fmt.Errorf("could not open file: %w", err)
 	}
+	nameOnPlat = sanitizePath(nameOnPlat)
 
 	return f.FS.Open(nameOnPlat)
 }
@@ -47,7 +48,7 @@ func (f *Filesystem) Open(n string) (fs.File, error) {
 // Stat stats a file. An FS isn't required to implement Stat,
 // but it does always implement Open. Use stat if it's implemented
 // otherwise use open
-func (f *Filesystem) Stat(n string) (fs.FileInfo, error) {
+func (f *PlatformAwareFileSystem) Stat(n string) (fs.FileInfo, error) {
 	statFS, ok := f.FS.(fs.StatFS)
 	if !ok {
 		// Underlying FS doesn't implement Stat.
@@ -62,6 +63,8 @@ func (f *Filesystem) Stat(n string) (fs.FileInfo, error) {
 	}
 
 	nameOnPlat, err := f.GetPathOnPlatform(n)
+	nameOnPlat = sanitizePath(nameOnPlat)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not stat file: %w", err)
 	}
@@ -69,11 +72,32 @@ func (f *Filesystem) Stat(n string) (fs.FileInfo, error) {
 	return statFS.Stat(nameOnPlat)
 }
 
-func (f *Filesystem) FileExists(n string) bool {
+// sanitizePath sanitizes a path by stripping off
+// any leading /. Absolute paths will cause fs.Open() to fail.
+// It appends the directory the Filesystem is created
+// with to the path provided. This results in a bad path.
+func sanitizePath(p string) string {
+	if len(p) == 0 {
+		return ""
+	}
+
+	if p[1] == '/' {
+		p = p[1:]
+	}
+
+	lenPath := len(p)
+	if p[lenPath-1] == '/' {
+		p = p[0 : lenPath-1]
+	}
+
+	return p
+}
+
+func (f *PlatformAwareFileSystem) FileExists(n string) bool {
 	return fileExists(n)
 }
 
-func (f *Filesystem) GetPathOnPlatform(p string) (string, error) {
+func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 	if f.platform.Equals(platform.OpenWrt) {
 		return p, nil
 	}
@@ -103,9 +127,8 @@ func (f *Filesystem) GetPathOnPlatform(p string) (string, error) {
 // an FS can be provided to it. Should not be used outside of that
 func GetPathOnPlatformBad(p string) (string, error) {
 	unmodifiedFS := os.DirFS("/")
-	fs := NewFileSystem(unmodifiedFS, platform.DetectPlatform(unmodifiedFS.(fs.StatFS)))
+	fs := NewPlatformAwareFileSystem(unmodifiedFS, platform.DetectPlatform(unmodifiedFS.(fs.StatFS)))
 	return fs.GetPathOnPlatform(p)
-
 }
 
 // NoFileAtPath is an error for if a file doesn't exist. In this case
@@ -134,15 +157,10 @@ func fileExists(fname string) bool {
 // fileExistsInFs takes an fs.StatFS and returns true if the file
 // exists at the path fname.
 func fileExistsInFs(fname string, fs fs.StatFS) bool {
-	if len(fname) == 0 {
-		return false
-	} else if fname[0] == '/' {
-		fname = fname[1:]
-	}
 
-	lenOfFname := len(fname)
-	if fname[lenOfFname-1] == '/' {
-		fname = fname[0 : lenOfFname-1]
+	fname = sanitizePath(fname)
+	if fname == "" {
+		return false
 	}
 
 	if _, err := fs.Stat(fname); err != nil {
