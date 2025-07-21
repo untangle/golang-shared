@@ -77,23 +77,7 @@ func (f *PlatformAwareFileSystem) Stat(n string) (fs.FileInfo, error) {
 // It appends the directory the Filesystem is created
 // with to the path provided. This results in a bad path.
 func sanitizePath(p string) string {
-	if len(p) == 0 {
-		return ""
-	}
-
-	if p[0] == '/' {
-		p = p[1:]
-		if len(p) == 0 {
-			return ""
-		}
-	}
-
-	lenPath := len(p)
-	if p[lenPath-1] == '/' {
-		p = p[0 : lenPath-1]
-	}
-
-	return p
+	return strings.Trim(p, "/")
 }
 
 func (f *PlatformAwareFileSystem) FileExists(n string) bool {
