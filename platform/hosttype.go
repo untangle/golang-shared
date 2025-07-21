@@ -19,6 +19,7 @@ var (
 	EOS = HostType{
 		IndicatorFilename: "/etc/Eos-release",
 		Name:              "Eos",
+		SettingsDirPath:   "/mnt/flash/mfw-settings",
 		UniquelyMappedFiles: map[string]string{
 			"/etc/config/categories.json": "/usr/share/bctid/categories.json",
 		},
@@ -26,6 +27,14 @@ var (
 	OpenWrt = HostType{
 		IndicatorFilename:   "/etc/openwrt_version",
 		Name:                "OpenWrt",
+		SettingsDirPath:     "/etc/config",
+		UniquelyMappedFiles: make(map[string]string),
+	}
+	Vittoria = HostType{
+		// TODO: Update IndicatorFilename once the version is known
+		IndicatorFilename:   "/velocloud_version",
+		Name:                "Vittoria",
+		SettingsDirPath:     "/velocloud",
 		UniquelyMappedFiles: make(map[string]string),
 	}
 	Unclassified = HostType{

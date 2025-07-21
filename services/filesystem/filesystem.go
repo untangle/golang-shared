@@ -81,8 +81,11 @@ func sanitizePath(p string) string {
 		return ""
 	}
 
-	if p[1] == '/' {
+	if p[0] == '/' {
 		p = p[1:]
+		if len(p) == 0 {
+			return ""
+		}
 	}
 
 	lenPath := len(p)
@@ -94,7 +97,7 @@ func sanitizePath(p string) string {
 }
 
 func (f *PlatformAwareFileSystem) FileExists(n string) bool {
-	return fileExists(n)
+	return fileExistsInFs(n, f.FS.(fs.StatFS))
 }
 
 func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
@@ -103,7 +106,7 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 	}
 
 	if nativePath, ok := f.platform.UniquelyMappedFiles[p]; ok {
-		if !fileExists(nativePath) {
+		if !f.FileExists(nativePath) {
 			return nativePath, &NoFileAtPath{name: nativePath}
 		} else {
 			return nativePath, nil
@@ -113,7 +116,7 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 	if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
 		nativePath := filepath.Join(f.platform.SettingsDirPath, p[strings.LastIndex(p, "/")+1:])
 
-		if !fileExists(nativePath) {
+		if !f.FileExists(nativePath) {
 			return nativePath, &NoFileAtPath{name: nativePath}
 		} else {
 			return nativePath, nil
@@ -143,16 +146,6 @@ func (n *NoFileAtPath) Error() string {
 }
 
 var _ error = &NoFileAtPath{}
-
-// fileExists returns true if we can Stat the filename. We don't
-// distinguish between various kinds of errors, but do log them, on
-// the theory that if you can't Stat the filename, for most purposes,
-// that is the same as it not existing, and isn't a common case.
-func fileExists(fname string) bool {
-	return fileExistsInFs(
-		fname,
-		os.DirFS("/").(fs.StatFS))
-}
 
 // fileExistsInFs takes an fs.StatFS and returns true if the file
 // exists at the path fname.
