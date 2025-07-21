@@ -130,7 +130,7 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 // an FS can be provided to it. Should not be used outside of that
 func GetPathOnPlatformBad(p string) (string, error) {
 	unmodifiedFS := os.DirFS("/")
-	fs := NewPlatformAwareFileSystem(unmodifiedFS, platform.DetectPlatform(unmodifiedFS.(fs.StatFS)))
+	fs := NewPlatformAwareFileSystem(unmodifiedFS, platform.DetectPlatform())
 	return fs.GetPathOnPlatform(p)
 }
 

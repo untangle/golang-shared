@@ -2,12 +2,14 @@ package platform
 
 import (
 	"io/fs"
+	"os"
 )
 
 // DetectPlatform detect the current platform with the provided FS
-func DetectPlatform(fs fs.StatFS) HostType {
+func DetectPlatform() HostType {
+	unmodifiedFS := os.DirFS("/").(fs.StatFS)
 	for _, p := range platforms {
-		_, err := fs.Stat(p.IndicatorFilename)
+		_, err := unmodifiedFS.Stat(p.IndicatorFilename)
 		if err == nil {
 			return p
 		}
