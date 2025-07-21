@@ -217,8 +217,8 @@ func TestSanitizePath(t *testing.T) {
 		{"leading and trailing slash", "/path/to/file/", "path/to/file"},
 		{"root slash", "/", ""},
 		{"just a file name", "file.txt", "file.txt"},
-		{"multiple leading slashes (should only remove first)", "//path/to/file", "/path/to/file"},
-		{"multiple trailing slashes (should only remove first)", "path/to/file//", "path/to/file/"},
+		{"multiple leading slashes (should remove all)", "//path/to/file", "path/to/file"},
+		{"multiple trailing slashes (should only remove all)", "path/to/file//", "path/to/file"},
 	}
 
 	for _, tt := range tests {
