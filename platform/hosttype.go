@@ -45,6 +45,7 @@ var (
 	platforms = []HostType{
 		EOS,
 		OpenWrt,
+		Vittoria,
 		Unclassified,
 	}
 )

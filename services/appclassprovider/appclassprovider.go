@@ -4,9 +4,9 @@ import (
 	"errors"
 	"io/fs"
 
+	"github.com/untangle/golang-shared/platform"
 	"github.com/untangle/golang-shared/services/appclassmanager"
 	"github.com/untangle/golang-shared/services/dpi"
-	"github.com/untangle/golang-shared/util"
 )
 
 // ApplicationClassProvider is the interface for providing application class information
@@ -22,16 +22,16 @@ type ApplicationClassProvider interface {
 func GetApplicationClassProvider(fs fs.FS) (ApplicationClassProvider, error) {
 	var provider ApplicationClassProvider
 	var err error
-	platform := util.GetPlatform()
-	switch platform {
-	case util.EOS:
+	p := platform.DetectPlatform()
+	if p.Equals(platform.EOS) {
 		provider = dpi.NewDpiConfigManager(fs)
 		err = provider.Startup()
-	case util.OpenWRT:
+	} else if p.Equals(platform.OpenWrt) {
 		provider = appclassmanager.NewAppClassManager(fs)
 		err = provider.Startup()
-	default:
+	} else {
 		err = errors.New("unknown_platform")
 	}
+
 	return provider, err
 }
