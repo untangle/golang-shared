@@ -1,16 +1,15 @@
 package credentialsmanager
 
 import (
+	"os"
 	"testing"
-
-	"path/filepath"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/untangle/golang-shared/services/logger"
 )
 
 func TestCredentialsManager(t *testing.T) {
-	m := NewCredentialsManager(logger.GetLoggerInstance()).(*credentialsManager)
+	m := NewCredentialsManager(logger.GetLoggerInstance(), os.DirFS(".")).(*credentialsManager)
 
 	testBadFileStartup(t, m)
 	testGoodFileStartup(t, m)
@@ -23,7 +22,7 @@ func TestCredentialsManager(t *testing.T) {
 
 // testBadFileStartup assert that a bad file path prevents startup
 func testBadFileStartup(t *testing.T, m *credentialsManager) {
-	m.fileLocation = "/some/path/that/should/not/exist.json"
+	m.fileLocation = "some/path/that/should/not/exist.json"
 
 	err := m.Startup()
 	assert.Nil(t, err, "Startup bad file")
@@ -31,12 +30,9 @@ func testBadFileStartup(t *testing.T, m *credentialsManager) {
 
 // testGoodFileStartup assert that it starts when the file exists and is in the right format
 func testGoodFileStartup(t *testing.T, m *credentialsManager) {
-	abs, err := filepath.Abs("./test_files/test_credentials.json")
-	assert.Nil(t, err)
+	m.fileLocation = "test_files/test_credentials.json"
 
-	m.fileLocation = abs
-
-	err = m.Startup()
+	err := m.Startup()
 	assert.Nil(t, err, "Startup good file")
 }
 
