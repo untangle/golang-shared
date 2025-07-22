@@ -23,6 +23,7 @@ enum AlertType {
     POLICYMANAGER = 15;
     DATABASEMANAGER = 16;
     DNSFILTERMANAGER = 17;
+    IPS = 18;
 }
 
 enum AlertSeverity {
