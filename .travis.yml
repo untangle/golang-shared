@@ -67,4 +67,4 @@ jobs:
           name: "$TRAVIS_TAG"
           release_notes: "$RELEASE_NOTES"
           on:
-            branch: mfw-release-6.1   
+            branch: mfw-release-6.2   
