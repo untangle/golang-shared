@@ -1,4 +1,4 @@
-reponame: github.com/untangle/golang-shared
+reponame: code.arista.io/efw/protobufs
 description: |
   Untangle shared protobufs and golang libraries
 users:
@@ -31,6 +31,9 @@ users:
 x-bar:
   version: production
   target-branch-re: "^(.+-trunk|main|engprod-parent|master|.+-(?:maint|rel|bringup))$"
+
+ObsoleteNames:
+  - github.com/untangle/golang-shared
 
 epoch: 1
 
