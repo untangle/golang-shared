@@ -97,17 +97,16 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 		}
 	}
 
+	nativePath := p
 	if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
-		nativePath := filepath.Join(f.platform.SettingsDirPath, p[strings.LastIndex(p, "/")+1:])
-
-		if !f.FileExists(nativePath) {
-			return nativePath, &NoFileAtPath{name: nativePath}
-		} else {
-			return nativePath, nil
-		}
+		nativePath = filepath.Join(f.platform.SettingsDirPath, p[strings.LastIndex(p, "/")+1:])
 	}
 
-	return p, nil
+	if !f.FileExists(nativePath) {
+		return nativePath, &NoFileAtPath{name: nativePath}
+	}
+
+	return nativePath, nil
 }
 
 // GetPathOnPlatformBad is a temporary function to be used by the settings package before
