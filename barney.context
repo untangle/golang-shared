@@ -5,7 +5,7 @@
 			"commit": "0c8ae2605c6287893aacb61674edfc8abec3a96e"
 		},
 		"barney.ci/barney": {
-			"commit": "9e71efbfa0af6509785293cbe591bceedfd85678"
+			"commit": "69f775df2bea849815680d0296ea5cd13b659f8b"
 		},
 		"barney.ci/barneyfile": {
 			"commit": "dd44fbeab3347637a8c09f745ef27edf42d7467d"
@@ -23,19 +23,19 @@
 			"commit": "8fda61c3408cae5b10fc7d4ee0e794e39e7a9816"
 		},
 		"barney.ci/model": {
-			"commit": "521f2d66de5034389856793e669cf070cfea0569"
+			"commit": "5f5f2e0f0432ea582aaccf81f3a7cbf137ba59a0"
 		},
 		"code.arista.io/infra/barney/barnzilla": {
-			"commit": "d90291f1466e6e88e0ee6693542368b05d17abdb"
+			"commit": "a585a00ebef230b9ca80b058c744ffd14bf9cd34"
 		},
 		"code.arista.io/infra/barney/barnzilla-repos": {
-			"commit": "544c556c27d7011316dfece55f1753c225c5eb5c"
+			"commit": "397de5370d09cc84320aed8b13461654734fbf0f"
 		},
 		"code.arista.io/infra/barney/tools/qube": {
 			"commit": "7ea12f3a4f3683689fd7670b26015bf374216d10"
 		},
 		"code.arista.io/tools/breadman": {
-			"commit": "ea3d969231cd1d345ce19a5ee93e49d4d5e3e5e8"
+			"commit": "42d407a8bbc56ffc7ad18afbde543718b1325a18"
 		},
 		"github.com/golang/go": {
 			"commit": "9d828e80fa1f3cc52de60428cae446b35b576de8"

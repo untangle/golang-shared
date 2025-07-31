@@ -103,6 +103,13 @@ func TestOpen(t *testing.T) {
 			expectedErr:  false,
 			expectedData: "file in dir",
 		},
+		{
+			name:         "Open file with no path modifications and doesn't exist",
+			platformType: platform.EOS,
+			files:        fstest.MapFS{},
+			fileName:     "dir/file.txt/",
+			expectedErr:  true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -185,6 +192,13 @@ func TestStat(t *testing.T) {
 			fileName:     "mydir",
 			expectedErr:  false,
 			expectedSize: 0,
+		},
+		{
+			name:         "Stat file with no path modifications and doesn't exist",
+			platformType: platform.EOS,
+			files:        fstest.MapFS{},
+			fileName:     "dir/file.txt/",
+			expectedErr:  true,
 		},
 	}
 
