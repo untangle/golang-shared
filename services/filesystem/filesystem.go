@@ -81,7 +81,7 @@ func sanitizePath(p string) string {
 }
 
 func (f *PlatformAwareFileSystem) FileExists(n string) bool {
-	return fileExistsInFs(n, f.FS.(fs.StatFS))
+	return FileExistsInFs(n, f.FS.(fs.StatFS))
 }
 
 func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
@@ -132,7 +132,7 @@ var _ error = &NoFileAtPath{}
 
 // fileExistsInFs takes an fs.StatFS and returns true if the file
 // exists at the path fname.
-func fileExistsInFs(fname string, fs fs.StatFS) bool {
+func FileExistsInFs(fname string, fs fs.StatFS) bool {
 
 	fname = sanitizePath(fname)
 	if fname == "" {
