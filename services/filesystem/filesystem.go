@@ -99,7 +99,14 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 
 	nativePath := p
 	if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
-		nativePath = filepath.Join(f.platform.SettingsDirPath, p[strings.LastIndex(p, "/")+1:])
+		parts := strings.SplitAfterN(p, platform.OpenWrt.SettingsDirPath, 2)
+		nativePath := filepath.Join(f.platform.SettingsDirPath, strings.TrimPrefix(parts[1], "/"))
+
+		if !f.FileExists(nativePath) {
+			return nativePath, &NoFileAtPath{name: nativePath}
+		} else {
+			return nativePath, nil
+		}
 	}
 
 	if !f.FileExists(nativePath) {
