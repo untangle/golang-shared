@@ -58,6 +58,16 @@ func TestOpen(t *testing.T) {
 			expectedData: "setting value",
 		},
 		{
+			name:         "Open file on EOS - settings path with subdirectory exists",
+			platformType: platform.EOS,
+			files: fstest.MapFS{
+				"mnt/flash/mfw-settings/sub/dir/file.txt": {Data: []byte("deep file")},
+			},
+			fileName:     "/etc/config/sub/dir/file.txt",
+			expectedErr:  false,
+			expectedData: "deep file",
+		},
+		{
 			name:         "Open file on EOS - settings path does not exist",
 			platformType: platform.EOS,
 			files:        fstest.MapFS{},
@@ -173,6 +183,16 @@ func TestStat(t *testing.T) {
 			fileName:     "/etc/config/categories.json",
 			expectedErr:  true,
 			expectedSize: 0,
+		},
+		{
+			name:         "Stat file on EOS - settings path with subdirectory exists",
+			platformType: platform.EOS,
+			files: fstest.MapFS{
+				"mnt/flash/mfw-settings/sub/dir/file.txt": {Data: []byte("deep file")},
+			},
+			fileName:     "/etc/config/sub/dir/file.txt",
+			expectedErr:  false,
+			expectedSize: 9,
 		},
 		{
 			name:         "Stat non-existent file",
