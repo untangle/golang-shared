@@ -124,13 +124,15 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 		nativePath = p
 	}
 
+	if f.prefix != "" {
+		return filepath.Join(f.prefix, nativePath), nil
+	}
+
 	if !f.FileExists(nativePath) {
 		return nativePath, &NoFileAtPath{name: nativePath}
 	}
 
-	if f.prefix != "" {
-		return filepath.Join(f.prefix, nativePath), nil
-	}
+
 	return nativePath, nil
 }
 
