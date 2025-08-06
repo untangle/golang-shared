@@ -109,35 +109,19 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 		return p, nil
 	}
 
-	if nativePath, ok := f.platform.UniquelyMappedFiles[p]; ok {
-		if !f.FileExists(nativePath) {
-			return nativePath, &NoFileAtPath{name: nativePath}
-		} else {
-			if f.prefix != "" {
-				return filepath.Join(f.prefix, nativePath), nil
-			}
-			return nativePath, nil
-		}
-	}
-
-	nativePath := p
-	if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
+	var nativePath string
+	if path, ok := f.platform.UniquelyMappedFiles[p]; ok {
+		nativePath = path
+	} else if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
 		// This logic handles platform-agnostic configuration paths by re-basing them.
 		// For example, on EOS, a request for /etc/config/foo/bar.json
 		// should be transparently mapped to /mnt/flash/mfw-settings/foo/bar.json.
 		// We replace the first occurrence of the generic settings dir path with an empty string
 		// to isolate the sub-path, which preserves any subdirectory structure.
 		subPath := strings.Replace(p, platform.OpenWrt.SettingsDirPath, "", 1)
-		nativePath := filepath.Join(f.platform.SettingsDirPath, strings.TrimPrefix(subPath, "/"))
-
-		if !f.FileExists(nativePath) {
-			return nativePath, &NoFileAtPath{name: nativePath}
-		} else {
-			if f.prefix != "" {
-				return filepath.Join(f.prefix, nativePath), nil
-			}
-			return nativePath, nil
-		}
+		nativePath = filepath.Join(f.platform.SettingsDirPath, strings.TrimPrefix(subPath, "/"))
+	} else {
+		nativePath = p
 	}
 
 	if !f.FileExists(nativePath) {
