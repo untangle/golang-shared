@@ -300,7 +300,7 @@ func TestGetPathOnPlatform(t *testing.T) {
 			},
 			path:         "/etc/config/settings.json",
 			prefix:       "",
-			expectedPath: "mnt/flash/mfw-settings/settings.json",
+			expectedPath: "/mnt/flash/mfw-settings/settings.json",
 			expectedErr:  false,
 		},
 		{
