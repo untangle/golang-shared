@@ -14,6 +14,7 @@ import (
 type PlatformAwareFileSystem struct {
 	fs.FS
 	platform platform.HostType
+	prefix   string
 }
 
 // Interface for an object that
@@ -26,12 +27,28 @@ type PathOnPlatformGetter interface {
 	GetPathOnPlatform(string) (string, error)
 }
 
+// FileSystemOption is a functional option for the PlatformAwareFileSystem
+type FileSystemOption func(*PlatformAwareFileSystem)
+
+// WithPrefix sets the prefix for path lookups
+func WithPrefix(prefix string) FileSystemOption {
+	return func(f *PlatformAwareFileSystem) {
+		f.prefix = prefix
+	}
+}
+
 // NewPlatformAwareFileSystem returns a new Filesystem object
-func NewPlatformAwareFileSystem(fs fs.FS, p platform.HostType) *PlatformAwareFileSystem {
-	return &PlatformAwareFileSystem{
+func NewPlatformAwareFileSystem(fs fs.FS, p platform.HostType, opts ...FileSystemOption) *PlatformAwareFileSystem {
+	f := &PlatformAwareFileSystem{
 		FS:       fs,
 		platform: p,
 	}
+
+	for _, opt := range opts {
+		opt(f)
+	}
+
+	return f
 }
 
 // Open opens a file on the filesystem
@@ -86,6 +103,9 @@ func (f *PlatformAwareFileSystem) FileExists(n string) bool {
 
 func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 	if f.platform.Equals(platform.OpenWrt) {
+		if f.prefix != "" {
+			return filepath.Join(f.prefix, p), nil
+		}
 		return p, nil
 	}
 
@@ -93,6 +113,9 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 		if !f.FileExists(nativePath) {
 			return nativePath, &NoFileAtPath{name: nativePath}
 		} else {
+			if f.prefix != "" {
+				return filepath.Join(f.prefix, nativePath), nil
+			}
 			return nativePath, nil
 		}
 	}
@@ -110,6 +133,9 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 		if !f.FileExists(nativePath) {
 			return nativePath, &NoFileAtPath{name: nativePath}
 		} else {
+			if f.prefix != "" {
+				return filepath.Join(f.prefix, nativePath), nil
+			}
 			return nativePath, nil
 		}
 	}
@@ -118,6 +144,9 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 		return nativePath, &NoFileAtPath{name: nativePath}
 	}
 
+	if f.prefix != "" {
+		return filepath.Join(f.prefix, nativePath), nil
+	}
 	return nativePath, nil
 }
 
