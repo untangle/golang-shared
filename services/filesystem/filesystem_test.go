@@ -274,7 +274,7 @@ func TestGetPathOnPlatform(t *testing.T) {
 			name:         "EOS, mapped file, with prefix, file exists",
 			platformType: platform.EOS,
 			files: fstest.MapFS{
-				"usr/share/bctid/categories.json": {Data: []byte("categories data")},
+				"root/usr/share/bctid/categories.json": {Data: []byte("categories data")},
 			},
 			path:         "/etc/config/categories.json",
 			prefix:       "/root",
@@ -285,7 +285,7 @@ func TestGetPathOnPlatform(t *testing.T) {
 			name:         "EOS, settings file, with prefix, file exists",
 			platformType: platform.EOS,
 			files: fstest.MapFS{
-				"mnt/flash/mfw-settings/settings.json": {Data: []byte("setting value")},
+				"root/mnt/flash/mfw-settings/settings.json": {Data: []byte("setting value")},
 			},
 			path:         "/etc/config/settings.json",
 			prefix:       "/root",

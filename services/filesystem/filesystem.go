@@ -127,7 +127,7 @@ func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 
 	if f.prefix != "" {
 		// When joining with a prefix, treat nativePath as relative to the prefix root.
-		return filepath.Join(f.prefix, strings.TrimPrefix(nativePath, "/")), nil
+		nativePath = filepath.Join(f.prefix, strings.TrimPrefix(nativePath, "/"))
 	}
 
 	if !f.FileExists(nativePath) {
