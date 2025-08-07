@@ -24,6 +24,8 @@ import (
 var logger loggerModel.LoggerLevels
 var once sync.Once
 
+const DefaultSettingsFileLocation = "/etc/config/settings.json"
+
 var (
 	settingsFile = "/etc/config/settings.json"
 	defaultsFile = "/etc/config/defaults.json"
