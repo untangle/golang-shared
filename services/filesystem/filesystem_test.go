@@ -238,6 +238,108 @@ func TestStat(t *testing.T) {
 	}
 }
 
+func TestGetPathOnPlatform(t *testing.T) {
+	tests := []struct {
+		name         string
+		platformType platform.HostType
+		files        fstest.MapFS
+		path         string
+		prefix       string
+		expectedPath string
+		expectedErr  bool
+	}{
+		{
+			name:         "OpenWrt, no prefix, file exists",
+			platformType: platform.OpenWrt,
+			files: fstest.MapFS{
+				"file.txt": {Data: []byte("content")},
+			},
+			path:         "file.txt",
+			prefix:       "",
+			expectedPath: "file.txt",
+			expectedErr:  false,
+		},
+		{
+			name:         "OpenWrt, with prefix, file exists",
+			platformType: platform.OpenWrt,
+			files: fstest.MapFS{
+				"file.txt": {Data: []byte("content")},
+			},
+			path:         "file.txt",
+			prefix:       "/tmp",
+			expectedPath: "/tmp/file.txt",
+			expectedErr:  false,
+		},
+		{
+			name:         "EOS, mapped file, with prefix, file exists",
+			platformType: platform.EOS,
+			files: fstest.MapFS{
+				"root/usr/share/bctid/categories.json": {Data: []byte("categories data")},
+			},
+			path:         "/etc/config/categories.json",
+			prefix:       "/root",
+			expectedPath: "/root/usr/share/bctid/categories.json",
+			expectedErr:  false,
+		},
+		{
+			name:         "EOS, settings file, with prefix, file exists",
+			platformType: platform.EOS,
+			files: fstest.MapFS{
+				"root/mnt/flash/mfw-settings/settings.json": {Data: []byte("setting value")},
+			},
+			path:         "/etc/config/settings.json",
+			prefix:       "/root",
+			expectedPath: "/root/mnt/flash/mfw-settings/settings.json",
+			expectedErr:  false,
+		},
+		{
+			name:         "EOS, settings file, no prefix, file exists",
+			platformType: platform.EOS,
+			files: fstest.MapFS{
+				"mnt/flash/mfw-settings/settings.json": {Data: []byte("setting value")},
+			},
+			path:         "/etc/config/settings.json",
+			prefix:       "",
+			expectedPath: "/mnt/flash/mfw-settings/settings.json",
+			expectedErr:  false,
+		},
+		{
+			name:         "File does not exist, with prefix",
+			platformType: platform.EOS,
+			files:        fstest.MapFS{},
+			path:         "/etc/config/not-there.json",
+			prefix:       "/root",
+			expectedErr:  true,
+		},
+		{
+			name:         "File does not exist, no prefix",
+			platformType: platform.EOS,
+			files:        fstest.MapFS{},
+			path:         "/etc/config/not-there.json",
+			prefix:       "",
+			expectedErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var opts []FileSystemOption
+			if tt.prefix != "" {
+				opts = append(opts, WithPrefix(tt.prefix))
+			}
+			pafs := NewPlatformAwareFileSystem(tt.files, tt.platformType, opts...)
+			path, err := pafs.GetPathOnPlatform(tt.path)
+
+			if tt.expectedErr {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedPath, path)
+			}
+		})
+	}
+}
+
 func TestSanitizePath(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -265,9 +367,23 @@ func TestSanitizePath(t *testing.T) {
 func TestNewPlatformAwareFileSystem(t *testing.T) {
 	mockFS := fstest.MapFS{}
 	p := platform.OpenWrt
-	pafs := NewPlatformAwareFileSystem(mockFS, p)
 
-	assert.NotNil(t, pafs)
-	assert.Equal(t, mockFS, pafs.FS)
-	assert.Equal(t, p, pafs.platform)
+	t.Run("without options", func(t *testing.T) {
+		pafs := NewPlatformAwareFileSystem(mockFS, p)
+
+		assert.NotNil(t, pafs)
+		assert.Equal(t, mockFS, pafs.FS)
+		assert.Equal(t, p, pafs.platform)
+		assert.Empty(t, pafs.prefix)
+	})
+
+	t.Run("with prefix option", func(t *testing.T) {
+		prefix := "/tmp/root"
+		pafs := NewPlatformAwareFileSystem(mockFS, p, WithPrefix(prefix))
+
+		assert.NotNil(t, pafs)
+		assert.Equal(t, mockFS, pafs.FS)
+		assert.Equal(t, p, pafs.platform)
+		assert.Equal(t, prefix, pafs.prefix)
+	})
 }

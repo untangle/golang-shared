@@ -14,6 +14,7 @@ import (
 type PlatformAwareFileSystem struct {
 	fs.FS
 	platform platform.HostType
+	prefix   string
 }
 
 // Interface for an object that
@@ -26,12 +27,28 @@ type PathOnPlatformGetter interface {
 	GetPathOnPlatform(string) (string, error)
 }
 
+// FileSystemOption is a functional option for the PlatformAwareFileSystem
+type FileSystemOption func(*PlatformAwareFileSystem)
+
+// WithPrefix sets the prefix for path lookups
+func WithPrefix(prefix string) FileSystemOption {
+	return func(f *PlatformAwareFileSystem) {
+		f.prefix = prefix
+	}
+}
+
 // NewPlatformAwareFileSystem returns a new Filesystem object
-func NewPlatformAwareFileSystem(fs fs.FS, p platform.HostType) *PlatformAwareFileSystem {
-	return &PlatformAwareFileSystem{
+func NewPlatformAwareFileSystem(fs fs.FS, p platform.HostType, opts ...FileSystemOption) *PlatformAwareFileSystem {
+	f := &PlatformAwareFileSystem{
 		FS:       fs,
 		platform: p,
 	}
+
+	for _, opt := range opts {
+		opt(f)
+	}
+
+	return f
 }
 
 // Open opens a file on the filesystem
@@ -86,37 +103,37 @@ func (f *PlatformAwareFileSystem) FileExists(n string) bool {
 
 func (f *PlatformAwareFileSystem) GetPathOnPlatform(p string) (string, error) {
 	if f.platform.Equals(platform.OpenWrt) {
+		if f.prefix != "" {
+			return filepath.Join(f.prefix, p), nil
+		}
 		return p, nil
 	}
 
-	if nativePath, ok := f.platform.UniquelyMappedFiles[p]; ok {
-		if !f.FileExists(nativePath) {
-			return nativePath, &NoFileAtPath{name: nativePath}
-		} else {
-			return nativePath, nil
-		}
-	}
-
-	nativePath := p
-	if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
+	var nativePath string
+	if path, ok := f.platform.UniquelyMappedFiles[p]; ok {
+		nativePath = path
+	} else if strings.Contains(p, platform.OpenWrt.SettingsDirPath) {
 		// This logic handles platform-agnostic configuration paths by re-basing them.
 		// For example, on EOS, a request for /etc/config/foo/bar.json
 		// should be transparently mapped to /mnt/flash/mfw-settings/foo/bar.json.
 		// We replace the first occurrence of the generic settings dir path with an empty string
 		// to isolate the sub-path, which preserves any subdirectory structure.
 		subPath := strings.Replace(p, platform.OpenWrt.SettingsDirPath, "", 1)
-		nativePath := filepath.Join(f.platform.SettingsDirPath, strings.TrimPrefix(subPath, "/"))
+		nativePath = filepath.Join(f.platform.SettingsDirPath, strings.TrimPrefix(subPath, "/"))
+	} else {
+		nativePath = p
+	}
 
-		if !f.FileExists(nativePath) {
-			return nativePath, &NoFileAtPath{name: nativePath}
-		} else {
-			return nativePath, nil
-		}
+
+	if f.prefix != "" {
+		// When joining with a prefix, treat nativePath as relative to the prefix root.
+		nativePath = filepath.Join(f.prefix, strings.TrimPrefix(nativePath, "/"))
 	}
 
 	if !f.FileExists(nativePath) {
 		return nativePath, &NoFileAtPath{name: nativePath}
 	}
+
 
 	return nativePath, nil
 }
