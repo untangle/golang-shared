@@ -30,7 +30,7 @@ func testBadFileStartup(t *testing.T, m *credentialsManager) {
 
 // testGoodFileStartup assert that it starts when the file exists and is in the right format
 func testGoodFileStartup(t *testing.T, m *credentialsManager) {
-	m.fileLocation = "test_files/test_credentials.json"
+	m.fileLocation = "test_files/test_cloud-tokens.json"
 
 	err := m.Startup()
 	assert.Nil(t, err, "Startup good file")
