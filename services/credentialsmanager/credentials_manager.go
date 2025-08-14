@@ -8,7 +8,7 @@ import (
 	"github.com/untangle/golang-shared/plugins"
 )
 
-const fileLocation = "/etc/config/credentials.json"
+const fileLocation = "/etc/config/cloud-tokens.json"
 
 // interface for the credentials manager service
 type CredentialsManager interface {
