@@ -16,6 +16,18 @@ func (h *HostType) Equals(o HostType) bool {
 }
 
 var (
+	Vittoria = HostType{
+		IndicatorFilename:   "/velocloud",
+		Name:                "Vittoria",
+		SettingsDirPath:     "/opt/mfw/etc",
+		UniquelyMappedFiles: make(map[string]string),
+	}
+	OpenWrt = HostType{
+		IndicatorFilename:   "etc/openwrt_version",
+		Name:                "OpenWrt",
+		SettingsDirPath:     "/etc/config",
+		UniquelyMappedFiles: make(map[string]string),
+	}
 	EOS = HostType{
 		IndicatorFilename: "etc/Eos-release",
 		Name:              "Eos",
@@ -24,28 +36,15 @@ var (
 			"/etc/config/categories.json": "/usr/share/bctid/categories.json",
 		},
 	}
-	OpenWrt = HostType{
-		IndicatorFilename:   "etc/openwrt_version",
-		Name:                "OpenWrt",
-		SettingsDirPath:     "/etc/config",
-		UniquelyMappedFiles: make(map[string]string),
-	}
-	Vittoria = HostType{
-		// TODO: Update IndicatorFilename once the version is known
-		IndicatorFilename:   "velocloud_version",
-		Name:                "Vittoria",
-		SettingsDirPath:     "/velocloud",
-		UniquelyMappedFiles: make(map[string]string),
-	}
 	Unclassified = HostType{
 		IndicatorFilename:   "",
 		Name:                "Unclassified",
 		UniquelyMappedFiles: make(map[string]string),
 	}
 	platforms = []HostType{
-		EOS,
-		OpenWrt,
 		Vittoria,
+		OpenWrt,
+		EOS,
 		Unclassified,
 	}
 )
