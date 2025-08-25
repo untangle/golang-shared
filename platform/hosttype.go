@@ -31,10 +31,9 @@ var (
 		UniquelyMappedFiles: make(map[string]string),
 	}
 	Vittoria = HostType{
-		// TODO: Update IndicatorFilename once the version is known
-		IndicatorFilename:   "velocloud_version",
+		IndicatorFilename:   "/velocloud",
 		Name:                "Vittoria",
-		SettingsDirPath:     "/velocloud",
+		SettingsDirPath:     "/opt/mfw/etc",
 		UniquelyMappedFiles: make(map[string]string),
 	}
 	Unclassified = HostType{

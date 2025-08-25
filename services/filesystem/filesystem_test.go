@@ -79,7 +79,7 @@ func TestOpen(t *testing.T) {
 			name:         "Open file on Vittoria - settings path exists",
 			platformType: platform.Vittoria,
 			files: fstest.MapFS{
-				"velocloud/settings.json": {Data: []byte("setting value")},
+				"/opt/mfw/etc/settings.json": {Data: []byte("setting value")},
 			},
 			fileName:     "/etc/config/settings.json",
 			expectedErr:  false,
