@@ -150,6 +150,7 @@ func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrap
 	// type it is.
 	constructorType := reflect.TypeOf(wrapper)
 	outputToGet := constructorType.Out(0)
+	logger.Info("+++ RegisterConstructorWrapper \n")
 	if err := control.Provide(wrapper); err != nil {
 		panic(fmt.Sprintf("couldn't provide wrapper: %s", err))
 	}
@@ -181,6 +182,7 @@ func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrap
 func (control *PluginControl) RegisterPluginPredicate(predicateFactory PluginPredicateFactory) {
 	constructorType := reflect.TypeOf(predicateFactory)
 	outputToGet := constructorType.Out(0)
+	logger.Info("+++ RegisterPluginPredicate \n")
 	if err := control.Provide(predicateFactory); err != nil {
 		panic(fmt.Sprintf("couldn't provide predicate: %s", err))
 	}
@@ -213,9 +215,14 @@ func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, meta
 	for i := 0; i < constructorType.NumIn(); i++ {
 		inputs = append(inputs, constructorType.In(i))
 	}
+	logger.Info("+++ RegisterPlugin %+v\n", metadata)
+	if control.wrapper == nil {
+		logger.Info("+++ control.wrapper is nil %+v\n", metadata)
+	}
 
 	if control.wrapper != nil && control.wrapper.Matches(constructor, metadata...) {
 		constructorVal = makeWrapperConstructor(control.wrapper, constructor, metadata)
+		logger.Info("+++ constructorVal %v\n", metadata)
 	}
 
 	pluginInfo := &pluginInfo{
@@ -259,6 +266,7 @@ func (control *PluginControl) GetRegisteredPluginCount() int {
 func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor, metadata ...any) {
 	constructorType := reflect.TypeOf(constructor)
 	outputType := constructorType.Out(0)
+	logger.Info("+++ RegisterRegisterAndProvidePlugin %+v\n", metadata)
 	pluginInfo := &pluginInfo{
 		plugin:      nil,
 		metadata:    metadata,
