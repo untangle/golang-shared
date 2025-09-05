@@ -232,6 +232,7 @@ func TestWrapperFactoryReturnsWrongType(t *testing.T) {
 		controller.RegisterConstructorWrapper(func() any {
 			return struct{}{}
 		})
+		controller.Startup()
 	})
 }
 
@@ -242,6 +243,7 @@ func TestWrapperFactoryWithMissingDependency(t *testing.T) {
 		controller.RegisterConstructorWrapper(func(*SomeDependency) ConstructorWrapper {
 			return newWrapperTest(nil)
 		})
+		controller.Startup()
 	})
 }
 
