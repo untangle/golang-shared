@@ -255,6 +255,7 @@ func (control *PluginControl) preparePlugins() {
 		constructor := pluginInfo.constructor
 		constructorVal := reflect.ValueOf(constructor)
 
+		// first, see if we need to wrap the constructor.
 		if control.wrapper != nil && control.wrapper.Matches(constructor, pluginInfo.metadata...) {
 			constructorVal = makeWrapperConstructor(control.wrapper, constructor, pluginInfo.metadata)
 		}
