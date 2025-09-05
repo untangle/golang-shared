@@ -244,3 +244,44 @@ func TestWrapperFactoryWithMissingDependency(t *testing.T) {
 		})
 	})
 }
+
+func TestWrapperWithDependency(t *testing.T) {
+	controller := NewPluginControl()
+	decorator := &decorator{decorated: map[string]SettingsInjectablePlugin{}}
+
+	type WrapperDependency struct {
+		Value int
+	}
+
+	// Provide the dependency
+	err := controller.Provide(func() *WrapperDependency {
+		return &WrapperDependency{Value: 42}
+	})
+	assert.NoError(t, err)
+
+	var dependencyValue int
+	// Register wrapper that uses the dependency
+	controller.RegisterConstructorWrapper(func(dep *WrapperDependency) ConstructorWrapper {
+		dependencyValue = dep.Value
+		return newWrapperTest(decorator)
+	})
+
+	// Register a plugin to be wrapped
+	controller.RegisterPlugin(NewMockPlugin)
+
+	err = controller.Provide(func() *Config {
+		return &Config{}
+	})
+	assert.NoError(t, err)
+
+	// Startup should instantiate wrapper, which captures dependency value
+	controller.Startup()
+
+	// Assert dependency was injected into wrapper factory
+	assert.Equal(t, 42, dependencyValue)
+
+	// Assert wrapper is functional
+	assert.NotNil(t, decorator.newPluginCallback)
+	assert.Len(t, controller.pluginInfo, 1)
+	assert.Same(t, decorator, controller.pluginInfo[0].plugin)
+}

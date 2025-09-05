@@ -54,9 +54,10 @@ type predicateInfo struct {
 // keeps track of a list of plugins to send method calls to.
 type PluginControl struct {
 	dig.Container
-	wrapper    ConstructorWrapper
-	predicates []*predicateInfo
-	pluginInfo []*pluginInfo
+	wrapper            ConstructorWrapper
+	wrapperInvokerFunc interface{}
+	predicates         []*predicateInfo
+	pluginInfo         []*pluginInfo
 
 	consumers          []consumer
 	enableStartupPanic bool
@@ -163,9 +164,7 @@ func (control *PluginControl) RegisterConstructorWrapper(wrapper ConstructorWrap
 			control.wrapper = wrapper
 			return []reflect.Value{}
 		})
-	if err := control.Invoke(invokerFunc.Interface()); err != nil {
-		panic(fmt.Sprintf("couldn't instantiate wrapper: %s", err))
-	}
+	control.wrapperInvokerFunc = invokerFunc.Interface()
 }
 
 // RegisterPluginPredicate registers to the 'control' object a plugin
@@ -337,6 +336,11 @@ PluginLoop:
 // NetlogHandler, or PacketProcessorPlugin, their handler methods are
 // registered with the backend so they will receive these events.
 func (control *PluginControl) Startup() {
+	if control.wrapperInvokerFunc != nil && control.wrapper == nil {
+		if err := control.Invoke(control.wrapperInvokerFunc); err != nil {
+			panic(fmt.Sprintf("couldn't instantiate wrapper: %s", err))
+		}
+	}
 	control.filterPlugins()
 	control.preparePlugins()
 	for _, pluginInf := range control.pluginInfo {
