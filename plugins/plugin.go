@@ -34,6 +34,7 @@ type pluginInfo struct {
 	plugin      Plugin
 	metadata    []any
 	constructor PluginConstructor
+	isProvider  bool
 
 	// a function built using the reflect package that will set
 	// the plugin value of this struct. Executed during Startup().
@@ -207,38 +208,15 @@ func (control *PluginControl) RegisterPluginPredicate(predicateFactory PluginPre
 // by the DI container and returns a plugin object. This function will
 // not provide the plugin as a potential dependency for other plugins.
 func (control *PluginControl) RegisterPlugin(constructor PluginConstructor, metadata ...any) {
-	constructorType := reflect.TypeOf(constructor)
-	constructorVal := reflect.ValueOf(constructor)
-	inputs := []reflect.Type{}
-	for i := 0; i < constructorType.NumIn(); i++ {
-		inputs = append(inputs, constructorType.In(i))
-	}
-
-	if control.wrapper != nil && control.wrapper.Matches(constructor, metadata...) {
-		constructorVal = makeWrapperConstructor(control.wrapper, constructor, metadata)
-	}
-
 	pluginInfo := &pluginInfo{
 		constructor: constructor,
 		metadata:    metadata,
+		isProvider:  false,
 
 		// to be set later by our constructed function, if
 		// needed.
 		plugin: nil,
 	}
-
-	// create a func at runtime that we can invoke that calls the
-	// constructor and appends the return value to the list of plugins.
-	saverFunc := reflect.MakeFunc(
-		reflect.FuncOf(inputs, []reflect.Type{}, false),
-		func(vals []reflect.Value) []reflect.Value {
-			output := constructorVal.Call(vals)
-			plugin := output[0].Interface()
-			pluginIntf := plugin.(Plugin)
-			pluginInfo.plugin = pluginIntf
-			return []reflect.Value{}
-		})
-	pluginInfo.saverFunc = saverFunc.Interface()
 	control.pluginInfo = append(control.pluginInfo, pluginInfo)
 }
 
@@ -257,44 +235,67 @@ func (control *PluginControl) GetRegisteredPluginCount() int {
 // plugins may require it. It is not instantiated until the Startup()
 // method is called.
 func (control *PluginControl) RegisterAndProvidePlugin(constructor PluginConstructor, metadata ...any) {
-	constructorType := reflect.TypeOf(constructor)
-	outputType := constructorType.Out(0)
 	pluginInfo := &pluginInfo{
 		plugin:      nil,
 		metadata:    metadata,
 		constructor: constructor,
 		saverFunc:   nil,
+		isProvider:  true,
 	}
 	control.pluginInfo = append(control.pluginInfo, pluginInfo)
-	// create a func at runtime that we can invoke that requires the
-	// plugin to ensure it gets instantiated, and also appends it to
-	// the list of registered plugins.  This is different from in
-	// RegisterPlugin because here we require the plugin as an input,
-	// which in turn also requires the plugin to have been provided as
-	// an output via Provide() (see below).
-	//
-	// Although similar to RegisterPlugin(), this is fundamentally
-	// different and can't be merged with that implementation as that
-	// implementation must allow multiple registrations of identical
-	// types, since they may have different constructor functions.
-	saverFunc := reflect.MakeFunc(
-		reflect.FuncOf([]reflect.Type{outputType}, []reflect.Type{}, false),
-		func(vals []reflect.Value) []reflect.Value {
-			plugin := vals[0].Interface()
-			pluginIntf := plugin.(Plugin)
-			pluginInfo.plugin = pluginIntf
-			return []reflect.Value{}
-		})
-	pluginInfo.saverFunc = saverFunc.Interface()
-	if err := control.Provide(constructor); err != nil {
-		panic(fmt.Sprintf(
-			"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
-	}
 }
 
 // UnregisterPlugin removes a plugin from the list of plugins
 func (control *PluginControl) UnregisterPluginByIndex(indx int) {
 	control.pluginInfo = append(control.pluginInfo[:indx], control.pluginInfo[indx+1:]...)
+}
+
+func (control *PluginControl) preparePlugins() {
+	for _, pluginInfo := range control.pluginInfo {
+		constructor := pluginInfo.constructor
+		constructorVal := reflect.ValueOf(constructor)
+
+		if control.wrapper != nil && control.wrapper.Matches(constructor, pluginInfo.metadata...) {
+			constructorVal = makeWrapperConstructor(control.wrapper, constructor, pluginInfo.metadata)
+		}
+
+		actualConstructor := constructorVal.Interface()
+
+		if pluginInfo.isProvider {
+			constructorType := reflect.TypeOf(actualConstructor)
+			outputType := constructorType.Out(0)
+
+			saverFunc := reflect.MakeFunc(
+				reflect.FuncOf([]reflect.Type{outputType}, []reflect.Type{}, false),
+				func(vals []reflect.Value) []reflect.Value {
+					plugin := vals[0].Interface()
+					pluginIntf := plugin.(Plugin)
+					pluginInfo.plugin = pluginIntf
+					return []reflect.Value{}
+				})
+			pluginInfo.saverFunc = saverFunc.Interface()
+			if err := control.Provide(actualConstructor); err != nil {
+				panic(fmt.Sprintf(
+					"couldn't register plugin constructor as a provider: %v, err: %s", constructor, err))
+			}
+		} else {
+			constructorType := reflect.TypeOf(actualConstructor)
+			inputs := []reflect.Type{}
+			for i := 0; i < constructorType.NumIn(); i++ {
+				inputs = append(inputs, constructorType.In(i))
+			}
+			saverFunc := reflect.MakeFunc(
+				reflect.FuncOf(inputs, []reflect.Type{}, false),
+				func(vals []reflect.Value) []reflect.Value {
+					output := constructorVal.Call(vals)
+					plugin := output[0].Interface()
+					pluginIntf := plugin.(Plugin)
+					pluginInfo.plugin = pluginIntf
+					return []reflect.Value{}
+				})
+			pluginInfo.saverFunc = saverFunc.Interface()
+		}
+	}
 }
 
 // filterPlugins filters the plugin list using the predicates.
@@ -336,6 +337,7 @@ PluginLoop:
 // registered with the backend so they will receive these events.
 func (control *PluginControl) Startup() {
 	control.filterPlugins()
+	control.preparePlugins()
 	for _, pluginInf := range control.pluginInfo {
 		if err := control.Invoke(pluginInf.saverFunc); err != nil {
 			err = fmt.Errorf("couldn't instantiate plugin with constructor %T: %w", pluginInf.constructor, err)
