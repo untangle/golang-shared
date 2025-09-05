@@ -336,14 +336,22 @@ PluginLoop:
 // registered with the backend so they will receive these events.
 func (control *PluginControl) Startup() {
 	control.filterPlugins()
-	for _, plugin := range control.pluginInfo {
-		if err := control.Invoke(plugin.saverFunc); err != nil {
-			panic(fmt.Sprintf("couldn't instantiate plugin: %s", err))
+	for _, pluginInf := range control.pluginInfo {
+		if err := control.Invoke(pluginInf.saverFunc); err != nil {
+			err = fmt.Errorf("couldn't instantiate plugin with constructor %T: %w", pluginInf.constructor, err)
+			if control.enableStartupPanic {
+				panic(err)
+			}
+			logger.Crit("%s\n", err.Error())
 		}
 	}
 
 	successfulPlugins := []*pluginInfo{}
 	for _, pluginInf := range control.pluginInfo {
+		if pluginInf.plugin == nil {
+			// Instantiation failed for this plugin, skip it.
+			continue
+		}
 		plugin := pluginInf.plugin
 		logger.Info("Starting plugin: %s\n", plugin.Name())
 		if err := plugin.Startup(); err != nil {
