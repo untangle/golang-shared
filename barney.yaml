@@ -1,5 +1,4 @@
 images:
-
   efw-protobufs:
     description: |
       All protobufs used by EfwSfeModules and Packetd to file reports with Reportd ready to be BIPed into mfw-nft
@@ -33,24 +32,24 @@ images:
   tests/internal/renovate-json5-floor:
     entry:
       mutables:
-        - /etc        # for error unable to clean up mess surrounding './etc/apache2' before installing another version: Read-only file system
-        - /usr        # for apt
-        - /var/cache  # for apt
-        - /var/lib    # for apt
-        - /var/log    # for apt
+        - /etc # for error unable to clean up mess surrounding './etc/apache2' before installing another version: Read-only file system
+        - /usr # for apt
+        - /var/cache # for apt
+        - /var/lib # for apt
+        - /var/log # for apt
     units:
-    - image: barney.ci/debian%minbase
-    - image: barney.ci/debian%network
+      - image: barney.ci/debian%minbase
+      - image: barney.ci/debian%network
 
   tests/renovate-json5:
     units:
-    - floor: .%tests/internal/renovate-json5-floor
-      sources:
-      - code.arista.io/efw/protobufs # to get sources under stable path
-      quota:
-        memory: 500Mi
-        cpu: 1.5
-      build: |
-        apt update
-        apt install -y node-json5
-        json5 --validate /src/code.arista.io/efw/protobufs/renovate.json5
+      - floor: .%tests/internal/renovate-json5-floor
+        sources:
+          - code.arista.io/efw/protobufs # to get sources under stable path
+        quota:
+          memory: 500Mi
+          cpu: 1.5
+        build: |
+          apt update
+          apt install -y node-json5
+          json5 --validate /src/code.arista.io/efw/protobufs/renovate.json5
