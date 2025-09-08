@@ -17,7 +17,7 @@ func (h *HostType) Equals(o HostType) bool {
 
 var (
 	Vittoria = HostType{
-		IndicatorFilename:   "/velocloud",
+		IndicatorFilename:   "velocloud",
 		Name:                "Vittoria",
 		SettingsDirPath:     "/opt/mfw/etc",
 		UniquelyMappedFiles: make(map[string]string),
