@@ -6,6 +6,9 @@ images:
     units:
       - sources:
           - code.arista.io/efw/protobufs
+        quota:
+          memory: 10Mi
+          cpu: 1
         build: |
           cp /src/code.arista.io/efw/protobufs/protobuffersrc/* /dest
 
@@ -15,6 +18,9 @@ images:
     units:
       - mappings:
           /src/efw-protobufs: .%efw-protobufs
+        quota:
+          memory: 10Mi
+          cpu: 1
         build: |
           ls -l /src/efw-protobufs/*.proto
 
@@ -41,6 +47,9 @@ images:
     - floor: .%tests/internal/renovate-json5-floor
       sources:
       - code.arista.io/efw/protobufs # to get sources under stable path
+      quota:
+        memory: 500Mi
+        cpu: 1.5
       build: |
         apt update
         apt install -y node-json5
