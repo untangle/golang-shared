@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"io"
+	"io/fs"
 	"testing"
 	"testing/fstest"
 
@@ -335,6 +336,59 @@ func TestGetPathOnPlatform(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				assert.Equal(t, tt.expectedPath, path)
+			}
+		})
+	}
+}
+
+func TestDetectPlatformFromFS(t *testing.T) {
+	testCases := []struct {
+		name     string
+		mockFS   fs.StatFS
+		expected platform.HostType
+	}{
+		{
+			name: "Detects Vittoria platform",
+			mockFS: fstest.MapFS{
+				"velocloud":           {Mode: 0644},
+				"etc/openwrt_version": {Mode: 0644},
+			},
+			expected: platform.Vittoria,
+		},
+		{
+			name: "Detects OpenWrt platform",
+			mockFS: fstest.MapFS{
+				"etc/openwrt_version": {Mode: 0644},
+			},
+			expected: platform.OpenWrt,
+		},
+		{
+			name: "Detects EOS platform",
+			mockFS: fstest.MapFS{
+				"etc/Eos-release": {Mode: 0644},
+			},
+			expected: platform.EOS,
+		},
+		{
+			name:     "Returns Unclassified for an empty filesystem",
+			mockFS:   fstest.MapFS{},
+			expected: platform.Unclassified,
+		},
+		{
+			name: "Returns Unclassified for a filesystem with unrelated files",
+			mockFS: fstest.MapFS{
+				"some_other_file":    {Mode: 0644},
+				"etc/unrelated.conf": {Mode: 0644},
+			},
+			expected: platform.Unclassified,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			detectedPlatform := platform.DetectPlatformFromFS(tc.mockFS)
+			if !detectedPlatform.Equals(tc.expected) {
+				t.Errorf("expected platform '%s', but got '%s'", tc.expected.Name, detectedPlatform.Name)
 			}
 		})
 	}
