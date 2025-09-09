@@ -209,16 +209,19 @@ func SetSettingsFile(segments []string, value interface{}, filename string, forc
 	saveLocker.Unlock()
 	if err != nil {
 		var errJSON map[string]interface{}
-		marshalErr := json.Unmarshal([]byte(err.Error()), &errJSON)
-		if marshalErr != nil {
-			logger.Warn("Failed to marshal into json: %s\n", marshalErr.Error())
-			if strings.Contains(err.Error(), "CONFIRM") {
-				return determineSetSettingsError(err, output, filename, jsonSettings)
+		errStr := strings.TrimSpace(err.Error())
+		// Try to parse error as JSON only if it looks like JSON
+		if strings.HasPrefix(errStr, "{") || strings.HasPrefix(errStr, "[") {
+			marshalErr := json.Unmarshal([]byte(errStr), &errJSON)
+			if marshalErr == nil {
+				if _, ok := errJSON["CONFIRM"]; ok {
+					return determineSetSettingsError(err, output, filename, jsonSettings)
+				}
+			} else {
+				logger.Warn("Failed to unmarshal error as JSON: %s\n", marshalErr.Error())
 			}
-		} else {
-			if _, ok := errJSON["CONFIRM"]; ok {
-				return determineSetSettingsError(err, output, filename, jsonSettings)
-			}
+		} else if strings.Contains(errStr, "CONFIRM") {
+			return determineSetSettingsError(err, output, filename, jsonSettings)
 		}
 		logger.Warn("Failed to save settings: %s\n", err.Error())
 		responseErr := err.Error()
