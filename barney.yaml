@@ -6,7 +6,7 @@ images:
       - sources:
           - code.arista.io/efw/protobufs
         quota:
-          memory: 10Mi
+          memory: 500Mi
           cpu: 1
         build: |
           cp /src/code.arista.io/efw/protobufs/protobuffersrc/* /dest
@@ -18,7 +18,7 @@ images:
       - mappings:
           /src/efw-protobufs: .%efw-protobufs
         quota:
-          memory: 10Mi
+          memory: 500Mi
           cpu: 1
         build: |
           ls -l /src/efw-protobufs/*.proto
@@ -47,7 +47,7 @@ images:
         sources:
           - code.arista.io/efw/protobufs # to get sources under stable path
         quota:
-          memory: 25Mi
+          memory: 500Mi
           cpu: 1
         build: |
           json5 --validate /src/code.arista.io/efw/protobufs/renovate.json5
