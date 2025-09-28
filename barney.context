@@ -32,7 +32,7 @@
 			"commit": "e941ddb0c7110f9ebf0f1c8d1e644a4e3f669216"
 		},
 		"code.arista.io/infra/barney/tools/qube": {
-			"commit": "7ea12f3a4f3683689fd7670b26015bf374216d10"
+			"commit": "78eb5b1d09260458cf270b879e1239cb93b707ea"
 		},
 		"code.arista.io/tools/breadman": {
 			"commit": "1bc29d8612fa81cd93e112a63affb8f33bfe3eb5"
