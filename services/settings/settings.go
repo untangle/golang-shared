@@ -16,13 +16,16 @@ import (
 	"time"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
-	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/filesystem"
 	"github.com/untangle/golang-shared/util/environments"
 )
 
 var logger loggerModel.LoggerLevels
 var once sync.Once
+
+func init() {
+	logger = loggerModel.GetLoggerInstance()
+}
 
 const DefaultSettingsFileLocation = "/etc/config/settings.json"
 
@@ -63,11 +66,8 @@ var initSettingsFileLocker sync.RWMutex
 // Startup settings service
 // TODO: settings will eventually get the DI treatment. Once that happens, an
 // fs.FS interface should be provided over our specific specific interface
-func Startup(loggerInstance loggerModel.LoggerLevels) {
+func Startup() {
 	once.Do(func() {
-		logger = loggerInstance
-		util.Startup(loggerInstance)
-
 		settingsFile = locateOrDefault(settingsFile)
 		defaultsFile = locateOrDefault(defaultsFile)
 		currentFile = locateOrDefault(currentFile)

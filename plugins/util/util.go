@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
@@ -14,13 +13,9 @@ import (
 )
 
 var logger loggerModel.LoggerLevels
-var once sync.Once
 
-// Startup is placeholder for starting util
-func Startup(loggerInstance loggerModel.LoggerLevels) {
-	once.Do(func() {
-		logger = loggerInstance
-	})
+func init() {
+	logger = loggerModel.GetLoggerInstance()
 }
 
 // Shutdown is placeholder for shutting down util

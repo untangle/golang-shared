@@ -83,34 +83,14 @@ const LogLevelDebug int32 = 7
 const LogLevelTrace int32 = 8
 
 var loggerSingleton *Logger
-var once sync.Once
+
+func init() {
+	loggerSingleton = NewLogger(nil)
+}
 
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
-	once.Do(func() {
-		settingsFile, err := settings.GetSettingsFileSingleton()
-		loggerSingleton = NewLogger(settingsFile)
-
-		settings.Startup(loggerSingleton)
-
-		// The settings package can not log messages because the logger
-		// is not yet initialised. We catch errors during the initialisation
-		// of settings services needed so we can log them when the logger is
-		// ready. Even if the initialisation of the settings file returns an
-		// error, the settings file object might work because the constructor
-		// has fallback mechanisms.
-		if err != nil {
-			loggerSingleton.Err("Error initializing settings file: %v \n", err)
-		}
-		// calling LoadConfig un else would cause it to fail in GetLogLevelMapFromSettingsFile
-		// as DefaultLoggerConfig sets SettingsPath to an empty slice,
-		//  DefaultLoggerConfig sets LogLevelHighest and logLevelMap
-		// so we can just skip the call to LoadConfig
-		// if anyone wants to add LoadConfig call here make sure not to
-		// introduce false warning from SettingsPath being an empty slice
-	})
-
 	return loggerSingleton
 }
 
