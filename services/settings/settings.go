@@ -114,6 +114,15 @@ func GetSettingsFileSingleton() (*SettingsFile, error) {
 	return settingsFileSingleton, err
 }
 
+// NewSettingsFileForTesting creates a new SettingsFile object for a given filename.
+// It is intended for use in tests.
+func NewSettingsFileForTesting(filename string) *SettingsFile {
+	return &SettingsFile{
+		filename: filename,
+		mutex:    &sync.RWMutex{},
+	}
+}
+
 // GetCurrentSettings returns the current settings from the specified path
 // the current settings are the settings after being synced
 func GetCurrentSettings(segments []string) (interface{}, error) {
