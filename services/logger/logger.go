@@ -90,8 +90,6 @@ func GetLoggerInstance() *Logger {
 	return loggerSingleton
 }
 
-
-
 // NewLogger creates a new instance of the logger struct with wildcard config
 func NewLogger() *Logger {
 	var logCount uint64 = 0
@@ -547,4 +545,3 @@ func FindLogLevelName(level int32) string {
 	}
 	return logLevelName[level]
 }
-

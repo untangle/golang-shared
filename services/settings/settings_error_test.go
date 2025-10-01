@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/untangle/golang-shared/testing/mocks"
 )
 
 func TestDetermineNextIds(t *testing.T) {
