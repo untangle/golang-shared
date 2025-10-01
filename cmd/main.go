@@ -12,7 +12,7 @@ func main() {
 
 	logger.Startup()
 	overseer.Startup()
-	settings.Startup(logger)
+	settings.Startup()
 
 	logger.Info("Testing logger\n")
 	overseer.AddCounter("test", 1)

@@ -103,7 +103,7 @@ func TestDetermineNextIds(t *testing.T) {
 		},
 	}
 
-	Startup(mocks.NewMockLogger())
+	Startup()
 
 	for _, test := range testCases {
 		ids := determineNextIds(test.allItems, test.crtId, test.buildFrom)
