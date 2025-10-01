@@ -13,24 +13,21 @@ import (
 
 // ConfigureLoggerFromSettings loads the logger configuration from the settings file
 // and applies it to the logger singleton. It should be called during application startup.
-func ConfigureLoggerFromSettings(settingsPath ...string) error {
-	settingsFile, err := settings.GetSettingsFileSingleton()
-	if err != nil {
-		// The logger singleton will exist with default settings, so we can use it.
-		logger.GetLoggerInstance().Warn("loggerutils: Could not get settings file singleton: %v", err)
-		// This is not a fatal error; the logger will just use defaults.
-	}
+func ConfigureLoggerFromSettings(
+	log *logger.Logger,
+	settingsFile *settings.SettingsFile,
+	settingsPath ...string) error {
 
 	logLevelMap := make(map[string]logger.LogLevel)
 
 	if err := settingsFile.UnmarshalSettingsAtPath(&logLevelMap, settingsPath...); err != nil {
-		return fmt.Errorf("unable to find logger configs in path %s: %w", strings.Join(settingsPath, ","), err)
+		return fmt.Errorf("unable to find logger configs in path %s: %w\n", strings.Join(settingsPath, ","), err)
 	}
 
 	conf := logger.DefaultLoggerConfig()
 	conf.SetLogLevelMap(logLevelMap)
 
-	logger.GetLoggerInstance().LoadConfig(conf)
+	log.LoadConfig(conf)
 	return nil
 }
 
@@ -44,8 +41,17 @@ func StartConfigReloadingOnSIGHUP(settingsPath ...string) {
 		for {
 			sig := <-hupch
 			log := logger.GetLoggerInstance()
+			sf, err := settings.GetSettingsFileSingleton()
+			if err != nil {
+				log.Warn("Error received wile getting settings file singleton: %v\n",
+					err)
+				continue
+			}
+
 			log.Info("Received signal [%v]. Refreshing logger config\n", sig)
-			if err := ConfigureLoggerFromSettings(settingsPath...); err != nil {
+			if err := ConfigureLoggerFromSettings(log,
+				sf,
+				settingsPath...); err != nil {
 				log.Warn("Failed to refresh logger config on SIGHUP: %v\n", err)
 			}
 		}

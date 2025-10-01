@@ -9,14 +9,17 @@ import (
 	"syscall"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	logSvc "github.com/untangle/golang-shared/services/logger"	
 	"github.com/untangle/golang-shared/util/environments"
 )
 
 var logger loggerModel.LoggerLevels
 
 func init() {
-	logger = loggerModel.GetLoggerInstance()
+	logger = logSvc.GetLoggerInstance()
 }
+
+func Startup() {}
 
 // Shutdown is placeholder for shutting down util
 func Shutdown() {

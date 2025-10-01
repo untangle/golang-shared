@@ -16,6 +16,8 @@ import (
 	"time"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	logSvc "github.com/untangle/golang-shared/services/logger"
+	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/filesystem"
 	"github.com/untangle/golang-shared/util/environments"
 )
@@ -24,7 +26,7 @@ var logger loggerModel.LoggerLevels
 var once sync.Once
 
 func init() {
-	logger = loggerModel.GetLoggerInstance()
+	logger = logSvc.GetLoggerInstance()
 }
 
 const DefaultSettingsFileLocation = "/etc/config/settings.json"

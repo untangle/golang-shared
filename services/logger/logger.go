@@ -152,21 +152,19 @@ func (logger *Logger) getLogCount() uint64 {
 
 // Startup starts the logging service
 func (logger *Logger) Startup() {
-	once.Do(func() {
-		// capture startup time
-		logger.launchTime = time.Now()
+	// capture startup time
+	logger.launchTime = time.Now()
 
-		// alerts use the logger, and the logger uses alerts
-		// pass the logger instance to the alerts
-		logger.alerts = alerts.Publisher(logger)
+	// alerts use the logger, and the logger uses alerts
+	// pass the logger instance to the alerts
+	logger.alerts = alerts.Publisher(logger)
 
-		if logger.config != nil {
-			// Set system logger to use our logger
-			if logger.config.OutputWriter != nil {
-				log.SetOutput(logger.config.OutputWriter)
-			}
+	if logger.config != nil {
+		// Set system logger to use our logger
+		if logger.config.OutputWriter != nil {
+			log.SetOutput(logger.config.OutputWriter)
 		}
-	})
+	}
 }
 
 // Name returns the service name
