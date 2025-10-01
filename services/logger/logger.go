@@ -85,7 +85,7 @@ const LogLevelTrace int32 = 8
 var loggerSingleton *Logger
 
 func init() {
-	loggerSingleton = NewLogger(nil)
+	loggerSingleton = NewLogger()
 }
 
 // GetLoggerInstance returns a logger object that is singleton
@@ -94,37 +94,27 @@ func GetLoggerInstance() *Logger {
 	return loggerSingleton
 }
 
-// GetLoggerInstanceWithConfig returns a logger object, that's loaded with the config as well
-func GetLoggerInstanceWithConfig(conf *LoggerConfig) *Logger {
-	instance := GetLoggerInstance()
-	instance.LoadConfig(conf)
-	return instance
-}
 
 
 // NewLogger creates a new instance of the logger struct with wildcard config
-func NewLogger(settingsFile *settings.SettingsFile) *Logger {
+func NewLogger() *Logger {
 	var logCount uint64 = 0
 
 	logger := &Logger{
-		config:           DefaultLoggerConfig(settingsFile),
+		config:           DefaultLoggerConfig(),
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 		timestampFormat:  time.DateOnly + " " + time.TimeOnly + ".000 ",
 		logCount:         &logCount,
 	}
 
-	logger.startRefreshConfigOnSIGHUP()
-
 	return logger
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
-func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
+func DefaultLoggerConfig() *LoggerConfig {
 
 	return &LoggerConfig{
-		SettingsFile: settingsFile,
-		SettingsPath: []string{},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
 		OutputWriter:    DefaultLogWriter("system"),
@@ -135,20 +125,11 @@ func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
 }
 
 // LoadConfig loads the config to the current logger
-// if we are able to load the config from settings file, we will
-// if we cannot, we will set info level for all
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
-	logLevelMap, err := conf.GetLogLevelMapFromSettingsFile()
-	if err != nil {
-		logger.Warn("Could not load logger config from settings file - using info level, err: %s\n", err)
-		logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
-	}
-
 	//Set the instance config to this config
 	logger.configLocker.Lock()
 	defer logger.configLocker.Unlock()
 
-	conf.SetLogLevelMap(logLevelMap)
 	logger.config = conf
 }
 
@@ -573,27 +554,3 @@ func FindLogLevelName(level int32) string {
 	return logLevelName[level]
 }
 
-// startRefreshConfigOnSIGHUP reloads the config when SIGHUP signal is received
-func (logger *Logger) startRefreshConfigOnSIGHUP() {
-	started := make(chan struct{})
-	defer close(started)
-
-	go func() {
-		hupch := make(chan os.Signal, 1)
-		defer close(hupch)
-
-		signal.Notify(hupch, syscall.SIGHUP)
-
-		<-started
-
-		for {
-			sig := <-hupch
-
-			logger.Info("Received signal [%v]. Refreshing logger config\n", sig)
-			logger.LoadConfig(logger.config)
-		}
-
-	}()
-
-	started <- struct{}{}
-}
