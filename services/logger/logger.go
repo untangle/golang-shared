@@ -3,17 +3,13 @@ package logger
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/alerts"
-	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
