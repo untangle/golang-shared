@@ -2,10 +2,7 @@ package loggerutils
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 
 	"github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/services/settings"
