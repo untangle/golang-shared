@@ -30,30 +30,3 @@ func ConfigureLoggerFromSettings(
 	log.LoadConfig(conf)
 	return nil
 }
-
-// StartConfigReloadingOnSIGHUP sets up a listener for the SIGHUP signal to reload the logger configuration.
-// This should be called once during application startup.
-func StartConfigReloadingOnSIGHUP(settingsPath ...string) {
-	go func() {
-		hupch := make(chan os.Signal, 1)
-		signal.Notify(hupch, syscall.SIGHUP)
-
-		for {
-			sig := <-hupch
-			log := logger.GetLoggerInstance()
-			sf, err := settings.GetSettingsFileSingleton()
-			if err != nil {
-				log.Warn("Error received wile getting settings file singleton: %v\n",
-					err)
-				continue
-			}
-
-			log.Info("Received signal [%v]. Refreshing logger config\n", sig)
-			if err := ConfigureLoggerFromSettings(log,
-				sf,
-				settingsPath...); err != nil {
-				log.Warn("Failed to refresh logger config on SIGHUP: %v\n", err)
-			}
-		}
-	}()
-}
