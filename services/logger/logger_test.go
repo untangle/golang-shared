@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"syscall"
 	"testing"
 	"time"
 
-	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 	"github.com/untangle/golang-shared/testing/mocks"
 
@@ -55,16 +53,8 @@ func (m *MockConfigFile) MockLoadConfigFromFile(logger *Logger) {
 // createTestConfig creates the logger config
 func createTestConfig() *LoggerConfig {
 	loggerConfig := &LoggerConfig{
-		SettingsFile:    settings.NewSettingsFile("test.json"),
-		SettingsPath:    []string{"test"},
 		LogLevelHighest: LogLevelDebug,
 		logLevelMap:     map[string]LogLevel{},
-	}
-
-	logLevelMap, err := loggerConfig.GetLogLevelMapFromSettingsFile()
-	if err == nil {
-		loggerConfig.logLevelMap = logLevelMap
-		loggerConfig.SetLogLevelHighest()
 	}
 
 	return loggerConfig
@@ -82,7 +72,6 @@ func (suite *TestLogger) TestStartup() {
 	logger.Startup()
 	assert.Equal(suite.T(), nil, logger.config.OutputWriter)
 
-	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
 	logger.Startup()
 
 	var MockWriter bytes.Buffer
@@ -184,14 +173,13 @@ func (suite *TestLogger) TestDefaultLogWriter() {
 func (suite *TestLogger) TestLoadConfigFromFile() {
 	logger := suite.buildLogger()
 
-	//Test load from default file that may or may not exist
-	_, err := logger.config.GetLogLevelMapFromSettingsFile()
-	assert.Error(suite.T(), fmt.Errorf("Logger config settings path is missing"), err)
-
 	// Test that load config from file works
 	logger.LoadConfig(&LoggerConfig{
-		SettingsFile: settings.NewSettingsFile("settings.json"),
-		SettingsPath: []string{"loggers", "test"},
+		logLevelMap: map[string]LogLevel{
+			"discovery": LogLevel{"INFO", uint8(LogLevelInfo)},
+			"conntrack": LogLevel{"TRACE", uint8(LogLevelTrace)},
+			"classify": LogLevel{"DEBUG", uint8(LogLevelDebug)},			
+		},
 	})
 
 	//Test that the LoggerConfig.json matches some properties
@@ -205,50 +193,9 @@ func (suite *TestLogger) TestLoadConfigFromFile() {
 
 }
 
-func (suite *TestLogger) TestDefaultInstance() {
-	logInstance := suite.buildLogger()
-
-	settingsFile, err := settings.GetSettingsFileSingleton()
-	assert.Nil(suite.T(), err)
-	config := DefaultLoggerConfig(settingsFile)
-
-	//Verify the pointers match
-	assert.Equal(suite.T(), config, logInstance.config)
-
-	// Verify other properties on default instance
-	assert.Equal(suite.T(), false, logInstance.timestampEnabled)
-
-	// Default log level names exist
-	assert.Equal(suite.T(), logLevelName, logLevelName)
-
-}
-
-func (suite *TestLogger) TestInstanceModifications() {
-
-	SetLoggerInstance(suite.buildLogger())
-
-	logInstance := GetLoggerInstance()
-	testConfig := createTestConfig()
-
-	//overwrite config
-	logInstance.LoadConfig(testConfig)
-
-	assert.Equal(suite.T(), testConfig, logInstance.config)
-
-	//new instance - should use singleton
-	logInstance2 := GetLoggerInstance()
-
-	// Assert singletons have the same pointer value
-	assert.Equal(suite.T(), logInstance, logInstance2)
-
-	//config matches
-	assert.Equal(suite.T(), *testConfig, logInstance2.GetConfig())
-
-}
 
 func (suite *TestLogger) TestMultiThreadAccess() {
 	currentCtx := context.Background()
-	SetLoggerInstance(suite.buildLogger())
 	logInstance := GetLoggerInstance()
 	testingOutput := "Testing output for %s\n"
 	expectedConfig := createTestConfig()
@@ -284,44 +231,6 @@ func (suite *TestLogger) TestMultiThreadAccess() {
 
 	time.Sleep(time.Millisecond * 5)
 	currentCtx.Done()
-}
-
-func (suite *TestLogger) TestInstanceLoadFromDisk() {
-	logInstance := suite.buildLogger()
-	testConfig := *createTestConfig()
-
-	//overwrite default config
-	logInstance.LoadConfig(&testConfig)
-
-	// now load from file
-	logInstance.LoadConfig(&LoggerConfig{
-		SettingsFile: settings.NewSettingsFile("settings.json"),
-		SettingsPath: []string{"loggers", "test"},
-	})
-
-	// verify these are different
-	assert.NotEqual(suite.T(), testConfig, logInstance.config)
-
-	// Verify we loaded the actual config
-	assert.Equal(suite.T(), LogLevelDebug, logInstance.getLogLevel("classify", "classify"))
-}
-
-func (suite *TestLogger) TestSaveToDisk() {
-	logInstance := suite.buildLogger()
-
-	settingsFile, err := settings.GetSettingsFileSingleton()
-	assert.Nil(suite.T(), err)
-	config := DefaultLoggerConfig(settingsFile)
-
-	//Verify we loaded the default config
-	assert.Equal(suite.T(), config, logInstance.config)
-
-	// Create the test config - save it, load it to the new instance and verify it loaded
-	testConfig := createTestConfig()
-	logInstance.LoadConfig(testConfig)
-
-	assert.Equal(suite.T(), testConfig, logInstance.config)
-
 }
 
 func (suite *TestLogger) TestBasicWriters() {
@@ -435,29 +344,6 @@ func (suite *TestLogger) TestFindCallingFunction() {
 	assert.Equal(suite.T(), functionName, "reflect.Value.Call")
 }
 
-func (suite *TestLogger) TestGetInstanceWithConfig() {
-	SetLoggerInstance(suite.buildLogger())
-	logInstance := GetLoggerInstance()
-
-	settingsFile, err := settings.GetSettingsFileSingleton()
-	assert.Nil(suite.T(), err)
-	config := DefaultLoggerConfig(settingsFile)
-
-	// Verify default config was loaded
-	assert.Equal(suite.T(), config, logInstance.config)
-
-	expectedConfig := createTestConfig()
-
-	newInstance := GetLoggerInstanceWithConfig(expectedConfig)
-
-	//Verify new instance has proper config
-	assert.Equal(suite.T(), expectedConfig, newInstance.config)
-
-	// Verify old instance has this config too
-	assert.Equal(suite.T(), expectedConfig, logInstance.config)
-
-}
-
 func (suite *TestLogger) TestPerformance() {
 	iterations := 100
 	environment_iterations := os.Getenv("TESTLOGGER_TESTPERFORMANCE_ITERATIONS")
@@ -547,44 +433,6 @@ func (suite *TestLogger) TestPerformance() {
 
 }
 
-func (suite *TestLogger) TestRefreshConfig() {
-	logger := suite.buildLogger()
-
-	// Classufy has default value beacuse it does not exisit in config
-	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("classify", "classify"))
-
-	// Modify log config and trigger SIGHUP signal
-	logger.configLocker.Lock()
-	logger.config.SettingsFile = settings.NewSettingsFile("settings.json")
-	logger.config.SettingsPath = []string{"loggers", "test"}
-	logger.configLocker.Unlock()
-
-	if err := syscall.Kill(syscall.Getpid(), syscall.SIGHUP); err != nil {
-		suite.Fail("Failed to send the SIGHUP")
-	}
-	time.Sleep(time.Millisecond * 100)
-
-	// Classify is trace
-	assert.Equal(suite.T(), LogLevelDebug, logger.getLogLevel("classify", "classify"))
-}
-
-func (suite *TestLogger) TestLoadConfig_FileDoesNotExists() {
-	logger := suite.buildLogger()
-
-	// Modify log config and trigger SIGHUP signal
-	config := &LoggerConfig{}
-	config.SettingsFile = settings.NewSettingsFile("unkown.json")
-	config.SettingsPath = []string{"loggers", "test"}
-
-	logger.LoadConfig(config)
-
-	// Classify is default
-	assert.Equal(suite.T(), LogLevelInfo, logger.getLogLevel("classify", "classify"))
-}
-
 func (suite *TestLogger) buildLogger() *Logger {
-	settingsFile, err := settings.GetSettingsFileSingleton()
-	assert.Nil(suite.T(), err)
-
-	return NewLogger(settingsFile)
+	return NewLogger()
 }

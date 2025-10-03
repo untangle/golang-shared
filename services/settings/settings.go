@@ -16,6 +16,7 @@ import (
 	"time"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	logSvc "github.com/untangle/golang-shared/services/logger"
 	"github.com/untangle/golang-shared/plugins/util"
 	"github.com/untangle/golang-shared/services/filesystem"
 	"github.com/untangle/golang-shared/util/environments"
@@ -23,6 +24,10 @@ import (
 
 var logger loggerModel.LoggerLevels
 var once sync.Once
+
+func init() {
+	logger = logSvc.GetLoggerInstance()
+}
 
 const DefaultSettingsFileLocation = "/etc/config/settings.json"
 
@@ -63,11 +68,8 @@ var initSettingsFileLocker sync.RWMutex
 // Startup settings service
 // TODO: settings will eventually get the DI treatment. Once that happens, an
 // fs.FS interface should be provided over our specific specific interface
-func Startup(loggerInstance loggerModel.LoggerLevels) {
+func Startup() {
 	once.Do(func() {
-		logger = loggerInstance
-		util.Startup(loggerInstance)
-
 		settingsFile = locateOrDefault(settingsFile)
 		defaultsFile = locateOrDefault(defaultsFile)
 		currentFile = locateOrDefault(currentFile)
@@ -110,6 +112,15 @@ func GetSettingsFileSingleton() (*SettingsFile, error) {
 		WithLock(&saveLocker))
 
 	return settingsFileSingleton, err
+}
+
+// NewSettingsFileForTesting creates a new SettingsFile object for a given filename.
+// It is intended for use in tests.
+func NewSettingsFileForTesting(filename string) *SettingsFile {
+	return &SettingsFile{
+		filename: filename,
+		mutex:    &sync.RWMutex{},
+	}
 }
 
 // GetCurrentSettings returns the current settings from the specified path
