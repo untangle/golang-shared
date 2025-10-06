@@ -6,22 +6,20 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 
 	loggerModel "github.com/untangle/golang-shared/logger"
+	logSvc "github.com/untangle/golang-shared/services/logger"	
 	"github.com/untangle/golang-shared/util/environments"
 )
 
 var logger loggerModel.LoggerLevels
-var once sync.Once
 
-// Startup is placeholder for starting util
-func Startup(loggerInstance loggerModel.LoggerLevels) {
-	once.Do(func() {
-		logger = loggerInstance
-	})
+func init() {
+	logger = logSvc.GetLoggerInstance()
 }
+
+func Startup() {}
 
 // Shutdown is placeholder for shutting down util
 func Shutdown() {

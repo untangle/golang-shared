@@ -3,17 +3,13 @@ package logger
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/untangle/golang-shared/services/alerts"
-	"github.com/untangle/golang-shared/services/settings"
 	"github.com/untangle/golang-shared/structs/protocolbuffers/Alerts"
 
 	"github.com/untangle/golang-shared/services/overseer"
@@ -83,73 +79,36 @@ const LogLevelDebug int32 = 7
 const LogLevelTrace int32 = 8
 
 var loggerSingleton *Logger
-var once sync.Once
+
+func init() {
+	loggerSingleton = NewLogger()
+}
 
 // GetLoggerInstance returns a logger object that is singleton
 // with a wildcard loglevelmap as default.
 func GetLoggerInstance() *Logger {
-	once.Do(func() {
-		settingsFile, err := settings.GetSettingsFileSingleton()
-		loggerSingleton = NewLogger(settingsFile)
-
-		settings.Startup(loggerSingleton)
-
-		// The settings package can not log messages because the logger
-		// is not yet initialised. We catch errors during the initialisation
-		// of settings services needed so we can log them when the logger is
-		// ready. Even if the initialisation of the settings file returns an
-		// error, the settings file object might work because the constructor
-		// has fallback mechanisms.
-		if err != nil {
-			loggerSingleton.Err("Error initializing settings file: %v \n", err)
-		}
-		// calling LoadConfig un else would cause it to fail in GetLogLevelMapFromSettingsFile
-		// as DefaultLoggerConfig sets SettingsPath to an empty slice,
-		//  DefaultLoggerConfig sets LogLevelHighest and logLevelMap
-		// so we can just skip the call to LoadConfig
-		// if anyone wants to add LoadConfig call here make sure not to
-		// introduce false warning from SettingsPath being an empty slice
-	})
-
 	return loggerSingleton
 }
 
-// GetLoggerInstanceWithConfig returns a logger object, that's loaded with the config as well
-func GetLoggerInstanceWithConfig(conf *LoggerConfig) *Logger {
-	instance := GetLoggerInstance()
-	instance.LoadConfig(conf)
-	return instance
-}
-
-// SetLoggerInstance will override the singleton instance with a new instance reference
-// This is mostly used for testing concurrency
-func SetLoggerInstance(newSingleton *Logger) {
-	loggerSingleton = newSingleton
-}
-
 // NewLogger creates a new instance of the logger struct with wildcard config
-func NewLogger(settingsFile *settings.SettingsFile) *Logger {
+func NewLogger() *Logger {
 	var logCount uint64 = 0
 
 	logger := &Logger{
-		config:           DefaultLoggerConfig(settingsFile),
+		config:           DefaultLoggerConfig(),
 		launchTime:       time.Time{},
 		timestampEnabled: false,
 		timestampFormat:  time.DateOnly + " " + time.TimeOnly + ".000 ",
 		logCount:         &logCount,
 	}
 
-	logger.startRefreshConfigOnSIGHUP()
-
 	return logger
 }
 
 // DefaultLoggerConfig generates a default config with no file location, and INFO log for all log lines
-func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
+func DefaultLoggerConfig() *LoggerConfig {
 
 	return &LoggerConfig{
-		SettingsFile: settingsFile,
-		SettingsPath: []string{},
 		// Default logLevelMask is set to LogLevelInfo
 		LogLevelHighest: LogLevelInfo,
 		OutputWriter:    DefaultLogWriter("system"),
@@ -160,20 +119,11 @@ func DefaultLoggerConfig(settingsFile *settings.SettingsFile) *LoggerConfig {
 }
 
 // LoadConfig loads the config to the current logger
-// if we are able to load the config from settings file, we will
-// if we cannot, we will set info level for all
 func (logger *Logger) LoadConfig(conf *LoggerConfig) {
-	logLevelMap, err := conf.GetLogLevelMapFromSettingsFile()
-	if err != nil {
-		logger.Warn("Could not load logger config from settings file - using info level, err: %s\n", err)
-		logLevelMap = map[string]LogLevel{"*": {Name: "INFO"}}
-	}
-
 	//Set the instance config to this config
 	logger.configLocker.Lock()
 	defer logger.configLocker.Unlock()
 
-	conf.SetLogLevelMap(logLevelMap)
 	logger.config = conf
 }
 
@@ -200,21 +150,19 @@ func (logger *Logger) getLogCount() uint64 {
 
 // Startup starts the logging service
 func (logger *Logger) Startup() {
-	once.Do(func() {
-		// capture startup time
-		logger.launchTime = time.Now()
+	// capture startup time
+	logger.launchTime = time.Now()
 
-		// alerts use the logger, and the logger uses alerts
-		// pass the logger instance to the alerts
-		logger.alerts = alerts.Publisher(logger)
+	// alerts use the logger, and the logger uses alerts
+	// pass the logger instance to the alerts
+	logger.alerts = alerts.Publisher(logger)
 
-		if logger.config != nil {
-			// Set system logger to use our logger
-			if logger.config.OutputWriter != nil {
-				log.SetOutput(logger.config.OutputWriter)
-			}
+	if logger.config != nil {
+		// Set system logger to use our logger
+		if logger.config.OutputWriter != nil {
+			log.SetOutput(logger.config.OutputWriter)
 		}
-	})
+	}
 }
 
 // Name returns the service name
@@ -596,29 +544,4 @@ func FindLogLevelName(level int32) string {
 		return fmt.Sprintf("%d", level)
 	}
 	return logLevelName[level]
-}
-
-// startRefreshConfigOnSIGHUP reloads the config when SIGHUP signal is received
-func (logger *Logger) startRefreshConfigOnSIGHUP() {
-	started := make(chan struct{})
-	defer close(started)
-
-	go func() {
-		hupch := make(chan os.Signal, 1)
-		defer close(hupch)
-
-		signal.Notify(hupch, syscall.SIGHUP)
-
-		<-started
-
-		for {
-			sig := <-hupch
-
-			logger.Info("Received signal [%v]. Refreshing logger config\n", sig)
-			logger.LoadConfig(logger.config)
-		}
-
-	}()
-
-	started <- struct{}{}
 }
