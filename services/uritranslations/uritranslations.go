@@ -133,7 +133,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 	if uriMap == nil {
 		buildMaps()
 	}
-
+	logger.Info("uri %s and path %v\n", uri, path)
 	parsedURL, err := url.Parse(uri)
 	if err != nil {
 		// Unable to parse uri.
@@ -141,17 +141,21 @@ func getURITranslation(uri string, path bool) (string, error) {
 		err = fmt.Errorf("Unable to parse uri=%v", uri)
 	} else {
 		// Get and clear query from parsed
+		logger.Info("parsedURL.RawQuery %v\n", parsedURL.RawQuery)
 		rawQuery := parsedURL.RawQuery
 		parsedURL.RawQuery = ""
-
+		logger.Info("parsedURL.Host %+v\n", parsedURL)
+		logger.Info("parsedURL.Host %v\n", parsedURL.Host)
+		logger.Info("parsedURL.String() %v\n", parsedURL.String())
 		mapMutex.RLock()
+
 		if path {
 			translatedURL, ok = hostMap[parsedURL.Host]
 		} else {
 			translatedURL, ok = uriMap[parsedURL.String()]
 		}
 		mapMutex.RUnlock()
-
+		logger.Info("translatedURL %+v\n", translatedURL)
 		if !ok {
 			// Translation not found
 			logger.Err("Unable to find url=%v\n", uri)
@@ -171,6 +175,7 @@ func getURITranslation(uri string, path bool) (string, error) {
 			// Add query back.
 			parsedURL.RawQuery = rawQuery
 			uri = parsedURL.String()
+			logger.Info("uri %s\n", uri)
 		}
 	}
 
